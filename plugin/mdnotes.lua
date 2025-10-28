@@ -12,6 +12,7 @@ local subcommands = {
     show_backlinks = mdnotes.show_backlinks,
     toggle_outliner = mdnotes.toggle_outliner,
     insert_image = mdnotes.insert_image,
+    insert_file = mdnotes.insert_file,
 }
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
