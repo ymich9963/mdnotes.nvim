@@ -12,14 +12,13 @@ A plugin to create a great note-taking experience in Neovim.
 - Supports Windows eccentricities.
 
 TODO: Mention in the docs that this can be done with LSP vim.lsp.buf.references()
-TODO: Check for conflicts and have an overwrite_behaviour option to specify
 TODO: Do a back/forward thing to move from buffers
 TODO: Option to open links in new tabs or split buffers
-TODO: Add move or copy for assets
 TODO: Add a cleanup option to cleanup unused assets
 TODO: Talk about LSPs
 TODO: Renaming backlinks and the file
 TODO: Talk about the link types
+TODO: Support # in name open wiki links
 ## Setup
 
 ### Recommendations

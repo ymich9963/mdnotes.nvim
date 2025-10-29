@@ -118,12 +118,6 @@ function  mdnotes.toggle_outliner()
     end
 end
 
-local function get_current_dir()
-    local info = debug.getinfo(1, "S")
-    local source = info.source:sub(2)
-    return vim.fn.fnamemodify(source, ":p:h"):gsub("\\", "/") .. "/"
-end
-
 local function insert_file(file_type)
     -- Check for assets folder
     if mdnotes.config.assets_path == "" or not mdnotes.config.assets_path then
@@ -138,7 +132,7 @@ local function insert_file(file_type)
 
     -- Get the file paths as a table
     local file_paths = vim.split(
-        vim.system({get_current_dir() .. '../../bin/gcfp.exe'}, { text = true }):wait().stdout, '\n'
+        vim.system({vim.fs.normalize('../../bin/gcfp.exe')}, { text = true }):wait().stdout, '\n'
     )
 
     -- Remove last entry since it will always be '\n'
@@ -155,33 +149,33 @@ local function insert_file(file_type)
         return
     end
 
-    -- Make sure '/' is the path separator
-    local file = file_paths[1]
-    local cmd = {}
-    if vim.fn.has("win32") == 1 then
-        mdnotes.config.assets_path = mdnotes.config.assets_path:gsub('/', '\\')
-        cmd = { "cmd", "/C", "copy", file, mdnotes.config.assets_path}
-    else
-        cmd = { "cp", file, mdnotes.config.assets_path }
+    local file_path = vim.fs.normalize(file_paths[1])
+    local file_name = vim.fs.basename(file_path)
+
+    -- Check overwrite behaviour
+    if (vim.uv or vim.loop).fs_stat(vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
+        if mdnotes.config.overwrite_behaviour == "error" then
+            vim.notify(("Mdn: File you are trying to place into your assets already exists."), vim.log.levels.ERROR)
+            return
+        elseif mdnotes.config.overwrite_behaviour == "overwrite" then
+        end
     end
 
-    local cmd_res = vim.system(cmd, { text = true }):wait()
-
-    if cmd_res.code ~= 0 then
-        vim.notify(("Mdn: File copy failed: %s"):format(cmd_res.stdout or cmd_res.stderr):gsub("[%c]", ""), vim.log.levels.ERROR)
-        return
+    if mdnotes.config.insert_file_behaviour == "copy" then
+        if not (vim.uv or vim.loop).fs_copyfile(file_path, vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
+            vim.notify(("Mdn: File copy failed."), vim.log.levels.ERROR)
+            return
+        else
+            vim.notify(('Mdn: Copied %s to your assets folder at %s.'):format(file_path, mdnotes.config.assets_path), vim.log.levels.INFO)
+        end
+    elseif mdnotes.config.insert_file_behaviour == "move" then
+        if (vim.uv or vim.loop).fs_rename(file_path, vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
+            vim.notify(("Mdn: File move failed."), vim.log.levels.ERROR)
+            return
+        else
+            vim.notify(('Mdn: Moved %s to your assets folder at %s.'):format(file_path, mdnotes.config.assets_path), vim.log.levels.INFO)
+        end
     end
-
-    vim.notify(('Mdn: Copied %s to your assets folder at %s.'):format(file, mdnotes.config.assets_path), vim.log.levels.INFO)
-
-    local file_split = {}
-    if vim.fn.has("win32") == 1 then
-        file_split = vim.split(file, "\\")
-    else
-        file_split = vim.split(file, "/")
-    end
-
-    local file_name = file_split[#file_split]
 
     -- Create file link
     if file_type == "image" then
