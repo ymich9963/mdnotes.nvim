@@ -7,6 +7,7 @@ local mdnotes = require('mdnotes')
 
 local subcommands = {
     home = mdnotes.go_to_index_file,
+    journal = mdnotes.go_to_journal_file,
     open_wikilink = mdnotes.open_md_file_wikilink,
     toggle_hyperlink = mdnotes.toggle_hyperlink,
     show_backlinks = mdnotes.show_backlinks,
@@ -37,7 +38,6 @@ end,
     range = true,
 })
 
--- Put them in after/ftplugin/markdown.lua with buffer = true so that the keymaps are markdown only
--- Advise for these keymaps and everything else that might be put into a markdown.lua
 vim.keymap.set('n', 'gf', ':Mdn open_wikilink<CR>', { desc = "Open markdown file from Wikilink" })
 vim.keymap.set({"v", "n"}, '<C-K>', ':Mdn toggle_hyperlink<CR>', { desc = "Toggle hyperlink" })
+vim.opt.isfname:remove('[', ']') -- To enable path completion on Windows <C-x> <C-f>

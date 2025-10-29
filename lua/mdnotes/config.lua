@@ -4,7 +4,7 @@ local default_config = {
     index_file = "",
     diary_file = "",
     assets_path = "",
-    insert_image_behaviour = "copy", -- TODO: can be copy or move
+    insert_image_behaviour = "copy",
 }
 
 function M.setup(user_config)

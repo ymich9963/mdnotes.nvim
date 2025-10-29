@@ -12,7 +12,7 @@ function mdnotes.go_to_index_file()
     vim.cmd('edit ' .. mdnotes.config.index_file)
 end
 
-function mdnotes.go_to_diary_file()
+function mdnotes.go_to_journal_file()
     if mdnotes.config.diary_file == "" then
         vim.notify(("Mdn: Please specify a diary file to use this feature."), vim.log.levels.ERROR)
         return
@@ -27,7 +27,11 @@ function mdnotes.open_md_file_wikilink()
 
     for start_pos, file ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
         if start_pos < current_col and end_pos > current_col then
-            vim.cmd('edit ' .. file .. '.md')
+            if file:sub(-3) == ".md" then
+                vim.cmd('edit ' .. file)
+            else
+                vim.cmd('edit ' .. file .. '.md')
+            end
         end
     end
 end
@@ -73,7 +77,6 @@ function mdnotes.insert_hyperlink()
 end
 
 function mdnotes.delete_hyperlink()
-    -- TODO: Make this better? Make it check for all link types
     vim.api.nvim_input('F[di[F[vf)p')
 end
 
@@ -85,8 +88,6 @@ function mdnotes.toggle_hyperlink()
     end
 end
 
--- TODO: Mention in the docs that this can be done with LSP
--- vim.lsp.buf.references()
 function mdnotes.show_backlinks()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
@@ -100,8 +101,6 @@ function mdnotes.show_backlinks()
 end
 
 local outliner_state = false
--- TODO: Make it so that indenting on block indents everything below?
--- OR mention the << and >> keymaps that you can do
 function  mdnotes.toggle_outliner()
     if outliner_state then
         vim.api.nvim_buf_del_keymap(0 ,'i', '<CR>')
@@ -125,9 +124,7 @@ local function get_current_dir()
     return vim.fn.fnamemodify(source, ":p:h"):gsub("\\", "/") .. "/"
 end
 
--- TODO: Check for conflicts and have an overwrite_behaviour option to specify
--- TODO: Insert a regular file as well without !
-function mdnotes.insert_image()
+local function insert_file(file_type)
     -- Check for assets folder
     if mdnotes.config.assets_path == "" or not mdnotes.config.assets_path then
         vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
@@ -183,14 +180,27 @@ function mdnotes.insert_image()
     else
         file_split = vim.split(file, "/")
     end
+
     local file_name = file_split[#file_split]
 
-    -- Create image link
-    vim.fn.setreg('"x', ('![%s](%s)'):format(file_name, vim.fs.joinpath(mdnotes.config.assets_path, file_name)))
+    -- Create file link
+    if file_type == "image" then
+        vim.fn.setreg('"x', ('![%s](%s)'):format(file_name, vim.fs.joinpath(mdnotes.config.assets_path, file_name)))
+    elseif file_type == "file" then
+        vim.fn.setreg('"x', ('[%s](%s)'):format(file_name, vim.fs.joinpath(mdnotes.config.assets_path, file_name)))
+    end
 
     -- Put text from register x
     vim.cmd('put')
+end
 
+function mdnotes.insert_image()
+    insert_file("image")
+end
+
+function mdnotes.insert_file()
+    insert_file("file")
 end
 
 return mdnotes
+
