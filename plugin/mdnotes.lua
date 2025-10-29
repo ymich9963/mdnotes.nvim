@@ -5,6 +5,18 @@ vim.g.loaded_mdnotes = true
 
 local mdnotes = require('mdnotes')
 
+-- To record buffer changes
+vim.api.nvim_create_autocmd("BufEnter", {
+    pattern = "*.md",
+    callback = function(args)
+        local bufnr = args.buf
+        if mdnotes.current_index == 0 or mdnotes.buf_history[mdnotes.current_index] ~= bufnr then
+            table.insert(mdnotes.buf_history, bufnr)
+            mdnotes.current_index = #mdnotes.buf_history
+        end
+    end,
+})
+
 local subcommands = {
     home = mdnotes.go_to_index_file,
     journal = mdnotes.go_to_journal_file,
@@ -14,6 +26,8 @@ local subcommands = {
     toggle_outliner = mdnotes.toggle_outliner,
     insert_image = mdnotes.insert_image,
     insert_file = mdnotes.insert_file,
+    go_back = mdnotes.go_back,
+    go_forward = mdnotes.go_forward,
 }
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
@@ -24,7 +38,7 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     if func then
         func()
     else
-        vim.notify("Unknown subcommand: " .. (subcmd or ""), vim.log.levels.INFO)
+        vim.notify("Unknown subcommand: " .. (subcmd or ""), vim.log.levels.WARN)
     end
 end,
 {

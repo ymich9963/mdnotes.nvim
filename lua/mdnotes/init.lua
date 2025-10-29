@@ -188,6 +188,37 @@ local function insert_file(file_type)
     vim.cmd('put')
 end
 
+-- Keep track of buffer history
+mdnotes.buf_history = {}
+mdnotes.current_index = 0
+
+-- Go back
+function mdnotes.go_back()
+    if mdnotes.current_index > 1 then
+        mdnotes.current_index = mdnotes.current_index - 1
+        local prev_buf = mdnotes.buf_history[mdnotes.current_index]
+        if vim.api.nvim_buf_is_valid(prev_buf) then
+            vim.cmd("buffer " .. prev_buf)
+        end
+        vim.print(mdnotes.buf_history)
+    else
+        vim.notify("Mdn: No more buffers to go back to.", vim.log.levels.WARN)
+    end
+end
+
+-- Go forward
+function mdnotes.go_forward()
+    if mdnotes.current_index < #mdnotes.buf_history then
+        mdnotes.current_index = mdnotes.current_index + 1
+        local next_buf = mdnotes.buf_history[mdnotes.current_index]
+        if vim.api.nvim_buf_is_valid(next_buf) then
+            vim.cmd("buffer " .. next_buf)
+        end
+    else
+        vim.notify("Mdn: No more buffers to go forward to.", vim.log.levels.WARN)
+    end
+end
+
 function mdnotes.insert_image()
     insert_file("image")
 end
