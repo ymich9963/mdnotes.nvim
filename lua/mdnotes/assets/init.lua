@@ -73,7 +73,7 @@ function mdnotes.insert_hyperlink()
 end
 
 function mdnotes.delete_hyperlink()
-    -- TODO: Make this better? Make it check for all link types
+    -- TODO: Make this better?
     vim.api.nvim_input('F[di[F[vf)p')
 end
 
@@ -126,7 +126,6 @@ local function get_current_dir()
 end
 
 -- TODO: Check for conflicts and have an overwrite_behaviour option to specify
--- TODO: Insert a regular file as well without !
 function mdnotes.insert_image()
     -- Check for assets folder
     if mdnotes.config.assets_path == "" or not mdnotes.config.assets_path then
@@ -190,7 +189,6 @@ function mdnotes.insert_image()
 
     -- Put text from register x
     vim.cmd('put')
-
 end
 
 return mdnotes
