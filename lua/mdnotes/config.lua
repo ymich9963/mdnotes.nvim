@@ -2,7 +2,8 @@ local M = {}
 
 local default_config = {
     index_file = "",
-    assets_path = "", 
+    diary_file = "",
+    assets_path = "",
     insert_image_behaviour = "copy", -- TODO: can be copy or move
 }
 

@@ -12,6 +12,14 @@ function mdnotes.go_to_index_file()
     vim.cmd('edit ' .. mdnotes.config.index_file)
 end
 
+function mdnotes.go_to_diary_file()
+    if mdnotes.config.diary_file == "" then
+        vim.notify(("Mdn: Please specify a diary file to use this feature."), vim.log.levels.ERROR)
+        return
+    end
+    vim.cmd('edit ' .. mdnotes.config.diary_file)
+end
+
 -- Simulate the map gf :e <cfile>.md<CR> so that it works with spaces
 function mdnotes.open_md_file_wikilink()
     local line = vim.api.nvim_get_current_line()
