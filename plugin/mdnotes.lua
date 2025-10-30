@@ -1,6 +1,7 @@
 -- TODO: Make this configurable
 local index_file = "MAIN.md"
-local assets_path = "assets" -- can be absolute or relative 
+local assets_path = "assets" -- can be absolute or relative path
+local insert_image_behaviour = "copy" -- can be copy or move
 
 local go_to_home_file = function()
     vim.cmd('edit ' .. index_file)
@@ -31,6 +32,8 @@ local check_md_hyperlink = function()
     return false
 end
 
+-- Had to make it a fully Lua function due to issues when selecting
+-- with visual mode and executing a command.
 local insert_hyperlink = function()
     local reg = vim.fn.getreg('+')
 
@@ -48,20 +51,17 @@ local insert_hyperlink = function()
     local line = vim.api.nvim_get_current_line()
     local selected_text = line:sub(col_start, col_end)
 
-    -- Create a new modified line
-    local new_line = line:sub(1, col_start - 1) .. '[' .. selected_text .. ']()' .. line:sub(col_end + 1)
+    -- Create a new modified line with link
+    local new_line = line:sub(1, col_start - 1) .. '[' .. selected_text .. '](' .. reg .. ')' .. line:sub(col_end + 1)
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
-
-    -- Insert hyperlink from clipboard
-    vim.api.nvim_input('"+p')
 end
 
 local delete_hyperlink = function()
-    -- TODO: Make this better
-    vim.api.nvim_input('di[F[vf)p')
+    -- TODO: Make this better?
+    vim.api.nvim_input('F[di[F[vf)p')
 end
 
 local toggle_hyperlink = function()
@@ -79,6 +79,7 @@ local show_backlinks_no_lsp = function()
     for start_pos, file ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
         if start_pos < current_col and end_pos > current_col then
             vim.cmd('vimgrep /\\[\\[' .. file .. '\\]\\]/ *')
+            vim.cmd('copen')
         end
     end
 end
@@ -93,19 +94,59 @@ local outliner_enable = function()
     vim.api.nvim_input("<ESC>0i- ")
     vim.keymap.set('i', '<CR>', '<CR>- ', { buffer = true })
     vim.keymap.set('i', '<TAB>', '<C-t>', { buffer = true })
-    vim.keymap.set('i', '<S-Tab>', '<C-d>', { buffer = true })
-    vim.notify("Entered MDNotes Outliner Mode", vim.log.levels.INFO)
+    vim.keymap.set('i', '<S-TAB>', '<C-d>', { buffer = true })
+    vim.notify("Mdn: Entered Mdnotes Outliner Mode", vim.log.levels.INFO)
 end
 
 local outliner_disable = function()
     vim.api.nvim_buf_del_keymap(0 ,'i', '<CR>')
     vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
     vim.api.nvim_buf_del_keymap(0 ,'i', '<S-TAB>')
-    vim.notify("Exited MDNotes Outliner Mode", vim.log.levels.INFO)
+    vim.notify("Mdn: Exited Mdnotes Outliner Mode", vim.log.levels.INFO)
 end
 
 local insert_image = function()
-    print("dev")
+    -- Get the file paths as a table
+    local file_paths = vim.split(
+        vim.system({'../bin/gcfp.exe'}, { text = true }):wait().stdout, '\n'
+    )
+
+    -- Remove last entry since it will always be '\n'
+    table.remove(file_paths)
+
+    if #file_paths > 1 then
+        vim.notify('Mdn: Too many files paths detected. Please select only one file', vim.log.levels.WARN)
+        return
+    end
+
+    local file = file_paths[1]
+
+    -- Exit if none found
+    if file == 'None' then
+        vim.notify('Mdn: No file paths found in clipboard', vim.log.levels.WARN)
+        return
+    end
+
+    -- Make sure '/' is the path separator
+    file:gsub('\\\\', '/')
+
+    local cwd = vim.fn.getcwd(0):gsub('\\\\', '/')
+
+    local cmd = {}
+    if vim.fn.has("win32") == 1 then
+        cmd = { "cmd", "/C", "copy", file, cwd .. '/' .. assets_path }
+    else
+        cmd = { "cp", file, cwd .. '/' .. assets_path }
+    end
+    vim.print(cmd)
+
+    local cmd_res = vim.system(cmd, { text = true }):wait()
+
+    if cmd_res.code ~= 0 then
+        vim.notify(("Mdn: File copy failed: %s"):format(cmd_res.stdout or cmd_res.stderr), vim.log.levels.ERROR)
+    end
+
+    -- vim.notify('Mdn: Copied ' .. file .. 'to your assets folder', vim.log.levels.INFO)
 end
 
 local subcommands = {
