@@ -2,8 +2,8 @@ local M = {}
 
 local default_config = {
     index_file = "",
-    assets_path = "", -- works only for absolute paths TODO: Make it work for relative
-    insert_image_behaviour = "copy", -- can be copy or move
+    assets_path = "", 
+    insert_image_behaviour = "copy", -- TODO: can be copy or move
 }
 
 function M.setup(user_config)

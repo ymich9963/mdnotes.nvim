@@ -6,7 +6,7 @@ end
 
 function mdnotes.go_to_index_file()
     if mdnotes.config.index_file == "" then
-        vim.notify(("Mdn: Please specify assets path to use this feature"), vim.log.levels.ERROR)
+        vim.notify(("Mdn: Please specify an index file to use this feature."), vim.log.levels.ERROR)
         return
     end
     vim.cmd('edit ' .. mdnotes.config.index_file)
@@ -99,14 +99,14 @@ function  mdnotes.toggle_outliner()
         vim.api.nvim_buf_del_keymap(0 ,'i', '<CR>')
         vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
         vim.api.nvim_buf_del_keymap(0 ,'i', '<S-TAB>')
-        vim.notify("Mdn: Exited Mdnotes Outliner Mode", vim.log.levels.INFO)
+        vim.notify("Mdn: Exited Mdnotes Outliner Mode.", vim.log.levels.INFO)
         outliner_state = false
     elseif not outliner_state then
         vim.api.nvim_input("<ESC>0i-  <ESC>")
         vim.keymap.set('i', '<CR>', '<CR>- ', { buffer = true })
         vim.keymap.set('i', '<TAB>', '<C-t>', { buffer = true })
         vim.keymap.set('i', '<S-TAB>', '<C-d>', { buffer = true })
-        vim.notify("Mdn: Entered Mdnotes Outliner Mode", vim.log.levels.INFO)
+        vim.notify("Mdn: Entered Mdnotes Outliner Mode.", vim.log.levels.INFO)
         outliner_state = true
     end
 end
@@ -120,13 +120,13 @@ end
 -- TODO: Check for conflicts and have an overwrite_behaviour option to specify
 function mdnotes.insert_image()
     -- Check for assets folder
-    if mdnotes.config.assets_path == "" then
-        vim.notify(("Mdn: Please specify assets path to use this feature"), vim.log.levels.ERROR)
+    if mdnotes.config.assets_path == "" or not mdnotes.config.assets_path then
+        vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
         return
     end
 
-    if not vim.fn.isdirectory(mdnotes.config.assets_path) then
-        vim.notify(("Mdn: Assets path %s doesn't exist"):format(mdnotes.config.assets_path), vim.log.levels.ERROR)
+    if vim.fn.isdirectory(mdnotes.config.assets_path) == 0 then
+        vim.notify(("Mdn: Assets path %s doesn't exist. Change path or create it."):format(mdnotes.config.assets_path), vim.log.levels.ERROR)
         return
     end
 
@@ -139,13 +139,13 @@ function mdnotes.insert_image()
     table.remove(file_paths)
 
     if #file_paths > 1 then
-        vim.notify('Mdn: Too many files paths detected. Please select only one file', vim.log.levels.WARN)
+        vim.notify('Mdn: Too many files paths detected. Please select only one file.', vim.log.levels.WARN)
         return
     end
 
     -- Exit if none found
     if file_paths[1] == 'None' then
-        vim.notify('Mdn: No file paths found in clipboard', vim.log.levels.WARN)
+        vim.notify('Mdn: No file paths found in clipboard.', vim.log.levels.WARN)
         return
     end
 
@@ -153,8 +153,7 @@ function mdnotes.insert_image()
     local file = file_paths[1]
     local cmd = {}
     if vim.fn.has("win32") == 1 then
-        mdnotes.config.assets_path = mdnotes.config.assets_path:gsub('/', '\\')
-        cmd = { "cmd", "/C", "copy", file, mdnotes.config.assets_path}
+        cmd = { "cmd", "/C", "copy", file, mdnotes.config.assets_path:gsub('/', '\\')}
     else
         cmd = { "cp", file, mdnotes.config.assets_path }
     end
@@ -162,10 +161,11 @@ function mdnotes.insert_image()
     local cmd_res = vim.system(cmd, { text = true }):wait()
 
     if cmd_res.code ~= 0 then
-        vim.notify(("Mdn: File copy failed: %s"):format(cmd_res.stdout or cmd_res.stderr), vim.log.levels.ERROR)
+        vim.notify(("Mdn: File copy failed: %s"):format(cmd_res.stdout or cmd_res.stderr):gsub("[%c]", ""), vim.log.levels.ERROR)
+        return
     end
 
-    vim.notify('Mdn: Copied ' .. file .. ' to your assets folder', vim.log.levels.INFO)
+    vim.notify(('Mdn: Copied %s to your assets folder at %s.'):format(file, mdnotes.config.assets_path), vim.log.levels.INFO)
 end
 
 return mdnotes
