@@ -88,21 +88,24 @@ local show_backlinks_lsp = function()
     vim.lsp.buf.references()
 end
 
+local outliner_state = false
 -- TODO: Make it so that indenting on block indents everything below
 -- OR mention the << and >> keymaps that you can do
-local outliner_enable = function()
-    vim.api.nvim_input("<ESC>0i- ")
-    vim.keymap.set('i', '<CR>', '<CR>- ', { buffer = true })
-    vim.keymap.set('i', '<TAB>', '<C-t>', { buffer = true })
-    vim.keymap.set('i', '<S-TAB>', '<C-d>', { buffer = true })
-    vim.notify("Mdn: Entered Mdnotes Outliner Mode", vim.log.levels.INFO)
-end
-
-local outliner_disable = function()
-    vim.api.nvim_buf_del_keymap(0 ,'i', '<CR>')
-    vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
-    vim.api.nvim_buf_del_keymap(0 ,'i', '<S-TAB>')
-    vim.notify("Mdn: Exited Mdnotes Outliner Mode", vim.log.levels.INFO)
+local outliner_toggle = function ()
+    if outliner_state then
+        vim.api.nvim_buf_del_keymap(0 ,'i', '<CR>')
+        vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
+        vim.api.nvim_buf_del_keymap(0 ,'i', '<S-TAB>')
+        vim.notify("Mdn: Exited Mdnotes Outliner Mode", vim.log.levels.INFO)
+        outliner_state = false
+    elseif not outliner_state then
+        vim.api.nvim_input("<ESC>0i-  <ESC>")
+        vim.keymap.set('i', '<CR>', '<CR>- ', { buffer = true })
+        vim.keymap.set('i', '<TAB>', '<C-t>', { buffer = true })
+        vim.keymap.set('i', '<S-TAB>', '<C-d>', { buffer = true })
+        vim.notify("Mdn: Entered Mdnotes Outliner Mode", vim.log.levels.INFO)
+        outliner_state = true
+    end
 end
 
 local insert_image = function()
@@ -159,8 +162,7 @@ local subcommands = {
     insert_hyperlink = insert_hyperlink,
     show_backlinks_no_lsp = show_backlinks_no_lsp,
     show_backlinks_lsp = show_backlinks_lsp,
-    outliner_enable = outliner_enable,
-    outliner_disable = outliner_disable,
+    outliner_toggle = outliner_toggle,
     insert_image = insert_image,
 }
 
