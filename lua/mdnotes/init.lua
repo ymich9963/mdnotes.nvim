@@ -5,7 +5,7 @@ function mdnotes.setup(user_config)
 end
 
 function mdnotes.go_to_index_file()
-    if not mdnotes.config.index_file then
+    if mdnotes.config.index_file == "" then
         vim.notify(("Mdn: Please specify assets path to use this feature"), vim.log.levels.ERROR)
         return
     end
@@ -70,10 +70,10 @@ function mdnotes.delete_hyperlink()
 end
 
 function mdnotes.toggle_hyperlink()
-    if check_md_hyperlink() then
-        delete_hyperlink()
+    if mdnotes.check_md_hyperlink() then
+        mdnotes.delete_hyperlink()
     else
-        insert_hyperlink()
+        mdnotes.insert_hyperlink()
     end
 end
 
@@ -92,7 +92,7 @@ function mdnotes.show_backlinks()
 end
 
 local outliner_state = false
--- TODO: Make it so that indenting on block indents everything below
+-- TODO: Make it so that indenting on block indents everything below?
 -- OR mention the << and >> keymaps that you can do
 function  mdnotes.toggle_outliner()
     if outliner_state then
@@ -117,10 +117,10 @@ local function get_current_dir()
     return vim.fn.fnamemodify(source, ":p:h"):gsub("\\", "/") .. "/"
 end
 
-
+-- TODO: Check for conflicts and have an overwrite_behaviour option to specify
 function mdnotes.insert_image()
     -- Check for assets folder
-    if not mdnotes.config.assets_path then
+    if mdnotes.config.assets_path == "" then
         vim.notify(("Mdn: Please specify assets path to use this feature"), vim.log.levels.ERROR)
         return
     end

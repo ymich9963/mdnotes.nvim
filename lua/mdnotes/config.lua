@@ -1,8 +1,8 @@
 local M = {}
 
 local default_config = {
-    index_file = nil,
-    assets_path = nil, -- works only for absolute paths TODO: Make it work for relative
+    index_file = "",
+    assets_path = "", -- works only for absolute paths TODO: Make it work for relative
     insert_image_behaviour = "copy", -- can be copy or move
 }
 
