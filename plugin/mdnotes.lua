@@ -1,6 +1,6 @@
 -- TODO: Make this configurable
 local index_file = "MAIN.md"
-local assets_path = "assets" -- can be absolute or relative path
+local assets_path = "" -- works only for absolute paths TODO: Make it work for relative
 local insert_image_behaviour = "copy" -- can be copy or move
 
 local go_to_home_file = function()
@@ -106,6 +106,12 @@ local outliner_disable = function()
 end
 
 local insert_image = function()
+    -- Check for assets folder
+    if not vim.fn.isdirectory(assets_path) then
+        vim.notify(("Mdn: Assets path %s doesn't exist"):format(assets_path), vim.log.levels.ERROR)
+        return
+    end
+
     -- Get the file paths as a table
     local file_paths = vim.split(
         vim.system({'../bin/gcfp.exe'}, { text = true }):wait().stdout, '\n'
@@ -119,26 +125,22 @@ local insert_image = function()
         return
     end
 
-    local file = file_paths[1]
-
     -- Exit if none found
-    if file == 'None' then
+    if file_paths[1] == 'None' then
         vim.notify('Mdn: No file paths found in clipboard', vim.log.levels.WARN)
         return
     end
 
     -- Make sure '/' is the path separator
-    file:gsub('\\\\', '/')
-
-    local cwd = vim.fn.getcwd(0):gsub('\\\\', '/')
-
+    local file = file_paths[1]
+    local cwd = vim.fn.getcwd(0)
     local cmd = {}
     if vim.fn.has("win32") == 1 then
-        cmd = { "cmd", "/C", "copy", file, cwd .. '/' .. assets_path }
+        assets_path = assets_path:gsub('/', '\\')
+        cmd = { "cmd", "/C", "copy", file, assets_path}
     else
-        cmd = { "cp", file, cwd .. '/' .. assets_path }
+        cmd = { "cp", file, assets_path }
     end
-    vim.print(cmd)
 
     local cmd_res = vim.system(cmd, { text = true }):wait()
 
@@ -146,7 +148,7 @@ local insert_image = function()
         vim.notify(("Mdn: File copy failed: %s"):format(cmd_res.stdout or cmd_res.stderr), vim.log.levels.ERROR)
     end
 
-    -- vim.notify('Mdn: Copied ' .. file .. 'to your assets folder', vim.log.levels.INFO)
+    vim.notify('Mdn: Copied ' .. file .. 'to your assets folder', vim.log.levels.INFO)
 end
 
 local subcommands = {
