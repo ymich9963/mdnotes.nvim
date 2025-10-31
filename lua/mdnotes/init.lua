@@ -4,34 +4,70 @@ function mdnotes.setup(user_config)
     mdnotes.config = require('mdnotes.config').setup(user_config)
 end
 
+local function resolve_open_behaviour(open_behaviour)
+    if open_behaviour == "buffer" then
+        return 'edit '
+    elseif open_behaviour == "tab" then
+        return 'tabnew '
+    end
+
+    vim.notify(("Mdn: Invalid value in 'open_behaviour'."), vim.log.levels.ERROR)
+    return nil
+end
+
+local function check_assets_path()
+    if mdnotes.config.assets_path == "" or not mdnotes.config.assets_path then
+        vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
+        return false
+    end
+
+    if vim.fn.isdirectory(mdnotes.config.assets_path) == 0 then
+        vim.notify(("Mdn: Assets path %s doesn't exist. Change path or create it."):format(mdnotes.config.assets_path), vim.log.levels.ERROR)
+        return false
+    end
+
+    return true
+end
+
 function mdnotes.go_to_index_file()
     if mdnotes.config.index_file == "" then
         vim.notify(("Mdn: Please specify an index file to use this feature."), vim.log.levels.ERROR)
         return
     end
-    vim.cmd('edit ' .. mdnotes.config.index_file)
+
+    local open = resolve_open_behaviour()
+    if not open then return end
+
+    vim.cmd(open .. mdnotes.config.index_file)
 end
 
 function mdnotes.go_to_journal_file()
-    if mdnotes.config.diary_file == "" then
+    if mdnotes.config.journal_file == "" then
         vim.notify(("Mdn: Please specify a diary file to use this feature."), vim.log.levels.ERROR)
         return
     end
-    vim.cmd('edit ' .. mdnotes.config.diary_file)
+
+    local open = resolve_open_behaviour()
+    if not open then return end
+
+    vim.cmd(open .. mdnotes.config.journal_file)
 end
 
 -- Simulate the map gf :e <cfile>.md<CR> so that it works with spaces
 function mdnotes.open_md_file_wikilink()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
+    local open = resolve_open_behaviour()
+    if not open then return end
 
     for start_pos, file ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
         if start_pos < current_col and end_pos > current_col then
             if file:sub(-3) == ".md" then
-                vim.cmd('edit ' .. file)
+                vim.cmd(open .. file)
             else
-                vim.cmd('edit ' .. file .. '.md')
+                vim.cmd(open .. file .. '.md')
             end
+            break
         end
     end
 end
@@ -96,6 +132,7 @@ function mdnotes.show_backlinks()
         if start_pos < current_col and end_pos > current_col then
             vim.cmd('vimgrep /\\[\\[' .. file .. '\\]\\]/ *')
             vim.cmd('copen')
+            break
         end
     end
 end
@@ -119,16 +156,7 @@ function  mdnotes.toggle_outliner()
 end
 
 local function insert_file(file_type)
-    -- Check for assets folder
-    if mdnotes.config.assets_path == "" or not mdnotes.config.assets_path then
-        vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
-        return
-    end
-
-    if vim.fn.isdirectory(mdnotes.config.assets_path) == 0 then
-        vim.notify(("Mdn: Assets path %s doesn't exist. Change path or create it."):format(mdnotes.config.assets_path), vim.log.levels.ERROR)
-        return
-    end
+    if not check_assets_path() then return end
 
     -- Get the file paths as a table
     local file_paths = vim.split(
@@ -188,35 +216,42 @@ local function insert_file(file_type)
     vim.cmd('put')
 end
 
--- Keep track of buffer history
 mdnotes.buf_history = {}
 mdnotes.current_index = 0
 
--- Go back
 function mdnotes.go_back()
     if mdnotes.current_index > 1 then
         mdnotes.current_index = mdnotes.current_index - 1
         local prev_buf = mdnotes.buf_history[mdnotes.current_index]
         if vim.api.nvim_buf_is_valid(prev_buf) then
             vim.cmd("buffer " .. prev_buf)
+        else
+            vim.notify("Mdn: Attempting to access an invalid buffer.", vim.log.levels.ERROR)
         end
-        vim.print(mdnotes.buf_history)
+        vim.print('cur index:' .. mdnotes.current_index .. ',cur buff:' .. prev_buf)
+        vim.print( mdnotes.buf_history)
     else
         vim.notify("Mdn: No more buffers to go back to.", vim.log.levels.WARN)
     end
 end
 
--- Go forward
 function mdnotes.go_forward()
     if mdnotes.current_index < #mdnotes.buf_history then
         mdnotes.current_index = mdnotes.current_index + 1
         local next_buf = mdnotes.buf_history[mdnotes.current_index]
         if vim.api.nvim_buf_is_valid(next_buf) then
             vim.cmd("buffer " .. next_buf)
+        else
+            vim.notify("Mdn: Attempting to access an invalid buffer.", vim.log.levels.ERROR)
         end
     else
         vim.notify("Mdn: No more buffers to go forward to.", vim.log.levels.WARN)
     end
+end
+
+function mdnotes.clear_history()
+    mdnotes.buf_history = {}
+    mdnotes.current_index = 0
 end
 
 function mdnotes.insert_image()
@@ -226,6 +261,46 @@ end
 function mdnotes.insert_file()
     insert_file("file")
 end
+
+function mdnotes.cleanup_unused_assets()
+    if not check_assets_path() then return end
+
+    local temp_qflist = vim.fn.getqflist()
+    local cleanup_all = false
+    for name, _ in vim.fs.dir(mdnotes.config.assets_path) do
+        local vimgrep_ret = vim.cmd.vimgrep({args = {'/\\[\\[' .. name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+        if vimgrep_ret == "" then
+            if not cleanup_all then
+                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to delete file(s) (default 'n'): "):format(name), }, function(input)
+                    if input == 'y' then
+                        vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
+                        vim.cmd('redraw')
+                        vim.notify(("Mdn: Removed '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
+                    elseif input == 'a' then
+                        cleanup_all = true
+                        vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
+                    elseif input == 'n' or '' then
+                        vim.cmd('redraw')
+                        vim.notify(("Mdn: Skipped '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
+                    else
+                        vim.cmd('redraw')
+                        vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue:"):format(input), vim.log.levels.ERROR)
+                        vim.cmd('call getchar()')
+                    end
+                end)
+            else
+                vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
+            end
+        end
+    end
+
+    vim.fn.setqflist(temp_qflist)
+    vim.cmd('redraw')
+    vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
+end
+
 
 return mdnotes
 
