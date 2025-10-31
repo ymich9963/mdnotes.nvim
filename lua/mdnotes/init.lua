@@ -35,7 +35,7 @@ function mdnotes.go_to_index_file()
         return
     end
 
-    local open = resolve_open_behaviour()
+    local open = resolve_open_behaviour(mdnotes.config.open_behaviour)
     if not open then return end
 
     vim.cmd(open .. mdnotes.config.index_file)
@@ -47,7 +47,7 @@ function mdnotes.go_to_journal_file()
         return
     end
 
-    local open = resolve_open_behaviour()
+    local open = resolve_open_behaviour(mdnotes.config.open_behaviour)
     if not open then return end
 
     vim.cmd(open .. mdnotes.config.journal_file)
@@ -57,10 +57,17 @@ end
 function mdnotes.open_md_file_wikilink()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local open = resolve_open_behaviour()
+    local open = resolve_open_behaviour(mdnotes.config.open_behaviour)
     if not open then return end
 
-    for start_pos, file ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
+    local file, section = "", ""
+    for start_pos, link ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
+        -- Match link to links with section names
+        file, section = link:match("([^#]+)#?(.*)")
+
+        file = vim.trim(file)
+        section = vim.trim(section)
+
         if start_pos < current_col and end_pos > current_col then
             if file:sub(-3) == ".md" then
                 vim.cmd(open .. file)
@@ -69,6 +76,12 @@ function mdnotes.open_md_file_wikilink()
             end
             break
         end
+
+    end
+
+    if section ~= "" then
+        vim.fn.cursor(vim.fn.search(section), 1)
+        vim.api.nvim_input('zz')
     end
 end
 
@@ -228,8 +241,6 @@ function mdnotes.go_back()
         else
             vim.notify("Mdn: Attempting to access an invalid buffer.", vim.log.levels.ERROR)
         end
-        vim.print('cur index:' .. mdnotes.current_index .. ',cur buff:' .. prev_buf)
-        vim.print( mdnotes.buf_history)
     else
         vim.notify("Mdn: No more buffers to go back to.", vim.log.levels.WARN)
     end
@@ -301,6 +312,8 @@ function mdnotes.cleanup_unused_assets()
     vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
 end
 
+function mdnotes.rename_link_references()
+end
 
 return mdnotes
 

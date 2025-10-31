@@ -4,7 +4,7 @@ A plugin to create a great note-taking experience in Neovim.
 ## Features
 - Set your index file and go there with `:Mdn home`.
 - Set your journal file and go there with `:Mdn journal`.
-- Open Wikilinks (`[[link]]`) with `:Mdn open_wikilink`.
+- Open Wikilinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
 - Toggle hyperlinks with `:Mdn toggle_hyperlink` which pastes your copied hyperlink over the selected text or removes it.
 - Show backlinks of your Wikilinks with `:Mdn show_backlinks`.
 - Implements an outliner mode by doing `:Mdn toggle_outliner` (make sure to exit afterwards by re-toggling.
@@ -15,9 +15,8 @@ A plugin to create a great note-taking experience in Neovim.
 
 TODO: Mention in the docs that this can be done with LSP vim.lsp.buf.references()
 TODO: Talk about LSPs
-TODO: Renaming backlinks and the file
 TODO: Talk about the link types
-TODO: Support # in name open wiki links
+TODO: Renaming backlinks and the file
 TODO: Formatting like bold italic etc.
 ## Setup
 
