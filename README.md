@@ -10,6 +10,8 @@ A plugin to create a great note-taking experience in Neovim.
 - Implements an outliner mode by doing `:Mdn toggle_outliner` (make sure to exit afterwards by re-toggling.
 - Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder.
 - Supports Windows eccentricities.
+- Use `:Mdn cleanup_unused_assets` to easily cleanup assets that you no longer use.
+- Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
 
 TODO: Mention in the docs that this can be done with LSP vim.lsp.buf.references()
 TODO: Talk about LSPs
