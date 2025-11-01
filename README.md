@@ -1,4 +1,4 @@
-# Markdown Notes for Neovim (mdnotes.nvim) for Neovim
+# Markdown Notes for Neovim (mdnotes.nvim)
 A plugin to create a great note-taking experience in Neovim.
 
 ## Features
