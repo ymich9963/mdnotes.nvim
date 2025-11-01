@@ -72,3 +72,9 @@ The main reason I made this plugin was dissatisfaction with MD LSPs at the time,
 - [marksman](https://github.com/artempyanykh/marksman)
 
 The plugin will hopefully be updated with these LSPs in mind as I also continue to use it. Some LSP functions that currently work is showing backlinks with `grn` or `vim.lsp.buf.references()`. Some functinalities that might not work is using the H1 headers for links instead of the MD file name.
+
+## Other Cool Markdown-related Plugins
+- [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
+- [markdown-plus](https://github.com/yousefhadder/markdown-plus.nvim)
+- [markview]( https://github.com/OXY2DEV/markview.nvim)
+- [iwe.nvim](https://github.com/iwe-org/iwe.nvim)
