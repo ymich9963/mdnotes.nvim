@@ -26,15 +26,20 @@ local subcommands = {
     home = mdnotes.go_to_index_file,
     journal = mdnotes.go_to_journal_file,
     open_wikilink = mdnotes.open_md_file_wikilink,
-    toggle_hyperlink = mdnotes.toggle_hyperlink,
+    hyperlink_toggle = mdnotes.hyperlink_toggle,
     show_backlinks = mdnotes.show_backlinks,
-    toggle_outliner = mdnotes.toggle_outliner,
+    outliner_toggle = mdnotes.outliner_toggle,
     insert_image = mdnotes.insert_image,
     insert_file = mdnotes.insert_file,
     go_back = mdnotes.go_back,
     go_forward = mdnotes.go_forward,
     clear_history = mdnotes.clear_history,
     cleanup_unused_assets = mdnotes.cleanup_unused_assets,
+    rename_link_references = mdnotes.rename_link_references,
+    bold_toggle = mdnotes.bold_toggle,
+    italic_toggle = mdnotes.italic_toggle,
+    strikethrough_toggle = mdnotes.strikethrough_toggle,
+    inline_code_toggle = mdnotes.inline_code_toggle,
 }
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)

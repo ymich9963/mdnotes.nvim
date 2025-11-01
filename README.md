@@ -16,8 +16,6 @@ A plugin to create a great note-taking experience in Neovim.
 TODO: Mention in the docs that this can be done with LSP vim.lsp.buf.references()
 TODO: Talk about LSPs
 TODO: Talk about the link types
-TODO: Renaming backlinks and the file
-TODO: Formatting like bold italic etc.
 ## Setup
 
 ### Recommendations

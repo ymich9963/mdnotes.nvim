@@ -1,5 +1,7 @@
 local mdnotes = {}
 
+local uv = vim.loop or vim.uv
+
 function mdnotes.setup(user_config)
     mdnotes.config = require('mdnotes.config').setup(user_config)
 end
@@ -85,11 +87,19 @@ function mdnotes.open_md_file_wikilink()
     end
 end
 
-function mdnotes.check_md_hyperlink()
+local format_patterns = {
+    hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
+    bold_pattern = "()%*%*([^%*].-)%*%*()",
+    italic_pattern = "()%*([^%*].-)%*()",
+    strikethrough_pattern = "()~~(.-)~~()",
+    inline_code_pattern = "()`([^`]+)`()",
+}
+
+local function check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
 
-    for start_pos, _, end_pos in line:gmatch("()(%[[^%]]+%]%([^%)]+%)())") do
+    for start_pos, _, end_pos in line:gmatch(pattern) do
         if start_pos < current_col and end_pos > current_col then
             return true
         end
@@ -100,7 +110,7 @@ end
 
 -- Had to make it a fully Lua function due to issues when selecting
 -- with visual mode and executing a command.
-function mdnotes.insert_hyperlink()
+local function hyperlink_insert()
     local reg = vim.fn.getreg('+')
 
     -- Set if empty
@@ -125,15 +135,15 @@ function mdnotes.insert_hyperlink()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
-function mdnotes.delete_hyperlink()
+local function hyperlink_delete()
     vim.api.nvim_input('F[di[F[vf)p')
 end
 
-function mdnotes.toggle_hyperlink()
-    if mdnotes.check_md_hyperlink() then
-        mdnotes.delete_hyperlink()
+function mdnotes.hyperlink_toggle()
+    if check_md_format(format_patterns.hyperlink_pattern) then
+        hyperlink_delete()
     else
-        mdnotes.insert_hyperlink()
+        hyperlink_insert()
     end
 end
 
@@ -151,7 +161,7 @@ function mdnotes.show_backlinks()
 end
 
 local outliner_state = false
-function  mdnotes.toggle_outliner()
+function  mdnotes.outliner_toggle()
     if outliner_state then
         vim.api.nvim_buf_del_keymap(0 ,'i', '<CR>')
         vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
@@ -194,7 +204,7 @@ local function insert_file(file_type)
     local file_name = vim.fs.basename(file_path)
 
     -- Check overwrite behaviour
-    if (vim.uv or vim.loop).fs_stat(vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
+    if uv.fs_stat(vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
         if mdnotes.config.overwrite_behaviour == "error" then
             vim.notify(("Mdn: File you are trying to place into your assets already exists."), vim.log.levels.ERROR)
             return
@@ -203,14 +213,14 @@ local function insert_file(file_type)
     end
 
     if mdnotes.config.insert_file_behaviour == "copy" then
-        if not (vim.uv or vim.loop).fs_copyfile(file_path, vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
+        if not uv.fs_copyfile(file_path, vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
             vim.notify(("Mdn: File copy failed."), vim.log.levels.ERROR)
             return
         else
             vim.notify(('Mdn: Copied %s to your assets folder at %s.'):format(file_path, mdnotes.config.assets_path), vim.log.levels.INFO)
         end
     elseif mdnotes.config.insert_file_behaviour == "move" then
-        if (vim.uv or vim.loop).fs_rename(file_path, vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
+        if not uv.fs_rename(file_path, vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
             vim.notify(("Mdn: File move failed."), vim.log.levels.ERROR)
             return
         else
@@ -279,7 +289,7 @@ function mdnotes.cleanup_unused_assets()
     local temp_qflist = vim.fn.getqflist()
     local cleanup_all = false
     for name, _ in vim.fs.dir(mdnotes.config.assets_path) do
-        local vimgrep_ret = vim.cmd.vimgrep({args = {'/\\[\\[' .. name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+        local vimgrep_ret = vim.cmd.vimgrep({args = {'/\\[\\[' .. name .. '\\]\\]/', '*'}, mods = {emsg_file = true}})
         if vimgrep_ret == "" then
             if not cleanup_all then
                 vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to delete file(s) (default 'n'): "):format(name), }, function(input)
@@ -313,6 +323,106 @@ function mdnotes.cleanup_unused_assets()
 end
 
 function mdnotes.rename_link_references()
+    local line = vim.api.nvim_get_current_line()
+    local current_col = vim.fn.col('.')
+    local open = resolve_open_behaviour(mdnotes.config.open_behaviour)
+    if not open then return end
+
+    local file, _ = "", ""
+    local renamed = ""
+
+    for start_pos, link ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
+        -- Match link to links with section names but ignore the section name
+        file, _ = link:match("([^#]+)#?(.*)")
+
+        file = vim.trim(file)
+
+        if start_pos < current_col and end_pos > current_col then
+            if not uv.fs_stat(file .. ".md") then
+                vim.notify(("Mdn: This link does not seem to link to a valid file."), vim.log.levels.ERROR)
+            end
+            vim.ui.input({ prompt = "Rename '".. file .."' to: " }, function(input)
+                renamed = input
+            end)
+            if renamed == "" or nil then
+                vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
+                return
+            else
+                vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+                vim.cmd.cdo({args = {('cdo s/%s/%s/'):format(file, renamed)}, mods = {emsg_silent = true}})
+                if not uv.fs_rename(file .. ".md", renamed .. ".md") then
+                    vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
+                    return
+                end
+            end
+            break
+        end
+
+    end
+    vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(file, renamed)), vim.log.levels.INFO)
+end
+
+local function insert_format(format_char)
+    -- Get the selected text
+    local col_start = vim.fn.getpos("'<")[3]
+    local col_end = vim.fn.getpos("'>")[3]
+    local line = vim.api.nvim_get_current_line()
+    local selected_text = line:sub(col_start, col_end)
+
+    -- Create a new modified line with link
+    local new_line = line:sub(1, col_start - 1) .. format_char .. selected_text .. format_char .. line:sub(col_end + 1)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+end
+
+local function delete_format_bold()
+    vim.api.nvim_input('F*;dwvf*hdvlp')
+end
+
+local function delete_format_italic()
+    vim.api.nvim_input('F*dwvf*hdvp')
+end
+
+local function delete_format_strikethrough()
+    vim.api.nvim_input('F~;dwvf~hdvlp')
+end
+
+local function delete_format_inline_code()
+    vim.api.nvim_input('F`dwvf`hdvp')
+end
+
+function mdnotes.bold_toggle()
+    if check_md_format(format_patterns.bold_pattern) then
+        delete_format_bold()
+    else
+        insert_format('**')
+    end
+end
+
+function mdnotes.italic_toggle()
+    if check_md_format(format_patterns.italic_pattern) then
+        delete_format_italic()
+    else
+        insert_format('*')
+    end
+end
+
+function mdnotes.strikethrough_toggle()
+    if check_md_format(format_patterns.strikethrough_pattern) then
+        delete_format_strikethrough()
+    else
+        insert_format('~~')
+    end
+end
+
+function mdnotes.inline_code_toggle()
+    if check_md_format(format_patterns.inline_code_pattern) then
+        delete_format_inline_code()
+    else
+        insert_format('`')
+    end
 end
 
 return mdnotes
