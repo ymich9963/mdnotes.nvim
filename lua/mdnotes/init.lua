@@ -170,13 +170,23 @@ end
 function mdnotes.show_backlinks()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
+    local wikilink_found = false
 
     for start_pos, file ,end_pos in line:gmatch(format_patterns.wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
             vim.cmd('vimgrep /\\[\\[' .. file .. '\\]\\]/ *')
             vim.cmd('copen')
+            wikilink_found = true
             break
         end
+    end
+
+    -- If wikilink pattern isn't detecte used current file name
+    if not wikilink_found then
+        local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
+        local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
+        vim.cmd('vimgrep /\\[\\[' .. cur_file_name .. '\\]\\]/ *')
+        vim.cmd('copen')
     end
 end
 
