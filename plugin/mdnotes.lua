@@ -43,8 +43,6 @@ local subcommands = {
     inline_code_toggle = mdnotes.inline_code_toggle,
 }
 
--- [config.lua](config.lua)
-
 vim.api.nvim_create_user_command( "Mdn", function(opts)
     local args = vim.split(opts.args, "%s+")
     local subcmd = args[1]
