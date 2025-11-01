@@ -5,8 +5,8 @@ local default_config = {
     journal_file = "",
     assets_path = "",
     insert_file_behaviour = "copy", -- "copy" or "move" files when inserting from clipboard
-    overwrite_behaviour = "error",  -- "overwrite" or "error" when finding assset file conflicts
-    open_behaviour = "buffer",      -- "buffer" or "tab" to open when following links
+    asset_overwrite_behaviour = "error",  -- "overwrite" or "error" when finding assset file conflicts
+    wikilink_open_behaviour = "buffer",      -- "buffer" or "tab" to open when following links
 }
 
 function M.setup(user_config)

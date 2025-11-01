@@ -6,6 +6,30 @@ function mdnotes.setup(user_config)
     mdnotes.config = require('mdnotes.config').setup(user_config)
 end
 
+local format_patterns = {
+    wikilink_pattern = "()%[%[(.-)%]%]()",
+    file_section_pattern = "([^#]+)#?(.*)",
+    hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
+    text_link_pattern = "()%[([^%]]+)%]%(([^%)]+)%)()",
+    bold_pattern = "()%*%*([^%*].-)%*%*()",
+    italic_pattern = "()%*([^%*].-)%*()",
+    strikethrough_pattern = "()~~(.-)~~()",
+    inline_code_pattern = "()`([^`]+)`()",
+}
+
+local function check_md_format(pattern)
+    local line = vim.api.nvim_get_current_line()
+    local current_col = vim.fn.col('.')
+
+    for start_pos, _, end_pos in line:gmatch(pattern) do
+        if start_pos < current_col and end_pos > current_col then
+            return true
+        end
+    end
+
+    return false
+end
+
 local function resolve_open_behaviour(open_behaviour)
     if open_behaviour == "buffer" then
         return 'edit '
@@ -31,13 +55,30 @@ local function check_assets_path()
     return true
 end
 
+function mdnotes.open()
+    local line = vim.api.nvim_get_current_line()
+    local current_col = vim.fn.col('.')
+    local link = ""
+
+    for start_pos, hyperlink, end_pos in line:gmatch(format_patterns.hyperlink_pattern) do
+        if start_pos < current_col and end_pos > current_col then
+            _, link = hyperlink:match(format_patterns.text_link_pattern)
+            if vim.fn.has("win32") then
+                vim.system({"cmd.exe", "/c", "start", link})
+            else
+                vim.ui.open(link)
+            end
+        end
+    end
+end
+
 function mdnotes.go_to_index_file()
     if mdnotes.config.index_file == "" then
         vim.notify(("Mdn: Please specify an index file to use this feature."), vim.log.levels.ERROR)
         return
     end
 
-    local open = resolve_open_behaviour(mdnotes.config.open_behaviour)
+    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
     if not open then return end
 
     vim.cmd(open .. mdnotes.config.index_file)
@@ -49,7 +90,7 @@ function mdnotes.go_to_journal_file()
         return
     end
 
-    local open = resolve_open_behaviour(mdnotes.config.open_behaviour)
+    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
     if not open then return end
 
     vim.cmd(open .. mdnotes.config.journal_file)
@@ -59,13 +100,13 @@ end
 function mdnotes.open_md_file_wikilink()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local open = resolve_open_behaviour(mdnotes.config.open_behaviour)
+    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
     if not open then return end
 
     local file, section = "", ""
-    for start_pos, link ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
+    for start_pos, link ,end_pos in line:gmatch(format_patterns.wikilink_pattern) do
         -- Match link to links with section names
-        file, section = link:match("([^#]+)#?(.*)")
+        file, section = link:match(format_patterns.file_section_pattern)
 
         file = vim.trim(file)
         section = vim.trim(section)
@@ -85,27 +126,6 @@ function mdnotes.open_md_file_wikilink()
         vim.fn.cursor(vim.fn.search(section), 1)
         vim.api.nvim_input('zz')
     end
-end
-
-local format_patterns = {
-    hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
-    bold_pattern = "()%*%*([^%*].-)%*%*()",
-    italic_pattern = "()%*([^%*].-)%*()",
-    strikethrough_pattern = "()~~(.-)~~()",
-    inline_code_pattern = "()`([^`]+)`()",
-}
-
-local function check_md_format(pattern)
-    local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
-
-    for start_pos, _, end_pos in line:gmatch(pattern) do
-        if start_pos < current_col and end_pos > current_col then
-            return true
-        end
-    end
-
-    return false
 end
 
 -- Had to make it a fully Lua function due to issues when selecting
@@ -151,7 +171,7 @@ function mdnotes.show_backlinks()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
 
-    for start_pos, file ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
+    for start_pos, file ,end_pos in line:gmatch(format_patterns.wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
             vim.cmd('vimgrep /\\[\\[' .. file .. '\\]\\]/ *')
             vim.cmd('copen')
@@ -205,10 +225,10 @@ local function insert_file(file_type)
 
     -- Check overwrite behaviour
     if uv.fs_stat(vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
-        if mdnotes.config.overwrite_behaviour == "error" then
+        if mdnotes.config.asset_overwrite_behaviour == "error" then
             vim.notify(("Mdn: File you are trying to place into your assets already exists."), vim.log.levels.ERROR)
             return
-        elseif mdnotes.config.overwrite_behaviour == "overwrite" then
+        elseif mdnotes.config.asset_overwrite_behaviour == "overwrite" then
         end
     end
 
@@ -325,13 +345,13 @@ end
 function mdnotes.rename_link_references()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local open = resolve_open_behaviour(mdnotes.config.open_behaviour)
+    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
     if not open then return end
 
     local file, _ = "", ""
     local renamed = ""
 
-    for start_pos, link ,end_pos in line:gmatch("()%[%[(.-)%]%]()") do
+    for start_pos, link ,end_pos in line:gmatch(format_patterns.wikilink_pattern) do
         -- Match link to links with section names but ignore the section name
         file, _ = link:match("([^#]+)#?(.*)")
 

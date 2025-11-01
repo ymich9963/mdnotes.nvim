@@ -25,6 +25,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 local subcommands = {
     home = mdnotes.go_to_index_file,
     journal = mdnotes.go_to_journal_file,
+    open = mdnotes.open,
     open_wikilink = mdnotes.open_md_file_wikilink,
     hyperlink_toggle = mdnotes.hyperlink_toggle,
     show_backlinks = mdnotes.show_backlinks,
@@ -41,6 +42,8 @@ local subcommands = {
     strikethrough_toggle = mdnotes.strikethrough_toggle,
     inline_code_toggle = mdnotes.inline_code_toggle,
 }
+
+-- [config.lua](config.lua)
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
     local args = vim.split(opts.args, "%s+")

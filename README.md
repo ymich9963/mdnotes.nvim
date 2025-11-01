@@ -2,6 +2,7 @@
 A plugin to create a great note-taking experience in Neovim.
 
 ## Features
+- Open hyperlinks to files and URLs with `:Mdn open`.
 - Set your index file and go there with `:Mdn home`.
 - Set your journal file and go there with `:Mdn journal`.
 - Open Wikilinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
