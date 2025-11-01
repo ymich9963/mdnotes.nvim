@@ -7,7 +7,7 @@ A plugin to create a great note-taking experience in Neovim.
 - Set your journal file and go there with `:Mdn journal`.
 - Open Wikilinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
 - Toggle hyperlinks with `:Mdn toggle_hyperlink` which pastes your copied hyperlink over the selected text or removes it.
-- Show backlinks of your Wikilinks or current file with `:Mdn show_backlinks`.
+- Show backlinks of the current file with `:Mdn show_backlinks` or to show the backlinks of a Wikilink by hovering over the link and executing the same command.
 - Implements an outliner mode by doing `:Mdn toggle_outliner` (make sure to exit afterwards by re-toggling.
 - Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder.
 - Supports Windows eccentricities.
