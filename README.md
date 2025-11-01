@@ -78,3 +78,4 @@ The plugin will hopefully be updated with these LSPs in mind as I also continue 
 - [markdown-plus](https://github.com/yousefhadder/markdown-plus.nvim)
 - [markview]( https://github.com/OXY2DEV/markview.nvim)
 - [iwe.nvim](https://github.com/iwe-org/iwe.nvim)
+- [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)
