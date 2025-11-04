@@ -7,14 +7,42 @@ local default_config = {
     insert_file_behaviour = "copy",         -- "copy" or "move" files when inserting from clipboard
     asset_overwrite_behaviour = "error",    -- "overwrite" or "error" when finding assset file conflicts
     wikilink_open_behaviour = "buffer",     -- "buffer" or "tab" to open when following links
+    bold_format = "**",                     -- "**" or "__"
+    italics_format = "*",                   -- "*" or "_"
 }
 
 function M.setup(user_config)
-  M.config = vim.tbl_deep_extend("force", default_config, user_config or {})
-  M.config.index_file = vim.fs.normalize(M.config.index_file)
-  M.config.journal_file = vim.fs.normalize(M.config.journal_file)
-  M.config.assets_path = vim.fs.normalize(M.config.assets_path)
-  return M.config
+    M.config = vim.tbl_deep_extend("force", default_config, user_config or {})
+    M.config.index_file = vim.fs.normalize(M.config.index_file)
+    M.config.journal_file = vim.fs.normalize(M.config.journal_file)
+    M.config.assets_path = vim.fs.normalize(M.config.assets_path)
+
+    if not vim.tbl_contains({"copy", "move"}, M.config.insert_file_behaviour) then
+        vim.notify(("Mdn: 'insert_file_behaviour' value '%s' is invalid. Can only use 'copy' or 'move'. Defaulting to 'copy'."):format(M.config.insert_file_behaviour), vim.log.levels.ERROR)
+        M.config.insert_file_behaviour = "copy"
+    end
+
+    if not vim.tbl_contains({"overwrite", "error"}, M.config.asset_overwrite_behaviour) then
+        vim.notify(("Mdn: 'asset_overwrite_behaviour' value '%s' is invalid. Can only use 'overwrite' or 'error'. Defaulting to 'error'."):format(M.config.asset_overwrite_behaviour), vim.log.levels.ERROR)
+        M.config.asset_overwrite_behaviour = "error"
+    end
+
+    if not vim.tbl_contains({"buffer", "tab"}, M.config.wikilink_open_behaviour) then
+        vim.notify(("Mdn: 'wikilink_open_behaviour' value '%s' is invalid. Can only use 'buffer' or 'tab'. Defaulting to 'buffer'."):format(M.config.wikilink_open_behaviour), vim.log.levels.ERROR)
+        M.config.wikilink_open_behaviour = "buffer"
+    end
+
+    if not vim.tbl_contains({"**", "__"}, M.config.bold_format) then
+        vim.notify(("Mdn: 'bold_format' character '%s' is invalid. Can only use '**' or '__'. Defaulting to '**'."):format(M.config.bold_format), vim.log.levels.ERROR)
+        M.config.bold_format = "**"
+    end
+
+    if not vim.tbl_contains({"*", "_"}, M.config.italics_format) then
+        vim.notify(("Mdn: 'italics_format' character '%s' is invalid. Can only use '*' or '_'. Defaulting to '*'."):format(M.config.italics_format), vim.log.levels.ERROR)
+        M.config.italics_format = "*"
+    end
+
+    return M.config
 end
 
 return M

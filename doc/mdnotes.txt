@@ -56,6 +56,8 @@ The default config for `mdnotes` is shown below,
 	insert_file_behaviour = "copy",
 	overwrite_behaviour = "error",
 	open_behaviour = "buffer",
+	bold_format = "**",
+	italics_format = "*",
     }
 <
 index_file = `"path"`					*mdnotes-index_file*
@@ -89,6 +91,16 @@ open_behaviour = `"string"`			*mdnotes-open_behaviour*
     opened using |:Mdn home|, |:Mdn journal|, and |:Mdn open_wikilink|. With
     `"buffer"` it opens them in the current buffer, whereas with `"tab"` it opens them
     in a new tab.
+
+bold_format = `"string"`				*mdnotes-bold_format*
+
+    Can take the valid values of `"**"` or `"__"` which defines how the
+    Markdown `**bold**` or `__bold__` formatting is executed.
+
+italics_format = `"string"`				*mdnotes-italics_format*
+
+    Can take the valid values of `"*"` or `"_"` which defines how the
+    Markdown `*italics*` or `_italics_` formatting is executed.
 
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*
@@ -208,6 +220,9 @@ setup({opts})                                          *mdnotes.setup()*
 		exists.
               • {open_behaviour} (`string?`, default `"copy"`)
 		`mdnotes` behaviour when opening files with |:Mdn-open|.
-
+              • {bold_format} (`string?`, default `"**"`)
+		defines `mdnotes` bold formatting behaviour
+              • {italics_format} (`string?`, default `"*"`)
+		defines `mdnotes` italics formatting behaviour
 
 vim:tw=78:ts=8:expandtab:noet:ft=help:norl:

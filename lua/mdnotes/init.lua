@@ -2,20 +2,28 @@ local mdnotes = {}
 
 local uv = vim.loop or vim.uv
 
+local b = ""
+local i = ""
+
 function mdnotes.setup(user_config)
     mdnotes.config = require('mdnotes.config').setup(user_config)
+
+    b = mdnotes.config.bold_format:sub(1, 1)
+    i = mdnotes.config.italics_format:sub(1, 1)
+
+    mdnotes.format_patterns = {
+        wikilink_pattern = "()%[%[(.-)%]%]()",
+        file_section_pattern = "([^#]+)#?(.*)",
+        hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
+        text_link_pattern = "()%[([^%]]+)%]%(([^%)]+)%)()",
+        bold_pattern = "()%" .. b .. "%" .. b .. "([^%" .. b .. "].-)%" .. b .. "%" .. b .. "()",
+        italic_pattern = "()%" .. i .. "([^%" .. i .. "].-)%" .. i .."()",
+        strikethrough_pattern = "()~~(.-)~~()",
+        inline_code_pattern = "()`([^`]+)`()",
+    }
 end
 
-mdnotes.format_patterns = {
-    wikilink_pattern = "()%[%[(.-)%]%]()",
-    file_section_pattern = "([^#]+)#?(.*)",
-    hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
-    text_link_pattern = "()%[([^%]]+)%]%(([^%)]+)%)()",
-    bold_pattern = "()%*%*([^%*].-)%*%*()",
-    italic_pattern = "()%*([^%*].-)%*()",
-    strikethrough_pattern = "()~~(.-)~~()",
-    inline_code_pattern = "()`([^`]+)`()",
-}
+-- bold
 
 function mdnotes.check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
@@ -408,11 +416,11 @@ local function insert_format(format_char)
 end
 
 local function delete_format_bold()
-    vim.api.nvim_input('F*;dwvf*hdvlp')
+    vim.api.nvim_input('F' .. b .. ';dwvf' .. b .. 'hdvlp')
 end
 
 local function delete_format_italic()
-    vim.api.nvim_input('F*dwvf*hdvp')
+    vim.api.nvim_input('F' .. i .. 'dwvf' .. i ..'hdvp')
 end
 
 local function delete_format_strikethrough()
@@ -427,7 +435,7 @@ function mdnotes.bold_toggle()
     if mdnotes.check_md_format(mdnotes.format_patterns.bold_pattern) then
         delete_format_bold()
     else
-        insert_format('**')
+        insert_format(b .. b)
     end
 end
 
@@ -435,7 +443,7 @@ function mdnotes.italic_toggle()
     if mdnotes.check_md_format(mdnotes.format_patterns.italic_pattern) then
         delete_format_italic()
     else
-        insert_format('*')
+        insert_format(i)
     end
 end
 
