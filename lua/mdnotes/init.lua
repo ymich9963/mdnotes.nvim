@@ -6,7 +6,7 @@ function mdnotes.setup(user_config)
     mdnotes.config = require('mdnotes.config').setup(user_config)
 end
 
-local format_patterns = {
+mdnotes.format_patterns = {
     wikilink_pattern = "()%[%[(.-)%]%]()",
     file_section_pattern = "([^#]+)#?(.*)",
     hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
@@ -17,7 +17,7 @@ local format_patterns = {
     inline_code_pattern = "()`([^`]+)`()",
 }
 
-local function check_md_format(pattern)
+function mdnotes.check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
 
@@ -41,7 +41,7 @@ local function resolve_open_behaviour(open_behaviour)
     return nil
 end
 
-local function check_assets_path()
+function mdnotes.check_assets_path()
     if mdnotes.config.assets_path == "" or not mdnotes.config.assets_path then
         vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
         return false
@@ -60,9 +60,9 @@ function mdnotes.open()
     local current_col = vim.fn.col('.')
     local link = ""
 
-    for start_pos, hyperlink, end_pos in line:gmatch(format_patterns.hyperlink_pattern) do
+    for start_pos, hyperlink, end_pos in line:gmatch(mdnotes.format_patterns.hyperlink_pattern) do
         if start_pos < current_col and end_pos > current_col then
-            _, link = hyperlink:match(format_patterns.text_link_pattern)
+            _, link = hyperlink:match(mdnotes.format_patterns.text_link_pattern)
             if vim.fn.has("win32") then
                 vim.system({"cmd.exe", "/c", "start", link})
             else
@@ -104,9 +104,9 @@ function mdnotes.open_md_file_wikilink()
     if not open then return end
 
     local file, section = "", ""
-    for start_pos, link ,end_pos in line:gmatch(format_patterns.wikilink_pattern) do
+    for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
         -- Match link to links with section names
-        file, section = link:match(format_patterns.file_section_pattern)
+        file, section = link:match(mdnotes.format_patterns.file_section_pattern)
 
         file = vim.trim(file)
         section = vim.trim(section)
@@ -130,7 +130,7 @@ end
 
 -- Had to make it a fully Lua function due to issues when selecting
 -- with visual mode and executing a command.
-local function hyperlink_insert()
+function mdnotes.hyperlink_insert()
     local reg = vim.fn.getreg('+')
 
     -- Set if empty
@@ -155,15 +155,15 @@ local function hyperlink_insert()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
-local function hyperlink_delete()
+function mdnotes.hyperlink_delete()
     vim.api.nvim_input('F[di[F[vf)p')
 end
 
 function mdnotes.hyperlink_toggle()
-    if check_md_format(format_patterns.hyperlink_pattern) then
-        hyperlink_delete()
+    if mdnotes.check_md_format(mdnotes.format_patterns.hyperlink_pattern) then
+        mdnotes.hyperlink_delete()
     else
-        hyperlink_insert()
+        mdnotes.hyperlink_insert()
     end
 end
 
@@ -172,7 +172,7 @@ function mdnotes.show_backlinks()
     local current_col = vim.fn.col('.')
     local wikilink_found = false
 
-    for start_pos, file ,end_pos in line:gmatch(format_patterns.wikilink_pattern) do
+    for start_pos, file ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
             vim.cmd('vimgrep /\\[\\[' .. file .. '\\]\\]/ *')
             vim.cmd('copen')
@@ -209,7 +209,7 @@ function  mdnotes.outliner_toggle()
 end
 
 local function insert_file(file_type)
-    if not check_assets_path() then return end
+    if not mdnotes.check_assets_path() then return end
 
     -- Get the file paths as a table
     local file_paths = vim.split(
@@ -314,7 +314,7 @@ function mdnotes.insert_file()
 end
 
 function mdnotes.cleanup_unused_assets()
-    if not check_assets_path() then return end
+    if not mdnotes.check_assets_path() then return end
 
     local temp_qflist = vim.fn.getqflist()
     local cleanup_all = false
@@ -361,7 +361,7 @@ function mdnotes.rename_link_references()
     local file, _ = "", ""
     local renamed = ""
 
-    for start_pos, link ,end_pos in line:gmatch(format_patterns.wikilink_pattern) do
+    for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
         -- Match link to links with section names but ignore the section name
         file, _ = link:match("([^#]+)#?(.*)")
 
@@ -424,7 +424,7 @@ local function delete_format_inline_code()
 end
 
 function mdnotes.bold_toggle()
-    if check_md_format(format_patterns.bold_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.bold_pattern) then
         delete_format_bold()
     else
         insert_format('**')
@@ -432,7 +432,7 @@ function mdnotes.bold_toggle()
 end
 
 function mdnotes.italic_toggle()
-    if check_md_format(format_patterns.italic_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.italic_pattern) then
         delete_format_italic()
     else
         insert_format('*')
@@ -440,7 +440,7 @@ function mdnotes.italic_toggle()
 end
 
 function mdnotes.strikethrough_toggle()
-    if check_md_format(format_patterns.strikethrough_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.strikethrough_pattern) then
         delete_format_strikethrough()
     else
         insert_format('~~')
@@ -448,7 +448,7 @@ function mdnotes.strikethrough_toggle()
 end
 
 function mdnotes.inline_code_toggle()
-    if check_md_format(format_patterns.inline_code_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.inline_code_pattern) then
         delete_format_inline_code()
     else
         insert_format('`')
