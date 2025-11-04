@@ -1,5 +1,5 @@
 # Markdown Notes for Neovim (mdnotes.nvim)
-A plugin to create a great note-taking experience in Neovim.
+Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, backlinks, and formatting. All this without relying on any LSP but using one is recommended.
 
 ## Features
 - Open hyperlinks to files and URLs with `:Mdn open`.
@@ -30,7 +30,7 @@ A plugin to create a great note-taking experience in Neovim.
 
 ### Default Config
 ```lua
-local default_config = {
+{
     index_file = "",
     journal_file = "",
     assets_path = "",
