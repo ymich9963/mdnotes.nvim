@@ -44,9 +44,6 @@ local function resolve_open_behaviour(open_behaviour)
     elseif open_behaviour == "tab" then
         return 'tabnew '
     end
-
-    vim.notify(("Mdn: Invalid value in 'open_behaviour'."), vim.log.levels.ERROR)
-    return nil
 end
 
 function mdnotes.check_assets_path()
@@ -87,7 +84,6 @@ function mdnotes.go_to_index_file()
     end
 
     local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
-    if not open then return end
 
     vim.cmd(open .. mdnotes.config.index_file)
 end
@@ -99,7 +95,6 @@ function mdnotes.go_to_journal_file()
     end
 
     local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
-    if not open then return end
 
     vim.cmd(open .. mdnotes.config.journal_file)
 end
@@ -109,7 +104,6 @@ function mdnotes.open_md_file_wikilink()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
-    if not open then return end
 
     local file, section = "", ""
     for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
@@ -364,7 +358,6 @@ function mdnotes.rename_link_references()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
-    if not open then return end
 
     local file, _ = "", ""
     local renamed = ""
