@@ -1,6 +1,8 @@
 # Markdown Notes for Neovim (mdnotes.nvim)
 Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, backlinks, and formatting. All this without relying on any LSP but using one is recommended.
 
+Please remember to read the docs with `:h mdnotes.txt` or in `doc/mdnotes.txt`. Most important items are detailed here in the README but they are written in more detail in there.
+
 ## Features
 - Open hyperlinks to files and URLs with `:Mdn open`.
 - Set your index file and go there with `:Mdn home`.
@@ -15,6 +17,7 @@ Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim Mark
 - Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline code/strikethrough_toggle`.
 - Rename link references and the file itself using `:Mdn rename_link_references`.
+- Quickly insert the date using `:Mdn insert_date` (in a customiseable format) when using your journal.
 
 ## Setup
 ```lua
@@ -37,15 +40,20 @@ Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim Mark
     insert_file_behaviour = "copy", -- "copy" or "move" files when inserting from clipboard
     overwrite_behaviour = "error",  -- "overwrite" or "error" when finding assset file conflicts
     open_behaviour = "buffer",      -- "buffer" or "tab" to open when following links
+    date_format = "%a %d %b %Y"     -- date format based on :h strftime()
 }
 ```
 
 ### Recommendations
 In your config path have an `after/ftplugin/markdown.lua` file which would have settings specific to Markdown files. In there place the recommended keymaps or any other settings that would enhance the note-taking experience,
 ```lua
-vim.wo.wrap = true -- Enable wrap for current .md window
-vim.keymap.set('n', 'gf', ':Mdn open_wikilink<CR>', { desc = "Open markdown file from Wikilink" })
-vim.keymap.set({"v", "n"}, '<C-K>', ':Mdn hyperlink_toggle<CR>', { desc = "Toggle hyperlink" })
+    vim.keymap.set("n", "gf", ":Mdn open_wikilink<CR>", { desc = "Open markdown file from Wikilink" })
+    vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn toggle_hyperlink<CR>", { desc = "Toggle hyperlink" })
+    vim.keymap.set("n", "<C-K>", ":Mdn toggle_hyperlink<CR>", { desc = "Toggle hyperlink" })
+    vim.keymap.set("n", "<Left>", ":Mdn go_back<CR>", { desc = "Go to back to previously visited Markdown buffer" })
+    vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { desc = "Go to next visited Markdown buffer" })
+    vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { desc = "Toggle bold formatting" })
+    vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italics_toggle<CR>", { desc = "Toggle italics formatting" })
 ```
 If you really like outliner mode and want to indent entire blocks then these remaps are very helpful,
 ```lua
@@ -56,23 +64,9 @@ If you are on Windows then setting this option will allow you to use the build i
 ```lua
 vim.opt.isfname:remove('[', ']') -- To enable path completion on Windows <C-x> <C-f>
 ```
-For the journal, it might be useful to insert the date with a custom command like this,
-```lua
-vim.api.nvim_create_user_command('InsertDate',
-function()
-    vim.cmd([[put =strftime('%a %d %b %Y')]])
-end,
-{ desc = 'Insert date' })
-```
 
 ## LSPs
-The main reason I made this plugin was dissatisfaction with MD LSPs at the time, and I really wanted to use Neovim as my notes editor. Now the plugin has more useful features for me than the editors I used to use, which is nice. It is recommended to use LSPs with the plugin since I'm trying to work with the LSPs and not try to create something from scratch. So far certain LSP features haven't been working for me fully, but I do recommend,
-
-- [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide)
-
-- [marksman](https://github.com/artempyanykh/marksman)
-
-The plugin will hopefully be updated with these LSPs in mind as I also continue to use it. Some LSP functions that currently work is showing backlinks with `grn` or `vim.lsp.buf.references()`. Some functinalities that might not work is using the H1 headers for links instead of the MD file name.
+The main reason I made this plugin was dissatisfaction with MD LSPs at the time, and I really wanted to use Neovim as my notes editor. Now the plugin has more useful features for me than the editors I used to use, which is nice. It is recommended to use LSPs with the plugin since I'm trying to work with the LSPs and not try to create something from scratch. So far certain LSP features haven't been working for me fully, but I do recommend [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) and [marksman](https://github.com/artempyanykh/marksman).
 
 ## Other Cool Markdown-related Plugins
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)

@@ -9,6 +9,7 @@ local default_config = {
     wikilink_open_behaviour = "buffer",     -- "buffer" or "tab" to open when following links
     bold_format = "**",                     -- "**" or "__"
     italics_format = "*",                   -- "*" or "_"
+    date_format = "%a %d %b %Y"             -- date format based on :h strftime()
 }
 
 function M.setup(user_config)

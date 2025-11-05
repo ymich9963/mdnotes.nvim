@@ -26,7 +26,7 @@ local subcommands = {
     home = mdnotes.go_to_index_file,
     journal = mdnotes.go_to_journal_file,
     open = mdnotes.open,
-    open_wikilink = mdnotes.open_md_file_wikilink,
+    open_wikilink = mdnotes.open_wikilink,
     hyperlink_toggle = mdnotes.hyperlink_toggle,
     show_backlinks = mdnotes.show_backlinks,
     outliner_toggle = mdnotes.outliner_toggle,
@@ -41,6 +41,7 @@ local subcommands = {
     italic_toggle = mdnotes.italic_toggle,
     strikethrough_toggle = mdnotes.strikethrough_toggle,
     inline_code_toggle = mdnotes.inline_code_toggle,
+    insert_date = mdnotes.insert_date,
 }
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
@@ -65,6 +66,3 @@ end,
     range = true,
 })
 
-vim.keymap.set('n', 'gf', ':Mdn open_wikilink<CR>', { desc = "Open markdown file from Wikilink" })
-vim.keymap.set({"v", "n"}, '<C-K>', ':Mdn toggle_hyperlink<CR>', { desc = "Toggle hyperlink" })
-vim.opt.isfname:remove('[', ']') -- To enable path completion on Windows <C-x> <C-f>

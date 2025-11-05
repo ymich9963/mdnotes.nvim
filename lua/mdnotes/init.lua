@@ -100,7 +100,7 @@ function mdnotes.go_to_journal_file()
 end
 
 -- Simulate the map gf :e <cfile>.md<CR> so that it works with spaces
-function mdnotes.open_md_file_wikilink()
+function mdnotes.open_wikilink()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
@@ -313,6 +313,10 @@ end
 
 function mdnotes.insert_file()
     insert_file("file")
+end
+
+function mdnotes.insert_date()
+    vim.cmd("put =strftime('" .. mdnotes.config.date_format .. "')")
 end
 
 function mdnotes.cleanup_unused_assets()

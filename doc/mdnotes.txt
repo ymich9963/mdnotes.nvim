@@ -5,7 +5,7 @@ Authors:
                                        Type |gO| to see the table of contents.
 
 ==============================================================================
-INTRODUCTION           	                                  *mdnotes-intro*
+INTRODUCTION						*mdnotes-intro*
 
 Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim
 Markdown note-taking experience by providing features like better Wikilink
@@ -14,7 +14,7 @@ management, referencing, backlinks, and formatting. All this without relying
 on any LSP but using one is recommended.
 
 ==============================================================================
-QUICK START            	                             	*mdnotes-quickstart*
+QUICK START            	             			*mdnotes-quickstart*
 
 To setup `mdnotes` using the Lazy package manager, put this in your `init.lua` file,
 >lua
@@ -43,6 +43,69 @@ Install and then setup using,
 	})
 
 Explanation for the options is given in the next |mdnotes-config| section.
+See |mdnotes-keymaps| for keymap recommendations, |mdnotes-lsp| for notes on
+using LSPs with `mdnotes`, and |mdnotes-completion| for using file name
+completion.
+
+==============================================================================
+KEYMAPS            	             			*mdnotes-keymaps*
+
+There aren't any default keymaps for `mdnotes` but some recommended ones might
+be,
+>lua
+    vim.keymap.set("n", "gf", ":Mdn open_wikilink<CR>", { desc = "Open markdown file from Wikilink" })
+    vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn toggle_hyperlink<CR>", { desc = "Toggle hyperlink" })
+    vim.keymap.set("n", "<C-K>", ":Mdn toggle_hyperlink<CR>", { desc = "Toggle hyperlink" })
+    vim.keymap.set("n", "<Left>", ":Mdn go_back<CR>", { desc = "Go to back to
+    previously visited Markdown buffer" })
+    vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { desc = "Go to next visited 
+    Markdown buffer" })
+    vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { desc = "Toggle bold formatting" })
+    vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italics_toggle<CR>", { desc = "Toggle italics formatting" })
+
+These might also be worth having if you use outliner mode a lot so you can
+indent entire blocks more easily,
+>lua
+    vim.keymap.set("v", "<", "<gv", { desc = "Indent left and reselect" })
+    vim.keymap.set("v", ">", ">gv", { desc = "Indent right and reselect" })
+
+Note: It is highly recommended you have your keymaps in your
+`after/ftplugin/markdown.lua` file to keep them specific to Markdown files.
+
+==============================================================================
+LSP            	             				*mdnotes-lsp*
+
+This plugin was designed to use as few LSP features as possible and if any of
+the Markdown LSPs improve over time then this plugin will be adapted to those
+improvements. I recommend trying out marksman or markdown-oxide. 
+
+With markdown-oxide, currently working LSP functions for me are,
+|vim.lsp.buf.rename()| and |vim.lsp.buf.references()|. The first one only
+seems to rename the current buffer and not the element (or link in this case)
+under the cursor.
+
+These functions are implemented in `mdnotes` with |:Mdn-rename_link_references|
+and |:Mdn-show_backlinks| respectively. The first function both renames the
+reference and the file it is pointing to.
+
+Quick tip is if you don't want your Markdown LSP to show diagnostics you can
+disable LSP diagnostics per filetype by using this in your
+`after/ftplugin/markdown.lua` file.
+>lua
+    vim.diagnostic.enable(false, { bufnr = 0 })
+
+==============================================================================
+COMPLETION            	         			*mdnotes-completion*
+
+Built-in file path completion with Neovim can be used with `mdnotes` which
+also means that you don't need an LSP for this either. Execute the completion
+by typing the path and in insert mode pressing |i_CTRL-X_CTRL-F|.
+
+For Windows, due to the square brackets being in |'isfname'|, you need to
+remove them for autocompletion to work. Therefore put this in your
+`after/ftplugin/markdown.lua`,
+>lua
+    vim.opt.isfname:remove('[', ']')
 
 ==============================================================================
 CONFIG             	                     	      	*mdnotes-config*
@@ -58,6 +121,7 @@ The default config for `mdnotes` is shown below,
 	open_behaviour = "buffer",
 	bold_format = "**",
 	italics_format = "*",
+	date_format = "%a %d %b %Y"
     }
 <
 index_file = `"path"`					*mdnotes-index_file*
@@ -73,19 +137,19 @@ assets_path = `"path"`					*mdnotes-assets_path*
     Can be any path to your assets folder. This is where any asset you insert
     by using |:Mdn insert_image| or |:Mdn insert_file| is copied or moved to.
 
-insert_file_behaviour = `"string"`		*mdnotes-insert_file_behaviour*
+insert_file_behaviour = `"string"`			*mdnotes-insert_file_behaviour*
 
     Can take the values of `"copy"` or `"move"` which copies or moves inserted
     assets respectively.
 
-overwrite_behaviour = `"string"`		*mdnotes-overwrite_behaviour*
+overwrite_behaviour = `"string"`			*mdnotes-overwrite_behaviour*
 
     Can take the values of `"error"` or `"overwrite"` which defines how the plugin 
     should handle existing assets. With `"error"` it throws an error and prevents
     the user from inserting the asset. With `"overwrite"` it will overwrite the
     conflicting file.
 
-open_behaviour = `"string"`			*mdnotes-open_behaviour*
+open_behaviour = `"string"`				*mdnotes-open_behaviour*
 
     Can take the values of `"buffer"` or `"tab"` which defines how Wikilinks are
     opened using |:Mdn home|, |:Mdn journal|, and |:Mdn open_wikilink|. With
@@ -101,6 +165,11 @@ italics_format = `"string"`				*mdnotes-italics_format*
 
     Can take the valid values of `"*"` or `"_"` which defines how the
     Markdown `*italics*` or `_italics_` formatting is executed.
+
+date_format = `"string"`				*mdnotes-date_format*
+
+    Format of the outputed date using |Mdn-insert_date|. See |strftime()| for
+    acceptable formats.
 
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*
@@ -146,7 +215,8 @@ subcommands are listed below.
 
     Insert the image in the clipboard under the cursor and depending on
     |mdnotes-insert_file_behaviour| place it in your |mdnotes-assets_path|. (e.g
-    `![image](path/to/assets/image.png)`)
+    `![image](path/to/assets/image.png)`). Overwriting depends on
+    |mdnotes-overwrite_behaviour|.
 
 :Mdn insert_file					*:Mdn-insert_file*
 
@@ -165,7 +235,7 @@ subcommands are listed below.
 
     Clear the history of visited Markdown buffers.
 
-:Mdn cleanup_unused_assets			*:Mdn-cleanup_unused_assets*
+:Mdn cleanup_unused_assets				*:Mdn-cleanup_unused_assets*
 
     Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input|
     will be used to prompt for `y/n/a(ll)` deletion actions. Uses
@@ -173,7 +243,7 @@ subcommands are listed below.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-:Mdn rename_link_references			*:Mdn-rename_link_references*
+:Mdn rename_link_references				*:Mdn-rename_link_references*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
     link.
@@ -188,19 +258,28 @@ subcommands are listed below.
     Toggle Markdown `*italic*` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-:Mdn strikethrough_toggle			*:Mdn-strikethrough_toggle*
+:Mdn strikethrough_toggle				*:Mdn-strikethrough_toggle*
 
     Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
     command or hover over already bold text to remove.
 
-:Mdn inline_code_toggle				*:Mdn-inline_code_toggle*
+:Mdn inline_code_toggle					*:Mdn-inline_code_toggle*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already bold text to remove.
-==============================================================================
-API                                                        *mdnotes-api*
 
-setup({opts})                                          *mdnotes.setup()*
+:Mdn insert_date					*:Mdn-insert_date*
+
+    Insert the current date and time. Useful when using a journal.
+
+==============================================================================
+API                                     		*mdnotes-api*
+
+`mdnotes` is not a complex plugin so most of the commands is just calling
+their corresponding functions. Some of the descriptions here are copied from
+the |mdnotes-commands| section.
+
+setup({opts})                                          	*mdnotes.setup()*
 
     Configure installation with non-default options. Not needed if using
     defaults. See |mdnotes-config| for a more in-depth explanation.
@@ -225,19 +304,140 @@ setup({opts})                                          *mdnotes.setup()*
               • {italics_format} (`string?`, default `"*"`)
 		defines `mdnotes` italics formatting behaviour
 
-format_patterns					*mdnotes.format_patterns*
+format_patterns						*mdnotes.format_patterns*
 
-    Format patterns used to detect the existance of those formats at the
-    current cursor position. The patterns must return start and end 
-    cursor positions. See |mdnotes.check_md_format()|
+    Format patterns are Lua patterns used to detect the existance of those
+    formats at the current cursor position. The patterns must return start
+    and end cursor positions (e.g. `"()~~(.-)~~()"`). 
+    See |mdnotes.check_md_format()|
 
-check_md_format(`pattern`) 			*mdnotes.check_md_format()*
+check_md_format({pattern}) 				*mdnotes.check_md_format()*
 
     Check if the text under cursor obeys a Lua pattern that is used to
-    describe Markdown formatting.
+    describe Markdown formatting. Patterns used are the
+    |mdnotes.format_patterns|.
 
     Parameters: ~
-    • `pattern`  `(string?)` A Lua pattern that also returns cursor position.
-      For example, `"()~~(.-)~~()"`.
+    • {pattern}  `(string?)` A Lua pattern that also returns cursor position
+      at the start and end.
+
+check_assets_path() 					*mdnotes.check_assets_path()*
+
+    Check the existance of the |mdnotes-assets_path| when inserting images or
+    files.
+
+open() 							*mdnotes.open()*
+
+    Open the hyperlink under cursor. It can be a file or a URL.
+
+
+go_to_index_file() 			   		*mdnotes.go_to_index_file()*
+
+    Go the index file defined by |mdnotes-index_file|.
+
+go_to_journal_file()					*mdnotes.go_to_journal_file()*
+
+    Go the journal file defined by |mdnotes-journal_file|.
+
+open_wikilink()						*mdnotes.open_wikilink()*
+
+    Open Wikilink under cursor (e.g. `[[link#section]]`).
+
+hyperlink_insert()					*mdnotes.hyperlink_insert()*
+
+    Insert a hyperlink from the clipbaord using the currently highlighted
+    word.
+
+hyperlink_delete()					*mdnotes.hyperlink_delete()*
+
+    Remove the hyperlink from the current hyperlink under the cursor.
+
+hyperlink_toggle()					*mdnotes.hyperlink_toggle()*
+
+    Toggle adding or removing the hyperlink. When adding it uses
+    |mdnotes.hyperlink_insert()| and when removing it uses
+    |mdnotes.hyperlink_delete()|.
+
+show_backlinks()					*mdnotes.show_backlins()*
+
+    Show backlinks of the Wikilink under the cursor. If no Wikilink under the
+    cursor it shows the backlinks of the current buffer.
+
+outliner_toggle()					*mdnotes.outliner_toggle()*
+
+    Toggle the outliner mode. Outliner mode essentially sets or deletes
+    certain keymaps to simulate working in an outliner program (e.g. Logseq).
+
+buf_history						*mdnotes.buf_history*
+
+    Table containing the sequential buffer history of the visited Markdown
+    buffers. It gets populated through an `autocmd` on a `BufEnter` event. If
+    the user goes back and then goes forward to buffer that they were not
+    previously in, the buffer history removes everything past the buffer they
+    went back to, and appends the buffer they've moved forward to.
+
+current_index						*mdnotes.current_index*
+
+    Current index being pointed to in the |mdnotes.buf_history| table. 
+
+go_back()						*mdnotes.go_back()*
+
+    Go back in the buffer history. Essentially move the index by -1. See
+    |mdnotes.buf_history|.
+
+go_back()						*mdnotes.go_back()*
+
+    Go back in the buffer history. Essentially move the index by -1. See
+    |mdnotes.buf_history|.
+
+clear_history()						*mdnotes.clear_history()*
+
+    Clear the |mdnotes.buf_history| table.
+
+insert_image()						*mdnotes.insert_image()*
+
+    Insert the image in the clipboard under the cursor and depending on
+    |mdnotes-insert_file_behaviour| place it in your |mdnotes-assets_path|. (e.g
+    `![image](path/to/assets/image.png)`). Overwriting depends on
+    |mdnotes-overwrite_behaviour|.
+
+
+insert_file()						*mdnotes.insert_file()*
+
+    Exactly the same as |Mdn-insert_image| but it inserts a hyperlink to the
+    file (e.g. `[file](path/to/assets/file.txt)`).
+
+cleanup_unused_assets()					*mdnotes.cleanup_unused_assets()*
+
+    Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input|
+    will be used to prompt for `y/n/a(ll)` deletion actions. Uses
+    |vim.fs.rm|.
+
+    Note: Data loss will obviously happen with this command so BE CAREFUL.
+
+rename_link_references()				*mdnotes.rename_link_references*
+
+    Rename the reference to a `[[link]]` and also the file pointing to that
+    link.
+
+bold_toggle()						*mdnotes.bold_toggle*
+
+    Toggle Markdown `**bold**` syntax. Select a word and execute the command
+    or hover over already bold text to remove.
+
+italic_toggle()						*mdnotes.bold_toggle*
+
+    Toggle Markdown `*italic*` syntax. Select a word and execute the command
+    or hover over already bold text to remove.
+
+strikethrough_toggle()					*mdnotes.strikethrough_toggle*
+
+    Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
+    command or hover over already bold text to remove.
+
+inline_code_toggle()					*mdnotes.inline_code_toggle*
+
+    Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
+    or hover over already bold text to remove.
 
 vim:tw=78:ts=8:expandtab:noet:ft=help:norl:
