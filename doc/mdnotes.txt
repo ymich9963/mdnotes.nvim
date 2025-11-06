@@ -237,7 +237,7 @@ subcommands are listed below.
 :Mdn cleanup_unused_assets				*:Mdn-cleanup_unused_assets*
 
     Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input|
-    will be used to prompt for `y/n/a(ll)` deletion actions. Uses
+    will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
     |vim.fs.rm|.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
