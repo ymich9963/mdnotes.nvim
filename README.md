@@ -1,5 +1,5 @@
-# 🗒️ Markdown Notes for Neovim (mdnotes.nvim)
-Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, backlinks, and formatting. All this without relying on any LSP but using one is recommended.
+# mdnotes.nvim
+Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, backlinks, and formatting. All this without relying on any LSP but using one is recommended.
 
 Read the documentation with `:h mdnotes.txt`.
 
@@ -74,7 +74,7 @@ vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .
 ```
 
 ## LSPs
-The main reason I made this plugin was dissatisfaction with MD LSPs at the time, and I really wanted to use Neovim as my notes editor. Now the plugin has more useful features for me than the editors I used to use, which is nice. It is recommended to use LSPs with the plugin since I'm trying to work with the LSPs and not try to create something from scratch. So far certain LSP features haven't been working for me fully, but I do recommend [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) and [marksman](https://github.com/artempyanykh/marksman).
+The main reason I started this project was dissatisfaction with MD LSPs at the time, and I really wanted to use Neovim as my notes editor. It is recommended to use LSPs with `mdnotes` since I'm trying to work with the LSPs and to not try to create something from scratch. So far certain LSP features haven't been working for me fully, but I do recommend [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) and [marksman](https://github.com/artempyanykh/marksman).
 
 ## Other Cool Markdown-related Plugins
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
