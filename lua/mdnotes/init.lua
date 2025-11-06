@@ -210,7 +210,6 @@ function  mdnotes.outliner_toggle()
     end
 end
 
--- :
 local function insert_file(file_type)
     if not mdnotes.check_assets_path() then return end
 
@@ -344,28 +343,31 @@ function mdnotes.cleanup_unused_assets()
 
     local temp_qflist = vim.fn.getqflist()
     local cleanup_all = false
+    local cancel = false
     for name, _ in vim.fs.dir(mdnotes.config.assets_path) do
-        local vimgrep_ret = vim.cmd.vimgrep({args = {'/\\[\\[' .. name .. '\\]\\]/', '*'}, mods = {emsg_file = true}})
+        local vimgrep_ret = vim.cmd.vimgrep({args = {'/\\[\\[' .. name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
         if vimgrep_ret == "" then
+            if cancel then
+                break
+            end
             if not cleanup_all then
-                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to delete file(s) (default 'n'): "):format(name), }, function(input)
+                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to delete file(s) or 'cancel' to cancel (default 'n'): "):format(name), }, function(input)
+                    vim.cmd('redraw')
                     if input == 'y' then
                         vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
-                        vim.cmd('redraw')
                         vim.notify(("Mdn: Removed '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
-                        vim.cmd('call getchar()')
                     elseif input == 'a' then
                         cleanup_all = true
                         vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
+                    elseif input == 'cancel' then
+                        cancel = true
+                        vim.notify(("Mdn: Cancelled cleanup. Press any key to continue:"):format(name), vim.log.levels.WARN)
                     elseif input == 'n' or '' then
-                        vim.cmd('redraw')
                         vim.notify(("Mdn: Skipped '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
-                        vim.cmd('call getchar()')
                     else
-                        vim.cmd('redraw')
                         vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue:"):format(input), vim.log.levels.ERROR)
-                        vim.cmd('call getchar()')
                     end
+                    vim.cmd('call getchar()')
                 end)
             else
                 vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
@@ -381,7 +383,6 @@ end
 function mdnotes.rename_link_references()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
 
     local file, _ = "", ""
     local renamed = ""
