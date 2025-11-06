@@ -210,13 +210,32 @@ function  mdnotes.outliner_toggle()
     end
 end
 
+-- :
 local function insert_file(file_type)
     if not mdnotes.check_assets_path() then return end
 
     -- Get the file paths as a table
-    local file_paths = vim.split(
-        vim.system({vim.fs.normalize('../../bin/gcfp.exe')}, { text = true }):wait().stdout, '\n'
-    )
+    local cmd_stdout = ""
+    local file_paths = {}
+    if vim.fn.has("win32") then
+        cmd_stdout = vim.system({'cmd.exe', '/c', 'powershell', '-command' ,'& {Get-Clipboard -Format FileDropList -Raw}'}, { text = true }):wait().stdout
+    elseif vim.fn.has("linux") then
+        local display_server = os.getenv "XDG_SESSION_TYPE"
+        if display_server == "x11" or display_server == "tty" then
+            cmd_stdout = vim.system({"xclip", "-selection", "clipboard", "-t", "text/uri-list", "-o", "|", "sed", "'s|file://||'"}, { text = true }):wait().stdout
+        elseif display_server == "wayland" then
+            cmd_stdout = vim.system({"wl-paste", "--type", "text/uri-list", "|", "sed", "'s|file://||'"}, { text = true }):wait().stdout
+        end
+    elseif vim.fn.has("mac") then
+        cmd_stdout = vim.system({"osascript", "-e", '"tell application "Finder" to get the POSIX path of every item of (the clipboard as alias list)"'}, { text = true }):wait().stdout
+    end
+
+    if cmd_stdout ~= "" then
+        file_paths = vim.split( cmd_stdout, '\n')
+    else
+        vim.notify('Mdn: Error when trying to read clipboard. Output of command: ' .. cmd_stdout .. '.', vim.log.levels.WARN)
+        return
+    end
 
     -- Remove last entry since it will always be '\n'
     table.remove(file_paths)
@@ -227,7 +246,7 @@ local function insert_file(file_type)
     end
 
     -- Exit if none found
-    if file_paths[1] == 'None' then
+    if file_paths[1] == 'None' or nil then
         vim.notify('Mdn: No file paths found in clipboard.', vim.log.levels.WARN)
         return
     end
@@ -247,6 +266,7 @@ local function insert_file(file_type)
     if mdnotes.config.insert_file_behaviour == "copy" then
         if not uv.fs_copyfile(file_path, vim.fs.joinpath(mdnotes.config.assets_path, file_name)) then
             vim.notify(("Mdn: File copy failed."), vim.log.levels.ERROR)
+            vim.print(file_path, file_name)
             return
         else
             vim.notify(('Mdn: Copied %s to your assets folder at %s.'):format(file_path, mdnotes.config.assets_path), vim.log.levels.INFO)
