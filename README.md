@@ -1,7 +1,7 @@
-# Markdown Notes for Neovim (mdnotes.nvim)
+# 🗒️ Markdown Notes for Neovim (mdnotes.nvim)
 Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, backlinks, and formatting. All this without relying on any LSP but using one is recommended.
 
-Please remember to read the docs with `:h mdnotes.txt` or in `doc/mdnotes.txt`. Most important items are detailed here in the README but they are written in more detail in there.
+Read the documentation with `:h mdnotes.txt`.
 
 ## Features
 - Open hyperlinks to files and URLs with `:Mdn open`.
@@ -10,12 +10,12 @@ Please remember to read the docs with `:h mdnotes.txt` or in `doc/mdnotes.txt`. 
 - Open Wikilinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
 - Toggle hyperlinks with `:Mdn toggle_hyperlink` which pastes your copied hyperlink over the selected text or removes it.
 - Show backlinks of the current file with `:Mdn show_backlinks` or to show the backlinks of a Wikilink by hovering over the link and executing the same command.
-- Implements an outliner mode by doing `:Mdn toggle_outliner` (make sure to exit afterwards by re-toggling.
+- Implements an outliner mode by doing `:Mdn toggle_outliner`. Make sure to exit afterwards by re-toggling.
 - Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 - Supports Windows eccentricities.
 - Use `:Mdn cleanup_unused_assets` to easily cleanup assets that you no longer use.
 - Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
-- Toggle the appropriate formatting with `:Mdn bold/italic/inline code/strikethrough_toggle`.
+- Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
 - Rename link references and the file itself using `:Mdn rename_link_references`.
 - Quickly insert the date using `:Mdn insert_date` (in a customiseable format) when using your journal.
 
@@ -45,11 +45,13 @@ Please remember to read the docs with `:h mdnotes.txt` or in `doc/mdnotes.txt`. 
 ```
 
 ### Recommendations
-In your config path have an `after/ftplugin/markdown.lua` file which would have settings specific to Markdown files. In there place the recommended keymaps or any other settings that would enhance the note-taking experience,
+I've listed some recommended keymaps and settings below for a great experience with `mdnotes`. They are not applied by default and therefore have to be mapped manually. All suggestions here should ideally be in an `after/ftplugin/markdown.lua` file so that they are specific to Markdown files.
+
+#### Keymaps
+Here are some recommended keymaps for `mdnotes`,
 ```lua
     vim.keymap.set("n", "gf", ":Mdn open_wikilink<CR>", { desc = "Open markdown file from Wikilink" })
-    vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn toggle_hyperlink<CR>", { desc = "Toggle hyperlink" })
-    vim.keymap.set("n", "<C-K>", ":Mdn toggle_hyperlink<CR>", { desc = "Toggle hyperlink" })
+    vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn hyperlink_toggle<CR>", { desc = "Toggle hyperlink" })
     vim.keymap.set("n", "<Left>", ":Mdn go_back<CR>", { desc = "Go to back to previously visited Markdown buffer" })
     vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { desc = "Go to next visited Markdown buffer" })
     vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { desc = "Toggle bold formatting" })
@@ -60,6 +62,7 @@ If you really like outliner mode and want to indent entire blocks then these rem
 vim.keymap.set("v", "<", "<gv", { desc = "Indent left and reselect" }) -- Better indenting in visual mode
 vim.keymap.set("v", ">", ">gv", { desc = "Indent right and reselect" })
 ```
+#### Settings
 If you are on Windows then setting this option will allow you to use the build in `<C-x> <C-f>` file completion,
 ```lua
 vim.opt.isfname:remove('[', ']') -- To enable path completion on Windows <C-x> <C-f>
