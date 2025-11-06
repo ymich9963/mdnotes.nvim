@@ -1,3 +1,0 @@
-pywin32; platform_system == "Windows"
-pyobjc-framework-Quartz; platform_system == "Darwin"
-PyGObject; platform_system == "Linux"

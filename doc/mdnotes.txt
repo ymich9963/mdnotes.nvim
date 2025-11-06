@@ -321,10 +321,16 @@ check_md_format({pattern}) 				*mdnotes.check_md_format()*
     • {pattern}  `(string?)` A Lua pattern that also returns cursor position
       at the start and end.
 
+    Return: ~
+      (`false|true`)
+
 check_assets_path() 					*mdnotes.check_assets_path()*
 
     Check the existance of the |mdnotes-assets_path| when inserting images or
     files.
+
+    Return: ~
+      (`false|true`)
 
 open() 							*mdnotes.open()*
 
