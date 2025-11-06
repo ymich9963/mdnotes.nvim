@@ -420,27 +420,27 @@ cleanup_unused_assets()					*mdnotes.cleanup_unused_assets()*
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-rename_link_references()				*mdnotes.rename_link_references*
+rename_link_references()				*mdnotes.rename_link_references()*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
     link.
 
-bold_toggle()						*mdnotes.bold_toggle*
+bold_toggle()						*mdnotes.bold_toggle()*
 
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-italic_toggle()						*mdnotes.bold_toggle*
+italic_toggle()						*mdnotes.bold_toggle()*
 
     Toggle Markdown `*italic*` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-strikethrough_toggle()					*mdnotes.strikethrough_toggle*
+strikethrough_toggle()					*mdnotes.strikethrough_toggle()*
 
     Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
     command or hover over already bold text to remove.
 
-inline_code_toggle()					*mdnotes.inline_code_toggle*
+inline_code_toggle()					*mdnotes.inline_code_toggle()*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already bold text to remove.
