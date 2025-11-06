@@ -67,6 +67,11 @@ If you are on Windows then setting this option will allow you to use the build i
 ```lua
 vim.opt.isfname:remove('[', ']') -- To enable path completion on Windows <C-x> <C-f>
 ```
+These other two settings are for enabling wrapping only in Markdown files, and to disable the LSP diagnostics if they annoy you.
+```lua
+vim.wo.wrap = true -- Enable wrap for current .md window
+vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
+```
 
 ## LSPs
 The main reason I made this plugin was dissatisfaction with MD LSPs at the time, and I really wanted to use Neovim as my notes editor. Now the plugin has more useful features for me than the editors I used to use, which is nice. It is recommended to use LSPs with the plugin since I'm trying to work with the LSPs and not try to create something from scratch. So far certain LSP features haven't been working for me fully, but I do recommend [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) and [marksman](https://github.com/artempyanykh/marksman).
