@@ -104,7 +104,8 @@ For Windows, due to the square brackets being in |'isfname'|, you need to
 remove them for autocompletion to work. Therefore put this in your
 `after/ftplugin/markdown.lua`,
 >lua
-    vim.opt.isfname:remove('[', ']')
+    vim.opt.isfname:remove('[')
+    vim.opt.isfname:remove(']')
 
 ==============================================================================
 CONFIG             	                     	      	*mdnotes-config*

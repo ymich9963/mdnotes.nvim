@@ -73,9 +73,10 @@ vim.keymap.set("v", "<", "<gv", { desc = "Indent left and reselect" }) -- Better
 vim.keymap.set("v", ">", ">gv", { desc = "Indent right and reselect" })
 ```
 #### 👩‍💻 Settings
-If you are on Windows then setting this option will allow you to use the build in `<C-x> <C-f>` file completion,
+If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion,
 ```lua
-vim.opt.isfname:remove('[', ']') -- To enable path completion on Windows <C-x> <C-f>
+vim.opt.isfname:remove('[') -- To enable path completion on Windows :h i_CTRL-X_CTRL-F
+vim.opt.isfname:remove(']')
 ```
 These other two settings are for enabling wrapping only in Markdown files, and to disable the LSP diagnostics if they annoy you.
 ```lua
