@@ -1,11 +1,12 @@
-[![Neovim](https://img.shields.io/badge/Built_for-Neovim-57A143?style=for-the-badge&logo=neovim)](https://neovim.io/)
-[![Lua](https://img.shields.io/badge/Made_with-Lua-blueviolet.svg?style=for-the-badge)](https://www.lua.org)
-[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
-
 # 📓 mdnotes.nvim
+![Neovim](https://img.shields.io/badge/Built%20for-Neovim-green?logo=neovim&color=%2357A143&link=https%3A%2F%2Fmit-license.org%2F)
+![Lua badge](https://img.shields.io/badge/Made%20with-Lua-purple?logo=lua&color=%23000080&link=https%3A%2F%2Flua.org%2F)
+![MIT license](https://img.shields.io/badge/License-MIT-blue?link=https%3A%2F%2Fmit-license.org%2F)
+
 **Simple and improved Markdown note taking.**
 
 ---
+
 
 ## ☀️ Introduction
 Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, backlinks, and formatting. All this without relying on any LSP but using one is recommended.
@@ -26,7 +27,7 @@ Read the documentation with `:h mdnotes.txt`.
 - Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
 - Rename link references and the file itself using `:Mdn rename_link_references`.
-- Quickly insert the date using `:Mdn insert_date` (in a customiseable format) when using your journal.
+- uickly insert the date using `:Mdn insert_date` (in a customiseable format) when using your journal.
 
 ## 👽 Setup
 ```lua
