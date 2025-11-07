@@ -390,9 +390,9 @@ go_back()						*mdnotes.go_back()*
     Go back in the buffer history. Essentially move the index by -1. See
     |mdnotes.buf_history|.
 
-go_back()						*mdnotes.go_back()*
+go_forward()						*mdnotes.go_forward()*
 
-    Go back in the buffer history. Essentially move the index by -1. See
+    Go forward in the buffer history. Essentially move the index by +1. See
     |mdnotes.buf_history|.
 
 clear_history()						*mdnotes.clear_history()*
