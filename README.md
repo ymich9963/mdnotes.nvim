@@ -1,9 +1,18 @@
-# mdnotes.nvim
+[![Neovim](https://img.shields.io/badge/Built_for-Neovim-57A143?style=for-the-badge&logo=neovim)](https://neovim.io/)
+[![Lua](https://img.shields.io/badge/Made_with-Lua-blueviolet.svg?style=for-the-badge)](https://www.lua.org)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
+
+# 📓 mdnotes.nvim
+**Simple and improved Markdown note taking.**
+
+---
+
+## ☀️ Introduction
 Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, backlinks, and formatting. All this without relying on any LSP but using one is recommended.
 
 Read the documentation with `:h mdnotes.txt`.
 
-## Features
+## 🔥 Features
 - Open hyperlinks to files and URLs with `:Mdn open`.
 - Set your index file and go there with `:Mdn home`.
 - Set your journal file and go there with `:Mdn journal`.
@@ -19,7 +28,7 @@ Read the documentation with `:h mdnotes.txt`.
 - Rename link references and the file itself using `:Mdn rename_link_references`.
 - Quickly insert the date using `:Mdn insert_date` (in a customiseable format) when using your journal.
 
-## Setup
+## 👽 Setup
 ```lua
 {
     "ymich9963/mdnotes.nvim",
@@ -31,7 +40,7 @@ Read the documentation with `:h mdnotes.txt`.
 }
 ```
 
-### Default Config
+### 🌐 Default Config
 ```lua
 {
     index_file = "",
@@ -44,10 +53,10 @@ Read the documentation with `:h mdnotes.txt`.
 }
 ```
 
-### Recommendations
+### 💋 Recommendations
 I've listed some recommended keymaps and settings below for a great experience with `mdnotes`. They are not applied by default and therefore have to be mapped manually. All suggestions here should ideally be in an `after/ftplugin/markdown.lua` file so that they are specific to Markdown files.
 
-#### Keymaps
+#### ⌨️ Keymaps
 Here are some recommended keymaps for `mdnotes`,
 ```lua
     vim.keymap.set("n", "gf", ":Mdn open_wikilink<CR>", { desc = "Open markdown file from Wikilink" })
@@ -62,7 +71,7 @@ If you really like outliner mode and want to indent entire blocks then these rem
 vim.keymap.set("v", "<", "<gv", { desc = "Indent left and reselect" }) -- Better indenting in visual mode
 vim.keymap.set("v", ">", ">gv", { desc = "Indent right and reselect" })
 ```
-#### Settings
+#### 👩‍💻 Settings
 If you are on Windows then setting this option will allow you to use the build in `<C-x> <C-f>` file completion,
 ```lua
 vim.opt.isfname:remove('[', ']') -- To enable path completion on Windows <C-x> <C-f>
@@ -73,10 +82,10 @@ vim.wo.wrap = true -- Enable wrap for current .md window
 vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
 ```
 
-## LSPs
+## 🙊 LSPs
 The main reason I started this project was dissatisfaction with MD LSPs at the time, and I really wanted to use Neovim as my notes editor. It is recommended to use LSPs with `mdnotes` since I'm trying to work with the LSPs and to not try to create something from scratch. So far certain LSP features haven't been working for me fully, but I do recommend [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) and [marksman](https://github.com/artempyanykh/marksman).
 
-## Other Cool Markdown-related Plugins
+## 🫰 Other Cool Markdown-related Plugins
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
 - [markdown-plus](https://github.com/yousefhadder/markdown-plus.nvim)
 - [markview]( https://github.com/OXY2DEV/markview.nvim)
