@@ -27,7 +27,7 @@ Read the documentation with `:h mdnotes.txt`.
 - Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
 - Rename link references and the file itself using `:Mdn rename_link_references`.
-- uickly insert the date using `:Mdn insert_date` (in a customiseable format) when using your journal.
+- Quickly insert the date using `:Mdn insert_date` (in a customiseable format) when using your journal.
 
 ## 👽 Setup
 ```lua
