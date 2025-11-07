@@ -398,10 +398,11 @@ function mdnotes.rename_link_references()
         end
 
         if start_pos < current_col and end_pos > current_col then
-            vim.ui.input({ prompt = "Rename '".. file .."' to: " }, function(input)
+            vim.ui.input({ prompt = "Rename '".. file .."' to: " },
+            function(input)
                 renamed = input
             end)
-            if renamed == "" or nil then
+            if renamed == "" or renamed == nil then
                 vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
                 return
             else
