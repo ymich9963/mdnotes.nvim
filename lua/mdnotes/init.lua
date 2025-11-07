@@ -9,7 +9,7 @@ function mdnotes.setup(user_config)
     mdnotes.config = require('mdnotes.config').setup(user_config)
 
     b = mdnotes.config.bold_format:sub(1, 1)
-    i = mdnotes.config.italics_format:sub(1, 1)
+    i = mdnotes.config.italic_format:sub(1, 1)
 
     mdnotes.format_patterns = {
         wikilink_pattern = "()%[%[(.-)%]%]()",

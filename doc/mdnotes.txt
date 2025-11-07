@@ -60,7 +60,7 @@ be,
     vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { desc = "Go to next visited 
     Markdown buffer" })
     vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { desc = "Toggle bold formatting" })
-    vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italics_toggle<CR>", { desc = "Toggle italics formatting" })
+    vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italic_toggle<CR>", { desc = "Toggle italic formatting" })
 
 These might also be worth having if you use outliner mode a lot so you can
 indent entire blocks more easily,
@@ -119,7 +119,7 @@ The default config for `mdnotes` is shown below,
 	overwrite_behaviour = "error",
 	open_behaviour = "buffer",
 	bold_format = "**",
-	italics_format = "*",
+	italic_format = "*",
 	date_format = "%a %d %b %Y"
     }
 <
@@ -160,10 +160,10 @@ bold_format = `"string"`				*mdnotes-bold_format*
     Can take the valid values of `"**"` or `"__"` which defines how the
     Markdown `**bold**` or `__bold__` formatting is executed.
 
-italics_format = `"string"`				*mdnotes-italics_format*
+italic_format = `"string"`				*mdnotes-italic_format*
 
     Can take the valid values of `"*"` or `"_"` which defines how the
-    Markdown `*italics*` or `_italics_` formatting is executed.
+    Markdown `*italic*` or `_italic_` formatting is executed.
 
 date_format = `"string"`				*mdnotes-date_format*
 
@@ -300,8 +300,8 @@ setup({opts})                                          	*mdnotes.setup()*
 		`mdnotes` behaviour when opening files with |:Mdn-open|.
               • {bold_format} (`string?`, default `"**"`)
 		defines `mdnotes` bold formatting behaviour
-              • {italics_format} (`string?`, default `"*"`)
-		defines `mdnotes` italics formatting behaviour
+              • {italic_format} (`string?`, default `"*"`)
+		defines `mdnotes` italic formatting behaviour
 
 format_patterns						*mdnotes.format_patterns*
 
@@ -430,7 +430,7 @@ bold_toggle()						*mdnotes.bold_toggle()*
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-italic_toggle()						*mdnotes.bold_toggle()*
+italic_toggle()						*mdnotes.italic_toggle()*
 
     Toggle Markdown `*italic*` syntax. Select a word and execute the command
     or hover over already bold text to remove.
