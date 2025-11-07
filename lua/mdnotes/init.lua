@@ -390,13 +390,14 @@ function mdnotes.rename_link_references()
     for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
         -- Match link to links with section names but ignore the section name
         file, _ = link:match("([^#]+)#?(.*)")
-
         file = vim.trim(file)
 
+        if not uv.fs_stat(file .. ".md") then
+            vim.notify(("Mdn: This link does not seem to link to a valid file."), vim.log.levels.ERROR)
+            return
+        end
+
         if start_pos < current_col and end_pos > current_col then
-            if not uv.fs_stat(file .. ".md") then
-                vim.notify(("Mdn: This link does not seem to link to a valid file."), vim.log.levels.ERROR)
-            end
             vim.ui.input({ prompt = "Rename '".. file .."' to: " }, function(input)
                 renamed = input
             end)
@@ -415,6 +416,12 @@ function mdnotes.rename_link_references()
         end
 
     end
+
+    if file == "" then
+        vim.notify(("Mdn: No valid link under cursor."), vim.log.levels.ERROR)
+        return
+    end
+
     vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(file, renamed)), vim.log.levels.INFO)
 end
 
