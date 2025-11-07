@@ -252,7 +252,7 @@ subcommands are listed below.
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-:Mdn italic_toggle					*:Mdn-bold_toggle*
+:Mdn italic_toggle					*:Mdn-italic_toggle*
 
     Toggle Markdown `*italic*` syntax. Select a word and execute the command
     or hover over already bold text to remove.
