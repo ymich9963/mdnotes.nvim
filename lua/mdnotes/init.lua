@@ -345,8 +345,8 @@ function mdnotes.cleanup_unused_assets()
     local cleanup_all = false
     local cancel = false
     for name, _ in vim.fs.dir(mdnotes.config.assets_path) do
-        local vimgrep_ret = vim.cmd.vimgrep({args = {'/\\[\\[' .. name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-        if vimgrep_ret == "" then
+        vim.cmd.vimgrep({args = {'/\\](' .. mdnotes.config.assets_path .. '\\/' .. name .. ')/', '*'}, mods = {emsg_silent = true}})
+        if next(vim.fn.getqflist()) == nil then
             if cancel then
                 break
             end
@@ -356,21 +356,74 @@ function mdnotes.cleanup_unused_assets()
                     if input == 'y' then
                         vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
                         vim.notify(("Mdn: Removed '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
                     elseif input == 'a' then
-                        cleanup_all = true
                         vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
+                        cleanup_all = true
                     elseif input == 'cancel' then
                         cancel = true
                         vim.notify(("Mdn: Cancelled cleanup. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
                     elseif input == 'n' or '' then
                         vim.notify(("Mdn: Skipped '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
                     else
                         vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue:"):format(input), vim.log.levels.ERROR)
+                        vim.cmd('call getchar()')
                     end
-                    vim.cmd('call getchar()')
                 end)
             else
                 vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
+            end
+        end
+    end
+
+    vim.fn.setqflist(temp_qflist)
+    vim.cmd('redraw')
+    vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
+end
+
+function mdnotes.move_unused_assets()
+    if not mdnotes.check_assets_path() then return end
+    local unused_assets_path = vim.fs.normalize(vim.fs.joinpath(mdnotes.config.assets_path, "../unused_assets"))
+
+    if vim.fn.isdirectory(unused_assets_path) == 0 then
+        uv.fs_mkdir(unused_assets_path, tonumber('777', 8))
+    end
+
+    local temp_qflist = vim.fn.getqflist()
+    local move_all = false
+    local cancel = false
+    for name, _ in vim.fs.dir(mdnotes.config.assets_path) do
+        vim.cmd.vimgrep({args = {'/\\](' .. mdnotes.config.assets_path .. '\\/' .. name .. ')/', '*'}, mods = {emsg_silent = true}})
+        if next(vim.fn.getqflist()) == nil then
+            if cancel then
+                break
+            end
+            if not move_all then
+                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to move file(s) or 'cancel' to cancel (default 'n'): "):format(name), }, function(input)
+                    vim.cmd('redraw')
+                    if input == 'y' then
+                        uv.fs_rename(vim.fs.joinpath(mdnotes.config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
+                        vim.notify(("Mdn: Moved '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
+                    elseif input == 'a' then
+                        uv.fs_rename(vim.fs.joinpath(mdnotes.config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
+                        move_all = true
+                    elseif input == 'cancel' then
+                        cancel = true
+                        vim.notify(("Mdn: Cancelled move. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
+                    elseif input == 'n' or '' then
+                        vim.notify(("Mdn: Skipped '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
+                    else
+                        vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue:"):format(input), vim.log.levels.ERROR)
+                        vim.cmd('call getchar()')
+                    end
+                end)
+            else
+                uv.fs_rename(vim.fs.joinpath(mdnotes.config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
             end
         end
     end
@@ -407,7 +460,7 @@ function mdnotes.rename_link_references()
                 return
             else
                 vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-                vim.cmd.cdo({args = {('cdo s/%s/%s/'):format(file, renamed)}, mods = {emsg_silent = true}})
+                vim.cmd.cdo({args = {('s/%s/%s/'):format(file, renamed)}, mods = {emsg_silent = true}})
                 if not uv.fs_rename(file .. ".md", renamed .. ".md") then
                     vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
                     return
