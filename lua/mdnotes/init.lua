@@ -13,9 +13,10 @@ function mdnotes.setup(user_config)
 
     mdnotes.format_patterns = {
         wikilink_pattern = "()%[%[(.-)%]%]()",
+        wikilink_section_pattern = "([^#]+)#?(.*)",
         file_section_pattern = "([^#]+)#?(.*)",
         hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
-        text_link_pattern = "()%[([^%]]+)%]%(([^%)]+)%)()",
+        text_link_pattern = "%[([^%]]+)%]%(([^%)]+)%)",
         bold_pattern = "()%" .. b .. "%" .. b .. "([^%" .. b .. "].-)%" .. b .. "%" .. b .. "()",
         italic_pattern = "()%" .. i .. "([^%" .. i .. "].-)%" .. i .."()",
         strikethrough_pattern = "()~~(.-)~~()",
@@ -442,7 +443,7 @@ function mdnotes.rename_link_references()
 
     for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
         -- Match link to links with section names but ignore the section name
-        file, _ = link:match("([^#]+)#?(.*)")
+        file, _ = link:match(mdnotes.format_patterns.wikilink_section_pattern)
         file = vim.trim(file)
 
         if not uv.fs_stat(file .. ".md") then
