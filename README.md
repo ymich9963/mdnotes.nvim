@@ -60,17 +60,17 @@ I've listed some recommended keymaps and settings below for a great experience w
 #### ⌨️ Keymaps
 Here are some recommended keymaps for `mdnotes`,
 ```lua
-vim.keymap.set("n", "gf", ":Mdn open_wikilink<CR>", { desc = "Open markdown file from Wikilink" })
-vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn hyperlink_toggle<CR>", { desc = "Toggle hyperlink" })
-vim.keymap.set("n", "<Left>", ":Mdn go_back<CR>", { desc = "Go to back to previously visited Markdown buffer" })
-vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { desc = "Go to next visited Markdown buffer" })
-vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { desc = "Toggle bold formatting" })
-vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italic_toggle<CR>", { desc = "Toggle italic formatting" })
+vim.keymap.set('n', 'gf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from Wikilink" })
+vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
+vim.keymap.set("n", "<Left>", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
+vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
+vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
+vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 ```
 If you really like outliner mode and want to indent entire blocks then these remaps are very helpful,
 ```lua
-vim.keymap.set("v", "<", "<gv", { desc = "Indent left and reselect" }) -- Better indenting in visual mode
-vim.keymap.set("v", ">", ">gv", { desc = "Indent right and reselect" })
+vim.keymap.set("v", "<", "<gv", { buffer = true, desc = "Indent left and reselect" }) -- Better indenting in visual mode
+vim.keymap.set("v", ">", ">gv", { buffer = true, desc = "Indent right and reselect" })
 ```
 #### 👩‍💻 Settings
 If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion,
