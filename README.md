@@ -24,6 +24,7 @@ Read the documentation with `:h mdnotes.txt`.
 - Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 - Supports Windows eccentricities.
 - Use `:Mdn cleanup_unused_assets` to easily cleanup assets that you no longer use.
+- Use `:Mdn move_unused_assets` to move unused assets to a separate folder.
 - Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
 - Rename link references and the file itself using `:Mdn rename_link_references`.

@@ -241,6 +241,12 @@ subcommands are listed below.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
+:Mdn move_unused_assets					*:Mdn-move_unused_assets*
+
+    Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
+    folder relative to your assets folder. A |vim.ui.input| will be used 
+    to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm|.
+
 :Mdn rename_link_references				*:Mdn-rename_link_references*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
@@ -418,6 +424,12 @@ cleanup_unused_assets()					*mdnotes.cleanup_unused_assets()*
     |vim.fs.rm|.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
+
+move_unused_assets()					*mdnotes.move_unused_assets()*
+
+    Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
+    folder relative to your assets folder. A |vim.ui.input| will be used 
+    to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm|.
 
 rename_link_references()				*mdnotes.rename_link_references()*
 
