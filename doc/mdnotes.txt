@@ -166,7 +166,7 @@ italic_format = `"string"`				*mdnotes-italic_format*
 
 date_format = `"string"`				*mdnotes-date_format*
 
-    Format of the outputed date using |Mdn-insert_date|. See |strftime()| for
+    Format of the outputed date using |Mdn-insert_journal_entry|. See |strftime()| for
     acceptable formats.
 
 ==============================================================================
@@ -272,9 +272,10 @@ subcommands are listed below.
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-:Mdn insert_date					*:Mdn-insert_date*
+:Mdn insert_journal_entry					*:Mdn-insert_journal_entry*
 
-    Insert the current date and time. Useful when using a journal.
+    Insert the current date and time along with a separator. Useful when 
+    using a journal.
 
 ==============================================================================
 API                                     		*mdnotes-api*
@@ -339,7 +340,6 @@ check_assets_path() 					*mdnotes.check_assets_path()*
 open() 							*mdnotes.open()*
 
     Open the hyperlink under cursor. It can be a file or a URL.
-
 
 go_to_index_file() 			   		*mdnotes.go_to_index_file()*
 
@@ -414,8 +414,21 @@ insert_image()						*mdnotes.insert_image()*
 
 insert_file()						*mdnotes.insert_file()*
 
-    Exactly the same as |Mdn-insert_image| but it inserts a hyperlink to the
+    Exactly the same as |mdnotes.insert_image()| but it inserts a hyperlink to the
     file (e.g. `[file](path/to/assets/file.txt)`).
+
+insert_journal_entry()					*mdnotes.insert_journal_entry()*
+
+    Insert a journal entry, which is the current date along with a separator
+    to separate the different entries. Places the cursor on `<cursor>`. For example,
+>markdown
+    ```
+    Sun 09 Nov 2025
+
+    <cursor>
+
+    ---
+    ```
 
 cleanup_unused_assets()					*mdnotes.cleanup_unused_assets()*
 

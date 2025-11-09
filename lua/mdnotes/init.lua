@@ -69,8 +69,9 @@ function mdnotes.open()
     for start_pos, hyperlink, end_pos in line:gmatch(mdnotes.format_patterns.hyperlink_pattern) do
         if start_pos < current_col and end_pos > current_col then
             _, link = hyperlink:match(mdnotes.format_patterns.text_link_pattern)
+            link = link:gsub("[<>]?", "")
             if vim.fn.has("win32") then
-                vim.system({"cmd.exe", "/c", "start", link})
+                vim.system({"cmd.exe", "/c", "start", "", link})
             else
                 vim.ui.open(link)
             end
@@ -211,6 +212,14 @@ function  mdnotes.outliner_toggle()
     end
 end
 
+local function contains_spaces(text)
+    if string.find(text, "%s") ~= nil then
+        return false
+    else
+        return true
+    end
+end
+
 local function insert_file(file_type)
     if not mdnotes.check_assets_path() then return end
 
@@ -281,10 +290,19 @@ local function insert_file(file_type)
     end
 
     -- Create file link
+    local asset_path = vim.fs.joinpath(mdnotes.config.assets_path, file_name)
     if file_type == "image" then
-        vim.fn.setreg('"x', ('![%s](%s)'):format(file_name, vim.fs.joinpath(mdnotes.config.assets_path, file_name)))
+        if contains_spaces(asset_path) then
+            vim.fn.setreg('"x', ('![%s](<%s>)'):format(file_name, asset_path))
+        else
+            vim.fn.setreg('"x', ('![%s](%s)'):format(file_name, asset_path))
+        end
     elseif file_type == "file" then
-        vim.fn.setreg('"x', ('[%s](%s)'):format(file_name, vim.fs.joinpath(mdnotes.config.assets_path, file_name)))
+        if contains_spaces(asset_path) then
+            vim.fn.setreg('"x', ('[%s](<%s>)'):format(file_name, asset_path))
+        else
+            vim.fn.setreg('"x', ('[%s](%s)'):format(file_name, asset_path))
+        end
     end
 
     -- Put text from register x
@@ -335,8 +353,9 @@ function mdnotes.insert_file()
     insert_file("file")
 end
 
-function mdnotes.insert_date()
+function mdnotes.insert_journal_entry()
     vim.cmd("put =strftime('" .. mdnotes.config.date_format .. "')")
+    vim.api.nvim_input('kddo<CR><CR><CR>---<ESC>kk')
 end
 
 function mdnotes.cleanup_unused_assets()

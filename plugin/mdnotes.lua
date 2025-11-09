@@ -42,7 +42,7 @@ local subcommands = {
     italic_toggle = mdnotes.italic_toggle,
     strikethrough_toggle = mdnotes.strikethrough_toggle,
     inline_code_toggle = mdnotes.inline_code_toggle,
-    insert_date = mdnotes.insert_date,
+    insert_journal_entry = mdnotes.insert_journal_entry,
 }
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
