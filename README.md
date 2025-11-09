@@ -14,21 +14,30 @@ Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking 
 Read the documentation with `:h mdnotes.txt`.
 
 ## 🔥 Features
+
+### 🧭 Navigation
 - Open hyperlinks to files and URLs with `:Mdn open`.
 - Set your index file and go there with `:Mdn home`.
 - Set your journal file and go there with `:Mdn journal`.
+- Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
 - Open Wikilinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
+
+### 💁 Formatting
 - Toggle hyperlinks with `:Mdn toggle_hyperlink` which pastes your copied hyperlink over the selected text or removes it.
+- Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
+
+### 🖇️ Wikilinks
+- Rename link references and the file itself using `:Mdn rename_link_references`.
 - Show backlinks of the current file with `:Mdn show_backlinks` or to show the backlinks of a Wikilink by hovering over the link and executing the same command.
-- Implements an outliner mode by doing `:Mdn toggle_outliner`. Make sure to exit afterwards by re-toggling.
-- Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
-- Supports Windows eccentricities.
+
+### 👩‍💼 Asset Management
 - Use `:Mdn cleanup_unused_assets` to easily cleanup assets that you no longer use.
 - Use `:Mdn move_unused_assets` to move unused assets to a separate folder.
-- Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
-- Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
-- Rename link references and the file itself using `:Mdn rename_link_references`.
-- When journalling quickly insert a journal entry using `:Mdn insert_journal_entry` which enters a date (in a customiseable format) and a `---` separator.
+- Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
+
+### 🧍‍♂️ Uncategorised
+- Implements an outliner mode by doing `:Mdn toggle_outliner`. Make sure to exit afterwards by re-toggling.
+- Supports Windows eccentricities.
 
 ## 👽 Setup
 ```lua
