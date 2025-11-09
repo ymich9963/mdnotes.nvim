@@ -185,7 +185,7 @@ subcommands are listed below.
 
 :Mdn open 	                                      	*:Mdn-open*
 
-    Opens the asset under the cursor. Uses |vim.ui.open| but due to a bug for
+    Opens the asset under the cursor. Uses |vim.ui.open()| but due to a bug for
     Winows it's currently using, >lua
 	vim.system({"cmd.exe", "/c", "start", link}) 
 
@@ -235,17 +235,17 @@ subcommands are listed below.
 
 :Mdn cleanup_unused_assets				*:Mdn-cleanup_unused_assets*
 
-    Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input|
+    Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
-    |vim.fs.rm|.
+    |vim.fs.rm()|.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
 :Mdn move_unused_assets					*:Mdn-move_unused_assets*
 
     Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
-    folder relative to your assets folder. A |vim.ui.input| will be used 
-    to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm|.
+    folder relative to your assets folder. A |vim.ui.input()| will be used 
+    to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm()|.
 
 :Mdn rename_link_references				*:Mdn-rename_link_references*
 
@@ -432,17 +432,17 @@ insert_journal_entry()					*mdnotes.insert_journal_entry()*
 
 cleanup_unused_assets()					*mdnotes.cleanup_unused_assets()*
 
-    Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input|
-    will be used to prompt for `y/n/a(ll)` deletion actions. Uses
-    |vim.fs.rm|.
+    Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
+    will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
+    |vim.fs.rm()|.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
 move_unused_assets()					*mdnotes.move_unused_assets()*
 
     Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
-    folder relative to your assets folder. A |vim.ui.input| will be used 
-    to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm|.
+    folder relative to your assets folder. A |vim.ui.input()| will be used 
+    to prompt for `y/n/a(ll)` or `cancel` move actions. Uses |uv.fs_rename()|.
 
 rename_link_references()				*mdnotes.rename_link_references()*
 
