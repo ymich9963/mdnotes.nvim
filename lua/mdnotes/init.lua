@@ -354,8 +354,26 @@ function mdnotes.insert_file()
 end
 
 function mdnotes.insert_journal_entry()
-    vim.cmd("put =strftime('" .. mdnotes.config.date_format .. "')")
-    vim.api.nvim_input('kddo<CR><CR><CR>---<ESC>kk')
+    -- Create a new line at the top
+    vim.api.nvim_input('gg0O<ESC>')
+
+    -- Insert the date which also inserts a new line
+    vim.api.nvim_buf_set_lines(0, 1, 1, false, {vim.fn.strftime(mdnotes.config.date_format)})
+
+    -- Remove top line
+    vim.api.nvim_input('"_dd')
+
+    -- Add lines and separator
+    vim.api.nvim_buf_set_lines(0, 1, 1, false, {
+        "",
+        "",
+        "",
+        "---",
+        "",
+    })
+
+    -- Go to top and place cursor
+    vim.api.nvim_input('gg0jj')
 end
 
 function mdnotes.cleanup_unused_assets()
