@@ -9,13 +9,14 @@ function mdnotes.setup(user_config)
     mdnotes.config = require('mdnotes.config').setup(user_config)
 
     b = mdnotes.config.bold_format:sub(1, 1)
-    i = mdnotes.config.italics_format:sub(1, 1)
+    i = mdnotes.config.italic_format:sub(1, 1)
 
     mdnotes.format_patterns = {
         wikilink_pattern = "()%[%[(.-)%]%]()",
+        wikilink_section_pattern = "([^#]+)#?(.*)",
         file_section_pattern = "([^#]+)#?(.*)",
         hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
-        text_link_pattern = "()%[([^%]]+)%]%(([^%)]+)%)()",
+        text_link_pattern = "%[([^%]]+)%]%(([^%)]+)%)",
         bold_pattern = "()%" .. b .. "%" .. b .. "([^%" .. b .. "].-)%" .. b .. "%" .. b .. "()",
         italic_pattern = "()%" .. i .. "([^%" .. i .. "].-)%" .. i .."()",
         strikethrough_pattern = "()~~(.-)~~()",
@@ -68,8 +69,9 @@ function mdnotes.open()
     for start_pos, hyperlink, end_pos in line:gmatch(mdnotes.format_patterns.hyperlink_pattern) do
         if start_pos < current_col and end_pos > current_col then
             _, link = hyperlink:match(mdnotes.format_patterns.text_link_pattern)
+            link = link:gsub("[<>]?", "")
             if vim.fn.has("win32") then
-                vim.system({"cmd.exe", "/c", "start", link})
+                vim.system({"cmd.exe", "/c", "start", "", link})
             else
                 vim.ui.open(link)
             end
@@ -210,7 +212,14 @@ function  mdnotes.outliner_toggle()
     end
 end
 
--- :
+local function contains_spaces(text)
+    if string.find(text, "%s") ~= nil then
+        return false
+    else
+        return true
+    end
+end
+
 local function insert_file(file_type)
     if not mdnotes.check_assets_path() then return end
 
@@ -281,10 +290,19 @@ local function insert_file(file_type)
     end
 
     -- Create file link
+    local asset_path = vim.fs.joinpath(mdnotes.config.assets_path, file_name)
     if file_type == "image" then
-        vim.fn.setreg('"x', ('![%s](%s)'):format(file_name, vim.fs.joinpath(mdnotes.config.assets_path, file_name)))
+        if contains_spaces(asset_path) then
+            vim.fn.setreg('"x', ('![%s](<%s>)'):format(file_name, asset_path))
+        else
+            vim.fn.setreg('"x', ('![%s](%s)'):format(file_name, asset_path))
+        end
     elseif file_type == "file" then
-        vim.fn.setreg('"x', ('[%s](%s)'):format(file_name, vim.fs.joinpath(mdnotes.config.assets_path, file_name)))
+        if contains_spaces(asset_path) then
+            vim.fn.setreg('"x', ('[%s](<%s>)'):format(file_name, asset_path))
+        else
+            vim.fn.setreg('"x', ('[%s](%s)'):format(file_name, asset_path))
+        end
     end
 
     -- Put text from register x
@@ -335,8 +353,9 @@ function mdnotes.insert_file()
     insert_file("file")
 end
 
-function mdnotes.insert_date()
+function mdnotes.insert_journal_entry()
     vim.cmd("put =strftime('" .. mdnotes.config.date_format .. "')")
+    vim.api.nvim_input('kddo<CR><CR><CR>---<ESC>kk')
 end
 
 function mdnotes.cleanup_unused_assets()
@@ -344,25 +363,31 @@ function mdnotes.cleanup_unused_assets()
 
     local temp_qflist = vim.fn.getqflist()
     local cleanup_all = false
+    local cancel = false
     for name, _ in vim.fs.dir(mdnotes.config.assets_path) do
-        local vimgrep_ret = vim.cmd.vimgrep({args = {'/\\[\\[' .. name .. '\\]\\]/', '*'}, mods = {emsg_file = true}})
-        if vimgrep_ret == "" then
+        vim.cmd.vimgrep({args = {'/\\](' .. mdnotes.config.assets_path .. '\\/' .. name .. ')/', '*'}, mods = {emsg_silent = true}})
+        if next(vim.fn.getqflist()) == nil then
+            if cancel then
+                break
+            end
             if not cleanup_all then
-                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to delete file(s) (default 'n'): "):format(name), }, function(input)
+                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to delete file(s) or 'cancel' to cancel (default 'n'): "):format(name), }, function(input)
+                    vim.cmd('redraw')
                     if input == 'y' then
                         vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
-                        vim.cmd('redraw')
                         vim.notify(("Mdn: Removed '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
                         vim.cmd('call getchar()')
                     elseif input == 'a' then
-                        cleanup_all = true
                         vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
+                        cleanup_all = true
+                    elseif input == 'cancel' then
+                        cancel = true
+                        vim.notify(("Mdn: Cancelled cleanup. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
                     elseif input == 'n' or '' then
-                        vim.cmd('redraw')
                         vim.notify(("Mdn: Skipped '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
                         vim.cmd('call getchar()')
                     else
-                        vim.cmd('redraw')
                         vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue:"):format(input), vim.log.levels.ERROR)
                         vim.cmd('call getchar()')
                     end
@@ -378,33 +403,84 @@ function mdnotes.cleanup_unused_assets()
     vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
 end
 
+function mdnotes.move_unused_assets()
+    if not mdnotes.check_assets_path() then return end
+    local unused_assets_path = vim.fs.normalize(vim.fs.joinpath(mdnotes.config.assets_path, "../unused_assets"))
+
+    if vim.fn.isdirectory(unused_assets_path) == 0 then
+        uv.fs_mkdir(unused_assets_path, tonumber('777', 8))
+    end
+
+    local temp_qflist = vim.fn.getqflist()
+    local move_all = false
+    local cancel = false
+    for name, _ in vim.fs.dir(mdnotes.config.assets_path) do
+        vim.cmd.vimgrep({args = {'/\\](' .. mdnotes.config.assets_path .. '\\/' .. name .. ')/', '*'}, mods = {emsg_silent = true}})
+        if next(vim.fn.getqflist()) == nil then
+            if cancel then
+                break
+            end
+            if not move_all then
+                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to move file(s) or 'cancel' to cancel (default 'n'): "):format(name), }, function(input)
+                    vim.cmd('redraw')
+                    if input == 'y' then
+                        uv.fs_rename(vim.fs.joinpath(mdnotes.config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
+                        vim.notify(("Mdn: Moved '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
+                    elseif input == 'a' then
+                        uv.fs_rename(vim.fs.joinpath(mdnotes.config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
+                        move_all = true
+                    elseif input == 'cancel' then
+                        cancel = true
+                        vim.notify(("Mdn: Cancelled move. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
+                    elseif input == 'n' or '' then
+                        vim.notify(("Mdn: Skipped '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
+                        vim.cmd('call getchar()')
+                    else
+                        vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue:"):format(input), vim.log.levels.ERROR)
+                        vim.cmd('call getchar()')
+                    end
+                end)
+            else
+                uv.fs_rename(vim.fs.joinpath(mdnotes.config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
+            end
+        end
+    end
+
+    vim.fn.setqflist(temp_qflist)
+    vim.cmd('redraw')
+    vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
+end
+
 function mdnotes.rename_link_references()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
 
     local file, _ = "", ""
     local renamed = ""
 
     for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
         -- Match link to links with section names but ignore the section name
-        file, _ = link:match("([^#]+)#?(.*)")
-
+        file, _ = link:match(mdnotes.format_patterns.wikilink_section_pattern)
         file = vim.trim(file)
 
+        if not uv.fs_stat(file .. ".md") then
+            vim.notify(("Mdn: This link does not seem to link to a valid file."), vim.log.levels.ERROR)
+            return
+        end
+
         if start_pos < current_col and end_pos > current_col then
-            if not uv.fs_stat(file .. ".md") then
-                vim.notify(("Mdn: This link does not seem to link to a valid file."), vim.log.levels.ERROR)
-            end
-            vim.ui.input({ prompt = "Rename '".. file .."' to: " }, function(input)
+            vim.ui.input({ prompt = "Rename '".. file .."' to: " },
+            function(input)
                 renamed = input
             end)
-            if renamed == "" or nil then
+            if renamed == "" or renamed == nil then
                 vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
                 return
             else
                 vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-                vim.cmd.cdo({args = {('cdo s/%s/%s/'):format(file, renamed)}, mods = {emsg_silent = true}})
+                vim.cmd.cdo({args = {('s/%s/%s/'):format(file, renamed)}, mods = {emsg_silent = true}})
                 if not uv.fs_rename(file .. ".md", renamed .. ".md") then
                     vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
                     return
@@ -414,6 +490,12 @@ function mdnotes.rename_link_references()
         end
 
     end
+
+    if file == "" then
+        vim.notify(("Mdn: No valid link under cursor."), vim.log.levels.ERROR)
+        return
+    end
+
     vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(file, renamed)), vim.log.levels.INFO)
 end
 
