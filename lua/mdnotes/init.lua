@@ -24,7 +24,13 @@ function mdnotes.setup(user_config)
     }
 end
 
--- bold
+local function check_md_lsp()
+    if next(vim.lsp.get_clients({bufnr = 0})) ~= nil and vim.bo.filetype == "markdown" then
+        return true
+    else
+        return false
+    end
+end
 
 function mdnotes.check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
@@ -172,26 +178,28 @@ function mdnotes.hyperlink_toggle()
 end
 
 function mdnotes.show_backlinks()
+    if check_md_lsp() then
+        vim.lsp.buf.references()
+        return
+    end
+
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local wikilink_found = false
 
     for start_pos, file ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
             vim.cmd('vimgrep /\\[\\[' .. file .. '\\]\\]/ *')
             vim.cmd('copen')
-            wikilink_found = true
             break
         end
     end
+end
 
-    -- If wikilink pattern isn't detecte used current file name
-    if not wikilink_found then
-        local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
-        local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
-        vim.cmd('vimgrep /\\[\\[' .. cur_file_name .. '\\]\\]/ *')
-        vim.cmd('copen')
-    end
+function mdnotes.show_backlinks_curr_buf()
+    local curr_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
+    local curr_file_name = curr_file_basename:match("(.+)%.[^%.]+$")
+    vim.cmd('vimgrep /\\[\\[' .. curr_file_name .. '\\]\\]/ *')
+    vim.cmd('copen')
 end
 
 local outliner_state = false
