@@ -9,7 +9,7 @@
 
 
 ## ☀️ Introduction
-Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, backlinks, and formatting. All this without relying on any LSP but using one is recommended.
+Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, and formatting. All this without relying on any LSP but using one is recommended.
 
 Read the documentation with `:h mdnotes.txt`.
 
@@ -28,7 +28,8 @@ Read the documentation with `:h mdnotes.txt`.
 
 ### 🖇️ Wikilinks
 - Rename link references and the file itself using `:Mdn rename_link_references`.
-- Show backlinks of the current file with `:Mdn show_backlinks` or to show the backlinks of a Wikilink by hovering over the link and executing the same command.
+- Show the references of a Wikilink by hovering over the link and executing `:Mdn show_references`.
+- Show references of the current buffer with `:Mdn show_references_curr_buf`.
 
 ### 👩‍💼 Asset Management
 - Use `:Mdn cleanup_unused_assets` to easily cleanup assets that you no longer use.

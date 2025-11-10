@@ -10,7 +10,7 @@ INTRODUCTION						*mdnotes-intro*
 Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim
 Markdown note-taking experience by providing features like better Wikilink
 support, adding/removing hyperlinks to images/files/URLs, file history, asset
-management, referencing, backlinks, and formatting. All this without relying
+management, referencing, and formatting. All this without relying
 on any LSP but using one is recommended.
 
 ==============================================================================
@@ -82,7 +82,7 @@ seems to rename the current buffer and not the element (or link in this case)
 under the cursor.
 
 These functions are implemented in `mdnotes` with |:Mdn-rename_link_references|
-and |:Mdn-show_backlinks| respectively. The first function both renames the
+and |:Mdn-show_references| respectively. The first function both renames the
 reference and the file it is pointing to.
 
 Quick tip is if you don't want your Markdown LSP to show diagnostics you can
@@ -198,11 +198,14 @@ subcommands are listed below.
     Toggle inserting and deleting a hyperlink (e.g. `[text](link)`) from your
     clipboard (the `"+` register).
 
-:Mdn show_backlinks 					*:Mdn-show_backlinks*
+:Mdn show_references 					*:Mdn-show_references*
 
-    Show the backlinks of the current Wikilink under cursor in a quickfix
-    list. If not executed on a Wikilink, it shows the backlinks of the current
-    file.
+    Show the references of the current Wikilink under cursor in a quickfix
+    list.
+
+:Mdn show_references_curr_buf				*:Mdn-show_references_curr_buf*
+
+    Shows the references of the current buffer.
 
 :Mdn outliner_toggle					*:Mdn-outliner_toggle*
 
@@ -368,10 +371,13 @@ hyperlink_toggle()					*mdnotes.hyperlink_toggle()*
     |mdnotes.hyperlink_insert()| and when removing it uses
     |mdnotes.hyperlink_delete()|.
 
-show_backlinks()					*mdnotes.show_backlins()*
+show_references()					*mdnotes.show_references()*
 
-    Show backlinks of the Wikilink under the cursor. If no Wikilink under the
-    cursor it shows the backlinks of the current buffer.
+    Show references of the Wikilink under the cursor.
+
+show_references_curr_buf()				*mdnotes.show_references_curr_buf()*
+
+    Shows the references of the current buffer.
 
 outliner_toggle()					*mdnotes.outliner_toggle()*
 
