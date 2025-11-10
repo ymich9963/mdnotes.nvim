@@ -109,6 +109,11 @@ end
 
 -- Simulate the map gf :e <cfile>.md<CR> so that it works with spaces
 function mdnotes.open_wikilink()
+    if check_md_lsp() then
+        vim.lsp.buf.definition()
+        return
+    end
+
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
