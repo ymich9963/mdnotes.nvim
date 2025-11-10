@@ -39,6 +39,7 @@ Read the documentation with `:h mdnotes.txt`.
 ### 🧍‍♂️ Uncategorised
 - Implements an outliner mode by doing `:Mdn toggle_outliner`. Make sure to exit afterwards by re-toggling.
 - Supports Windows eccentricities.
+- Choose whether to use Markdown LSP features or not.
 
 ## 👽 Setup
 ```lua
@@ -62,6 +63,7 @@ Read the documentation with `:h mdnotes.txt`.
     overwrite_behaviour = "error",  -- "overwrite" or "error" when finding assset file conflicts
     open_behaviour = "buffer",      -- "buffer" or "tab" to open when following links
     date_format = "%a %d %b %Y"     -- date format based on :h strftime()
+	prefer_lsp = true,
 }
 ```
 

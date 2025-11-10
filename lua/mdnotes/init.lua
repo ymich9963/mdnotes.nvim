@@ -25,7 +25,7 @@ function mdnotes.setup(user_config)
 end
 
 local function check_md_lsp()
-    if next(vim.lsp.get_clients({bufnr = 0})) ~= nil and vim.bo.filetype == "markdown" then
+    if next(vim.lsp.get_clients({bufnr = 0})) ~= nil and vim.bo.filetype == "markdown" and mdnotes.config.prefer_lsp then
         return true
     else
         return false

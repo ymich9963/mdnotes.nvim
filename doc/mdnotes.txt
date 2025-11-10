@@ -119,7 +119,8 @@ The default config for `mdnotes` is shown below,
 	open_behaviour = "buffer",
 	bold_format = "**",
 	italic_format = "*",
-	date_format = "%a %d %b %Y"
+	date_format = "%a %d %b %Y",
+	prefer_lsp = true,
     }
 <
 index_file = `"path"`					*mdnotes-index_file*
@@ -168,6 +169,11 @@ date_format = `"string"`				*mdnotes-date_format*
 
     Format of the outputed date using |Mdn-insert_journal_entry|. See |strftime()| for
     acceptable formats.
+
+prefer_lsp = `false|true`				*mdnotes-prefer_lsp*
+
+    Choose whether to prefer to use the LSP functions instead of the `mdnotes`
+    functions, when an LSP server is detected in the current Markdown buffer.
 
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*

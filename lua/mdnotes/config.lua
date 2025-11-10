@@ -8,8 +8,9 @@ local default_config = {
     asset_overwrite_behaviour = "error",    -- "overwrite" or "error" when finding assset file conflicts
     wikilink_open_behaviour = "buffer",     -- "buffer" or "tab" to open when following links
     bold_format = "**",                     -- "**" or "__"
-    italic_format = "*",                   -- "*" or "_"
-    date_format = "%a %d %b %Y"             -- date format based on :h strftime()
+    italic_format = "*",                    -- "*" or "_"
+    date_format = "%a %d %b %Y",            -- date format based on :h strftime()
+    prefer_lsp = true,
 }
 
 function M.setup(user_config)
