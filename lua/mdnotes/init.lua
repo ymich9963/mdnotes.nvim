@@ -177,7 +177,7 @@ function mdnotes.hyperlink_toggle()
     end
 end
 
-function mdnotes.show_backlinks()
+function mdnotes.show_references()
     if check_md_lsp() then
         vim.lsp.buf.references()
         return
@@ -190,7 +190,7 @@ function mdnotes.show_backlinks()
         if start_pos < current_col and end_pos > current_col then
             vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
             if next(vim.fn.getqflist()) == nil then
-                vim.notify(("Mdn: No backlinks found for '" .. file .. "' ."), vim.log.levels.ERROR)
+                vim.notify(("Mdn: No references found for '" .. file .. "' ."), vim.log.levels.ERROR)
             else
                 vim.cmd('copen')
             end
@@ -199,13 +199,13 @@ function mdnotes.show_backlinks()
     end
 end
 
-function mdnotes.show_backlinks_curr_buf()
+function mdnotes.show_references_curr_buf()
     local curr_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
     local curr_file_name = curr_file_basename:match("(.+)%.[^%.]+$")
 
     vim.cmd.vimgrep({args = {'/\\[\\[' .. curr_file_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
     if next(vim.fn.getqflist()) == nil then
-        vim.notify(("Mdn: No backlinks found for current buffer."), vim.log.levels.ERROR)
+        vim.notify(("Mdn: No references found for current buffer."), vim.log.levels.ERROR)
     else
         vim.cmd('copen')
     end
