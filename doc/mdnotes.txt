@@ -274,8 +274,8 @@ subcommands are listed below.
 
 :Mdn insert_journal_entry					*:Mdn-insert_journal_entry*
 
-    Insert the current date and time along with a separator. Useful when 
-    using a journal.
+    Insert at the top of the file the current date and time along with a separator.
+    Useful when using a journal.
 
 ==============================================================================
 API                                     		*mdnotes-api*
@@ -419,8 +419,9 @@ insert_file()						*mdnotes.insert_file()*
 
 insert_journal_entry()					*mdnotes.insert_journal_entry()*
 
-    Insert a journal entry, which is the current date along with a separator
-    to separate the different entries. Places the cursor on `<cursor>`. For example,
+    Insert a journal entry at the top of the file, which is the current date 
+    along with a separator to separate the different entries. Places the 
+    cursor on `<cursor>`. For example,
 >markdown
     ```
     Sun 09 Nov 2025
