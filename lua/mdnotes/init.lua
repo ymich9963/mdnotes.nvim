@@ -183,10 +183,10 @@ function mdnotes.hyperlink_toggle()
 end
 
 function mdnotes.show_references()
-    -- if check_md_lsp() then
-    --     vim.lsp.buf.references()
-    --     return
-    -- end
+    if check_md_lsp() then
+        vim.lsp.buf.references()
+        return
+    end
 
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
