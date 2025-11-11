@@ -542,6 +542,11 @@ function mdnotes.rename_link_references()
 end
 
 function mdnotes.rename_references_cur_buf()
+    if check_md_lsp() then
+        vim.lsp.buf.rename()
+        return
+    end
+
     local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
     local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
     local renamed = ""
