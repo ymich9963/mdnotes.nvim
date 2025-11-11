@@ -183,13 +183,14 @@ function mdnotes.hyperlink_toggle()
 end
 
 function mdnotes.show_references()
-    if check_md_lsp() then
-        vim.lsp.buf.references()
-        return
-    end
+    -- if check_md_lsp() then
+    --     vim.lsp.buf.references()
+    --     return
+    -- end
 
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
+    local wikilink_found = false
 
     for start_pos, file ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
@@ -198,21 +199,22 @@ function mdnotes.show_references()
                 vim.notify(("Mdn: No references found for '" .. file .. "' ."), vim.log.levels.ERROR)
             else
                 vim.cmd('copen')
+                wikilink_found = true
             end
             break
         end
     end
-end
 
-function mdnotes.show_references_curr_buf()
-    local curr_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
-    local curr_file_name = curr_file_basename:match("(.+)%.[^%.]+$")
-
-    vim.cmd.vimgrep({args = {'/\\[\\[' .. curr_file_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-    if next(vim.fn.getqflist()) == nil then
-        vim.notify(("Mdn: No references found for current buffer."), vim.log.levels.ERROR)
-    else
-        vim.cmd('copen')
+    -- If wikilink pattern isn't detected used current file name
+    if not wikilink_found then
+        local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
+        local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
+        vim.cmd.vimgrep({args = {'/\\[\\[' .. cur_file_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+        if next(vim.fn.getqflist()) == nil then
+            vim.notify(("Mdn: No references found for current buffer."), vim.log.levels.ERROR)
+        else
+            vim.cmd('copen')
+        end
     end
 end
 
