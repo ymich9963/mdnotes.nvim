@@ -207,11 +207,8 @@ subcommands are listed below.
 :Mdn show_references 					*:Mdn-show_references*
 
     Show the references of the current Wikilink under cursor in a quickfix
-    list.
-
-:Mdn show_references_curr_buf				*:Mdn-show_references_curr_buf*
-
-    Shows the references of the current buffer.
+    list. If no Wikilink is under the cursor it shows the references to the
+    current buffer.
 
 :Mdn outliner_toggle					*:Mdn-outliner_toggle*
 
@@ -379,11 +376,9 @@ hyperlink_toggle()					*mdnotes.hyperlink_toggle()*
 
 show_references()					*mdnotes.show_references()*
 
-    Show references of the Wikilink under the cursor.
-
-show_references_curr_buf()				*mdnotes.show_references_curr_buf()*
-
-    Shows the references of the current buffer.
+    Show the references of the current Wikilink under cursor in a quickfix
+    list. If no Wikilink is under the cursor it shows the references to the
+    current buffer.
 
 outliner_toggle()					*mdnotes.outliner_toggle()*
 

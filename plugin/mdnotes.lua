@@ -29,7 +29,6 @@ local subcommands = {
     open_wikilink = mdnotes.open_wikilink,
     hyperlink_toggle = mdnotes.hyperlink_toggle,
     show_references = mdnotes.show_references,
-    show_references_curr_buf = mdnotes.show_references_curr_buf,
     outliner_toggle = mdnotes.outliner_toggle,
     insert_image = mdnotes.insert_image,
     insert_file = mdnotes.insert_file,
