@@ -28,6 +28,7 @@ Read the documentation with `:h mdnotes.txt`.
 
 ### 🖇️ Wikilinks
 - Rename link references and the file itself using `:Mdn rename_link_references`.
+- Rename references to current buffer and also the file of the current buffer with `:Mdn rename_references_cur_buf`.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn show_references`. Also show references of the current buffer when not hovering over a Wikilink.
 
 ### 👩‍💼 Asset Management

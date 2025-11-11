@@ -258,6 +258,11 @@ subcommands are listed below.
     Rename the reference to a `[[link]]` and also the file pointing to that
     link.
 
+:Mdn rename_references_cur_buf				*:Mdn-rename_references_cur_buf*
+
+    Rename references to current buffer and also the file of the current
+    buffer.
+
 :Mdn bold_toggle					*:Mdn-bold_toggle*
 
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
@@ -456,6 +461,11 @@ rename_link_references()				*mdnotes.rename_link_references()*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
     link.
+
+rename_references_cur_buf()				*mdnotes.rename_references_cur_buf()*
+
+    Rename references to current buffer and also the file of the current
+    buffer.
 
 bold_toggle()						*mdnotes.bold_toggle()*
 

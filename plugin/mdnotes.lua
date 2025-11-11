@@ -38,6 +38,7 @@ local subcommands = {
     cleanup_unused_assets = mdnotes.cleanup_unused_assets,
     move_unused_assets = mdnotes.move_unused_assets,
     rename_link_references = mdnotes.rename_link_references,
+    rename_references_cur_buf = mdnotes.rename_references_cur_buf,
     bold_toggle = mdnotes.bold_toggle,
     italic_toggle = mdnotes.italic_toggle,
     strikethrough_toggle = mdnotes.strikethrough_toggle,

@@ -541,6 +541,31 @@ function mdnotes.rename_link_references()
     vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(file, renamed)), vim.log.levels.INFO)
 end
 
+function mdnotes.rename_references_cur_buf()
+    local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
+    local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
+    local renamed = ""
+
+    vim.ui.input({ prompt = "Rename '".. cur_file_name .."' to: " },
+    function(input)
+        renamed = input
+    end)
+
+    if renamed == "" or renamed == nil then
+        vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
+        return
+    end
+
+    vim.cmd.vimgrep({args = {'/\\[\\[' .. cur_file_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+    vim.cmd.cdo({args = {('s/%s/%s/'):format(cur_file_name, renamed)}, mods = {emsg_silent = true}})
+    if not uv.fs_rename(cur_file_name .. ".md", renamed .. ".md") then
+        vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
+        return
+    end
+
+    vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(cur_file_name, renamed)), vim.log.levels.INFO)
+end
+
 local function insert_format(format_char)
     -- Get the selected text
     local col_start = vim.fn.getpos("'<")[3]
