@@ -80,19 +80,33 @@ function mdnotes.open()
             _, link = hyperlink:match(mdnotes.format_patterns.text_link_pattern)
             link = link:gsub("[<>]?", "")
             path, section = link:match(mdnotes.format_patterns.file_section_pattern)
-            if path:sub(-3) ~= ".md" then
-                path = path .. ".md"
-            end
-            if uv.fs_stat(path) then
-                vim.cmd(open .. path)
-                if section ~= "" then
-                    vim.fn.cursor(vim.fn.search(section), 1)
-                    vim.api.nvim_input('zz')
-                end
-            elseif vim.fn.has("win32") then
-                vim.system({"cmd.exe", "/c", "start", "", link})
+            -- Check for just a section first
+            if link:sub(1,1) == "#" then
+                vim.fn.cursor(vim.fn.search("# " .. path), 1)
+                vim.api.nvim_input('zz')
             else
-                vim.ui.open(link)
+                -- Then it is assumed to have a path
+                -- Append .md to guarantee a file name
+                if path:sub(-3) ~= ".md" then
+                    path = path .. ".md"
+                end
+                -- Check if the current file is the one in the link
+                if path == vim.fs.basename(vim.api.nvim_buf_get_name(0)) then
+                    vim.fn.cursor(vim.fn.search("# " .. section), 1)
+                    vim.api.nvim_input('zz')
+                -- Check if the file exists
+                elseif uv.fs_stat(path) then
+                    vim.cmd(open .. path)
+                    if section ~= "" then
+                        vim.fn.cursor(vim.fn.search(section), 1)
+                        vim.api.nvim_input('zz')
+                    end
+                -- Last case is when it should be treated as a URI
+                elseif vim.fn.has("win32") then
+                    vim.system({"cmd.exe", "/c", "start", "", link})
+                else
+                    vim.ui.open(link)
+                end
             end
         end
     end
