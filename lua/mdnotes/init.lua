@@ -70,13 +70,26 @@ end
 function mdnotes.open()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
+    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
     local link = ""
+    local path = ""
+    local section = ""
 
     for start_pos, hyperlink, end_pos in line:gmatch(mdnotes.format_patterns.hyperlink_pattern) do
         if start_pos < current_col and end_pos > current_col then
             _, link = hyperlink:match(mdnotes.format_patterns.text_link_pattern)
             link = link:gsub("[<>]?", "")
-            if vim.fn.has("win32") then
+            path, section = link:match(mdnotes.format_patterns.file_section_pattern)
+            if path:sub(-3) ~= ".md" then
+                path = path .. ".md"
+            end
+            if uv.fs_stat(path) then
+                vim.cmd(open .. path)
+                if section ~= "" then
+                    vim.fn.cursor(vim.fn.search(section), 1)
+                    vim.api.nvim_input('zz')
+                end
+            elseif vim.fn.has("win32") then
                 vim.system({"cmd.exe", "/c", "start", "", link})
             else
                 vim.ui.open(link)
