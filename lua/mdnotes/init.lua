@@ -12,14 +12,16 @@ function mdnotes.setup(user_config)
     i = mdnotes.config.italic_format:sub(1, 1)
 
     mdnotes.format_patterns = {
-        wikilink_pattern = "()%[%[(.-)%]%]()",
-        file_section_pattern = "([^#]+)#?(.*)",
-        hyperlink_pattern = "()(%[[^%]]+%]%([^%)]+%)())",
-        text_link_pattern = "%[([^%]]+)%]%(([^%)]+)%)",
-        bold_pattern = "()%" .. b .. "%" .. b .. "([^%" .. b .. "].-)%" .. b .. "%" .. b .. "()",
-        italic_pattern = "()%" .. i .. "([^%" .. i .. "].-)%" .. i .."()",
-        strikethrough_pattern = "()~~(.-)~~()",
-        inline_code_pattern = "()`([^`]+)`()",
+        wikilink = "()%[%[(.-)%]%]()",
+        file_section = "([^#]+)#?(.*)",
+        hyperlink = "()(%[[^%]]+%]%([^%)]+%)())",
+        text_link = "%[([^%]]+)%]%(([^%)]+)%)",
+        bold = "()%" .. b .. "%" .. b .. "([^%" .. b .. "].-)%" .. b .. "%" .. b .. "()",
+        italic = "()%" .. i .. "([^%" .. i .. "].-)%" .. i .."()",
+        strikethrough = "()~~(.-)~~()",
+        inline_code = "()`([^`]+)`()",
+        list = "^([%s]-)([-+*])[%s]-.-",
+        ordered_list = "^([%s]-)([%d]+)([%.%)])[%s]-.-",
     }
 end
 
@@ -74,11 +76,11 @@ function mdnotes.open()
     local path = ""
     local section = ""
 
-    for start_pos, hyperlink, end_pos in line:gmatch(mdnotes.format_patterns.hyperlink_pattern) do
+    for start_pos, hyperlink, end_pos in line:gmatch(mdnotes.format_patterns.hyperlink) do
         if start_pos < current_col and end_pos > current_col then
-            _, link = hyperlink:match(mdnotes.format_patterns.text_link_pattern)
+            _, link = hyperlink:match(mdnotes.format_patterns.text_link)
             link = link:gsub("[<>]?", "")
-            path, section = link:match(mdnotes.format_patterns.file_section_pattern)
+            path, section = link:match(mdnotes.format_patterns.file_section)
             -- Check for just a section first
             if link:sub(1,1) == "#" then
                 vim.fn.cursor(vim.fn.search("# " .. path), 1)
@@ -145,9 +147,9 @@ function mdnotes.open_wikilink()
     local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
 
     local file, section = "", ""
-    for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
+    for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
         -- Match link to links with section names
-        file, section = link:match(mdnotes.format_patterns.file_section_pattern)
+        file, section = link:match(mdnotes.format_patterns.file_section)
 
         file = vim.trim(file)
         section = vim.trim(section)
@@ -201,7 +203,7 @@ function mdnotes.hyperlink_delete()
 end
 
 function mdnotes.hyperlink_toggle()
-    if mdnotes.check_md_format(mdnotes.format_patterns.hyperlink_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.hyperlink) then
         mdnotes.hyperlink_delete()
     else
         mdnotes.hyperlink_insert()
@@ -218,7 +220,7 @@ function mdnotes.show_references()
     local current_col = vim.fn.col('.')
     local wikilink_found = false
 
-    for start_pos, file ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
+    for start_pos, file ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
         if start_pos < current_col and end_pos > current_col then
             vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
             if next(vim.fn.getqflist()) == nil then
@@ -528,9 +530,9 @@ function mdnotes.rename_link_references()
     local file, _ = "", ""
     local renamed = ""
 
-    for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink_pattern) do
+    for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
         -- Match link to links with section names but ignore the section name
-        file, _ = link:match(mdnotes.format_patterns.file_section_pattern)
+        file, _ = link:match(mdnotes.format_patterns.file_section)
         file = vim.trim(file)
 
         if not uv.fs_stat(file .. ".md") then
@@ -629,7 +631,7 @@ local function delete_format_inline_code()
 end
 
 function mdnotes.bold_toggle()
-    if mdnotes.check_md_format(mdnotes.format_patterns.bold_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.bold) then
         delete_format_bold()
     else
         insert_format(b .. b)
@@ -637,7 +639,7 @@ function mdnotes.bold_toggle()
 end
 
 function mdnotes.italic_toggle()
-    if mdnotes.check_md_format(mdnotes.format_patterns.italic_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.italic) then
         delete_format_italic()
     else
         insert_format(i)
@@ -645,7 +647,7 @@ function mdnotes.italic_toggle()
 end
 
 function mdnotes.strikethrough_toggle()
-    if mdnotes.check_md_format(mdnotes.format_patterns.strikethrough_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.strikethrough) then
         delete_format_strikethrough()
     else
         insert_format('~~')
@@ -653,7 +655,7 @@ function mdnotes.strikethrough_toggle()
 end
 
 function mdnotes.inline_code_toggle()
-    if mdnotes.check_md_format(mdnotes.format_patterns.inline_code_pattern) then
+    if mdnotes.check_md_format(mdnotes.format_patterns.inline_code) then
         delete_format_inline_code()
     else
         insert_format('`')
