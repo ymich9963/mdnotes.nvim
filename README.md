@@ -93,7 +93,7 @@ vim.opt.isfname:remove(']')
 ```
 These other two settings are for enabling wrapping only in Markdown files, and to disable the LSP diagnostics if they annoy you.
 ```lua
-vim.wo.wrap = true -- Enable wrap for current .md window
+vim.wo[vim.api.nvim_get_current_win()][0].wrap = true -- Enable wrap for current .md buffer
 vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
 ```
 
