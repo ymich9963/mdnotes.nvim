@@ -5,6 +5,14 @@ local uv = vim.loop or vim.uv
 local b = ""
 local i = ""
 
+local function resolve_open_behaviour(open_behaviour)
+    if open_behaviour == "buffer" then
+        return 'edit '
+    elseif open_behaviour == "tab" then
+        return 'tabnew '
+    end
+end
+
 function mdnotes.setup(user_config)
     mdnotes.config = require('mdnotes.config').setup(user_config)
 
@@ -24,6 +32,8 @@ function mdnotes.setup(user_config)
         ordered_list = "^([%s]-)([%d]+)([%.%)])[%s]-(.+)",
         task = "%[[ xX]%].-",
     }
+
+    mdnotes.open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
 end
 
 local function check_md_lsp()
@@ -70,14 +80,6 @@ function mdnotes.check_md_format(pattern)
     return false
 end
 
-local function resolve_open_behaviour(open_behaviour)
-    if open_behaviour == "buffer" then
-        return 'edit '
-    elseif open_behaviour == "tab" then
-        return 'tabnew '
-    end
-end
-
 function mdnotes.check_assets_path()
     if mdnotes.config.assets_path == "" or not mdnotes.config.assets_path then
         vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
@@ -95,7 +97,6 @@ end
 function mdnotes.open()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
     local link = ""
     local path = ""
     local section = ""
@@ -121,7 +122,7 @@ function mdnotes.open()
                     vim.api.nvim_input('zz')
                     -- Check if the file exists
                 elseif uv.fs_stat(path) then
-                    vim.cmd(open .. path)
+                    vim.cmd(mdnotes.open .. path)
                     if section ~= "" then
                         vim.fn.cursor(vim.fn.search(section), 1)
                         vim.api.nvim_input('zz')
@@ -143,9 +144,7 @@ function mdnotes.go_to_index_file()
         return
     end
 
-    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
-
-    vim.cmd(open .. mdnotes.config.index_file)
+    vim.cmd(mdnotes.open .. mdnotes.config.index_file)
 end
 
 function mdnotes.go_to_journal_file()
@@ -154,9 +153,7 @@ function mdnotes.go_to_journal_file()
         return
     end
 
-    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
-
-    vim.cmd(open .. mdnotes.config.journal_file)
+    vim.cmd(mdnotes.open .. mdnotes.config.journal_file)
 end
 
 -- Simulate the map gf :e <cfile>.md<CR> so that it works with spaces
@@ -168,7 +165,6 @@ function mdnotes.open_wikilink()
 
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
 
     local file, section = "", ""
     for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
@@ -180,9 +176,9 @@ function mdnotes.open_wikilink()
 
         if start_pos < current_col and end_pos > current_col then
             if file:sub(-3) == ".md" then
-                vim.cmd(open .. file)
+                vim.cmd(mdnotes.open .. file)
             else
-                vim.cmd(open .. file .. '.md')
+                vim.cmd(mdnotes.open .. file .. '.md')
             end
             break
         end
