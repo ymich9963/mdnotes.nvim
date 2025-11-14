@@ -59,9 +59,9 @@ function mdnotes.list_remap(inc_val)
 
     if ordered_marker then
         if ordered_text:match(mdnotes.format_patterns.task) then
-            return "\n" .. tonumber(ordered_marker + inc_val) .. separator .. " " .. "[ ] "
+            return "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " " .. "[ ] "
         else
-            return "\n" .. tonumber(ordered_marker + inc_val) .. separator .. " "
+            return "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " "
         end
     end
     return "\n"
