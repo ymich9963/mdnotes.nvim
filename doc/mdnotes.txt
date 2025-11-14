@@ -121,6 +121,7 @@ The default config for `mdnotes` is shown below,
 	italic_format = "*",
 	date_format = "%a %d %b %Y",
 	prefer_lsp = true,
+	auto_list = true,
     }
 <
 index_file = `"path"`					*mdnotes-index_file*
@@ -174,6 +175,13 @@ prefer_lsp = `false|true`				*mdnotes-prefer_lsp*
 
     Choose whether to prefer to use the LSP functions instead of the `mdnotes`
     functions, when an LSP server is detected in the current Markdown buffer.
+
+auto_list = `false|true`				*mdnotes-auto_list*
+
+    Choose whether to allow automatic continuation of your unordered/ordered/
+    task list. Works by remapping your `<CR>` key but only in Markdown
+    buffers by specifying it in the plugin's `after/ftplugin/markdown.lua`
+    directory.
 
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*

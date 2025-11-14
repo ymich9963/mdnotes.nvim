@@ -25,6 +25,7 @@ Read the documentation with `:h mdnotes.txt`.
 ### 💁 Formatting
 - Toggle hyperlinks with `:Mdn toggle_hyperlink` which pastes your copied hyperlink over the selected text or removes it.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
+- Automatically continue your ordered/unordered/task lists (can be disabled).
 
 ### 🖇️ Wikilinks
 - Rename link references and the file itself using `:Mdn rename_link_references`.
@@ -64,6 +65,7 @@ Read the documentation with `:h mdnotes.txt`.
     open_behaviour = "buffer",      -- "buffer" or "tab" to open when following links
     date_format = "%a %d %b %Y"     -- date format based on :h strftime()
 	prefer_lsp = true,
+    auto_list = true,
 }
 ```
 
