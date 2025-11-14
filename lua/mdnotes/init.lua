@@ -34,6 +34,29 @@ local function check_md_lsp()
     end
 end
 
+function mdnotes.list_remap(inc_val)
+    local line = vim.api.nvim_get_current_line()
+    local _, list_marker, list_text = line:match(mdnotes.format_patterns.list)
+    local _, ordered_marker, separator, ordered_text = line:match(mdnotes.format_patterns.ordered_list)
+
+    if list_marker then
+        if list_text:match(mdnotes.format_patterns.task) then
+            return "\n" .. list_marker .. " " .. "[ ] "
+        else
+            return "\n" .. list_marker .. " "
+        end
+    end
+
+    if ordered_marker then
+        if ordered_text:match(mdnotes.format_patterns.task) then
+            return "\n" .. tonumber(ordered_marker + inc_val) .. separator .. " " .. "[ ] "
+        else
+            return "\n" .. tonumber(ordered_marker + inc_val) .. separator .. " "
+        end
+    end
+    return "\n"
+end
+
 function mdnotes.check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
@@ -96,14 +119,14 @@ function mdnotes.open()
                 if path == vim.fs.basename(vim.api.nvim_buf_get_name(0)) then
                     vim.fn.cursor(vim.fn.search("# " .. section), 1)
                     vim.api.nvim_input('zz')
-                -- Check if the file exists
+                    -- Check if the file exists
                 elseif uv.fs_stat(path) then
                     vim.cmd(open .. path)
                     if section ~= "" then
                         vim.fn.cursor(vim.fn.search(section), 1)
                         vim.api.nvim_input('zz')
                     end
-                -- Last case is when it should be treated as a URI
+                    -- Last case is when it should be treated as a URI
                 elseif vim.fn.has("win32") then
                     vim.system({"cmd.exe", "/c", "start", "", link})
                 else

@@ -7,7 +7,6 @@
 
 ---
 
-
 ## ☀️ Introduction
 Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, and formatting. All this without relying on any LSP but using one is recommended.
 
@@ -25,7 +24,7 @@ Read the documentation with `:h mdnotes.txt`.
 ### 💁 Formatting
 - Toggle hyperlinks with `:Mdn toggle_hyperlink` which pastes your copied hyperlink over the selected text or removes it.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
-- Automatically continue your ordered/unordered/task lists (can be disabled).
+- Automatically continue your ordered/unordered/task lists (can be disabled). Works with `<CR>`, `o`, and `O`.
 
 ### 🖇️ Wikilinks
 - Rename link references and the file itself using `:Mdn rename_link_references`.

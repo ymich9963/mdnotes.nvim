@@ -2,30 +2,37 @@ local mdnotes = require("mdnotes")
 
 if mdnotes.config.auto_list then
     vim.keymap.set("i", "<CR>", function ()
-        local line = vim.api.nvim_get_current_line()
-        local _, list_marker, list_text = line:match(mdnotes.format_patterns.list)
-        local _, ordered_marker, separator, ordered_text = line:match(mdnotes.format_patterns.ordered_list)
-
-        if list_marker then
-            if list_text:match(mdnotes.format_patterns.task) then
-                return "\n" .. list_marker .. " " .. "[ ] "
-            else
-                return "\n" .. list_marker .. " "
-            end
-        end
-
-        if ordered_marker then
-            if ordered_text:match(mdnotes.format_patterns.task) then
-                return "\n" .. tostring(tonumber(ordered_marker + 1)) .. separator .. " " .. "[ ] "
-            else
-                return "\n" .. tostring(tonumber(ordered_marker + 1)) .. separator .. " "
-            end
-        end
-        return "\n"
+        return mdnotes.list_remap(1)
     end,
     {
         expr = true,
         desc = "Mdnotes <CR> remap for auto-lists",
+        buffer = true
+    })
+
+    vim.keymap.set("n", "o", function ()
+        local row = vim.api.nvim_win_get_cursor(0)[1]
+        local cr_remap, _ = mdnotes.list_remap(1):gsub("[\n]","")
+
+        vim.api.nvim_buf_set_lines(0, row, row, false, { cr_remap })
+        vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
+        vim.api.nvim_input("$i ")
+    end,
+    {
+        desc = "Mdnotes 'o' remap for auto-lists",
+        buffer = true
+    })
+
+    vim.keymap.set("n", "O", function ()
+        local row = vim.api.nvim_win_get_cursor(0)[1]
+        local cr_remap, _ = mdnotes.list_remap(-1):gsub("[\n]","")
+
+        vim.api.nvim_buf_set_lines(0, row - 1, row - 1, false, { cr_remap })
+        vim.api.nvim_win_set_cursor(0, { row, 0 })
+        vim.api.nvim_input("$i ")
+    end,
+    {
+        desc = "Mdnotes 'o' remap for auto-lists",
         buffer = true
     })
 end
