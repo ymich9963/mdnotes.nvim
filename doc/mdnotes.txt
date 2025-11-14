@@ -60,12 +60,6 @@ be,
     vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
     vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 
-These might also be worth having if you use outliner mode a lot so you can
-indent entire blocks more easily,
->lua
-    vim.keymap.set("v", "<", "<gv", { buffer = true, desc = "Indent left and reselect" }) -- Better indenting in visual mode
-    vim.keymap.set("v", ">", ">gv", { buffer = true, desc = "Indent right and reselect" })
-
 Note: It is highly recommended you have your keymaps in your
 `after/ftplugin/markdown.lua` file to keep them specific to Markdown files.
 
@@ -122,6 +116,9 @@ The default config for `mdnotes` is shown below,
 	date_format = "%a %d %b %Y",
 	prefer_lsp = true,
 	auto_list = true,
+	default_keymaps = false,
+	default_settings = false,
+	os_windows_settings = false,
     }
 <
 index_file = `"path"`					*mdnotes-index_file*
@@ -182,6 +179,23 @@ auto_list = `false|true`				*mdnotes-auto_list*
     task list. Works by remapping |<CR>|, |o|, and |O| but only in Markdown
     buffers by specifying it in the plugin's `after/ftplugin/markdown.lua`
     directory.
+
+default_keymaps = `false|true`				*mdnotes-default_keymaps*
+
+    Enable or disable the default keymaps listed in |mdnotes-keymaps|.
+
+default_settings = `false|true`				*mdnotes-default_settings*
+
+    Enable or disable the default settings shown below,
+>lua
+    vim.wo[vim.api.nvim_get_current_win()][0].wrap = true -- Enable wrap for current .md buffer
+    vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
+
+os_windows_settings = `false|true`			*mdnotes-os_windows_settings*
+
+    Enable or disable the settings shown in |mdnotes-completion| for MS Windows.
+    This is a Windows-only setting since the `[` and `]` are not implemented
+    in |isfname| on other OSs.
 
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*

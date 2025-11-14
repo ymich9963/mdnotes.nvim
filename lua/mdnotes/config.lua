@@ -10,8 +10,11 @@ local default_config = {
     bold_format = "**",                     -- "**" or "__"
     italic_format = "*",                    -- "*" or "_"
     date_format = "%a %d %b %Y",            -- date format based on :h strftime()
-    prefer_lsp = true,
-    auto_list = true,
+    prefer_lsp = true,                      -- to prefer LSP functions than the mdnotes functions
+    auto_list = true,                       -- automatic list continuation
+    default_keymaps = false,
+    default_settings = false,
+    os_windows_settings = false,            -- for path completion using the builtin <C-X><C-F> on Windows
 }
 
 function M.setup(user_config)

@@ -64,17 +64,20 @@ Read the documentation with `:h mdnotes.txt`.
     overwrite_behaviour = "error",  -- "overwrite" or "error" when finding assset file conflicts
     open_behaviour = "buffer",      -- "buffer" or "tab" to open when following links
     date_format = "%a %d %b %Y"     -- date format based on :h strftime()
-	prefer_lsp = true,
-    auto_list = true,
+    prefer_lsp = true,                      -- to prefer LSP functions than the mdnotes functions
+    auto_list = true,                       -- automatic list continuation
+    default_keymaps = false,
+    default_settings = false,
+    os_windows_settings = false,            -- for path completion using the builtin <C-X><C-F> on Windows
 }
 ```
 
-### 💋 Recommendations
-I've listed some recommended keymaps and settings below for a great experience with `mdnotes`. They are not applied by default and therefore have to be mapped manually. All suggestions here should ideally be in an `after/ftplugin/markdown.lua` file so that they are specific to Markdown files.
+## 💋 Recommendations
+I've listed some recommended keymaps and settings below for a great experience with `mdnotes`. All suggestions here should ideally be in an `after/ftplugin/markdown.lua` file - like in `mdnotes` - so that they are specific to Markdown files.
 
-#### ⌨️ Keymaps
-Here are some recommended keymaps for `mdnotes`,
-```lua
+### ⌨️ Keymaps
+ The keymappings below can be enabled by setting `default_keymaps = true` as they are not enabled by default.
+ ```lua
 vim.keymap.set('n', 'gf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from Wikilink" })
 vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
 vim.keymap.set("n", "<Left>", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
@@ -82,21 +85,16 @@ vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { buffer = true, desc = "G
 vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
 vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 ```
-If you really like outliner mode and want to indent entire blocks then these remaps are very helpful,
-```lua
-vim.keymap.set("v", "<", "<gv", { buffer = true, desc = "Indent left and reselect" }) -- Better indenting in visual mode
-vim.keymap.set("v", ">", ">gv", { buffer = true, desc = "Indent right and reselect" })
-```
-#### 👩‍💻 Settings
-If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion,
-```lua
-vim.opt.isfname:remove('[') -- To enable path completion on Windows :h i_CTRL-X_CTRL-F
-vim.opt.isfname:remove(']')
-```
-These other two settings are for enabling wrapping only in Markdown files, and to disable the LSP diagnostics if they annoy you.
+### 👩‍💻 Settings
+These other two settings are for enabling wrapping only in Markdown files, and to disable the LSP diagnostics if they annoy you. They can be enabled by setting `default_settings = true`.
 ```lua
 vim.wo[vim.api.nvim_get_current_win()][0].wrap = true -- Enable wrap for current .md buffer
 vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
+```
+If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion for Wikilinks. They can be enabled by setting `os_windows_settings = true` and it is only possible and necessary for Windows.
+```lua
+vim.opt.isfname:remove('[') -- To enable path completion on Windows :h i_CTRL-X_CTRL-F
+vim.opt.isfname:remove(']')
 ```
 
 ## 🙊 LSPs
