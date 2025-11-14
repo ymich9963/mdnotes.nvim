@@ -20,8 +20,9 @@ function mdnotes.setup(user_config)
         italic = "()%" .. i .. "([^%" .. i .. "].-)%" .. i .."()",
         strikethrough = "()~~(.-)~~()",
         inline_code = "()`([^`]+)`()",
-        list = "^([%s]-)([-+*])[%s]-.-",
-        ordered_list = "^([%s]-)([%d]+)([%.%)])[%s]-.-",
+        list = "^([%s]-)([-+*])[%s]-(.+)",
+        ordered_list = "^([%s]-)([%d]+)([%.%)])[%s]-(.+)",
+        task = "%[[ xX]%].-",
     }
 end
 

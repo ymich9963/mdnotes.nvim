@@ -11,6 +11,7 @@ local default_config = {
     italic_format = "*",                    -- "*" or "_"
     date_format = "%a %d %b %Y",            -- date format based on :h strftime()
     prefer_lsp = true,
+    auto_list = true,
 }
 
 function M.setup(user_config)
