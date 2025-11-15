@@ -31,6 +31,7 @@ function mdnotes.setup(user_config)
         list = "^([%s]-)([-+*])[%s]-(.+)",
         ordered_list = "^([%s]-)([%d]+)([%.%)])[%s]-(.+)",
         task = "(%[[ xX]%])%s.-",
+        heading = "^([%#]+)%s+(.+)",
     }
 
     mdnotes.open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
@@ -714,6 +715,26 @@ function mdnotes.task_list_toggle(line1, line2)
         end
     end
     vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
+end
+
+function mdnotes.generate_toc()
+    if vim.bo.filetype ~= "markdown" then
+        vim.notify(("Mdn: Cannot generate a ToC for a non-Markdown file."), vim.log.levels.ERROR)
+        return
+    end
+
+    local buf_lines = vim.api.nvim_buf_get_lines(0, 0, vim.fn.line("$"), false)
+    local toc = {}
+    for _, line in ipairs(buf_lines) do
+        local heading, text = line:match(mdnotes.format_patterns.heading)
+        if text and heading then
+            local _, hash_count = heading:gsub("#", "")
+            local lower_text = text:lower():gsub(" ", "-")
+            local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
+            table.insert(toc, ("%s- [%s](#%s)"):format(spaces, text, lower_text))
+        end
+    end
+    vim.api.nvim_put(toc, "V", false, false)
 end
 
 return mdnotes

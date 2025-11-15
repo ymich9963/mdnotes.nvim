@@ -38,6 +38,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 
 ### 🧍‍♂️ Uncategorised
+- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn generate_toc`.
 - Implements an outliner mode by doing `:Mdn toggle_outliner`. Make sure to exit afterwards by re-toggling.
 - Insert a journal entry automatically by doing `:Mdn insert_journal_entry`. 
 - Opt-out use of existing Markdown LSP functions.

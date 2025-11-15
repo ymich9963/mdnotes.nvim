@@ -315,6 +315,11 @@ subcommands are listed below.
     Insert at the top of the file the current date and time along with a separator.
     Useful when using a journal.
 
+:Mdn generate_toc					*:Mdn-generate_toc*
+
+    Generate and insert a Table Of Contents of the current file at the cursor 
+    position.
+
 ==============================================================================
 API                                     		*mdnotes-api*
 
@@ -514,9 +519,18 @@ inline_code_toggle()					*mdnotes.inline_code_toggle()*
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-task_list_toggle()					*mdnotes.task_list_toggle()*
+task_list_toggle({line1}, {line2})			*mdnotes.task_list_toggle()*
 
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
     with |linewise-visual|.
+
+    Parameters: ~
+    • {line1}  `(integer?)` Starting line number.
+    • {line2}  `(integer?)` Ending line number.
+
+generate_toc()						*mdnotes.generate_toc()*
+
+    Generate and insert a Table Of Contents of the current file at the cursor
+    position.
 
 vim:tw=78:ts=8:expandtab:noet:ft=help:norl:

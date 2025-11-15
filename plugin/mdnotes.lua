@@ -45,6 +45,7 @@ local subcommands = {
     inline_code_toggle = mdnotes.inline_code_toggle,
     task_list_toggle = mdnotes.task_list_toggle,
     insert_journal_entry = mdnotes.insert_journal_entry,
+    generate_toc = mdnotes.generate_toc,
 }
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
