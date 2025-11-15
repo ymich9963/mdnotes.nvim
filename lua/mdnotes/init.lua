@@ -683,29 +683,37 @@ function mdnotes.inline_code_toggle()
     end
 end
 
-function mdnotes.task_list_toggle()
-    local line = vim.api.nvim_get_current_line()
-    local _, list_marker, list_text = line:match(mdnotes.format_patterns.list)
-    local _, ordered_marker, separator, ordered_text = line:match(mdnotes.format_patterns.ordered_list)
-    local text = list_text or ordered_text
-    local marker = list_marker or ordered_marker .. separator
-    local new_text = ""
-
-    if marker then
-        local task_marker = text:match(mdnotes.format_patterns.task)
-        local row_col = vim.api.nvim_win_get_cursor(0)
-        if task_marker == "[x]" then
-            new_text, _ = line:gsub(mdnotes.format_patterns.task, "")
-        elseif task_marker == "[ ]" then
-            new_text, _ = line:gsub(mdnotes.format_patterns.task, "[x] ")
-        elseif not task_marker then
-            new_text = line:gsub(marker, marker .. " [ ]")
-        end
-        vim.api.nvim_set_current_line(new_text)
-        vim.api.nvim_win_set_cursor(0, row_col)
+function mdnotes.task_list_toggle(line1, line2)
+    local lines = {}
+    local new_lines = {}
+    if line1 == line2 then
+        lines = {vim.api.nvim_get_current_line()}
     else
-        vim.notify(("Mdn: Unable to detect a task list marker."), vim.log.levels.ERROR)
+        lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
     end
+    for index, line in ipairs(lines) do
+        local _, list_marker, list_text = line:match(mdnotes.format_patterns.list)
+        local _, ordered_marker, separator, ordered_text = line:match(mdnotes.format_patterns.ordered_list)
+        local text = list_text or ordered_text
+        local marker = list_marker or ordered_marker .. separator
+        local new_text = ""
+
+        if marker then
+            local task_marker = text:match(mdnotes.format_patterns.task)
+            if task_marker == "[x]" then
+                new_text, _ = line:gsub(mdnotes.format_patterns.task, "")
+            elseif task_marker == "[ ]" then
+                new_text, _ = line:gsub(mdnotes.format_patterns.task, "[x] ")
+            elseif not task_marker then
+                new_text = line:gsub(marker, marker .. " [ ]")
+            end
+            table.insert(new_lines, new_text)
+        else
+            vim.notify(("Mdn: Unable to detect a task list marker at line ".. tostring(line1 - 1 + index) .. "."), vim.log.levels.ERROR)
+            break
+        end
+    end
+    vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
 end
 
 return mdnotes

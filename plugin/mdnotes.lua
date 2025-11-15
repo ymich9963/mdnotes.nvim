@@ -52,7 +52,9 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     local subcmd = args[1]
 
     local func = subcommands[subcmd]
-    if func then
+    if func == subcommands["task_list_toggle"] then
+        func(opts.line1, opts.line2)
+    elseif func then
         func()
     else
         vim.notify("Unknown subcommand: " .. (subcmd or ""), vim.log.levels.WARN)
