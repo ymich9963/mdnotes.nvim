@@ -46,25 +46,26 @@ end
 
 function mdnotes.list_remap(inc_val)
     local line = vim.api.nvim_get_current_line()
-    local _, list_marker, list_text = line:match(mdnotes.format_patterns.list)
-    local _, ordered_marker, separator, ordered_text = line:match(mdnotes.format_patterns.ordered_list)
+    local list_indent, list_marker, list_text = line:match(mdnotes.format_patterns.list)
+    local ordered_indent, ordered_marker, separator, ordered_text = line:match(mdnotes.format_patterns.ordered_list)
+    local indent = list_indent or ordered_indent
 
     if list_marker then
         if list_text:match(mdnotes.format_patterns.task) then
-            return "\n" .. list_marker .. " " .. "[ ] "
+            return indent, "\n" .. list_marker .. " " .. "[ ] "
         else
-            return "\n" .. list_marker .. " "
+            return indent, "\n" .. list_marker .. " "
         end
     end
 
     if ordered_marker then
         if ordered_text:match(mdnotes.format_patterns.task) then
-            return "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " " .. "[ ] "
+            return indent, "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " " .. "[ ] "
         else
-            return "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " "
+            return indent, "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " "
         end
     end
-    return "\n"
+    return indent, "\n"
 end
 
 function mdnotes.check_md_format(pattern)
