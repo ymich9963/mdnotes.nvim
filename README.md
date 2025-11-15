@@ -8,16 +8,16 @@
 ---
 
 ## ☀️ Introduction
-Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, file history, asset management, referencing, and formatting. All this without relying on any LSP but using one is recommended.
+Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, and formatting. All this without relying on any LSP but using one is recommended.
 
-Read the documentation with `:h mdnotes.txt`.
+All documentation is available with `:h mdnotes.txt`.
 
 ## 🔥 Features
+All the features of `mdnotes` and their associated commands are listed and categorised below.
 
 ### 🧭 Navigation
 - Open hyperlinks to files and URLs with `:Mdn open`.
-- Set your index file and go there with `:Mdn home`.
-- Set your journal file and go there with `:Mdn journal`.
+- Set your index and journal files and go there with `:Mdn home` and `:Mdn journal`.
 - Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
 - Open Wikilinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
 
@@ -39,8 +39,9 @@ Read the documentation with `:h mdnotes.txt`.
 
 ### 🧍‍♂️ Uncategorised
 - Implements an outliner mode by doing `:Mdn toggle_outliner`. Make sure to exit afterwards by re-toggling.
+- Insert a journal entry automatically by doing `:Mdn insert_journal_entry`. 
+- Opt-out use of existing Markdown LSP functions.
 - Supports Windows eccentricities.
-- Choose whether to use Markdown LSP features or not.
 
 ## 👽 Setup
 ```lua
@@ -64,11 +65,11 @@ Read the documentation with `:h mdnotes.txt`.
     overwrite_behaviour = "error",  -- "overwrite" or "error" when finding assset file conflicts
     open_behaviour = "buffer",      -- "buffer" or "tab" to open when following links
     date_format = "%a %d %b %Y"     -- date format based on :h strftime()
-    prefer_lsp = true,                      -- to prefer LSP functions than the mdnotes functions
-    auto_list = true,                       -- automatic list continuation
+    prefer_lsp = true,              -- to prefer LSP functions than the mdnotes functions
+    auto_list = true,               -- automatic list continuation
     default_keymaps = false,
     default_settings = false,
-    os_windows_settings = false,            -- for path completion using the builtin <C-X><C-F> on Windows
+    os_windows_settings = false,    -- for path completion using the builtin <C-X><C-F> on Windows
 }
 ```
 
