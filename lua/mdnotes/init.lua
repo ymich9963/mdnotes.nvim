@@ -100,6 +100,17 @@ function mdnotes.check_assets_path()
     return true
 end
 
+local function get_section(section)
+    for _, v in ipairs(mdnotes.buf_sections) do
+        for index, vv in ipairs(v.parsed.gfm) do
+            if vv == section then
+                return v.parsed.original[index].text
+            end
+        end
+    end
+    return section
+end
+
 function mdnotes.open()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
@@ -113,7 +124,9 @@ function mdnotes.open()
             link = link:gsub("[<>]?", "")
             path, section = link:match(mdnotes.format_patterns.file_section)
             -- Check for just a section first
+            -- Path in this case is a section
             if link:sub(1,1) == "#" then
+                path = get_section(path)
                 vim.fn.cursor(vim.fn.search("# " .. path), 1)
                 vim.api.nvim_input('zz')
             else
@@ -124,12 +137,14 @@ function mdnotes.open()
                 end
                 -- Check if the current file is the one in the link
                 if path == vim.fs.basename(vim.api.nvim_buf_get_name(0)) then
+                    section = get_section(section)
                     vim.fn.cursor(vim.fn.search("# " .. section), 1)
                     vim.api.nvim_input('zz')
                     -- Check if the file exists
                 elseif uv.fs_stat(path) then
                     vim.cmd(mdnotes.open .. path)
                     if section ~= "" then
+                        section = get_section(section)
                         vim.fn.cursor(vim.fn.search(section), 1)
                         vim.api.nvim_input('zz')
                     end
@@ -735,7 +750,7 @@ function mdnotes.get_sections_gfm_from_original(original_sections)
     local gfm_sections = {}
     for _, section in ipairs(original_sections) do
         local gfm_text = section.text:lower():gsub("[^%d%a%p ]+", ""):gsub(" ", "-")
-        table.insert(gfm_sections, "#" .. gfm_text)
+        table.insert(gfm_sections, gfm_text)
     end
 
     return gfm_sections
@@ -754,7 +769,7 @@ function mdnotes.generate_toc()
     for index = 1, #original_sections do
         local _, hash_count = original_sections[index].heading:gsub("#", "")
         local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
-        table.insert(toc, ("%s- [%s](%s)"):format(spaces, original_sections[index].text, gfm_sections[index]))
+        table.insert(toc, ("%s- [%s](#%s)"):format(spaces, original_sections[index].text, gfm_sections[index]))
     end
     vim.api.nvim_put(toc, "V", false, false)
 end

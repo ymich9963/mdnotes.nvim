@@ -25,6 +25,39 @@ vim.api.nvim_create_autocmd("BufEnter", {
     end,
 })
 
+vim.api.nvim_create_autocmd("BufEnter", {
+    pattern = "*.md",
+    group = mdnotes_group,
+    callback = function(args)
+        local buf_exists = false
+        local buf_num = args.buf
+        local index = 0
+        for i,v in ipairs(mdnotes.buf_sections) do
+            if v.buf_num == buf_num then
+                buf_exists = true
+                index = i
+                break
+            end
+        end
+
+        local original_sections = mdnotes.get_sections_original()
+        if buf_exists then
+            if mdnotes.buf_sections[index].parsed.original ~= original_sections then
+                mdnotes.buf_sections[index].parsed.original = original_sections
+                mdnotes.buf_sections[index].parsed.gfm = mdnotes.get_sections_gfm_from_original(original_sections)
+            end
+        else
+            table.insert(mdnotes.buf_sections, {
+                buf_num = buf_num,
+                parsed = {
+                    original = original_sections,
+                    gfm = mdnotes.get_sections_gfm_from_original(original_sections)
+                }
+            })
+        end
+    end,
+})
+
 local subcommands = {
     home = mdnotes.go_to_index_file,
     journal = mdnotes.go_to_journal_file,
