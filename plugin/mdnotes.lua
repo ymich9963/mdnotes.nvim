@@ -5,9 +5,12 @@ vim.g.loaded_mdnotes = true
 
 local mdnotes = require('mdnotes')
 
+local mdnotes_group = vim.api.nvim_create_augroup('Mdnotes', { clear = true })
+
 -- To record buffer history
 vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*.md",
+    group = mdnotes_group,
     callback = function(args)
         local buf_num = args.buf
         if mdnotes.current_index == 0 or mdnotes.buf_history[mdnotes.current_index] ~= buf_num then
