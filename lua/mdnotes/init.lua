@@ -5,6 +5,10 @@ local uv = vim.loop or vim.uv
 local b = ""
 local i = ""
 
+mdnotes.buf_history = {}
+mdnotes.buf_sections = {}
+mdnotes.current_index = 0
+
 local function resolve_open_behaviour(open_behaviour)
     if open_behaviour == "buffer" then
         return 'edit '
@@ -383,9 +387,6 @@ local function insert_file(file_type)
     vim.cmd('put')
 end
 
-mdnotes.buf_history = {}
-mdnotes.current_index = 0
-
 function mdnotes.go_back()
     if mdnotes.current_index > 1 then
         mdnotes.current_index = mdnotes.current_index - 1
@@ -717,22 +718,43 @@ function mdnotes.task_list_toggle(line1, line2)
     vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
 end
 
+function mdnotes.get_sections_original()
+    local sections = {}
+    local buf_lines = vim.api.nvim_buf_get_lines(0, 0, vim.fn.line("$"), false)
+    for _, line in ipairs(buf_lines) do
+        local heading, text = line:match(mdnotes.format_patterns.heading)
+        if text and heading then
+            table.insert(sections, {heading = heading, text = text})
+        end
+    end
+
+    return sections
+end
+
+function mdnotes.get_sections_gfm_from_original(original_sections)
+    local gfm_sections = {}
+    for _, section in ipairs(original_sections) do
+        local gfm_text = section.text:lower():gsub(" ", "-"):gsub("^%w+", "")
+        table.insert(gfm_sections, "#" .. gfm_text)
+    end
+
+    return gfm_sections
+end
+
 function mdnotes.generate_toc()
     if vim.bo.filetype ~= "markdown" then
         vim.notify(("Mdn: Cannot generate a ToC for a non-Markdown file."), vim.log.levels.ERROR)
         return
     end
 
-    local buf_lines = vim.api.nvim_buf_get_lines(0, 0, vim.fn.line("$"), false)
     local toc = {}
-    for _, line in ipairs(buf_lines) do
-        local heading, text = line:match(mdnotes.format_patterns.heading)
-        if text and heading then
-            local _, hash_count = heading:gsub("#", "")
-            local lower_text = text:lower():gsub(" ", "-")
-            local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
-            table.insert(toc, ("%s- [%s](#%s)"):format(spaces, text, lower_text))
-        end
+    local original_sections = mdnotes.get_sections_original()
+    local gfm_sections = mdnotes.get_sections_gfm_from_original(original_sections)
+
+    for index = 1, #original_sections do
+        local _, hash_count = original_sections[index].heading:gsub("#", "")
+        local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
+        table.insert(toc, ("%s- [%s](%s)"):format(spaces, original_sections[index].text, gfm_sections[index]))
     end
     vim.api.nvim_put(toc, "V", false, false)
 end
