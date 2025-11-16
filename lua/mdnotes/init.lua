@@ -734,7 +734,7 @@ end
 function mdnotes.get_sections_gfm_from_original(original_sections)
     local gfm_sections = {}
     for _, section in ipairs(original_sections) do
-        local gfm_text = section.text:lower():gsub(" ", "-"):gsub("^%w+", "")
+        local gfm_text = section.text:lower():gsub("[^%d%a%p ]+", ""):gsub(" ", "-")
         table.insert(gfm_sections, "#" .. gfm_text)
     end
 
