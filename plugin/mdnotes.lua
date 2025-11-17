@@ -3,8 +3,6 @@ if vim.g.loaded_mdnotes then
 end
 vim.g.loaded_mdnotes = true
 
-local mdnotes = require('mdnotes')
-
 local mdnotes_group = vim.api.nvim_create_augroup('Mdnotes', { clear = true })
 
 -- To record buffer history
@@ -12,6 +10,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*.md",
     group = mdnotes_group,
     callback = function(args)
+        local mdnotes = require('mdnotes')
         local buf_num = args.buf
         if mdnotes.current_index == 0 or mdnotes.buf_history[mdnotes.current_index] ~= buf_num then
             -- If the user has went back and the current buffer is not the same as the stored buffer
@@ -29,24 +28,22 @@ vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*.md",
     group = mdnotes_group,
     callback = function(args)
+        local mdnotes = require('mdnotes')
         local buf_exists = false
         local buf_num = args.buf
-        local index = 0
-        for i,v in ipairs(mdnotes.buf_sections) do
+        local original_sections = mdnotes.get_sections_original()
+        for _,v in ipairs(mdnotes.buf_sections) do
             if v.buf_num == buf_num then
                 buf_exists = true
-                index = i
+                if v.parsed.original ~= original_sections then
+                    v.parsed.original = original_sections
+                    v.parsed.gfm = mdnotes.get_sections_gfm_from_original(original_sections)
+                end
                 break
             end
         end
 
-        local original_sections = mdnotes.get_sections_original()
-        if buf_exists then
-            if mdnotes.buf_sections[index].parsed.original ~= original_sections then
-                mdnotes.buf_sections[index].parsed.original = original_sections
-                mdnotes.buf_sections[index].parsed.gfm = mdnotes.get_sections_gfm_from_original(original_sections)
-            end
-        else
+        if not buf_exists then
             table.insert(mdnotes.buf_sections, {
                 buf_num = buf_num,
                 parsed = {
@@ -59,29 +56,29 @@ vim.api.nvim_create_autocmd("BufEnter", {
 })
 
 local subcommands = {
-    home = mdnotes.go_to_index_file,
-    journal = mdnotes.go_to_journal_file,
-    open = mdnotes.open,
-    open_wikilink = mdnotes.open_wikilink,
-    hyperlink_toggle = mdnotes.hyperlink_toggle,
-    show_references = mdnotes.show_references,
-    outliner_toggle = mdnotes.outliner_toggle,
-    insert_image = mdnotes.insert_image,
-    insert_file = mdnotes.insert_file,
-    go_back = mdnotes.go_back,
-    go_forward = mdnotes.go_forward,
-    clear_history = mdnotes.clear_history,
-    cleanup_unused_assets = mdnotes.cleanup_unused_assets,
-    move_unused_assets = mdnotes.move_unused_assets,
-    rename_link_references = mdnotes.rename_link_references,
-    rename_references_cur_buf = mdnotes.rename_references_cur_buf,
-    bold_toggle = mdnotes.bold_toggle,
-    italic_toggle = mdnotes.italic_toggle,
-    strikethrough_toggle = mdnotes.strikethrough_toggle,
-    inline_code_toggle = mdnotes.inline_code_toggle,
-    task_list_toggle = mdnotes.task_list_toggle,
-    insert_journal_entry = mdnotes.insert_journal_entry,
-    generate_toc = mdnotes.generate_toc,
+    home = require("mdnotes").go_to_index_file,
+    journal = require("mdnotes").go_to_journal_file,
+    open = require("mdnotes").open,
+    open_wikilink = require("mdnotes").open_wikilink,
+    hyperlink_toggle = require("mdnotes").hyperlink_toggle,
+    show_references = require("mdnotes").show_references,
+    outliner_toggle = require("mdnotes").outliner_toggle,
+    insert_image = require("mdnotes").insert_image,
+    insert_file = require("mdnotes").insert_file,
+    go_back = require("mdnotes").go_back,
+    go_forward = require("mdnotes").go_forward,
+    clear_history = require("mdnotes").clear_history,
+    cleanup_unused_assets = require("mdnotes").cleanup_unused_assets,
+    move_unused_assets = require("mdnotes").move_unused_assets,
+    rename_link_references = require("mdnotes").rename_link_references,
+    rename_references_cur_buf = require("mdnotes").rename_references_cur_buf,
+    bold_toggle = require("mdnotes").bold_toggle,
+    italic_toggle = require("mdnotes").italic_toggle,
+    strikethrough_toggle = require("mdnotes").strikethrough_toggle,
+    inline_code_toggle = require("mdnotes").inline_code_toggle,
+    task_list_toggle = require("mdnotes").task_list_toggle,
+    insert_journal_entry = require("mdnotes").insert_journal_entry,
+    generate_toc = require("mdnotes").generate_toc,
 }
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
