@@ -763,8 +763,23 @@ function mdnotes.generate_toc()
     end
 
     local toc = {}
-    local original_sections = mdnotes.get_sections_original()
-    local gfm_sections = mdnotes.get_sections_gfm_from_original(original_sections)
+    local original_sections = {}
+    local gfm_sections = {}
+    local found = false
+
+    local cur_buf_num = vim.api.nvim_get_current_buf()
+    for _, v in ipairs(mdnotes.buf_sections) do
+        if v.buf_num == cur_buf_num then
+            original_sections = v.parsed.original
+            gfm_sections = v.parsed.gfm
+            found = true
+        end
+    end
+
+    if not found then
+        vim.notify(("Mdn: Parsed sections for current buffer not found."), vim.log.levels.ERROR)
+        return
+    end
 
     for index = 1, #original_sections do
         local _, hash_count = original_sections[index].heading:gsub("#", "")
