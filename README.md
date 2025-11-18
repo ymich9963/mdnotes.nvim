@@ -8,9 +8,9 @@
 ---
 
 ## ☀️ Introduction
-Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better WikiLink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, and formatting.
+Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better WikiLink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, generating ToC, and formatting.
 
-Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes.
+Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes. If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you.
 
 All documentation is available with `:h mdnotes.txt`.
 
@@ -21,15 +21,15 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Open hyperlinks to files and URLs with `:Mdn open`.
 - Set your index and journal files and go there with `:Mdn home` and `:Mdn journal`.
 - Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
-- Open Wikilinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
+- Open WikiLinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
 
 ### 💁 Formatting
 - Toggle hyperlinks with `:Mdn hyperlink_toggle` which pastes your copied hyperlink over the selected text or removes it.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
-- Automatically continue your ordered/unordered/task lists (can be disabled). Works with `<CR>`, `o`, and `O`.
-- Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode.
+- Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
+- Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
-### 🖇️ Wikilinks
+### 🖇️ WikiLinks
 - Rename link references and the file itself using `:Mdn rename_link_references`.
 - Rename references to current buffer and also the file of the current buffer with `:Mdn rename_references_cur_buf`.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn show_references`. Also show references of the current buffer when not hovering over a Wikilink.
@@ -79,6 +79,17 @@ and specify your config using `opts = {}`, no `setup({})` function needed,
     default_keymaps = false,
 }
 ```
+### 📂 Directory Setup
+Sample directory structure for `mdnotes` is shown below. If this directory configuration doesn't suit you please make an issue and hopefully I'll be able to work around it,
+```
+notes/
+├───assets/
+│   ├───fire.png
+│   └───water.pdf
+├───music.md
+├───electronics.md
+etc.
+```
 
 ## 💋 Recommendations
 I've specified below some recommended plugins, keymaps, and optional settings for a great experience with `mdnotes`.
@@ -90,7 +101,7 @@ For the best Neovim Markdown note-taking experience, I've listed some other proj
 - Live Previewer,
     - [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim) - Older, more widely used, has dependencies.
     - [live-preview.nvim](https://github.com/brianhuster/live-preview.nvim) - Newer, no dependencies.
-- LSP (optional) - Please see the [Using LSPs Section](#--using-lsps) for more information regarding LSPs, but I recommend,
+- LSP - Please see the [Using LSPs Section](#--using-lsps) for more information regarding LSPs, but I recommend,
     - [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) or
     - [marksman](https://github.com/artempyanykh/marksman)
 
@@ -114,7 +125,7 @@ Second one is to disable LSP diagnostics in the current Markdown buffer.
 ```lua
 vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
 ```
-If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion for Wikilinks. These can be anywhere in your config since they can't be Markdown-specific.
+If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion for WikiLinks. These can be anywhere in your config since they can't be Markdown-specific.
 ```lua
 vim.opt.isfname:remove('[') -- To enable path completion on Windows :h i_CTRL-X_CTRL-F
 vim.opt.isfname:remove(']')
@@ -127,10 +138,10 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 |------------------|-------------------------|---------------------------------|-------------------------|
 |Showing references| Y (`:Mdn show_references`) | Y (`:h vim.lsp.buf.references()`) | N                     | 
 |Rename links to current buffer| Y (`:Mdn rename_references_cur_buf`) | Y (`:h vim.lsp.buf.rename()`, markdown-oxide only) | N             | 
-|Rename links      | Y (`:Mdn rename_link_references`) | ? (`:h vim.lsp.buf.rename()`, should work but it does not) | N             | 
+|Rename links to hovered WikiLink     | Y (`:Mdn rename_link_references`) | ? (`:h vim.lsp.buf.rename()`, should work but it does not) | N             | 
 |Buffer History    | Y (Sequential `:Mdn go_back/forward`) | N | Y (Not Sequential `:h bp`/`:h bn` | 
 |Path Completion   | N                       | Y (`:h lsp-completion`) | Y (`:h i_CTRL-X_CTRL-F`)|
-|Opening Wikilinks | Y (`:Mdn open_wikilink`) | Y (`:h vim.lsp.buf.definition()` or `CTRL-]`) | Y (`:h gf`, needs .md extension in link, requires settings for Windows) | 
+|Opening WikiLinks | Y (`:Mdn open_wikilink`) | Y (`:h vim.lsp.buf.definition()` or `CTRL-]`) | Y (`:h gf`, needs .md extension in link, requires settings for Windows) | 
 |Markdown Formatting| Y (`:Mdn <format>_toggle`) | N | N             | 
  
  **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
@@ -149,7 +160,7 @@ Opened with `:Mdn open`. Inserted with the `:Mdn insert_file/image` and `:Mdn hy
     [link](path/to/file.extension)
     ![image](path/to/image.extension)
 ```
-### Wikilinks
+### WikiLinks
 Opened with `:Mdn open_wikilink`. Can only be filenames, so `link` can also be `link.md`.
 ```
     [[link]]
@@ -174,6 +185,9 @@ Toggled with `:Mdn <format>_toggle`. Using `_` for the bold and italic formats n
     2. Item
     - [x] Task lists with all ordered and unordered lists above
 ```
+
+## 🫂 Motivation
+I wanted to make a more Neovim-centric Markdown notes plugin that tries to work the available Markdown LSPs, is command/subcommand focused, concise, adheres to the [CommonMark](https://spec.commonmark.org/) and [GFM](https://github.github.com/gfm/) specs, while also providing the more widespread [WikiLink](https://github.com/Python-Markdown/markdown/blob/master/docs/extensions/wikilinks.md) support other note-taking apps provide. I hope I did in fact accomplish this for you as well as for me and if I have not then please create an issue! Thanks for reading this :).
 
 ## 🫰 Other Cool Markdown-related Plugins
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
