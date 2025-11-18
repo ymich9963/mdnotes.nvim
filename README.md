@@ -8,7 +8,9 @@
 ---
 
 ## ☀️ Introduction
-Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better Wikilink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, and formatting. All this without relying on any LSP but using one is recommended.
+Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better WikiLink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, and formatting.
+
+Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes.
 
 All documentation is available with `:h mdnotes.txt`.
 
@@ -22,7 +24,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Open Wikilinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
 
 ### 💁 Formatting
-- Toggle hyperlinks with `:Mdn toggle_hyperlink` which pastes your copied hyperlink over the selected text or removes it.
+- Toggle hyperlinks with `:Mdn hyperlink_toggle` which pastes your copied hyperlink over the selected text or removes it.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
 - Automatically continue your ordered/unordered/task lists (can be disabled). Works with `<CR>`, `o`, and `O`.
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode.
@@ -45,13 +47,19 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Supports Windows eccentricities.
 
 ## 👽 Setup
+Using the lazy.nvim package manager,
+```lua
+{
+    "ymich9963/mdnotes.nvim",
+}
+```
+
+and specify your config using `opts = {}`, no `setup({})` function needed,
 ```lua
 {
     "ymich9963/mdnotes.nvim",
     opts = {
-        assets_path = "assets",     -- your assets path for assets related commands
-        index_file = "MAIN.md",     -- your index file for :Mdn home
-        journal_file = "JOURNAL.md",-- your journal file for :Mdn journal
+        -- Config here
     }
 }
 ```
@@ -69,16 +77,26 @@ All the features of `mdnotes` and their associated commands are listed and categ
     prefer_lsp = true,              -- to prefer LSP functions than the mdnotes functions
     auto_list = true,               -- automatic list continuation
     default_keymaps = false,
-    default_settings = false,
-    os_windows_settings = false,    -- for path completion using the builtin <C-X><C-F> on Windows
 }
 ```
 
 ## 💋 Recommendations
-I've listed some recommended keymaps and settings below for a great experience with `mdnotes`. All suggestions here should ideally be in an `after/ftplugin/markdown.lua` file - like in `mdnotes` - so that they are specific to Markdown files.
+I've specified below some recommended plugins, keymaps, and optional settings for a great experience with `mdnotes`.
+
+### 🔌 Plugins
+For the best Neovim Markdown note-taking experience, I've listed some other projects to optionally install alongside `mdnotes`,
+- [markview.nvim](https://github.com/OXY2DEV/markview.nvim) - Excellent viewing of Markdown files without any external preview.
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Tree-sitter for Neovim; with this also install the `markdown`, `markdown_inline`, and `latex` parsers.
+- Live Previewer,
+    - [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim) - Older, more widely used, has dependencies.
+    - [live-preview.nvim](https://github.com/brianhuster/live-preview.nvim) - Newer, no dependencies.
+- LSP (optional) - Please see the [Using LSPs Section](#--using-lsps) for more information regarding LSPs, but I recommend,
+    - [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) or
+    - [marksman](https://github.com/artempyanykh/marksman)
+
 
 ### ⌨️ Keymaps
- The keymappings below can be enabled by setting `default_keymaps = true` as they are not enabled by default.
+ The keymappings below can be enabled by setting `default_keymaps = true` as they are not enabled by default, and they will only be available in Markdown buffers. Place any `mdnotes` keymaps in a  `<Neovim config path>/after/ftplugin/markdown.lua` file so that they're also Markdown specific.
  ```lua
 vim.keymap.set('n', 'gf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from Wikilink" })
 vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
@@ -87,24 +105,77 @@ vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { buffer = true, desc = "G
 vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
 vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 ```
-### 👩‍💻 Settings
-These other two settings are for enabling wrapping only in Markdown files, and to disable the LSP diagnostics if they annoy you. They can be enabled by setting `default_settings = true`.
+### 👩‍💻 Optional Settings
+Place these settings in your `<Neovim config path>/after/ftplugin/markdown.lua` file so that they are Markdown-specific. First one here is to enable wrapping only for the current Markdown buffer. 
 ```lua
 vim.wo[vim.api.nvim_get_current_win()][0].wrap = true -- Enable wrap for current .md buffer
+```
+Second one is to disable LSP diagnostics in the current Markdown buffer.
+```lua
 vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
 ```
-If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion for Wikilinks. They can be enabled by setting `os_windows_settings = true` and it is only possible and necessary for Windows.
+If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion for Wikilinks. These can be anywhere in your config since they can't be Markdown-specific.
 ```lua
 vim.opt.isfname:remove('[') -- To enable path completion on Windows :h i_CTRL-X_CTRL-F
 vim.opt.isfname:remove(']')
 ```
 
-## 🙊 LSPs
-The main reason I started this project was dissatisfaction with MD LSPs at the time, and I really wanted to use Neovim as my notes editor. It is recommended to use LSPs with `mdnotes` since I'm trying to work with the LSPs and to not try to create something from scratch. So far certain LSP features haven't been working for me fully, but I do recommend [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) and [marksman](https://github.com/artempyanykh/marksman).
+## 🙊  Using LSPs
+The main reason I started this project was dissatisfaction with Markdown LSPs at the time, and I really wanted to use Neovim as my notes editor. Therefore, `mdnotes` is designed to work with Markdown LSPs by trying to fill the gaps and to also complement their current functionality. Please see the table below for how `mdnotes` tries to work with LSPs and Neovim itself.
+
+|Feature           |mdnotes                  |LSP                              |Neovim                   |
+|------------------|-------------------------|---------------------------------|-------------------------|
+|Showing references| Y (`:Mdn show_references`) | Y (`:h vim.lsp.buf.references()`) | N                     | 
+|Rename links to current buffer| Y (`:Mdn rename_references_cur_buf`) | Y (`:h vim.lsp.buf.rename()`, markdown-oxide only) | N             | 
+|Rename links      | Y (`:Mdn rename_link_references`) | ? (`:h vim.lsp.buf.rename()`, should work but it does not) | N             | 
+|Buffer History    | Y (Sequential `:Mdn go_back/forward`) | N | Y (Not Sequential `:h bp`/`:h bn` | 
+|Path Completion   | N                       | Y (`:h lsp-completion`) | Y (`:h i_CTRL-X_CTRL-F`)|
+|Opening Wikilinks | Y (`:Mdn open_wikilink`) | Y (`:h vim.lsp.buf.definition()` or `CTRL-]`) | Y (`:h gf`, needs .md extension in link, requires settings for Windows) | 
+|Markdown Formatting| Y (`:Mdn <format>_toggle`) | N | N             | 
+ 
+ **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
+
+## 📢 Supported Markdown Formatting
+Here is the supported Markdown formatting for `mdnotes.nvim`. The plugin tries to adhere to the [CommonMark](https://spec.commonmark.org/) and [GitHub Flavoured Markdown (GFM)](https://github.github.com/gfm/) spec as well as providing WikiLink support. If any problems arise please don't hesitate to create an issue for it!
+### Links
+Opened with `:Mdn open`. Inserted with the `:Mdn insert_file/image` and `:Mdn hyperlink_toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
+```
+    [link](www.neovim.io)
+    [link](path/to/file#section)
+    [link](path/to/file#gfm-style-section-wth-spaces)
+    [link](<path/to/file with spaces.md#section>)
+    [link](#Original Section)
+    [link](#original-section)
+    [link](path/to/file.extension)
+    ![image](path/to/image.extension)
+```
+### Wikilinks
+Opened with `:Mdn open_wikilink`. Can only be filenames, so `link` can also be `link.md`.
+```
+    [[link]]
+    [[link#section]]
+```
+### Formatting
+Toggled with `:Mdn <format>_toggle`. Using `_` for the bold and italic formats needs to be specified in the `bold_format` and `italic_format` config options. 
+```
+    **bold**
+    __bold__
+    *italic*
+    _italic_
+    ~~strikethrough~~
+    `inline code`
+```
+### Lists
+```
+    - Item
+    + Item
+    * Item
+    1) Item
+    2. Item
+    - [x] Task lists with all ordered and unordered lists above
+```
 
 ## 🫰 Other Cool Markdown-related Plugins
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
 - [markdown-plus](https://github.com/yousefhadder/markdown-plus.nvim)
-- [markview]( https://github.com/OXY2DEV/markview.nvim)
-- [iwe.nvim](https://github.com/iwe-org/iwe.nvim)
 - [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)

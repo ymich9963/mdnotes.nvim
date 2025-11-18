@@ -117,8 +117,6 @@ The default config for `mdnotes` is shown below,
 	prefer_lsp = true,
 	auto_list = true,
 	default_keymaps = false,
-	default_settings = false,
-	os_windows_settings = false,
     }
 <
 index_file = `"path"`					*mdnotes-index_file*
@@ -183,19 +181,6 @@ auto_list = `false|true`				*mdnotes-auto_list*
 default_keymaps = `false|true`				*mdnotes-default_keymaps*
 
     Enable or disable the default keymaps listed in |mdnotes-keymaps|.
-
-default_settings = `false|true`				*mdnotes-default_settings*
-
-    Enable or disable the default settings shown below,
->lua
-    vim.wo[vim.api.nvim_get_current_win()][0].wrap = true -- Enable wrap for current .md buffer
-    vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
-
-os_windows_settings = `false|true`			*mdnotes-os_windows_settings*
-
-    Enable or disable the settings shown in |mdnotes-completion| for MS Windows.
-    This is a Windows-only setting since the `[` and `]` are not implemented
-    in |isfname| on other OSs.
 
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*
