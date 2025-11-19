@@ -453,7 +453,7 @@ insert_journal_entry()					*mdnotes.insert_journal_entry()*
     cursor on `<cursor>`. For example,
 >markdown
     ```
-    Sun 09 Nov 2025
+    ## Sun 09 Nov 2025
 
     <cursor>
 
