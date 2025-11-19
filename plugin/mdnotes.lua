@@ -24,7 +24,8 @@ vim.api.nvim_create_autocmd("BufEnter", {
     end,
 })
 
-vim.api.nvim_create_autocmd("BufEnter", {
+-- Parsing sections for :Mdn generate_toc and :Mdn open
+vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
     group = mdnotes_group,
     callback = function(args)
