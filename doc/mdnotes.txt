@@ -50,15 +50,16 @@ completion.
 ==============================================================================
 KEYMAPS            	             			*mdnotes-keymaps*
 
-There aren't any default keymaps for `mdnotes` but some recommended ones might
-be,
+The default keymaps are listed below and they can be enabled using 
+|mdnotes-default_keymaps|. They follow a `<leader>m` prefix.
 >lua
-    vim.keymap.set('n', 'gf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from Wikilink" })
-    vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
-    vim.keymap.set("n", "<Left>", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
-    vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
-    vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
-    vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
+    vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
+    vim.keymap.set('n', '<leader>mgf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
+    vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
+    vim.keymap.set("n", "<leader>mh", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
+    vim.keymap.set("n", "<leader>ml", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
+    vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
+    vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 
 Note: It is highly recommended you have your keymaps in your
 `after/ftplugin/markdown.lua` file to keep them specific to Markdown files.
@@ -66,18 +67,9 @@ Note: It is highly recommended you have your keymaps in your
 ==============================================================================
 LSP            	             				*mdnotes-lsp*
 
-This plugin was designed to use as few LSP features as possible and if any of
-the Markdown LSPs improve over time then this plugin will be adapted to those
-improvements. I recommend trying out marksman or markdown-oxide. 
-
-With markdown-oxide, currently working LSP functions for me are,
-|vim.lsp.buf.rename()| and |vim.lsp.buf.references()|. The first one only
-seems to rename the current buffer and not the element (or link in this case)
-under the cursor.
-
-These functions are implemented in `mdnotes` with |:Mdn-rename_link_references|
-and |:Mdn-show_references| respectively. The first function both renames the
-reference and the file it is pointing to.
+This plugin is designed to work with Markdown LSPs by trying to fill the gaps
+and to also complement their current functionality. Please see the table in
+the README for how `mdnotes` tries to work with LSPs and Neovim itself.
 
 Quick tip is if you don't want your Markdown LSP to show diagnostics you can
 disable LSP diagnostics per filetype by using this in your

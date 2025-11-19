@@ -59,10 +59,11 @@ if mdnotes.config.auto_list then
 end
 
 if mdnotes.config.default_keymaps then
-    vim.keymap.set('n', 'gf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from Wikilink" })
-    vim.keymap.set({"v", "n"}, "<C-K>", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
-    vim.keymap.set("n", "<Left>", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
-    vim.keymap.set("n", "<Right>", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
-    vim.keymap.set({"v", "n"}, "<C-B>", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
-    vim.keymap.set({"v", "n"}, "<C-I>", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
+    vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
+    vim.keymap.set('n', '<leader>mgf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
+    vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
+    vim.keymap.set("n", "<leader>mh", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
+    vim.keymap.set("n", "<leader>ml", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
+    vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
+    vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 end
