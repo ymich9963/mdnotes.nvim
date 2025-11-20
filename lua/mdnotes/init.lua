@@ -711,11 +711,11 @@ function mdnotes.task_list_toggle(line1, line2)
         if marker then
             local task_marker = text:match(mdnotes.format_patterns.task)
             if task_marker == "[x]" then
-                new_text, _ = line:gsub(mdnotes.format_patterns.task, "")
+                new_text, _ = line:gsub(mdnotes.format_patterns.task, "", 1)
             elseif task_marker == "[ ]" then
-                new_text, _ = line:gsub(mdnotes.format_patterns.task, "[x] ")
+                new_text, _ = line:gsub(mdnotes.format_patterns.task, "[x] ", 1)
             elseif not task_marker then
-                new_text = line:gsub(marker, marker .. " [ ]")
+                new_text = line:gsub(marker, marker .. " [ ]", 1)
             end
             table.insert(new_lines, new_text)
         else
