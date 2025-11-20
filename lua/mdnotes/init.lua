@@ -150,7 +150,14 @@ function mdnotes.open()
                     end
                     -- Last case is when it should be treated as a URI
                 elseif vim.fn.has("win32") then
-                    vim.system({"cmd.exe", "/c", "start", "", link})
+                    vim.system({"cmd.exe", "/c", "start", link})
+                    -- Code below should work but doesn't - see Neovim issue below
+                    -- https://github.com/neovim/neovim/issues/36293
+                    -- This issue limits the :Mdn open functionality to only files and with no spaces
+                    -- local cmd = {'cmd.exe', '/c', 'start', '""', ('"%s"'):format(link:gsub("/", "\\"))}
+                    -- vim.print(table.concat(cmd, " "))
+                    -- local ret = vim.system(cmd):wait()
+                    -- vim.print(ret)
                 else
                     vim.ui.open(link)
                 end
