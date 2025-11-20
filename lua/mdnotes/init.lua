@@ -32,10 +32,10 @@ function mdnotes.setup(user_config)
         italic = "()%" .. i .. "([^%" .. i .. "].-)%" .. i .."()",
         strikethrough = "()~~(.-)~~()",
         inline_code = "()`([^`]+)`()",
-        list = "^([%s]-)([-+*])[%s]-(.+)",
+        list = "^([%s]-)([-+*])[%s](.+)",
         ordered_list = "^([%s]-)([%d]+)([%.%)])[%s]-(.+)",
-        task = "(%[[ xX]%])%s.-",
-        heading = "^([%#]+)%s+(.+)",
+        task = "[%s](%[[ xX]%])[%s].-",
+        heading = "^([%#]+)[%s]+(.+)",
     }
 
     mdnotes.open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
