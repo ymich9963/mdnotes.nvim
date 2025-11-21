@@ -30,8 +30,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
 ### 🖇️ WikiLinks
-- Rename link references and the file itself using `:Mdn rename_link_references`.
-- Rename references to current buffer and also the file of the current buffer with `:Mdn rename_references_cur_buf`.
+- Rename link references and the file itself using `:Mdn rename_references`.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn show_references`. Also show references of the current buffer when not hovering over a Wikilink.
 
 ### 👩‍💼 Asset Management
@@ -111,6 +110,8 @@ For the best Neovim Markdown note-taking experience, I've listed some other proj
  ```lua
 vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
 vim.keymap.set('n', '<leader>mgf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
+vim.keymap.set('n', '<leader>mgrr', ':Mdn show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
+vim.keymap.set('n', '<leader>mgrn', ':Mdn rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
 vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
 vim.keymap.set("n", "<leader>mh", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
 vim.keymap.set("n", "<leader>ml", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
@@ -137,9 +138,9 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 
 |Feature           |mdnotes                  |LSP                              |Neovim                   |
 |------------------|-------------------------|---------------------------------|-------------------------|
-|Showing references| Y (`:Mdn show_references`) | Y (`:h vim.lsp.buf.references()`) | N                     | 
-|Rename links to current buffer| Y (`:Mdn rename_references_cur_buf`) | Y (`:h vim.lsp.buf.rename()`, markdown-oxide only) | N             | 
-|Rename links to hovered WikiLink     | Y (`:Mdn rename_link_references`) | ? (`:h vim.lsp.buf.rename()`, should work but it does not) | N             | 
+|Showing references| Y (`:Mdn show_references`) | Y (`:h vim.lsp.buf.references()` or `grr`) | N                     | 
+|Rename links to current buffer| Y (`:Mdn rename_references`) | Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only) | N             | 
+|Rename links to hovered WikiLink     | Y (`:Mdn rename_references`) | ? (`:h vim.lsp.buf.rename()`, should work but it does not) | N             | 
 |Buffer History    | Y (Sequential `:Mdn go_back/forward`) | N | Y (Not Sequential `:h bp`/`:h bn` | 
 |Path Completion   | N                       | Y (`:h lsp-completion`) | Y (`:h i_CTRL-X_CTRL-F`)|
 |Opening WikiLinks | Y (`:Mdn open_wikilink`) | Y (`:h vim.lsp.buf.definition()` or `CTRL-]`) | Y (`:h gf`, needs .md extension in link, requires settings for Windows) | 

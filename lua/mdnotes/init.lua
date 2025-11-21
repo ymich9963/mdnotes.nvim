@@ -187,10 +187,10 @@ end
 function mdnotes.open_wikilink()
     if check_md_lsp() then
         vim.lsp.buf.definition()
-        if vim.tbl_isempty(vim.fn.getqflist()) then
+        if #vim.fn.getqflist() < 2 then
             vim.fn.wait(1, function () end)
             vim.cmd.redraw()
-            vim.notify(("Mdn: No locations found from LSP. Continuing with Mdnotes implementation."), vim.log.levels.WARN)
+            vim.notify(("Mdn: No locations found from LSP server. Continuing with Mdnotes implementation."), vim.log.levels.WARN)
         else
             return
         end
@@ -224,8 +224,6 @@ function mdnotes.open_wikilink()
     end
 end
 
--- Had to make it a fully Lua function due to issues when selecting
--- with visual mode and executing a command.
 function mdnotes.hyperlink_insert()
     local reg = vim.fn.getreg('+')
 
@@ -566,7 +564,37 @@ function mdnotes.move_unused_assets()
     vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
 end
 
-function mdnotes.rename_link_references()
+function mdnotes.rename_references_cur_buf()
+    if check_md_lsp() then
+        vim.lsp.buf.rename()
+        return
+    end
+
+    local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
+    local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
+    local renamed = ""
+
+    vim.ui.input({ prompt = "Rename current buffer '".. cur_file_name .."' to: " },
+    function(input)
+        renamed = input
+    end)
+
+    if renamed == "" or renamed == nil then
+        vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
+        return
+    end
+
+    vim.cmd.vimgrep({args = {'/\\[\\[' .. cur_file_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+    vim.cmd.cdo({args = {('s/%s/%s/'):format(cur_file_name, renamed)}, mods = {emsg_silent = true}})
+    if not uv.fs_rename(cur_file_name .. ".md", renamed .. ".md") then
+        vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
+        return
+    end
+
+    vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(cur_file_name, renamed)), vim.log.levels.INFO)
+end
+
+function mdnotes.rename_references()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
 
@@ -605,41 +633,11 @@ function mdnotes.rename_link_references()
     end
 
     if file == "" then
-        vim.notify(("Mdn: No valid link under cursor."), vim.log.levels.ERROR)
+        rename_references_cur_buf()
         return
     end
 
     vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(file, renamed)), vim.log.levels.INFO)
-end
-
-function mdnotes.rename_references_cur_buf()
-    if check_md_lsp() then
-        vim.lsp.buf.rename()
-        return
-    end
-
-    local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
-    local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
-    local renamed = ""
-
-    vim.ui.input({ prompt = "Rename '".. cur_file_name .."' to: " },
-    function(input)
-        renamed = input
-    end)
-
-    if renamed == "" or renamed == nil then
-        vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
-        return
-    end
-
-    vim.cmd.vimgrep({args = {'/\\[\\[' .. cur_file_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-    vim.cmd.cdo({args = {('s/%s/%s/'):format(cur_file_name, renamed)}, mods = {emsg_silent = true}})
-    if not uv.fs_rename(cur_file_name .. ".md", renamed .. ".md") then
-        vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
-        return
-    end
-
-    vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(cur_file_name, renamed)), vim.log.levels.INFO)
 end
 
 local function insert_format(format_char)

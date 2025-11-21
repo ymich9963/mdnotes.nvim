@@ -55,6 +55,8 @@ The default keymaps are listed below and they can be enabled using
 >lua
     vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
     vim.keymap.set('n', '<leader>mgf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
+    vim.keymap.set('n', '<leader>mgrr', ':Mdn show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
+    vim.keymap.set('n', '<leader>mgrn', ':Mdn rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
     vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
     vim.keymap.set("n", "<leader>mh", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
     vim.keymap.set("n", "<leader>ml", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
@@ -252,15 +254,11 @@ subcommands are listed below.
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm()|.
 
-:Mdn rename_link_references				*:Mdn-rename_link_references*
+:Mdn rename_references				*:Mdn-rename_references*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
-    link.
-
-:Mdn rename_references_cur_buf				*:Mdn-rename_references_cur_buf*
-
-    Rename references to current buffer and also the file of the current
-    buffer.
+    link. If executed when not hovering over a link, it will prompt to rename
+    current buffer and file references.
 
 :Mdn bold_toggle					*:Mdn-bold_toggle*
 
@@ -466,7 +464,7 @@ move_unused_assets()					*mdnotes.move_unused_assets()*
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` move actions. Uses |uv.fs_rename()|.
 
-rename_link_references()				*mdnotes.rename_link_references()*
+rename_references()				*mdnotes.rename_references()*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
     link.
