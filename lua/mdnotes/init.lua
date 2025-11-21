@@ -184,11 +184,16 @@ function mdnotes.go_to_journal_file()
     vim.cmd(mdnotes.open .. mdnotes.config.journal_file)
 end
 
--- Simulate the map gf :e <cfile>.md<CR> so that it works with spaces
 function mdnotes.open_wikilink()
     if check_md_lsp() then
         vim.lsp.buf.definition()
-        return
+        if vim.tbl_isempty(vim.fn.getqflist()) then
+            vim.fn.wait(1, function () end)
+            vim.cmd.redraw()
+            vim.notify(("Mdn: No locations found from LSP. Continuing with Mdnotes implementation."), vim.log.levels.WARN)
+        else
+            return
+        end
     end
 
     local line = vim.api.nvim_get_current_line()
@@ -480,24 +485,24 @@ function mdnotes.cleanup_unused_assets()
             end
             if not cleanup_all then
                 vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to delete file(s) or 'cancel' to cancel (default 'n'): "):format(name), }, function(input)
-                    vim.cmd('redraw')
+                    vim.cmd.redraw()
                     if input == 'y' then
                         vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
                         vim.notify(("Mdn: Removed '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
-                        vim.cmd('call getchar()')
+                        vim.fn.getchar()
                     elseif input == 'a' then
                         vim.fs.rm(vim.fs.joinpath(mdnotes.config.assets_path, name))
                         cleanup_all = true
                     elseif input == 'cancel' then
                         cancel = true
                         vim.notify(("Mdn: Cancelled cleanup. Press any key to continue:"):format(name), vim.log.levels.WARN)
-                        vim.cmd('call getchar()')
+                        vim.fn.getchar()
                     elseif input == 'n' or '' then
                         vim.notify(("Mdn: Skipped '%s'. Press any key to continue:"):format(name), vim.log.levels.WARN)
-                        vim.cmd('call getchar()')
+                        vim.fn.getchar()
                     else
                         vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue:"):format(input), vim.log.levels.ERROR)
-                        vim.cmd('call getchar()')
+                        vim.fn.getchar()
                     end
                 end)
             else
@@ -507,7 +512,7 @@ function mdnotes.cleanup_unused_assets()
     end
 
     vim.fn.setqflist(temp_qflist)
-    vim.cmd('redraw')
+    vim.cmd.redraw()
     vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
 end
 
