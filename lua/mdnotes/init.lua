@@ -635,7 +635,7 @@ function mdnotes.rename_references()
     end
 
     if file == "" then
-        rename_references_cur_buf()
+        mdnotes.rename_references_cur_buf()
         return
     end
 
