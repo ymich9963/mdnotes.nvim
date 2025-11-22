@@ -286,7 +286,7 @@ function mdnotes.show_references()
     for start_pos, file ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
         if start_pos < current_col and end_pos > current_col then
             vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-            if next(vim.fn.getqflist()) == nil then
+            if vim.tbl_isempty(vim.fn.getqflist()) then
                 vim.notify(("Mdn: No references found for '" .. file .. "' ."), vim.log.levels.ERROR)
             else
                 vim.cmd.copen()
@@ -301,7 +301,7 @@ function mdnotes.show_references()
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
         local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
         vim.cmd.vimgrep({args = {'/\\[\\[' .. cur_file_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-        if next(vim.fn.getqflist()) == nil then
+        if vim.tbl_isempty(vim.fn.getqflist()) then
             vim.notify(("Mdn: No references found for current buffer."), vim.log.levels.ERROR)
         else
             vim.cmd.copen()
