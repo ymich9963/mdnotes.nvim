@@ -5,7 +5,7 @@ local uv = vim.loop or vim.uv
 local b = ""
 local i = ""
 
-local open
+local open_cmd
 
 mdnotes.buf_history = {}
 mdnotes.buf_sections = {}
@@ -40,7 +40,7 @@ function mdnotes.setup(user_config)
         heading = "^([%#]+)[%s]+(.+)",
     }
 
-    open = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
+    open_cmd = resolve_open_behaviour(mdnotes.config.wikilink_open_behaviour)
 end
 
 local function check_md_lsp()
@@ -113,7 +113,7 @@ local function get_section(section)
     return section
 end
 
-function open()
+function mdnotes.open()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local link = ""
@@ -144,7 +144,7 @@ function open()
                     vim.api.nvim_input('zz')
                     -- Check if the file exists
                 elseif uv.fs_stat(path) then
-                    vim.cmd(open .. path)
+                    vim.cmd(open_cmd .. path)
                     if section ~= "" then
                         section = get_section(section)
                         vim.fn.cursor(vim.fn.search(section), 1)
@@ -174,7 +174,7 @@ function mdnotes.go_to_index_file()
         return
     end
 
-    vim.cmd(open .. mdnotes.config.index_file)
+    vim.cmd(open_cmd .. mdnotes.config.index_file)
 end
 
 function mdnotes.go_to_journal_file()
@@ -183,7 +183,7 @@ function mdnotes.go_to_journal_file()
         return
     end
 
-    vim.cmd(open .. mdnotes.config.journal_file)
+    vim.cmd(open_cmd .. mdnotes.config.journal_file)
 end
 
 function mdnotes.open_wikilink()
@@ -211,9 +211,9 @@ function mdnotes.open_wikilink()
 
         if start_pos < current_col and end_pos > current_col then
             if file:sub(-3) == ".md" then
-                vim.cmd(open .. file)
+                vim.cmd(open_cmd .. file)
             else
-                vim.cmd(open .. file .. '.md')
+                vim.cmd(open_cmd .. file .. '.md')
             end
             break
         end
