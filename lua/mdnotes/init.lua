@@ -123,47 +123,55 @@ function mdnotes.open()
     for start_pos, hyperlink, end_pos in line:gmatch(mdnotes.format_patterns.hyperlink) do
         if start_pos < current_col and end_pos > current_col then
             _, link = hyperlink:match(mdnotes.format_patterns.text_link)
-            link = link:gsub("[<>]?", "")
-            path, section = link:match(mdnotes.format_patterns.file_section)
-            -- Check for just a section first
-            -- Path in this case is a section
-            if link:sub(1,1) == "#" then
-                path = get_section(path)
-                vim.fn.cursor(vim.fn.search("# " .. path), 1)
+            break
+        end
+    end
+
+    if link == "" then
+        vim.notify(("Mdn: Nothing to open."), vim.log.levels.ERROR)
+        return
+    end
+
+    link = link:gsub("[<>]?", "")
+    path, section = link:match(mdnotes.format_patterns.file_section)
+
+    -- Check for just a section first
+    -- Path in this case is a section
+    if link:sub(1,1) == "#" then
+        path = get_section(path)
+        vim.fn.cursor(vim.fn.search("# " .. path), 1)
+        vim.api.nvim_input('zz')
+    else
+        -- Then it is assumed to have a path
+        -- Append .md to guarantee a file name
+        if path:sub(-3) ~= ".md" then
+            path = path .. ".md"
+        end
+        -- Check if the current file is the one in the link
+        if path == vim.fs.basename(vim.api.nvim_buf_get_name(0)) then
+            section = get_section(section)
+            vim.fn.cursor(vim.fn.search("# " .. section), 1)
+            vim.api.nvim_input('zz')
+            -- Check if the file exists
+        elseif uv.fs_stat(path) then
+            vim.cmd(open_cmd .. path)
+            if section ~= "" then
+                section = get_section(section)
+                vim.fn.cursor(vim.fn.search(section), 1)
                 vim.api.nvim_input('zz')
-            else
-                -- Then it is assumed to have a path
-                -- Append .md to guarantee a file name
-                if path:sub(-3) ~= ".md" then
-                    path = path .. ".md"
-                end
-                -- Check if the current file is the one in the link
-                if path == vim.fs.basename(vim.api.nvim_buf_get_name(0)) then
-                    section = get_section(section)
-                    vim.fn.cursor(vim.fn.search("# " .. section), 1)
-                    vim.api.nvim_input('zz')
-                    -- Check if the file exists
-                elseif uv.fs_stat(path) then
-                    vim.cmd(open_cmd .. path)
-                    if section ~= "" then
-                        section = get_section(section)
-                        vim.fn.cursor(vim.fn.search(section), 1)
-                        vim.api.nvim_input('zz')
-                    end
-                    -- Last case is when it should be treated as a URI
-                elseif vim.fn.has("win32") then
-                    vim.system({"cmd.exe", "/c", "start", link})
-                    -- Code below should work but doesn't - see Neovim issue below
-                    -- https://github.com/neovim/neovim/issues/36293
-                    -- This issue limits the :Mdn open functionality to only files and with no spaces
-                    -- local cmd = {'cmd.exe', '/c', 'start', '""', ('"%s"'):format(link:gsub("/", "\\"))}
-                    -- vim.print(table.concat(cmd, " "))
-                    -- local ret = vim.system(cmd):wait()
-                    -- vim.print(ret)
-                else
-                    vim.ui.open(link)
-                end
             end
+            -- Last case is when it should be treated as a URI
+        elseif vim.fn.has("win32") then
+            vim.system({"cmd.exe", "/c", "start", link})
+            -- Code below should work but doesn't - see Neovim issue below
+            -- https://github.com/neovim/neovim/issues/36293
+            -- This issue limits the :Mdn open functionality to only files and with no spaces
+            -- local cmd = {'cmd.exe', '/c', 'start', '""', ('"%s"'):format(link:gsub("/", "\\"))}
+            -- vim.print(table.concat(cmd, " "))
+            -- local ret = vim.system(cmd):wait()
+            -- vim.print(ret)
+        else
+            vim.ui.open(link)
         end
     end
 end
@@ -217,16 +225,21 @@ function mdnotes.open_wikilink()
     for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
         if start_pos < current_col and end_pos > current_col then
             file, section = link:match(mdnotes.format_patterns.file_section)
+            file = vim.trim(file)
+            section = vim.trim(section)
         end
     end
 
-    file = vim.trim(file)
-    section = vim.trim(section)
+    if file == "" and section == "" then
+        vim.notify(("Mdn: No WikiLink under the cursor was detected."), vim.log.levels.ERROR)
+    end
 
-    if file:sub(-3) == ".md" then
-        vim.cmd(open_cmd .. file)
-    else
-        vim.cmd(open_cmd .. file .. '.md')
+    if file ~= "" then
+        if file:sub(-3) == ".md" then
+            vim.cmd(open_cmd .. file)
+        else
+            vim.cmd(open_cmd .. file .. '.md')
+        end
     end
 
 
@@ -281,32 +294,26 @@ function mdnotes.show_references()
 
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local wikilink_found = false
+    local found_file = ""
 
     for start_pos, file ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
         if start_pos < current_col and end_pos > current_col then
-            vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-            if vim.tbl_isempty(vim.fn.getqflist()) then
-                vim.notify(("Mdn: No references found for '" .. file .. "' ."), vim.log.levels.ERROR)
-            else
-                vim.cmd.copen()
-                wikilink_found = true
-            end
-            break
+            found_file = file
         end
     end
 
-    -- If wikilink pattern isn't detected used current file name
-    if not wikilink_found then
+    if found_file == "" then
+        -- If wikilink pattern isn't detected use current file name
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
-        local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
-        vim.cmd.vimgrep({args = {'/\\[\\[' .. cur_file_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-        if vim.tbl_isempty(vim.fn.getqflist()) then
-            vim.notify(("Mdn: No references found for current buffer."), vim.log.levels.ERROR)
-        else
-            vim.cmd.copen()
-        end
+        found_file = cur_file_basename:match("(.+)%.[^%.]+$")
     end
+
+    vim.cmd.vimgrep({args = {'/\\[\\[' .. found_file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+    if #vim.fn.getqflist() == 1 then
+        vim.notify(("Mdn: No references found for '" .. found_file .. "' ."), vim.log.levels.ERROR)
+        return
+    end
+    vim.cmd.copen()
 end
 
 local outliner_state = false
@@ -614,39 +621,37 @@ function mdnotes.rename_references()
     local renamed = ""
 
     for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
-        -- Match link to links with section names but ignore the section name
-        file, _ = link:match(mdnotes.format_patterns.file_section)
-        file = vim.trim(file)
-
-        if not uv.fs_stat(file .. ".md") then
-            vim.notify(("Mdn: This link does not seem to link to a valid file."), vim.log.levels.ERROR)
-            return
-        end
-
         if start_pos < current_col and end_pos > current_col then
-            vim.ui.input({ prompt = "Rename '".. file .."' to: " },
-            function(input)
-                renamed = input
-            end)
-            if renamed == "" or renamed == nil then
-                vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
-                return
-            else
-                vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-                vim.cmd.cdo({args = {('s/%s/%s/'):format(file, renamed)}, mods = {emsg_silent = true}})
-                if not uv.fs_rename(file .. ".md", renamed .. ".md") then
-                    vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
-                    return
-                end
-            end
-            break
+            -- Match link to links with section names but ignore the section name
+            file, _ = link:match(mdnotes.format_patterns.file_section)
+            file = vim.trim(file)
         end
-
     end
 
     if file == "" then
         mdnotes.rename_references_cur_buf()
         return
+    end
+
+    if not uv.fs_stat(file .. ".md") then
+        vim.notify(("Mdn: This link does not seem to link to a valid file."), vim.log.levels.ERROR)
+        return
+    end
+
+    vim.ui.input({ prompt = "Rename '".. file .."' to: " },
+    function(input)
+        renamed = input
+    end)
+    if renamed == "" or renamed == nil then
+        vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
+        return
+    else
+        vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+        vim.cmd.cdo({args = {('s/%s/%s/'):format(file, renamed)}, mods = {emsg_silent = true}})
+        if not uv.fs_rename(file .. ".md", renamed .. ".md") then
+            vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
+            return
+        end
     end
 
     vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(file, renamed)), vim.log.levels.INFO)
