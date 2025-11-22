@@ -188,12 +188,24 @@ end
 
 function mdnotes.open_wikilink()
     if check_md_lsp() then
-        vim.lsp.buf.definition()
-        if #vim.fn.getqflist() < 2 then
-            vim.fn.wait(1, function () end)
+        -- Doing some weird shit with the qf list for this
+        vim.fn.setqflist({}, ' ')
+
+        local function on_list(options)
+            vim.fn.setqflist({}, ' ', options)
+            vim.cmd.cfirst()
+        end
+        vim.lsp.buf.definition({ on_list = on_list })
+
+        vim.wait(10, function () return not vim.tbl_isempty(vim.fn.getqflist()) end)
+
+        if vim.tbl_isempty(vim.fn.getqflist()) then
             vim.cmd.redraw()
-            vim.notify(("Mdn: No locations found from LSP server. Continuing with Mdnotes implementation."), vim.log.levels.WARN)
+            vim.notify("Mdn: No locations found from LSP server. Continuing with Mdnotes implementation.", vim.log.levels.WARN)
         else
+            vim.fn.setqflist({}, ' ')
+            vim.notify("", vim.log.levels.INFO)
+            vim.cmd.redraw()
             return
         end
     end
@@ -203,22 +215,20 @@ function mdnotes.open_wikilink()
 
     local file, section = "", ""
     for start_pos, link ,end_pos in line:gmatch(mdnotes.format_patterns.wikilink) do
-        -- Match link to links with section names
-        file, section = link:match(mdnotes.format_patterns.file_section)
-
-        file = vim.trim(file)
-        section = vim.trim(section)
-
         if start_pos < current_col and end_pos > current_col then
-            if file:sub(-3) == ".md" then
-                vim.cmd(open_cmd .. file)
-            else
-                vim.cmd(open_cmd .. file .. '.md')
-            end
-            break
+            file, section = link:match(mdnotes.format_patterns.file_section)
         end
-
     end
+
+    file = vim.trim(file)
+    section = vim.trim(section)
+
+    if file:sub(-3) == ".md" then
+        vim.cmd(open_cmd .. file)
+    else
+        vim.cmd(open_cmd .. file .. '.md')
+    end
+
 
     if section ~= "" then
         vim.fn.cursor(vim.fn.search(section), 1)
