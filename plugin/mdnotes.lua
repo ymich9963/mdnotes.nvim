@@ -65,6 +65,7 @@ local subcommands = {
     open_wikilink = require("mdnotes.wikilinks").open_wikilink,
     show_references = require("mdnotes.wikilinks").show_references,
     rename_references = require("mdnotes.wikilinks").rename_references,
+    undo_rename = require("mdnotes.wikilinks").undo_rename,
     insert_image = require("mdnotes.assets").insert_image,
     insert_file = require("mdnotes.assets").insert_file,
     cleanup_unused_assets = require("mdnotes.assets").cleanup_unused_assets,

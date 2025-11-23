@@ -32,6 +32,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 ### 🖇️ WikiLinks
 - Rename link references and the file itself using `:Mdn rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn show_references`. Also show references of the current buffer when not hovering over a Wikilink.
+- Undo the most recent reference rename with `:Mdn undo_rename`. 
 
 ### 👩‍💼 Asset Management
 - Use `:Mdn cleanup_unused_assets` to easily cleanup assets that you no longer use.

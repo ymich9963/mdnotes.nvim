@@ -254,11 +254,15 @@ subcommands are listed below.
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm()|.
 
-:Mdn rename_references				*:Mdn-rename_references*
+:Mdn rename_references					*:Mdn-rename_references*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
     link. If executed when not hovering over a link, it will prompt to rename
     current buffer and file references.
+
+:Mdn undo_rename					*:Mdn-undo_rename*
+
+    Undo the most recent reference rename.
 
 :Mdn bold_toggle					*:Mdn-bold_toggle*
 
@@ -377,6 +381,10 @@ rename_references_cur_buf()				*mdnotes.wikilinks.rename_references_cur_buf()*
 
     Rename references to current buffer and also the file of the current
     buffer.
+
+:Mdn undo_rename					*mdnotes.wikilinks.undo_rename()*
+
+    Undo the most recent reference rename.
 
 check_md_format({pattern}) 				*mdnotes.check_md_format()*
 

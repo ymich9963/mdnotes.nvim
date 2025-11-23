@@ -2,8 +2,11 @@ local M = {}
 
 local uv = vim.loop or vim.uv
 
+local old_name = ""
+local new_name = ""
+
 local function check_md_lsp()
-    if not vim.tbl_isempty(vim.lsp.get_clients({bufnr = 0})) and vim.bo.filetype == "markdown" and M.config.prefer_lsp then
+    if not vim.tbl_isempty(vim.lsp.get_clients({bufnr = 0})) and vim.bo.filetype == "markdown" and require('mdnotes').config.prefer_lsp then
         return true
     else
         return false
@@ -36,8 +39,8 @@ function M.open_wikilink()
 
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local wikilink_pattern = require('mdnotes.patterns').patterns.wikilink
-    local file_section_pattern = require('mdnotes.patterns').patterns.file_section
+    local wikilink_pattern = require('mdnotes.patterns').wikilink
+    local file_section_pattern = require('mdnotes.patterns').file_section
 
     local file, section = "", ""
     for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
@@ -76,7 +79,7 @@ function M.show_references()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local found_file = ""
-    local wikilink_pattern = require('mdnotes.patterns').patterns.wikilink
+    local wikilink_pattern = require('mdnotes.patterns').wikilink
 
     for start_pos, file ,end_pos in line:gmatch(wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
@@ -98,12 +101,33 @@ function M.show_references()
     vim.cmd.copen()
 end
 
+function M.undo_rename()
+    if new_name == "" or old_name == "" then
+        vim.notify(("Mdn: Detected no recent rename."):format(old_name, new_name), vim.log.levels.ERROR)
+        return
+    end
+
+    local cur_buf_num = vim.api.nvim_win_get_buf(0)
+
+    vim.cmd.vimgrep({args = {'/\\[\\[' .. new_name .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+    vim.cmd.cdo({args = {('s/%s/%s/'):format(new_name, old_name)}, mods = {emsg_silent = true}})
+
+    if not uv.fs_rename(new_name .. ".md", old_name .. ".md") then
+        vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
+        return
+    end
+
+    vim.notify(("Mdn: Undo renaming '%s' to '%s'."):format(old_name, new_name), vim.log.levels.INFO)
+    vim.api.nvim_win_set_buf(0, cur_buf_num)
+end
+
 function M.rename_references_cur_buf()
     if check_md_lsp() then
         vim.lsp.buf.rename()
         return
     end
 
+    local cur_buf_num = vim.api.nvim_win_get_buf(0)
     local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
     local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
     local renamed = ""
@@ -126,16 +150,21 @@ function M.rename_references_cur_buf()
     end
 
     vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(cur_file_name, renamed)), vim.log.levels.INFO)
+
+    vim.api.nvim_win_set_buf(0, cur_buf_num)
+    old_name = cur_file_name
+    new_name = renamed
 end
 
 function M.rename_references()
+    local cur_buf_num = vim.api.nvim_win_get_buf(0)
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
 
     local file, _ = "", ""
     local renamed = ""
-    local wikilink_pattern = require('mdnotes.patterns').patterns.wikilink
-    local file_section_pattern = require('mdnotes.patterns').patterns.file_section
+    local wikilink_pattern = require('mdnotes.patterns').wikilink
+    local file_section_pattern = require('mdnotes.patterns').file_section
 
     for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
@@ -172,6 +201,11 @@ function M.rename_references()
     end
 
     vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(file, renamed)), vim.log.levels.INFO)
+
+    vim.api.nvim_win_set_buf(0, cur_buf_num)
+
+    old_name = file
+    new_name = renamed
 end
 
 return M
