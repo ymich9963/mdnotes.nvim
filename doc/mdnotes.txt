@@ -242,7 +242,7 @@ subcommands are listed below.
 
 :Mdn cleanup_unused_assets				*:Mdn-cleanup_unused_assets*
 
-    Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
+    Cleanup unused assets in your |mdnotes-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
     |vim.fs.rm()|.
 
@@ -250,7 +250,7 @@ subcommands are listed below.
 
 :Mdn move_unused_assets					*:Mdn-move_unused_assets*
 
-    Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
+    Move unused assets in your |mdnotes-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm()|.
 
@@ -327,38 +327,6 @@ setup({opts})                                          	*mdnotes.setup()*
               • {italic_format} (`string?`, default `"*"`)
 		defines `mdnotes` italic formatting behaviour
 
-format_patterns						*mdnotes.format_patterns*
-
-    Format patterns are Lua patterns used to detect the existance of those
-    formats at the current cursor position. The patterns must return start
-    and end cursor positions (e.g. `"()~~(.-)~~()"`). 
-    See |mdnotes.check_md_format()|
-
-check_md_format({pattern}) 				*mdnotes.check_md_format()*
-
-    Check if the text under cursor obeys a Lua pattern that is used to
-    describe Markdown formatting. Patterns used are the
-    |mdnotes.format_patterns|.
-
-    Parameters: ~
-    • {pattern}  `(string?)` A Lua pattern that also returns cursor position
-      at the start and end.
-
-    Return: ~
-      (`false|true`)
-
-check_assets_path() 					*mdnotes.check_assets_path()*
-
-    Check the existance of the |mdnotes-assets_path| when inserting images or
-    files.
-
-    Return: ~
-      (`false|true`)
-
-open() 							*mdnotes.open()*
-
-    Open the hyperlink under cursor. It can be a file or a URL.
-
 go_to_index_file() 			   		*mdnotes.go_to_index_file()*
 
     Go the index file defined by |mdnotes-index_file|.
@@ -366,75 +334,6 @@ go_to_index_file() 			   		*mdnotes.go_to_index_file()*
 go_to_journal_file()					*mdnotes.go_to_journal_file()*
 
     Go the journal file defined by |mdnotes-journal_file|.
-
-open_wikilink()						*mdnotes.open_wikilink()*
-
-    Open Wikilink under cursor (e.g. `[[link#section]]`).
-
-hyperlink_insert()					*mdnotes.hyperlink_insert()*
-
-    Insert a hyperlink from the clipbaord using the currently highlighted
-    word.
-
-hyperlink_delete()					*mdnotes.hyperlink_delete()*
-
-    Remove the hyperlink from the current hyperlink under the cursor.
-
-hyperlink_toggle()					*mdnotes.hyperlink_toggle()*
-
-    Toggle adding or removing the hyperlink. When adding it uses
-    |mdnotes.hyperlink_insert()| and when removing it uses
-    |mdnotes.hyperlink_delete()|.
-
-show_references()					*mdnotes.show_references()*
-
-    Show the references of the current Wikilink under cursor in a quickfix
-    list. If no Wikilink is under the cursor it shows the references to the
-    current buffer.
-
-outliner_toggle()					*mdnotes.outliner_toggle()*
-
-    Toggle the outliner mode. Outliner mode essentially sets or deletes
-    certain keymaps to simulate working in an outliner program (e.g. Logseq).
-
-buf_history						*mdnotes.buf_history*
-
-    Table containing the sequential buffer history of the visited Markdown
-    buffers. It gets populated through an `autocmd` on a `BufEnter` event. If
-    the user goes back and then goes forward to buffer that they were not
-    previously in, the buffer history removes everything past the buffer they
-    went back to, and appends the buffer they've moved forward to.
-
-current_index						*mdnotes.current_index*
-
-    Current index being pointed to in the |mdnotes.buf_history| table. 
-
-go_back()						*mdnotes.go_back()*
-
-    Go back in the buffer history. Essentially move the index by -1. See
-    |mdnotes.buf_history|.
-
-go_forward()						*mdnotes.go_forward()*
-
-    Go forward in the buffer history. Essentially move the index by +1. See
-    |mdnotes.buf_history|.
-
-clear_history()						*mdnotes.clear_history()*
-
-    Clear the |mdnotes.buf_history| table.
-
-insert_image()						*mdnotes.insert_image()*
-
-    Insert the image in the clipboard under the cursor and depending on
-    |mdnotes-insert_file_behaviour| place it in your |mdnotes-assets_path|. (e.g
-    `![image](path/to/assets/image.png)`). Overwriting depends on
-    |mdnotes-overwrite_behaviour|.
-
-
-insert_file()						*mdnotes.insert_file()*
-
-    Exactly the same as |mdnotes.insert_image()| but it inserts a hyperlink to the
-    file (e.g. `[file](path/to/assets/file.txt)`).
 
 insert_journal_entry()					*mdnotes.insert_journal_entry()*
 
@@ -450,7 +349,70 @@ insert_journal_entry()					*mdnotes.insert_journal_entry()*
     ---
     ```
 
-cleanup_unused_assets()					*mdnotes.cleanup_unused_assets()*
+open() 							*mdnotes.open()*
+
+    Open the hyperlink under cursor. It can be a file or a URL.
+
+outliner_toggle()					*mdnotes.outliner.outliner_toggle()*
+
+    Toggle the outliner mode. Outliner mode essentially sets or deletes
+    certain keymaps to simulate working in an outliner program (e.g. Logseq).
+
+open_wikilink()						*mdnotes.wikilinks.open_wikilink()*
+
+    Open Wikilink under cursor (e.g. `[[link#section]]`).
+
+show_references()					*mdnotes.wikilinks.show_references()*
+
+    Show the references of the current Wikilink under cursor in a quickfix
+    list. If no Wikilink is under the cursor it shows the references to the
+    current buffer.
+
+rename_references()					*mdnotes.wikilinks.rename_references()*
+
+    Rename the reference to a `[[link]]` and also the file pointing to that
+    link.
+
+rename_references_cur_buf()				*mdnotes.wikilinks.rename_references_cur_buf()*
+
+    Rename references to current buffer and also the file of the current
+    buffer.
+
+check_md_format({pattern}) 				*mdnotes.check_md_format()*
+
+    Check if the text under cursor obeys a Lua pattern that is used to
+    describe Markdown formatting. Patterns used are the
+    |mdnotes.format_patterns|.
+
+    Parameters: ~
+    • {pattern}  `(string?)` A Lua pattern that also returns cursor position
+      at the start and end.
+
+    Return: ~
+      (`false|true`)
+
+check_assets_path() 					*mdnotes.assets.check_assets_path()*
+
+    Check the existance of the |mdnotes-assets_path| when inserting images or
+    files.
+
+    Return: ~
+      (`false|true`)
+
+insert_image()						*mdnotes.assets.insert_image()*
+
+    Insert the image in the clipboard under the cursor and depending on
+    |mdnotes-insert_file_behaviour| place it in your |mdnotes-assets_path|. (e.g
+    `![image](path/to/assets/image.png)`). Overwriting depends on
+    |mdnotes-overwrite_behaviour|.
+
+
+insert_file()						*mdnotes.assets.insert_file()*
+
+    Exactly the same as |mdnotes.insert_image()| but it inserts a hyperlink to the
+    file (e.g. `[file](path/to/assets/file.txt)`).
+
+cleanup_unused_assets()					*mdnotes.assets.cleanup_unused_assets()*
 
     Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
@@ -458,43 +420,74 @@ cleanup_unused_assets()					*mdnotes.cleanup_unused_assets()*
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-move_unused_assets()					*mdnotes.move_unused_assets()*
+move_unused_assets()					*mdnotes.assets.move_unused_assets()*
 
     Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` move actions. Uses |uv.fs_rename()|.
 
-rename_references()				*mdnotes.rename_references()*
+buf_history						*mdnotes.history.buf_history*
 
-    Rename the reference to a `[[link]]` and also the file pointing to that
-    link.
+    Table containing the sequential buffer history of the visited Markdown
+    buffers. It gets populated through an `autocmd` on a `BufEnter` event. If
+    the user goes back and then goes forward to buffer that they were not
+    previously in, the buffer history removes everything past the buffer they
+    went back to, and appends the buffer they've moved forward to.
 
-rename_references_cur_buf()				*mdnotes.rename_references_cur_buf()*
+current_index						*mdnotes.history.current_index*
 
-    Rename references to current buffer and also the file of the current
-    buffer.
+    Current index being pointed to in the |mdnotes.buf_history| table. 
 
-bold_toggle()						*mdnotes.bold_toggle()*
+go_back()						*mdnotes.history.go_back()*
+
+    Go back in the buffer history. Essentially move the index by -1. See
+    |mdnotes.buf_history|.
+
+go_forward()						*mdnotes.history.go_forward()*
+
+    Go forward in the buffer history. Essentially move the index by +1. See
+    |mdnotes.buf_history|.
+
+clear_history()						*mdnotes.history.clear_history()*
+
+    Clear the |mdnotes.buf_history| table.
+
+hyperlink_insert()					*mdnotes.formatting.hyperlink_insert()*
+
+    Insert a hyperlink from the clipbaord using the currently highlighted
+    word.
+
+hyperlink_delete()					*mdnotes.formatting.hyperlink_delete()*
+
+    Remove the hyperlink from the current hyperlink under the cursor.
+
+hyperlink_toggle()					*mdnotes.formatting.hyperlink_toggle()*
+
+    Toggle adding or removing the hyperlink. When adding it uses
+    |mdnotes.hyperlink_insert()| and when removing it uses
+    |mdnotes.hyperlink_delete()|.
+
+bold_toggle()						*mdnotes.formatting.bold_toggle()*
 
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-italic_toggle()						*mdnotes.italic_toggle()*
+italic_toggle()						*mdnotes.formatting.italic_toggle()*
 
     Toggle Markdown `*italic*` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-strikethrough_toggle()					*mdnotes.strikethrough_toggle()*
+strikethrough_toggle()					*mdnotes.formatting.strikethrough_toggle()*
 
     Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
     command or hover over already bold text to remove.
 
-inline_code_toggle()					*mdnotes.inline_code_toggle()*
+inline_code_toggle()					*mdnotes.formatting.inline_code_toggle()*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-task_list_toggle({line1}, {line2})			*mdnotes.task_list_toggle()*
+task_list_toggle({line1}, {line2})			*mdnotes.formatting.task_list_toggle()*
 
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
     with |linewise-visual|.
@@ -503,9 +496,16 @@ task_list_toggle({line1}, {line2})			*mdnotes.task_list_toggle()*
     • {line1}  `(integer?)` Starting line number.
     • {line2}  `(integer?)` Ending line number.
 
-generate_toc()						*mdnotes.generate_toc()*
+generate_toc()						*mdnotes.toc.generate_toc()*
 
     Generate and insert a Table Of Contents of the current file at the cursor
     position.
+
+patterns						*mdnotes.patterns*
+
+    Format patterns are Lua patterns used to detect the existance of those
+    formats at the current cursor position. The patterns must return start
+    and end cursor positions (e.g. `"()~~(.-)~~()"`). 
+    See |mdnotes.check_md_format()|
 
 vim:tw=78:ts=8:expandtab:noet:ft=help:norl:

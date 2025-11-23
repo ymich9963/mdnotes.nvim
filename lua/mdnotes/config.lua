@@ -1,5 +1,7 @@
 local M = {}
 
+M.config = {}
+
 local default_config = {
     index_file = "",
     journal_file = "",
