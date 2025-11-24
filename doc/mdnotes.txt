@@ -299,6 +299,20 @@ subcommands are listed below.
     Generate and insert a Table Of Contents of the current file at the cursor 
     position.
 
+:Mdn table_create {rows} {cols}				*Mdn-table_create*
+
+   Create a table of the size {rows} x {cols}. It will get populated with
+   `ROWrCOLc` text automatically. For example on a 3 x 3 table, it would be, 
+>
+    |1r1c|1r2c|1r3c|
+    |----|----|----|
+    |2r1c|2r2c|2r3c|
+    |3r1c|3r2c|3r3c|
+
+:Mdn table_best_fit					*Mdn-table_best_fit*
+
+   Set the best fit for the table columns so that all cell borders line up.
+
 ==============================================================================
 API                                     		*mdnotes-api*
 
@@ -508,6 +522,21 @@ generate_toc()						*mdnotes.toc.generate_toc()*
 
     Generate and insert a Table Of Contents of the current file at the cursor
     position.
+
+table_create({rows}, {cols})				*mdnotes.tables.table_create()*
+
+   Create a table of the size {rows} x {cols}. It will get populated with
+   `ROWrCOLc` text automatically. If not arguments are given then a 3 x 3
+   table is created. For example on a 3 x 3 table, it would be, 
+>
+    |1r1c|1r2c|1r3c|
+    |----|----|----|
+    |2r1c|2r2c|2r3c|
+    |3r1c|3r2c|3r3c|
+
+table_normalise()					*mdnotes.tables.table_normalise()*
+
+   Normalise the column sizes of your table so that they are all even.
 
 patterns						*mdnotes.patterns*
 

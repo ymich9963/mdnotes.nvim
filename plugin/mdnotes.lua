@@ -80,6 +80,8 @@ local subcommands = {
     inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
     task_list_toggle = require("mdnotes.formatting").task_list_toggle,
     generate_toc = require("mdnotes.toc").generate_toc,
+    table_create = require("mdnotes.tables").table_create,
+    table_best_ft = require("mdnotes.tables").table_best_fit
 }
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
@@ -89,6 +91,8 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     local func = subcommands[subcmd]
     if func == subcommands["task_list_toggle"] then
         func(opts.line1, opts.line2)
+    elseif func == subcommands["table_create"] then
+        func(args[2], args[3])
     elseif func then
         func()
     else

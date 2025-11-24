@@ -29,6 +29,10 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
+### Tables
+- Create a `ROW x COLS` table with `:Mdn table_create ROW COLS`.
+- Set the best fit of your columns with `:Mdn table_best_fit` so that all your cells line up. 
+
 ### 🖇️ WikiLinks
 - Rename link references and the file itself using `:Mdn rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn show_references`. Also show references of the current buffer when not hovering over a Wikilink.
@@ -137,15 +141,15 @@ vim.opt.isfname:remove(']')
 ## 🙊  Using LSPs
 The main reason I started this project was dissatisfaction with Markdown LSPs at the time, and I really wanted to use Neovim as my notes editor. Therefore, `mdnotes` is designed to work with Markdown LSPs by trying to fill the gaps and to also complement their current functionality. Please see the table below for how `mdnotes` tries to work with LSPs and Neovim itself.
 
-|Feature           |mdnotes                  |LSP                              |Neovim                   |
-|------------------|-------------------------|---------------------------------|-------------------------|
-|Showing references| Y (`:Mdn show_references`) | Y (`:h vim.lsp.buf.references()` or `grr`) | N                     | 
-|Rename links to current buffer| Y (`:Mdn rename_references`) | Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only) | N             | 
-|Rename links to hovered WikiLink     | Y (`:Mdn rename_references`) | ? (`:h vim.lsp.buf.rename()`, should work but it does not) | N             | 
-|Buffer History    | Y (Sequential `:Mdn go_back/forward`) | N | Y (Not Sequential `:h bp`/`:h bn` | 
-|Path Completion   | N                       | Y (`:h lsp-completion`) | Y (`:h i_CTRL-X_CTRL-F`)|
-|Opening WikiLinks | Y (`:Mdn open_wikilink`) | Y (`:h vim.lsp.buf.definition()` or `CTRL-]`) | Y (`:h gf`, needs .md extension in link, requires settings for Windows) | 
-|Markdown Formatting| Y (`:Mdn <format>_toggle`) | N | N             | 
+|Feature                         |mdnotes                                |LSP                                                          |Neovim                                                                   |
+|--------------------------------|---------------------------------------|-------------------------------------------------------------|-------------------------------------------------------------------------|
+|Showing references              | Y (`:Mdn show_references`)            | Y (`:h vim.lsp.buf.references()` or `grr`)                  | N                                                                       |
+|Rename links to current buffer  | Y (`:Mdn rename_references`)          | Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only) | N                                                                       |
+|Rename links to hovered WikiLink| Y (`:Mdn rename_references`)          | ? (`:h vim.lsp.buf.rename()`, should work but it does not)  | N                                                                       |
+|Buffer History                  | Y (Sequential `:Mdn go_back/forward`) | N                                                           | Y (Not Sequential `:h bp`/`:h bn`                                       |
+|Path Completion                 | N                                     | Y (`:h lsp-completion`)                                     | Y (`:h i_CTRL-X_CTRL-F`)                                                |
+|Opening WikiLinks               | Y (`:Mdn open_wikilink`)              | Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)               | Y (`:h gf`, needs .md extension in link, requires settings for Windows) |
+|Markdown Formatting             | Y (`:Mdn <format>_toggle`)            | N                                                           | N                                                                       |
  
  **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
 
@@ -180,6 +184,7 @@ Toggled with `:Mdn <format>_toggle`. Using `_` for the bold and italic formats n
     `inline code`
 ```
 ### Lists
+All ordered and unordered CommonMark lists along with GFM task lists are supported.
 ```
     - Item
     + Item
@@ -187,6 +192,14 @@ Toggled with `:Mdn <format>_toggle`. Using `_` for the bold and italic formats n
     1) Item
     2. Item
     - [x] Task lists with all ordered and unordered lists above
+```
+### Tables
+The GFM table specification is supported.
+```
+|1r1c|1r2c|1r3c|
+|----|----|----|
+|2r1c|2r2c|2r3c|
+|3r1c|3r2c|3r3c|
 ```
 
 ## 🫂 Motivation
@@ -196,3 +209,5 @@ I wanted to make a more Neovim-centric Markdown notes plugin that tries to work 
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
 - [markdown-plus](https://github.com/yousefhadder/markdown-plus.nvim)
 - [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)
+ 
+
