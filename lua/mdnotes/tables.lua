@@ -54,6 +54,12 @@ local function parse_table()
     end
 
     local table_lines = vim.api.nvim_buf_get_lines(0, table_start_line_num, table_end_line_num, false)
+
+    -- Trim whitespace
+    for r, v in ipairs(table_lines) do
+        table_lines[r] = vim.trim(v)
+    end
+
     local table_temp = {}
 
     for _, v in ipairs(table_lines) do
@@ -97,12 +103,19 @@ end
 
 function M.table_best_fit()
     local table_lines, startl, endl = parse_table()
-    -- local max_char_count = 0
-    local max_char_count = {}
 
     if not table_lines then
         vim.notify(("Mdn: Error parsing table."), vim.log.levels.ERROR)
         return
+    end
+
+    local max_char_count = {}
+
+    -- Trim whitespace in each cell
+    for r, v in ipairs(table_lines) do
+        for c, vv in ipairs(v) do
+            table_lines[r][c] = vim.trim(vv)
+        end
     end
 
     local cols_count = #table_lines[1]
@@ -131,8 +144,8 @@ function M.table_best_fit()
     end
 
     -- Add the dashes for the delimeter row
-    for c, vv in ipairs(table_lines[2]) do
-        table_lines[2][c] = vv:gsub(" ", "-")
+    for c, _ in ipairs(table_lines[2]) do
+        table_lines[2][c] = ("-"):rep(max_char_count[c])
     end
 
     write_table(table_lines, startl, endl)

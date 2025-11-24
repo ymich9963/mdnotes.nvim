@@ -141,15 +141,15 @@ vim.opt.isfname:remove(']')
 ## 🙊  Using LSPs
 The main reason I started this project was dissatisfaction with Markdown LSPs at the time, and I really wanted to use Neovim as my notes editor. Therefore, `mdnotes` is designed to work with Markdown LSPs by trying to fill the gaps and to also complement their current functionality. Please see the table below for how `mdnotes` tries to work with LSPs and Neovim itself.
 
-|Feature                         |mdnotes                                |LSP                                                          |Neovim                                                                   |
-|--------------------------------|---------------------------------------|-------------------------------------------------------------|-------------------------------------------------------------------------|
-|Showing references              | Y (`:Mdn show_references`)            | Y (`:h vim.lsp.buf.references()` or `grr`)                  | N                                                                       |
-|Rename links to current buffer  | Y (`:Mdn rename_references`)          | Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only) | N                                                                       |
-|Rename links to hovered WikiLink| Y (`:Mdn rename_references`)          | ? (`:h vim.lsp.buf.rename()`, should work but it does not)  | N                                                                       |
-|Buffer History                  | Y (Sequential `:Mdn go_back/forward`) | N                                                           | Y (Not Sequential `:h bp`/`:h bn`                                       |
-|Path Completion                 | N                                     | Y (`:h lsp-completion`)                                     | Y (`:h i_CTRL-X_CTRL-F`)                                                |
-|Opening WikiLinks               | Y (`:Mdn open_wikilink`)              | Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)               | Y (`:h gf`, needs .md extension in link, requires settings for Windows) |
-|Markdown Formatting             | Y (`:Mdn <format>_toggle`)            | N                                                           | N                                                                       |
+|Feature                         |mdnotes                              |LSP                                                        |Neovim                                                                 |
+|--------------------------------|-------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------|
+|Showing references              |Y (`:Mdn show_references`)           |Y (`:h vim.lsp.buf.references()` or `grr`)                 |N                                                                      |
+|Rename links to current buffer  |Y (`:Mdn rename_references`)         |Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only)|N                                                                      |
+|Rename links to hovered WikiLink|Y (`:Mdn rename_references`)         |? (`:h vim.lsp.buf.rename()`, should work but it does not) |N                                                                      |
+|Buffer History                  |Y (Sequential `:Mdn go_back/forward`)|N                                                          |Y (Not Sequential `:h bp`/`:h bn`                                      |
+|Path Completion                 |N                                    |Y (`:h lsp-completion`)                                    |Y (`:h i_CTRL-X_CTRL-F`)                                               |
+|Opening WikiLinks               |Y (`:Mdn open_wikilink`)             |Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)              |Y (`:h gf`, needs .md extension in link, requires settings for Windows)|
+|Markdown Formatting             |Y (`:Mdn <format>_toggle`)           |N                                                          |N                                                                      |
  
  **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
 
