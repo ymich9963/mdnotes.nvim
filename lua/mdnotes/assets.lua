@@ -18,11 +18,7 @@ function M.check_assets_path()
 end
 
 local function contains_spaces(text)
-    if string.find(text, "%s") ~= nil then
-        return false
-    else
-        return true
-    end
+    return string.find(text, "%s") ~= nil
 end
 
 local function insert_file(file_type)
