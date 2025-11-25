@@ -56,7 +56,8 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     end,
 })
 
-local subcommands = {
+local subcommands = nil
+local get_subcommands = function() return {
     home = require("mdnotes").go_to_index_file,
     journal = require("mdnotes").go_to_journal_file,
     insert_journal_entry = require("mdnotes").insert_journal_entry,
@@ -82,11 +83,12 @@ local subcommands = {
     generate_toc = require("mdnotes.toc").generate_toc,
     table_create = require("mdnotes.tables").table_create,
     table_best_ft = require("mdnotes.tables").table_best_fit
-}
+} end
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
     local args = vim.split(opts.args, "%s+")
     local subcmd = args[1]
+    subcommands = subcommands or get_subcommands()
 
     local func = subcommands[subcmd]
     if func == subcommands["task_list_toggle"] then
@@ -102,11 +104,12 @@ end,
 {
     nargs = "+",
     complete = function(arg)
+        subcommands = subcommands or get_subcommands()
         return vim.tbl_filter(function(sub)
             return sub:match("^" .. arg)
         end, vim.tbl_keys(subcommands))
     end,
-    desc = "Markdown-notes main command",
+    desc = "Mdnotes main command",
     range = true,
 })
 
