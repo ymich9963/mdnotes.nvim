@@ -36,11 +36,7 @@ the commnds,
 
 Install and then setup using,
 >lua
-    require('mdnotes.config').setup({
-	    assets_path = "assets",
-	    index_file = "MAIN.md",
-	    journal_file = "JOURNAL.md",
-	})
+    require('mdnotes.config').setup({opts})
 
 Explanation for the options is given in the next |mdnotes-config| section.
 See |mdnotes-keymaps| for keymap recommendations, |mdnotes-lsp| for notes on
@@ -54,12 +50,12 @@ The default keymaps are listed below and they can be enabled using
 |mdnotes-default_keymaps|. They follow a `<leader>m` prefix.
 >lua
     vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
-    vim.keymap.set('n', '<leader>mgf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
-    vim.keymap.set('n', '<leader>mgrr', ':Mdn show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
-    vim.keymap.set('n', '<leader>mgrn', ':Mdn rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
+    vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink_follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
+    vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink_show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
+    vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink_rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
     vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
-    vim.keymap.set("n", "<leader>mh", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
-    vim.keymap.set("n", "<leader>ml", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
+    vim.keymap.set("n", "<leader>mh", ":Mdn history_go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
+    vim.keymap.set("n", "<leader>ml", ":Mdn history_go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
     vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
     vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 
@@ -141,7 +137,7 @@ overwrite_behaviour = `"string"`			*mdnotes-overwrite_behaviour*
 open_behaviour = `"string"`				*mdnotes-open_behaviour*
 
     Can take the values of `"buffer"` or `"tab"` which defines how Wikilinks are
-    opened using |:Mdn home|, |:Mdn journal|, and |:Mdn open_wikilink|. With
+    opened using |:Mdn home|, |:Mdn journal|, and |:Mdn wikilink_follow|. With
     `"buffer"` it opens them in the current buffer, whereas with `"tab"` it opens them
     in a new tab.
 
@@ -157,7 +153,7 @@ italic_format = `"string"`				*mdnotes-italic_format*
 
 date_format = `"string"`				*mdnotes-date_format*
 
-    Format of the outputed date using |Mdn-insert_journal_entry|. See |strftime()| for
+    Format of the outputed date using |Mdn-journal_insert_entry|. See |strftime()| for
     acceptable formats.
 
 prefer_lsp = `false|true`				*mdnotes-prefer_lsp*
@@ -196,25 +192,31 @@ subcommands are listed below.
     Winows it's currently using, >lua
 	vim.system({"cmd.exe", "/c", "start", link}) 
 
-:Mdn open_wikilink 					*:Mdn-open_wikilink*
+:Mdn outliner_toggle					*:Mdn-outliner_toggle*
+
+    Toggle an outliner mode (similar to programs like Logseq). This command
+    essentially creates or deletes certain keymaps to create the outliner mode.
+
+:Mdn wikilink_follow 					*:Mdn-wikilink_follow*
 
     Open the Wikilink (e.g. `[[link]]` or `[[link#section]]`) under the cursor. 
 
-:Mdn hyperlink_toggle 					*:Mdn-hyperlink_toggle*
-
-    Toggle inserting and deleting a hyperlink (e.g. `[text](link)`) from your
-    clipboard (the `"+` register).
-
-:Mdn show_references 					*:Mdn-show_references*
+:Mdn wikilink_show_references 				*:Mdn-wikilink_show_references*
 
     Show the references of the current Wikilink under cursor in a quickfix
     list. If no Wikilink is under the cursor it shows the references to the
     current buffer.
 
-:Mdn outliner_toggle					*:Mdn-outliner_toggle*
+:Mdn wikilink_rename_references				*:Mdn-wikilink_rename_references*
 
-    Toggle an outliner mode (similar to programs like Logseq). This command
-    essentially creates or deletes certain keymaps to create the outliner mode.
+    Rename the reference to a `[[link]]` and also the file pointing to that
+    link. If executed when not hovering over a link, it will prompt to rename
+    current buffer and file references.
+
+:Mdn wikilink_undo_rename				*:Mdn-wikilink_undo_rename*
+
+    Undo the most recent reference rename. Only available when 
+    `prefer_lsp = false`. 
 
 :Mdn insert_image					*:Mdn-insert_image*
 
@@ -228,19 +230,7 @@ subcommands are listed below.
     Exactly the same as |Mdn-insert_image| but it inserts a hyperlink to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
-:Mdn go_back						*:Mdn-go_back*
-
-    Go back to the previously visited Markdown buffer.
-
-:Mdn go_forward						*:Mdn-go_forward*
-
-    Go forward to the Markdown buffer you were in before you went back.
-
-:Mdn clear_history					*:Mdn-clear_history*
-
-    Clear the history of visited Markdown buffers.
-
-:Mdn cleanup_unused_assets				*:Mdn-cleanup_unused_assets*
+:Mdn assets_cleanup_unused				*:Mdn-assets_cleanup_unused*
 
     Cleanup unused assets in your |mdnotes-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
@@ -248,22 +238,28 @@ subcommands are listed below.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-:Mdn move_unused_assets					*:Mdn-move_unused_assets*
+:Mdn assets_move_unused					*:Mdn-assets_move_unused*
 
     Move unused assets in your |mdnotes-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm()|.
 
-:Mdn rename_references					*:Mdn-rename_references*
+:Mdn history_go_back					*:Mdn-history_go_back*
 
-    Rename the reference to a `[[link]]` and also the file pointing to that
-    link. If executed when not hovering over a link, it will prompt to rename
-    current buffer and file references.
+    Go back to the previously visited Markdown buffer.
 
-:Mdn undo_rename					*:Mdn-undo_rename*
+:Mdn history_go_forward					*:Mdn-history_go_forward*
 
-    Undo the most recent reference rename. Only available when 
-    `prefer_lsp = false`. 
+    Go forward to the Markdown buffer you were in before you went back.
+
+:Mdn history_clear					*:Mdn-history_clear*
+
+    Clear the history of visited Markdown buffers.
+
+:Mdn hyperlink_toggle 					*:Mdn-hyperlink_toggle*
+
+    Toggle inserting and deleting a hyperlink (e.g. `[text](link)`) from your
+    clipboard (the `"+` register).
 
 :Mdn bold_toggle					*:Mdn-bold_toggle*
 
@@ -290,12 +286,12 @@ subcommands are listed below.
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
     with |linewise-visual|.
 
-:Mdn insert_journal_entry				*:Mdn-insert_journal_entry*
+:Mdn journal_insert_entry				*:Mdn-journal_insert_entry*
 
     Insert at the top of the file the current date and time along with a separator.
     Useful when using a journal.
 
-:Mdn generate_toc					*:Mdn-generate_toc*
+:Mdn toc_generate					*:Mdn-toc_generate*
 
     Generate and insert a Table Of Contents of the current file at the cursor 
     position.
@@ -317,9 +313,8 @@ subcommands are listed below.
 ==============================================================================
 API                                     		*mdnotes-api*
 
-`mdnotes` is not a complex plugin so most of the commands is just calling
-their corresponding functions. Some of the descriptions here are copied from
-the |mdnotes-commands| section.
+`mdnotes` most of the commands is just calling their corresponding functions.
+Some of the descriptions here are copied from the |mdnotes-commands| section.
 
 setup({opts})                                          	*mdnotes.setup()*
 
@@ -345,6 +340,16 @@ setup({opts})                                          	*mdnotes.setup()*
 		defines `mdnotes` bold formatting behaviour
               • {italic_format} (`string?`, default `"*"`)
 		defines `mdnotes` italic formatting behaviour
+              • {date_format} (`string?`, default `"%a %d %b %Y"`)
+		defines the date format used when inserting a journal entry.
+		See |strftime|.
+              • {prefer_Lsp} (`false|true`, default `false`)
+		prefer using the installed Markdown LSP functions instead of
+		the `mdnotes` implementations.
+              • {auto_list} (`false|true`, default `true`)
+		auto-continue the Markdown lists. See |mdnotes-auto_list|.
+              • {default_keymaps} (`false|true`, default `false`)
+		use the default keymaps.
 
 go_to_index_file() 			   		*mdnotes.go_to_index_file()*
 
@@ -354,7 +359,7 @@ go_to_journal_file()					*mdnotes.go_to_journal_file()*
 
     Go the journal file defined by |mdnotes-journal_file|.
 
-insert_journal_entry()					*mdnotes.insert_journal_entry()*
+journal_insert_entry()					*mdnotes.journal_insert_entry()*
 
     Insert a journal entry at the top of the file, which is the current date 
     along with a separator to separate the different entries. Places the 
@@ -372,12 +377,12 @@ open() 							*mdnotes.open()*
 
     Open the hyperlink under cursor. It can be a file or a URL.
 
-outliner_toggle()					*mdnotes.outliner.outliner_toggle()*
+toggle()						*mdnotes.outliner.toggle()*
 
     Toggle the outliner mode. Outliner mode essentially sets or deletes
     certain keymaps to simulate working in an outliner program (e.g. Logseq).
 
-open_wikilink()						*mdnotes.wikilinks.open_wikilink()*
+follow()						*mdnotes.wikilinks.follow()*
 
     Open Wikilink under cursor (e.g. `[[link#section]]`).
 
@@ -397,7 +402,7 @@ rename_references_cur_buf()				*mdnotes.wikilinks.rename_references_cur_buf()*
     Rename references to current buffer and also the file of the current
     buffer.
 
-:Mdn undo_rename					*mdnotes.wikilinks.undo_rename()*
+undo_rename						*mdnotes.wikilinks.undo_rename()*
 
     Undo the most recent reference rename. Only available when 
     `prefer_lsp = false`. 
@@ -436,7 +441,7 @@ insert_file()						*mdnotes.assets.insert_file()*
     Exactly the same as |mdnotes.insert_image()| but it inserts a hyperlink to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
-cleanup_unused_assets()					*mdnotes.assets.cleanup_unused_assets()*
+cleanup_unused()					*mdnotes.assets.cleanup_unused()*
 
     Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
@@ -444,7 +449,7 @@ cleanup_unused_assets()					*mdnotes.assets.cleanup_unused_assets()*
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-move_unused_assets()					*mdnotes.assets.move_unused_assets()*
+move_unused()						*mdnotes.assets.move_unused()*
 
     Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
@@ -520,12 +525,12 @@ task_list_toggle({line1}, {line2})			*mdnotes.formatting.task_list_toggle()*
     • {line1}  `(integer?)` Starting line number.
     • {line2}  `(integer?)` Ending line number.
 
-generate_toc()						*mdnotes.toc.generate_toc()*
+generate()						*mdnotes.toc.generate()*
 
     Generate and insert a Table Of Contents of the current file at the cursor
     position.
 
-table_create({rows}, {cols})				*mdnotes.tables.table_create()*
+create({rows}, {cols})					*mdnotes.tables.create()*
 
    Create a table of the size {rows} x {cols}. It will get populated with
    `ROWrCOLc` text automatically. If not arguments are given then a 3 x 3
@@ -536,9 +541,9 @@ table_create({rows}, {cols})				*mdnotes.tables.table_create()*
     |2r1c|2r2c|2r3c|
     |3r1c|3r2c|3r3c|
 
-table_normalise()					*mdnotes.tables.table_normalise()*
+best_fit()						*mdnotes.tables.best_fit()*
 
-   Normalise the column sizes of your table so that they are all even.
+   Set the best fit per column of your table so that they are all even.
 
 patterns						*mdnotes.patterns*
 

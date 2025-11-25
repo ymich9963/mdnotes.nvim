@@ -116,7 +116,7 @@ function M.insert_file()
     insert_file()
 end
 
-function M.cleanup_unused_assets()
+function M.cleanup_unused()
     if not M.check_assets_path() then return end
 
     vim.notify(("Mdn: Starting cleanup process..."), vim.log.levels.INFO)
@@ -164,7 +164,7 @@ function M.cleanup_unused_assets()
     vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
 end
 
-function M.move_unused_assets()
+function M.move_unused()
     if not M.check_assets_path() then return end
 
     vim.notify(("Mdn: Starting move process..."), vim.log.levels.INFO)

@@ -31,7 +31,7 @@ function M.go_forward()
     end
 end
 
-function M.clear_history()
+function M.clear()
     M.buf_history = {}
     M.current_index = 0
 end

@@ -38,7 +38,7 @@ function M.get_sections_gfm_from_original(original_sections)
     return gfm_sections
 end
 
-function M.generate_toc()
+function M.generate()
     if vim.bo.filetype ~= "markdown" then
         vim.notify(("Mdn: Cannot generate a ToC for a non-Markdown file."), vim.log.levels.ERROR)
         return

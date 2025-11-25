@@ -73,7 +73,7 @@ local function parse_table()
     return table_parsed, table_start_line_num, table_end_line_num
 end
 
-function M.table_create(r, c)
+function M.create(r, c)
     if not r and not c then
         vim.notify(("Mdn: Please specify both row and column dimensions."), vim.log.levels.ERROR)
         return
@@ -101,7 +101,7 @@ function M.table_create(r, c)
     write_table(new_table)
 end
 
-function M.table_best_fit()
+function M.best_fit()
     local table_lines, startl, endl = parse_table()
 
     if not table_lines then

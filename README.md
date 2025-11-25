@@ -20,8 +20,8 @@ All the features of `mdnotes` and their associated commands are listed and categ
 ### 🧭 Navigation
 - Open hyperlinks to files and URLs with `:Mdn open`.
 - Set your index and journal files and go there with `:Mdn home` and `:Mdn journal`.
-- Can go backwards and forwards in notes history by using `:Mdn go_back` and  `:Mdn go_forward`.
-- Open WikiLinks (`[[link]]` or `[[link#Section]])` with `:Mdn open_wikilink`.
+- Can go backwards and forwards in notes history by using `:Mdn history_go_back` and  `:Mdn history_go_forward`.
+- Open WikiLinks (`[[link]]` or `[[link#Section]])` with `:Mdn wikilink_follow`.
 
 ### 💁 Formatting
 - Toggle hyperlinks with `:Mdn hyperlink_toggle` which pastes your copied hyperlink over the selected text or removes it.
@@ -34,19 +34,19 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Set the best fit of your columns with `:Mdn table_best_fit` so that all your cells line up. 
 
 ### 🖇️ WikiLinks
-- Rename link references and the file itself using `:Mdn rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
-- Show the references of a Wikilink by hovering over the link and executing `:Mdn show_references`. Also show references of the current buffer when not hovering over a Wikilink.
-- Undo the most recent reference rename with `:Mdn undo_rename`. **Only** available when `prefer_lsp = false`.
+- Rename link references and the file itself using `:Mdn wikilink_rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
+- Show the references of a Wikilink by hovering over the link and executing `:Mdn wikilink_show_references`. Also show references of the current buffer when not hovering over a Wikilink.
+- Undo the most recent reference rename with `:Mdn wikilink_undo_rename`. **Only** available when `prefer_lsp = false`.
 
 ### 👩‍💼 Asset Management
-- Use `:Mdn cleanup_unused_assets` to easily cleanup assets that you no longer use.
-- Use `:Mdn move_unused_assets` to move unused assets to a separate folder.
+- Use `:Mdn assets_cleanup_unused` to easily cleanup assets that you no longer use.
+- Use `:Mdn assets_move_unused` to move unused assets to a separate folder.
 - Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 
 ### 🧍‍♂️ Uncategorised
-- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn generate_toc`.
-- Implements an outliner mode by doing `:Mdn toggle_outliner`. Make sure to exit afterwards by re-toggling.
-- Insert a journal entry automatically by doing `:Mdn insert_journal_entry`. 
+- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc_generate`.
+- Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling.
+- Insert a journal entry automatically by doing `:Mdn journal_insert_entry`. 
 - Opt-out use of existing Markdown LSP functions.
 - Supports Windows eccentricities.
 
@@ -114,12 +114,12 @@ For the best Neovim Markdown note-taking experience, I've listed some other proj
  The keymappings below can be enabled by setting `default_keymaps = true` as they are not enabled by default, and they will only be available in Markdown buffers. Place any `mdnotes` keymaps in a  `<Neovim config path>/after/ftplugin/markdown.lua` file so that they're also Markdown specific. For organisation they use the `<leader>m` prefix.
  ```lua
 vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
-vim.keymap.set('n', '<leader>mgf', ':Mdn open_wikilink<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
-vim.keymap.set('n', '<leader>mgrr', ':Mdn show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
-vim.keymap.set('n', '<leader>mgrn', ':Mdn rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
+vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink_follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
+vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink_show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
+vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink_rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
 vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
-vim.keymap.set("n", "<leader>mh", ":Mdn go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
-vim.keymap.set("n", "<leader>ml", ":Mdn go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
+vim.keymap.set("n", "<leader>mh", ":Mdn history_go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
+vim.keymap.set("n", "<leader>ml", ":Mdn history_go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
 vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
 vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 ```

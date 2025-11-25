@@ -13,7 +13,7 @@ local function check_md_lsp()
     end
 end
 
-function M.open_wikilink()
+function M.follow()
     if check_md_lsp() then
         -- Doing some weird shit with the qf list for this
         vim.fn.setqflist({}, ' ')

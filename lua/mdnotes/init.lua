@@ -127,7 +127,7 @@ function M.go_to_journal_file()
     vim.cmd(M.open_cmd .. M.config.journal_file)
 end
 
-function M.insert_journal_entry()
+function M.journal_insert_entry()
     local strftime = vim.fn.strftime(M.config.date_format):match("([^\n\r\t]+)")
     local journal_entry_template = {
         "## " .. strftime,

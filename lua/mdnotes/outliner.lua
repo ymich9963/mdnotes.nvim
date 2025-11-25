@@ -1,7 +1,7 @@
 local M = {}
 
 local outliner_state = false
-function  M.outliner_toggle()
+function  M.toggle()
     if outliner_state then
         vim.api.nvim_buf_del_keymap(0 ,'i', '<CR>')
         vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
