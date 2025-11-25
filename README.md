@@ -29,7 +29,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
-### Tables
+### 🫦 Tables
 - Create a `ROW x COLS` table with `:Mdn table_create ROW COLS`.
 - Set the best fit of your columns with `:Mdn table_best_fit` so that all your cells line up. 
 
