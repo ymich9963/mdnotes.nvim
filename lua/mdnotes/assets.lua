@@ -80,35 +80,32 @@ local function insert_file(file_type)
             vim.print(file_path, file_name)
             return
         else
-            vim.notify(('Mdn: Copied %s to your assets folder at %s.'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
+            vim.notify(('Mdn: Copied "%s" to your assets folder at "%s".'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
         end
     elseif mdnotes_config.insert_file_behaviour == "move" then
         if not uv.fs_rename(file_path, vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
             vim.notify(("Mdn: File move failed."), vim.log.levels.ERROR)
             return
         else
-            vim.notify(('Mdn: Moved %s to your assets folder at %s.'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
+            vim.notify(('Mdn: Moved "%s" to your assets folder at "%s".'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
         end
     end
 
     -- Create file link
     local asset_path = vim.fs.joinpath(mdnotes_config.assets_path, file_name)
-    if file_type == "image" then
-        if contains_spaces(asset_path) then
-            vim.fn.setreg('"x', ('![%s](<%s>)'):format(file_name, asset_path))
-        else
-            vim.fn.setreg('"x', ('![%s](%s)'):format(file_name, asset_path))
-        end
-    elseif file_type == "file" then
-        if contains_spaces(asset_path) then
-            vim.fn.setreg('"x', ('[%s](<%s>)'):format(file_name, asset_path))
-        else
-            vim.fn.setreg('"x', ('[%s](%s)'):format(file_name, asset_path))
-        end
+    local text = ""
+
+    if contains_spaces(asset_path) then
+        text = ("[%s](<%s>)"):format(file_name, asset_path)
+    else
+        text = ("[%s](%s)"):format(file_name, asset_path)
     end
 
-    -- Put text from register x
-    vim.cmd.put()
+    if file_type == "image" then
+        text = "!" .. text
+    end
+
+    vim.api.nvim_put({text}, "c", false, false)
 end
 
 function M.insert_image()
@@ -116,7 +113,7 @@ function M.insert_image()
 end
 
 function M.insert_file()
-    insert_file("file")
+    insert_file()
 end
 
 function M.cleanup_unused_assets()
