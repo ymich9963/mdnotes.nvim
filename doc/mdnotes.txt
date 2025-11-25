@@ -262,7 +262,8 @@ subcommands are listed below.
 
 :Mdn undo_rename					*:Mdn-undo_rename*
 
-    Undo the most recent reference rename.
+    Undo the most recent reference rename. Only available when 
+    `prefer_lsp = false`. 
 
 :Mdn bold_toggle					*:Mdn-bold_toggle*
 
@@ -398,7 +399,8 @@ rename_references_cur_buf()				*mdnotes.wikilinks.rename_references_cur_buf()*
 
 :Mdn undo_rename					*mdnotes.wikilinks.undo_rename()*
 
-    Undo the most recent reference rename.
+    Undo the most recent reference rename. Only available when 
+    `prefer_lsp = false`. 
 
 check_md_format({pattern}) 				*mdnotes.check_md_format()*
 

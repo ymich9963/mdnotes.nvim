@@ -102,6 +102,11 @@ function M.show_references()
 end
 
 function M.undo_rename()
+    if check_md_lsp() then
+        vim.notify("Mdn: undo_rename is only available when your config has prefer_lsp = false.", vim.log.levels.ERROR)
+        return
+    end
+
     if new_name == "" or old_name == "" then
         vim.notify(("Mdn: Detected no recent rename."):format(old_name, new_name), vim.log.levels.ERROR)
         return

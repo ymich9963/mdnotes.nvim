@@ -30,13 +30,13 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
 ### 🫦 Tables
-- Create a `ROW x COLS` table with `:Mdn table_create ROW COLS`.
+- Create a `ROW` by `COLS` table with `:Mdn table_create ROW COLS`.
 - Set the best fit of your columns with `:Mdn table_best_fit` so that all your cells line up. 
 
 ### 🖇️ WikiLinks
 - Rename link references and the file itself using `:Mdn rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn show_references`. Also show references of the current buffer when not hovering over a Wikilink.
-- Undo the most recent reference rename with `:Mdn undo_rename`. 
+- Undo the most recent reference rename with `:Mdn undo_rename`. **Only** available when `prefer_lsp = false`.
 
 ### 👩‍💼 Asset Management
 - Use `:Mdn cleanup_unused_assets` to easily cleanup assets that you no longer use.
