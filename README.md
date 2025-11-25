@@ -78,7 +78,7 @@ and specify your config using `opts = {}`, no `setup({})` function needed,
     overwrite_behaviour = "error",  -- "overwrite" or "error" when finding assset file conflicts
     open_behaviour = "buffer",      -- "buffer" or "tab" to open when following links
     date_format = "%a %d %b %Y"     -- date format based on :h strftime()
-    prefer_lsp = true,              -- to prefer LSP functions than the mdnotes functions
+    prefer_lsp = false,             -- to prefer LSP functions than the mdnotes functions
     auto_list = true,               -- automatic list continuation
     default_keymaps = false,
 }

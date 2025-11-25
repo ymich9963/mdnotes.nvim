@@ -108,7 +108,7 @@ The default config for `mdnotes` is shown below,
 	bold_format = "**",
 	italic_format = "*",
 	date_format = "%a %d %b %Y",
-	prefer_lsp = true,
+	prefer_lsp = false,
 	auto_list = true,
 	default_keymaps = false,
     }
