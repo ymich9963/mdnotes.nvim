@@ -22,13 +22,13 @@ local function write_table(contents, start_line, end_line)
     end
 end
 
-local function parse_table()
+local function check_valid_table()
     local cur_line_num = vim.fn.line('.')
     local max_line_num = vim.fn.line('$')
     local min_line_num = 0
     local table_start_line_num = 0
     local table_end_line_num = 0
-    local table_parsed = {}
+    local table_valid = true
 
     for i = cur_line_num, min_line_num, -1 do
         local line = vim.fn.getline(i)
@@ -39,6 +39,16 @@ local function parse_table()
         end
     end
 
+    local delimeter_row = vim.fn.getline(table_start_line_num + 2)
+
+    -- If it find anything other than |, :, - in delemeter row
+    -- table is not valid
+    if delimeter_row:match("[^:%-|]+") then
+        table_valid = false
+        return table_valid
+    end
+
+
     for i = cur_line_num, max_line_num do
         local line = vim.fn.getline(i)
         local _, count = line:gsub("|", "")
@@ -48,10 +58,11 @@ local function parse_table()
         end
     end
 
-    if table_start_line_num == 0 and table_end_line_num == 0 then
-        vim.notify(("Mdn: Could not detect table."), vim.log.levels.ERROR)
-        return
-    end
+    return table_valid, table_start_line_num, table_end_line_num
+end
+
+local function parse_table(table_start_line_num, table_end_line_num)
+    local table_parsed = {}
 
     local table_lines = vim.api.nvim_buf_get_lines(0, table_start_line_num, table_end_line_num, false)
 
@@ -70,7 +81,7 @@ local function parse_table()
         table.insert(table_parsed, table_temp)
     end
 
-    return table_parsed, table_start_line_num, table_end_line_num
+    return table_parsed
 end
 
 function M.create(r, c)
@@ -102,9 +113,14 @@ function M.create(r, c)
 end
 
 function M.best_fit()
-    local table_lines, startl, endl = parse_table()
+    local table_valid, startl, endl = check_valid_table()
+    if not table_valid then
+        vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
+        return
+    end
 
-    if not table_lines then
+    local table_lines = parse_table(startl, endl)
+    if vim.tbl_isempty(table_lines) then
         vim.notify(("Mdn: Error parsing table."), vim.log.levels.ERROR)
         return
     end
