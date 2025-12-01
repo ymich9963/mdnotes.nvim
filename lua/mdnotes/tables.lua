@@ -84,6 +84,115 @@ local function parse_table(table_start_line_num, table_end_line_num)
     return table_parsed
 end
 
+local function get_table()
+    local table_valid, startl, endl = check_valid_table()
+    if not table_valid then
+        vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
+        return nil
+    end
+
+    local table_lines = parse_table(startl, endl)
+    if vim.tbl_isempty(table_lines) then
+        vim.notify(("Mdn: Error parsing table."), vim.log.levels.ERROR)
+        return nil
+    end
+
+    return table_lines, startl, endl
+end
+
+local function get_column_locations()
+    -- Fence post problem, all tables will have n+1 | characters with n being the text    
+    local table_valid, startl, endl = check_valid_table()
+    if not table_valid then
+        vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
+        return
+    end
+
+    local table_lines = vim.api.nvim_buf_get_lines(0, startl or 0, endl or 0, false)
+    local col_locations_table = {}
+    local col_locations_line = {}
+
+    for _, line in ipairs(table_lines) do
+        col_locations_line = {}
+        for i in line:gmatch("()|") do
+            table.insert(col_locations_line, i)
+        end
+        table.insert(col_locations_table, col_locations_line)
+    end
+
+    return col_locations_table
+end
+
+local function get_table_complex()
+    local table_lines, startl, endl = get_table()
+
+    if not table_lines then
+        -- Errors would already be outputted
+        return
+    end
+
+    local col_locations = get_column_locations() or {0}
+    local table_complex = {}
+    local table_complex_entry = {}
+
+    for i, line in ipairs(table_lines) do
+        table_complex_entry = {}
+        for j, cell in ipairs(line) do
+            table.insert(table_complex_entry, {
+                content = cell,
+                start_pos = col_locations[i][j],
+                end_pos = col_locations[i][j + 1],
+                line = i
+            })
+        end
+        table.insert(table_complex, table_complex_entry)
+    end
+
+    return table_complex, startl, endl
+end
+
+local function insert_column(direction)
+    local table_lines_complex, _, _ = get_table_complex()
+
+    if not table_lines_complex then
+        -- Errors would already be outputted
+        return
+    end
+
+    local cur_cursor_col_pos = vim.fn.getpos(".")[3]
+    local cur_col = 0
+
+    for _, line in ipairs(table_lines_complex) do
+        for j, cell in ipairs(line) do
+            if cell.start_pos < cur_cursor_col_pos and cell.end_pos > cur_cursor_col_pos then
+                cur_col = j
+            end
+        end
+    end
+
+    local table_lines, startl, endl = get_table()
+
+    if not table_lines then
+        -- Errors would already be outputted
+        return
+    end
+
+    -- No need to check for left
+    if direction == "right" then
+        cur_col = cur_col + 1
+    end
+
+    for i, v in ipairs(table_lines) do
+        if i == 2 then
+            table.insert(v, cur_col, "----")
+        else
+            table.insert(v, cur_col, "    ")
+        end
+    end
+
+    write_table(table_lines, startl, endl)
+end
+
 function M.create(r, c)
     if not r and not c then
         vim.notify(("Mdn: Please specify both row and column dimensions."), vim.log.levels.ERROR)
@@ -113,19 +222,14 @@ function M.create(r, c)
 end
 
 function M.best_fit()
-    local table_valid, startl, endl = check_valid_table()
-    if not table_valid then
-        vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
-        return
-    end
 
-    local table_lines = parse_table(startl, endl)
-    if vim.tbl_isempty(table_lines) then
-        vim.notify(("Mdn: Error parsing table."), vim.log.levels.ERROR)
-        return
-    end
-
+    local table_lines, startl, endl = get_table()
     local max_char_count = {}
+
+    if not table_lines then
+        -- Errors would already be outputted
+        return
+    end
 
     -- Trim whitespace in each cell
     for r, v in ipairs(table_lines) do
@@ -165,6 +269,14 @@ function M.best_fit()
     end
 
     write_table(table_lines, startl, endl)
+end
+
+function M.column_insert_left()
+    insert_column("left")
+end
+
+function M.column_insert_right()
+    insert_column("right")
 end
 
 return M

@@ -32,6 +32,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 ### 🫦 Tables
 - Create a `ROW` by `COLS` table with `:Mdn table_create ROW COLS`.
 - Set the best fit of your columns with `:Mdn table_best_fit` so that all your cells line up. 
+- Insert columns to the left or right of your current column with `:Mdn table_column_insert_left/right`.
 
 ### 🖇️ WikiLinks
 - Rename link references and the file itself using `:Mdn wikilink_rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.

@@ -314,6 +314,14 @@ subcommands are listed below.
 
    Set the best fit for the table columns so that all cell borders line up.
 
+:Mdn table_column_insert_left				*Mdn-table_column_insert_left*
+
+   Insert a column to the left of the current column you're in.
+
+:Mdn table_column_insert_right				*Mdn-table_column_insert_right*
+
+   Insert a column to the right of the current column you're in.
+
 ==============================================================================
 API                                     		*mdnotes-api*
 
@@ -548,6 +556,14 @@ create({rows}, {cols})					*mdnotes.tables.create()*
 best_fit()						*mdnotes.tables.best_fit()*
 
    Set the best fit per column of your table so that they are all even.
+
+table_column_insert_left()				*mdnotes.tables.column_insert_left()*
+
+   Insert a column to the left of the current column you're in.
+
+table_column_insert_right()				*mdnotes.tables.column_insert_right()*
+
+   Insert a column to the right of the current column you're in.
 
 patterns						*mdnotes.patterns*
 

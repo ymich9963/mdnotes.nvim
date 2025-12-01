@@ -82,7 +82,9 @@ local get_subcommands = function() return {
     task_list_toggle = require("mdnotes.formatting").task_list_toggle,
     toc_generate = require("mdnotes.toc").generate,
     table_create = require("mdnotes.tables").create,
-    table_best_ft = require("mdnotes.tables").best_fit
+    table_best_fit = require("mdnotes.tables").best_fit,
+    table_column_insert_left = require("mdnotes.tables").column_insert_left,
+    table_column_insert_right = require("mdnotes.tables").column_insert_right
 } end
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
