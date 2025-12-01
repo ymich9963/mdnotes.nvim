@@ -83,11 +83,15 @@ also means that you don't need an LSP for this either. Execute the completion
 by typing the path and in insert mode pressing |i_CTRL-X_CTRL-F|.
 
 For Windows, due to the square brackets being in |'isfname'|, you need to
-remove them for autocompletion to work. Therefore put this in your
-`after/ftplugin/markdown.lua`,
+remove them for autocompletion to work. Therefore I've setup this keymap so
+that it gets and unset automatically on file completion. Place the snippet
+below in your `after/ftplugin/markdown.lua`,
 >lua
-    vim.opt.isfname:remove('[')
-    vim.opt.isfname:remove(']')
+    vim.keymap.set("i", "<C-x><C-f>", "<cmd>set isfname-=[,]<CR><C-x><C-f><cmd>set isfname+=[,]<CR>",
+    {
+        desc = "Mdnotes i_CTRL-X_CTRL-F smart remap to allow path completion on Windows",
+	buffer = true
+    })
 
 ==============================================================================
 CONFIG             	                     	      	*mdnotes-config*

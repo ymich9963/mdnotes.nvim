@@ -132,10 +132,13 @@ Second one is to disable LSP diagnostics in the current Markdown buffer.
 ```lua
 vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
 ```
-If you are on Windows then setting these options will allow you to use the build in `<C-x> <C-f>` file completion for WikiLinks. These can be anywhere in your config since they can't be Markdown-specific.
+Last one here is for the glorious Neovim Windows users. Setting this keymap will allow you to use the built in `<C-x> <C-f>` file completion for WikiLinks or just for using file paths in Markdown buffers.
 ```lua
-vim.opt.isfname:remove('[') -- To enable path completion on Windows :h i_CTRL-X_CTRL-F
-vim.opt.isfname:remove(']')
+    vim.keymap.set("i", "<C-x><C-f>", "<cmd>set isfname-=[,]<CR><C-x><C-f><cmd>set isfname+=[,]<CR>",
+    {
+        desc = "Mdnotes i_CTRL-X_CTRL-F smart remap to allow path completion on Windows",
+        buffer = true
+    })
 ```
 
 ## 🙊  Using LSPs
