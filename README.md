@@ -214,4 +214,3 @@ I wanted to make a more Neovim-centric Markdown notes plugin that tries to work 
 - [markdown-plus](https://github.com/yousefhadder/markdown-plus.nvim)
 - [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)
  
-

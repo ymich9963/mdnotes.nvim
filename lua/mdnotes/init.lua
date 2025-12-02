@@ -27,22 +27,26 @@ function M.list_remap(inc_val)
     local list_indent, list_marker, list_text = line:match(M.patterns.list)
     local ordered_indent, ordered_marker, separator, ordered_text = line:match(M.patterns.ordered_list)
     local indent = list_indent or ordered_indent
+    local text = list_text or ordered_text
 
-    if list_marker then
-        if list_text:match(M.patterns.task) then
-            return indent, "\n" .. list_marker .. " " .. "[ ] "
-        else
-            return indent, "\n" .. list_marker .. " "
+    if text then
+        if list_marker then
+            if list_text:match(M.patterns.task) then
+                return indent, "\n" .. list_marker .. " " .. "[ ] "
+            else
+                return indent, "\n" .. list_marker .. " "
+            end
+        end
+
+        if ordered_marker then
+            if ordered_text:match(M.patterns.task) then
+                return indent, "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " " .. "[ ] "
+            else
+                return indent, "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " "
+            end
         end
     end
 
-    if ordered_marker then
-        if ordered_text:match(M.patterns.task) then
-            return indent, "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " " .. "[ ] "
-        else
-            return indent, "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " "
-        end
-    end
     return indent, "\n"
 end
 
