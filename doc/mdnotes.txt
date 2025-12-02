@@ -182,6 +182,18 @@ table_best_fit_padding = `integer`			*mdnotes-table_best_fit_padding*
 
     Number of spaces to add around the table cells when doing |Mdn-table_best_fit|.
 
+toc_depth = `integer`		l			*mdnotes-toc_depth*
+
+    Heading level depth to include when generating a Table of Contents using
+    |Mdn-toc_generate|. For example setting this value to 2 would include only
+    headings 1 and 2 from below,
+>
+    # Heading 1
+    
+    ## Heading 2
+   
+    ### Heading 3
+
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*
 

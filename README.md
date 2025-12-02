@@ -8,7 +8,7 @@
 ---
 
 ## ☀️ Introduction
-Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better WikiLink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, generating ToC, and formatting.
+Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better WikiLink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, generating ToC, table helpers, and formatting.
 
 Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes. If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you.
 
@@ -45,7 +45,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 
 ### 🧍‍♂️ Uncategorised
-- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc_generate`.
+- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc_generate`. Can also customise the depth of the ToC.
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling.
 - Insert a journal entry automatically by doing `:Mdn journal_insert_entry`. 
 - Opt-out use of existing Markdown LSP functions.
