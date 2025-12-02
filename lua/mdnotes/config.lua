@@ -16,6 +16,7 @@ local default_config = {
     auto_list = true,                       -- automatic list continuation
     default_keymaps = false,
 	table_best_fit_padding = 5,             -- add padding around cell contents when using tables_best_fit
+    toc_depth = 4                           -- depth shown in the ToC
 }
 
 function M.setup(user_config)

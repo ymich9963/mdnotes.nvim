@@ -112,6 +112,7 @@ The default config for `mdnotes` is shown below,
 	auto_list = true,
 	default_keymaps = false,
 	table_best_fit_padding = 0,
+	toc_depth = 4
     }
 <
 index_file = `"path"`					*mdnotes-index_file*

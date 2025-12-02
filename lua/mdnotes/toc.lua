@@ -20,7 +20,7 @@ function M.get_sections_original()
 
     for _, line in ipairs(buf_lines) do
         local heading, text = line:match(heading_format_pattern)
-        if text and heading then
+        if text and heading and #heading <= require('mdnotes.config').config.toc_depth then
             table.insert(sections, {heading = heading, text = text})
         end
     end
