@@ -231,10 +231,15 @@ function M.best_fit()
         return
     end
 
+    local padding = ""
+    if require('mdnotes.config').config.table_best_fit_padding > 0 then
+        padding = (" "):rep(require('mdnotes.config').config.table_best_fit_padding)
+    end
+
     -- Trim whitespace in each cell
     for r, v in ipairs(table_lines) do
         for c, vv in ipairs(v) do
-            table_lines[r][c] = vim.trim(vv)
+            table_lines[r][c] = padding .. vim.trim(vv) .. padding
         end
     end
 

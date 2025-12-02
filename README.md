@@ -31,7 +31,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 
 ### 🫦 Tables
 - Create a `ROW` by `COLS` table with `:Mdn table_create ROW COLS`.
-- Set the best fit of your columns with `:Mdn table_best_fit` so that all your cells line up. 
+- Set the best fit of your columns with `:Mdn table_best_fit` so that all your cells line up. Can also add padding around your cells.
 - Insert columns to the left or right of your current column with `:Mdn table_column_insert_left/right`.
 
 ### 🖇️ WikiLinks
@@ -82,6 +82,7 @@ and specify your config using `opts = {}`, no `setup({})` function needed,
     prefer_lsp = false,             -- to prefer LSP functions than the mdnotes functions
     auto_list = true,               -- automatic list continuation
     default_keymaps = false,
+	table_best_fit_padding = 0,     -- add padding around cell contents when using tables_best_fit
 }
 ```
 ### 📂 Directory Setup

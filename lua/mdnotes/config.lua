@@ -15,6 +15,7 @@ local default_config = {
     prefer_lsp = false,                     -- to prefer LSP functions than the mdnotes functions
     auto_list = true,                       -- automatic list continuation
     default_keymaps = false,
+	table_best_fit_padding = 5,             -- add padding around cell contents when using tables_best_fit
 }
 
 function M.setup(user_config)

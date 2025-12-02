@@ -111,6 +111,7 @@ The default config for `mdnotes` is shown below,
 	prefer_lsp = false,
 	auto_list = true,
 	default_keymaps = false,
+	table_best_fit_padding = 0,
     }
 <
 index_file = `"path"`					*mdnotes-index_file*
@@ -175,6 +176,10 @@ auto_list = `false|true`				*mdnotes-auto_list*
 default_keymaps = `false|true`				*mdnotes-default_keymaps*
 
     Enable or disable the default keymaps listed in |mdnotes-keymaps|.
+
+table_best_fit_padding = `integer`			*mdnotes-table_best_fit_padding*
+
+    Number of spaces to add around the table cells when doing |Mdn-table_best_fit|.
 
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*
@@ -313,6 +318,7 @@ subcommands are listed below.
 :Mdn table_best_fit					*Mdn-table_best_fit*
 
    Set the best fit for the table columns so that all cell borders line up.
+   Can also add padding to your cells. See |mdnotes-table_best_fit_padding|.
 
 :Mdn table_column_insert_left				*Mdn-table_column_insert_left*
 
