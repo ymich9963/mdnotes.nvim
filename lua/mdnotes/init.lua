@@ -31,6 +31,7 @@ function M.list_remap(inc_val)
     local text = ul_text or ol_text or ""
 
     text = text:gsub(M.patterns.task, "")
+    text = text:gsub("[%s]", "")
 
     if text and text ~= "" then
         if ul_marker then
