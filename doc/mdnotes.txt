@@ -584,11 +584,11 @@ best_fit()						*mdnotes.tables.best_fit()*
 
    Set the best fit per column of your table so that they are all even.
 
-table_column_insert_left()				*mdnotes.tables.column_insert_left()*
+column_insert_left()					*mdnotes.tables.column_insert_left()*
 
    Insert a column to the left of the current column you're in.
 
-table_column_insert_right()				*mdnotes.tables.column_insert_right()*
+column_insert_right()					*mdnotes.tables.column_insert_right()*
 
    Insert a column to the right of the current column you're in.
 
