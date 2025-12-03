@@ -23,26 +23,29 @@ function M.setup(user_config)
 end
 
 function M.list_remap(inc_val)
+    -- ul = unordered list, ol = ordered list
     local line = vim.api.nvim_get_current_line()
-    local list_indent, list_marker, list_text = line:match(M.patterns.list)
-    local ordered_indent, ordered_marker, separator, ordered_text = line:match(M.patterns.ordered_list)
-    local indent = list_indent or ordered_indent
-    local text = list_text or ordered_text
+    local ul_indent, ul_marker, ul_text = line:match(M.patterns.unordered_list)
+    local ol_indent, ol_marker, ol_separator, ol_text = line:match(M.patterns.ordered_list)
+    local indent = ul_indent or ol_indent
+    local text = ul_text or ol_text or ""
 
-    if text then
-        if list_marker then
-            if list_text:match(M.patterns.task) then
-                return indent, "\n" .. list_marker .. " " .. "[ ] "
+    text = text:gsub(M.patterns.task, "")
+
+    if text and text ~= "" then
+        if ul_marker then
+            if ul_text:match(M.patterns.task) then
+                return indent, "\n" .. ul_marker .. " " .. "[ ] "
             else
-                return indent, "\n" .. list_marker .. " "
+                return indent, "\n" .. ul_marker .. " "
             end
         end
 
-        if ordered_marker then
-            if ordered_text:match(M.patterns.task) then
-                return indent, "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " " .. "[ ] "
+        if ol_marker then
+            if ol_text:match(M.patterns.task) then
+                return indent, "\n" .. tostring(tonumber(ol_marker + inc_val)) .. ol_separator .. " " .. "[ ] "
             else
-                return indent, "\n" .. tostring(tonumber(ordered_marker + inc_val)) .. separator .. " "
+                return indent, "\n" .. tostring(tonumber(ol_marker + inc_val)) .. ol_separator .. " "
             end
         end
     end

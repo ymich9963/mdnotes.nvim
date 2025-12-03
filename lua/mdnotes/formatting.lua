@@ -147,7 +147,7 @@ function M.task_list_toggle(line1, line2)
         lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
     end
     for i, line in ipairs(lines) do
-        local _, list_marker, list_text = line:match(M.patterns.list)
+        local _, list_marker, list_text = line:match(M.patterns.unordered_list)
         local _, ordered_marker, separator, ordered_text = line:match(M.patterns.ordered_list)
         local text = list_text or ordered_text
         local marker = list_marker or ordered_marker .. separator
