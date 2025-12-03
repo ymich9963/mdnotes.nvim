@@ -35,16 +35,16 @@ local function insert_file(file_type)
     -- Get the file paths as a table
     local cmd_stdout = ""
     local file_paths = {}
-    if vim.fn.has("win32") then
+    if vim.fn.has("win32") == 1 then
         cmd_stdout = vim.system({'cmd.exe', '/c', 'powershell', '-command' ,'& {Get-Clipboard -Format FileDropList -Raw}'}, { text = true }):wait().stdout
-    elseif vim.fn.has("linux") then
+    elseif vim.fn.has("linux") == 1 then
         local display_server = os.getenv "XDG_SESSION_TYPE"
         if display_server == "x11" or display_server == "tty" then
             cmd_stdout = vim.system({"xclip", "-selection", "clipboard", "-t", "text/uri-list", "-o", "|", "sed", "'s|file://||'"}, { text = true }):wait().stdout
         elseif display_server == "wayland" then
             cmd_stdout = vim.system({"wl-paste", "--type", "text/uri-list", "|", "sed", "'s|file://||'"}, { text = true }):wait().stdout
         end
-    elseif vim.fn.has("mac") then
+    elseif vim.fn.has("mac") == 1 then
         cmd_stdout = vim.system({"osascript", "-e", '"tell application "Finder" to get the POSIX path of every item of (the clipboard as alias list)"'}, { text = true }):wait().stdout
     end
 

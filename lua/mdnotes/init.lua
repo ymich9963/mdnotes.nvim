@@ -102,7 +102,7 @@ function M.open()
                 vim.api.nvim_input('zz')
             end
             -- Last case is when it should be treated as a URI
-        elseif vim.fn.has("win32") then
+        elseif vim.fn.has("win32") == 1 then
             vim.system({'cmd.exe', '/c', 'start', '', link})
         else
             -- There might be issues with code below, see issue
