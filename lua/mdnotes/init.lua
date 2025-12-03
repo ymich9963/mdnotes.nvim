@@ -101,7 +101,7 @@ function M.open()
         elseif vim.fn.has("win32") then
             vim.system({'cmd.exe', '/c', 'start', '', link})
         else
-            -- Code below should work but doesn't - see Neovim issue below
+            -- There might be issues with code below, see issue
             -- https://github.com/neovim/neovim/issues/36293
             vim.ui.open(link)
         end

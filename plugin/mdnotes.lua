@@ -71,6 +71,7 @@ local get_subcommands = function() return {
     insert_file = require("mdnotes.assets").insert_file,
     assets_cleanup_unused = require("mdnotes.assets").cleanup_unused,
     assets_move_unused = require("mdnotes.assets").move_unused,
+    assets_open_containing_folder = require("mdnotes.assets").open_containing_folder,
     history_go_back = require("mdnotes.history").go_back,
     history_go_forward = require("mdnotes.history").go_forward,
     history_clear = require("mdnotes.history").clear,

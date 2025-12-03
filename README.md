@@ -43,6 +43,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Use `:Mdn assets_cleanup_unused` to easily cleanup assets that you no longer use.
 - Use `:Mdn assets_move_unused` to move unused assets to a separate folder.
 - Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
+- Open your assets folder using `:Mdn assets_open_containing_folder`. 
 
 ### 🧍‍♂️ Uncategorised
 - Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc_generate`. Can also customise the depth of the ToC.

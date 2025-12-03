@@ -3,18 +3,26 @@ local M = {}
 local uv = vim.loop or vim.uv
 
 function M.check_assets_path()
-    local mdnotes_config = require('mdnotes').config
-    if mdnotes_config.assets_path == "" or not mdnotes_config.assets_path then
+    local mdnotes_config_assets_path = require('mdnotes').config.assets_path
+    if mdnotes_config_assets_path == "" or not mdnotes_config_assets_path then
         vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
         return false
     end
 
-    if vim.fn.isdirectory(mdnotes_config.assets_path) == 0 then
-        vim.notify(("Mdn: Assets path %s doesn't exist. Change path or create it."):format(mdnotes_config.assets_path), vim.log.levels.ERROR)
+    if vim.fn.isdirectory(mdnotes_config_assets_path) == 0 then
+        vim.notify(("Mdn: Assets path %s doesn't exist. Change path or create it."):format(mdnotes_config_assets_path), vim.log.levels.ERROR)
         return false
     end
 
     return true
+end
+
+function M.open_containing_folder()
+    if not M.check_assets_path() then return end
+
+    -- There might be issues with code below, see issue
+    -- https://github.com/neovim/neovim/issues/36293
+    vim.ui.open(require('mdnotes.config').config.assets_path)
 end
 
 local function contains_spaces(text)

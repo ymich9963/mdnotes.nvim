@@ -266,6 +266,10 @@ subcommands are listed below.
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm()|.
 
+:Mdn assets_open_containing_folder			*:Mdn-open_containing_folder*
+
+    Open your assets folder declared in |mdnotes-assets_path|.
+
 :Mdn history_go_back					*:Mdn-history_go_back*
 
     Go back to the previously visited Markdown buffer.
@@ -485,6 +489,10 @@ move_unused()						*mdnotes.assets.move_unused()*
     Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` move actions. Uses |uv.fs_rename()|.
+
+open_containing_folder					*mdnotes.assets.open_containing_folder()*
+
+    Open your assets folder declared in |mdnotes-assets_path|.
 
 buf_history						*mdnotes.history.buf_history*
 
