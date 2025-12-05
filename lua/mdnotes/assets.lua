@@ -45,7 +45,7 @@ local function insert_file(file_type)
             cmd_stdout = vim.system({"wl-paste", "--type", "text/uri-list", "|", "sed", "'s|file://||'"}, { text = true }):wait().stdout
         end
     elseif vim.fn.has("mac") == 1 then
-        cmd_stdout = vim.system({"osascript", "-e", '"tell application "Finder" to get the POSIX path of every item of (the clipboard as alias list)"'}, { text = true }):wait().stdout
+        cmd_stdout = vim.system({"osascript", "-e", 'tell application "Finder" to get the POSIX path of every item of (the clipboard as alias list)'}, { text = true }):wait().stdout
     end
 
     if cmd_stdout ~= "" then
