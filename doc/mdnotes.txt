@@ -22,22 +22,20 @@ To setup `mdnotes` using the Lazy package manager, put this in your `init.lua` f
 	"ymich9963/mdnotes.nvim",
     }
 
-optionally specifying all the path and file options will allow you to use all
-the commnds,
+Can use either `opts` or `config` with the traditional `setup({})` function,
 >lua
     {
 	"ymich9963/mdnotes.nvim",
 	opts = {
-	    assets_path = "assets",
-	    index_file = "MAIN.md",
-	    journal_file = "JOURNAL.md",
+	    -- Config here
+	}
+	-- or
+	config = {
+	    require("mdnotes.config").setup({
+		-- Config here
+	    })
 	}
     }
-
-Install and then setup using,
->lua
-    require('mdnotes.config').setup({opts})
-
 Explanation for the options is given in the next |mdnotes-config| section.
 See |mdnotes-keymaps| for keymap recommendations, |mdnotes-lsp| for notes on
 using LSPs with `mdnotes`, and |mdnotes-completion| for using file name

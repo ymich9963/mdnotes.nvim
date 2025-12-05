@@ -8,7 +8,8 @@
 ---
 
 ## ☀️ Introduction
-Markdown Notes (mdnotes or Mdn) aims to improve the Neovim Markdown note-taking experience by providing features like better WikiLink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, generating ToC, table helpers, and formatting.
+
+Mdnotes aims to be a lightweight plugin that improves the Neovim Markdown note-taking experience with minimal configuration required. It does so by providing features like better WikiLink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, generating ToC, table helpers, and formatting.
 
 Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes. If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you.
 
@@ -60,16 +61,21 @@ Using the lazy.nvim package manager,
 }
 ```
 
-and specify your config using `opts = {}`, no `setup({})` function needed,
+and specify your config using `opts = {}` or with a `setup({})` function,
 ```lua
 {
     "ymich9963/mdnotes.nvim",
     opts = {
         -- Config here
     }
+    -- or
+    config = {
+        require("mdnotes.config").setup({
+            -- Config here
+        })
+    }
 }
 ```
-
 ### 🌐 Default Config
 ```lua
 {
@@ -138,15 +144,15 @@ vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .
 ```
 Last one here is for the glorious Neovim Windows users. Setting this keymap will allow you to use the built in `<C-x> <C-f>` file completion for WikiLinks or just for using file paths in Markdown buffers.
 ```lua
-    vim.keymap.set("i", "<C-x><C-f>", "<cmd>set isfname-=[,]<CR><C-x><C-f><cmd>set isfname+=[,]<CR>",
-    {
-        desc = "Mdnotes i_CTRL-X_CTRL-F smart remap to allow path completion on Windows",
-        buffer = true
-    })
+vim.keymap.set("i", "<C-x><C-f>", "<cmd>set isfname-=[,]<CR><C-x><C-f><cmd>set isfname+=[,]<CR>",
+{
+    desc = "Mdnotes i_CTRL-X_CTRL-F smart remap to allow path completion on Windows",
+    buffer = true
+})
 ```
 
 ## 🙊  Using LSPs
-The main reason I started this project was dissatisfaction with Markdown LSPs at the time, and I really wanted to use Neovim as my notes editor. Therefore, `mdnotes` is designed to work with Markdown LSPs by trying to fill the gaps and to also complement their current functionality. Please see the table below for how `mdnotes` tries to work with LSPs and Neovim itself.
+The main reason I started this project was dissatisfaction with Markdown LSPs at the time, and I really wanted to use Neovim as my notes editor. Therefore, `mdnotes` is designed to work with Markdown LSPs by trying to fill the gaps and to also complement their current functionality. Unfortunately, I don't think the Markdown LSPs are there yet, so the default behaviour of the plugin is to have `prefer_lsp = false`. Please see the table below for how `mdnotes` tries to work with LSPs and Neovim itself.
 
 |Feature                         |mdnotes                              |LSP                                                        |Neovim                                                                 |
 |--------------------------------|-------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------|
@@ -156,7 +162,6 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 |Buffer History                  |Y (Sequential `:Mdn go_back/forward`)|N                                                          |Y (Not Sequential `:h bp`/`:h bn`                                      |
 |Path Completion                 |N                                    |Y (`:h lsp-completion`)                                    |Y (`:h i_CTRL-X_CTRL-F`)                                               |
 |Opening WikiLinks               |Y (`:Mdn open_wikilink`)             |Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)              |Y (`:h gf`, needs .md extension in link, requires settings for Windows)|
-|Markdown Formatting             |Y (`:Mdn <format>_toggle`)           |N                                                          |N                                                                      |
  
  **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
 
@@ -216,4 +221,5 @@ I wanted to make a more Neovim-centric Markdown notes plugin that tries to work 
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
 - [markdown-plus](https://github.com/yousefhadder/markdown-plus.nvim)
 - [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)
+- [markdown.nvim](https://github.com/tadmccorkle/markdown.nvim) 
  
