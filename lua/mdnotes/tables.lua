@@ -164,7 +164,8 @@ local function insert_column(direction)
 
     for _, line in ipairs(table_lines_complex) do
         for j, cell in ipairs(line) do
-            if cell.start_pos < cur_cursor_col_pos and cell.end_pos > cur_cursor_col_pos then
+            -- Treats the left | as the start point of the column
+            if cell.start_pos <= cur_cursor_col_pos and cell.end_pos > cur_cursor_col_pos then
                 cur_col = j
             end
         end
