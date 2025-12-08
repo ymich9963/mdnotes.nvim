@@ -57,58 +57,70 @@ end
 function M.open()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
-    local link = ""
+    local dest = ""
     local path = ""
     local section = ""
+    local section_only = nil
 
     for start_pos, hyperlink, end_pos in line:gmatch(M.patterns.hyperlink) do
         if start_pos < current_col and end_pos > current_col then
-            _, link = hyperlink:match(M.patterns.text_link)
+            _, dest = hyperlink:match(M.patterns.text_dest)
             break
         end
     end
 
-    if link == "" then
+    if dest == "" then
         vim.notify(("Mdn: Nothing to open."), vim.log.levels.ERROR)
         return
     end
 
-    link = link:gsub("[<>]?", "")
-    path, section = link:match(M.patterns.file_section)
+    -- Remove any < or > from dest
+    dest = dest:gsub("[<>]?", "")
+
+    -- Get the path and section
+    path, section = dest:match(M.patterns.file_section)
+
+    -- Append .md to guarantee a file name
+    if path:sub(-3) ~= ".md" then
+        path = path .. ".md"
+    end
 
     -- Check for just a section first
-    -- Path in this case is a section
-    if link:sub(1,1) == "#" then
-        path = require('mdnotes.toc').get_section(path)
-        vim.fn.cursor(vim.fn.search("# " .. path), 1)
+    if dest:sub(1,1) == "#" then
+        section = dest:sub(2, #dest)
+        section_only = true
+    end
+
+    -- Check if the current file is the one in the link
+    if path == vim.fs.basename(vim.api.nvim_buf_get_name(0)) then
+        section_only = true
+    end
+
+    if section_only then
+        section = require('mdnotes.toc').get_section(section)
+        vim.fn.cursor(vim.fn.search("# " .. section), 1)
         vim.api.nvim_input('zz')
-    else
-        -- Then it is assumed to have a path
-        -- Append .md to guarantee a file name
-        if path:sub(-3) ~= ".md" then
-            path = path .. ".md"
-        end
-        -- Check if the current file is the one in the link
-        if path == vim.fs.basename(vim.api.nvim_buf_get_name(0)) then
-            section = require('mdnotes.toc').get_section(path)
-            vim.fn.cursor(vim.fn.search("# " .. section), 1)
+        return
+    end
+
+    -- Check if the file exists
+    if uv.fs_stat(path) then
+        vim.cmd(M.open_cmd .. path)
+        if section ~= "" then
+            section = require('mdnotes.toc').get_section(section)
+            vim.fn.cursor(vim.fn.search(section), 1)
             vim.api.nvim_input('zz')
-            -- Check if the file exists
-        elseif uv.fs_stat(path) then
-            vim.cmd(M.open_cmd .. path)
-            if section ~= "" then
-                section = require('mdnotes.toc').get_section(path)
-                vim.fn.cursor(vim.fn.search(section), 1)
-                vim.api.nvim_input('zz')
-            end
-            -- Last case is when it should be treated as a URI
-        elseif vim.fn.has("win32") == 1 then
-            vim.system({'cmd.exe', '/c', 'start', '', link})
-        else
-            -- There might be issues with code below, see issue
-            -- https://github.com/neovim/neovim/issues/36293
-            vim.ui.open(link)
         end
+        return
+    end
+
+    -- Last case is when it should be treated as a URI
+    if vim.fn.has("win32") == 1 then
+        vim.system({'cmd.exe', '/c', 'start', '', dest})
+    else
+        -- There might be issues with code below, see issue
+        -- https://github.com/neovim/neovim/issues/36293
+        vim.ui.open(dest)
     end
 end
 
