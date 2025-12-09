@@ -404,6 +404,11 @@ setup({opts})                                          	*mdnotes.setup()*
 		|mdnotes-auto_list_renumber|.
               • {default_keymaps} (`false|true`, default `false`)
 		use the default keymaps.
+              • {table_best_fit_padding} (`integer?`, default `0`)
+		how much padding to add when executing 
+		|Mdn-table_best_fit|.
+              • {toc_depth} (`integer?`, default `4`)
+		the depth of the ToC when using |Mdn-toc_generate|.
 
 go_to_index_file() 			   		*mdnotes.go_to_index_file()*
 
