@@ -171,4 +171,66 @@ function M.task_list_toggle(line1, line2)
     vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
 end
 
+function M.ordered_list_renumber(silent)
+    local cur_line = vim.api.nvim_get_current_line()
+    local cur_lnum = vim.fn.line('.')
+    local ordered_list_pattern = require('mdnotes.patterns').ordered_list
+    local spaces, num, separator, text = cur_line:match(ordered_list_pattern)
+    local detected_separator = separator
+    local new_list_lines = {}
+    local line = ""
+    local list_startl = 0
+    local list_endl = 0
+
+
+    if not num or not separator then
+        if silent == true then
+            return nil
+        else
+            vim.notify("Mdn: Unable to detect an ordered list", vim.log.levels.ERROR)
+            return
+        end
+    end
+
+    -- Find where list starts
+    for i = cur_lnum, vim.fn.line('0'), -1 do
+        line = vim.fn.getline(i)
+        _, num, separator, _ = line:match(ordered_list_pattern)
+        if num and separator == detected_separator then
+            list_startl = i - 1
+        else
+            break
+        end
+    end
+
+    -- Find where the list ends
+    for i = cur_lnum, vim.fn.line('$') do
+        line = vim.fn.getline(i)
+        _, num, separator, _ = line:match(ordered_list_pattern)
+        if num and separator == detected_separator then
+            list_endl = i
+        else
+            break
+        end
+    end
+
+    -- Just in case idk
+    if list_startl == 0 or list_endl == 0 then
+        return
+    end
+
+    -- Get list
+    local list_lines = vim.api.nvim_buf_get_lines(0, list_startl, list_endl, false)
+
+    for i, v in ipairs(list_lines) do
+        spaces, num, separator, text = v:match(ordered_list_pattern)
+        if tonumber(num) ~= i then
+            num = tostring(i)
+        end
+        table.insert(new_list_lines, spaces .. num .. separator .. text)
+    end
+
+    vim.api.nvim_buf_set_lines(0, list_startl, list_endl, false, new_list_lines)
+end
+
 return M

@@ -108,6 +108,7 @@ The default config for `mdnotes` is shown below,
 	date_format = "%a %d %b %Y",
 	prefer_lsp = false,
 	auto_list = true,
+	auto_list_renumber = true,
 	default_keymaps = false,
 	table_best_fit_padding = 0,
 	toc_depth = 4
@@ -171,6 +172,11 @@ auto_list = `false|true`				*mdnotes-auto_list*
     task list. Works by remapping |<CR>|, |o|, and |O| but only in Markdown
     buffers by specifying it in the plugin's `after/ftplugin/markdown.lua`
     directory.
+
+auto_list_renumber = `false|true` 			*mdnotes-auto_list_renumber*
+
+    Choose whether to renumber ordered lists automatically. Can also be done
+    with the |Mdn-ordered_list_renumber|.
 
 default_keymaps = `false|true`				*mdnotes-default_keymaps*
 
@@ -310,6 +316,10 @@ subcommands are listed below.
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
     with |linewise-visual|.
 
+:Mdn ordered_list_renumber				*:Mdn-ordered_list_renumber*
+
+    Renumber an ordered list.
+
 :Mdn journal_insert_entry				*:Mdn-journal_insert_entry*
 
     Insert at the top of the file the current date and time along with a separator.
@@ -388,7 +398,10 @@ setup({opts})                                          	*mdnotes.setup()*
 		prefer using the installed Markdown LSP functions instead of
 		the `mdnotes` implementations.
               • {auto_list} (`false|true`, default `true`)
-		auto-continue the Markdown lists. See |mdnotes-auto_list|.
+		auto-continue Markdown lists. See |mdnotes-auto_list|.
+              • {auto_list_renumber} (`false|true`, default `true`)
+		auto-renumber Markdown ordered lists. See
+		|mdnotes-auto_list_renumber|.
               • {default_keymaps} (`false|true`, default `false`)
 		use the default keymaps.
 
@@ -569,6 +582,14 @@ task_list_toggle({line1}, {line2})			*mdnotes.formatting.task_list_toggle()*
     Parameters: ~
     • {line1}  `(integer?)` Starting line number.
     • {line2}  `(integer?)` Ending line number.
+
+ordered_list_renumber({silent})			*mdnotes.formatting.ordered_list_renumber()*
+
+    Renumber an ordered list starting from 1.
+
+    Parameters: ~
+    • {silent}  `(false|true)` Enable or disable error notifications from this
+      function. Used in autocmd.
 
 generate()						*mdnotes.toc.generate()*
 

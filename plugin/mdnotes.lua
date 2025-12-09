@@ -56,6 +56,18 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     end,
 })
 
+-- Automatic ordered list renumbering
+vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
+    pattern = "*.md",
+    group = mdnotes_group,
+    callback = function()
+        if not require("mdnotes.formatting").ordered_list_renumber(true)
+            and require('mdnotes.config').auto_list_renumber == true then
+            return
+        end
+    end
+})
+
 local subcommands = nil
 local get_subcommands = function() return {
     home = require("mdnotes").go_to_index_file,
@@ -81,6 +93,7 @@ local get_subcommands = function() return {
     strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
     inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
     task_list_toggle = require("mdnotes.formatting").task_list_toggle,
+    ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
     toc_generate = require("mdnotes.toc").generate,
     table_create = require("mdnotes.tables").create,
     table_best_fit = require("mdnotes.tables").best_fit,

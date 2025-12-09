@@ -28,6 +28,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Toggle hyperlinks with `:Mdn hyperlink_toggle` which pastes your copied hyperlink over the selected text or removes it.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
+- Automatically renumber your ordered lists (`auto_list_renumber = true` by default).
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
 ### 🫦 Tables
@@ -89,6 +90,7 @@ and specify your config using `opts = {}` or with a `setup({})` function,
     date_format = "%a %d %b %Y"     -- date format based on :h strftime()
     prefer_lsp = false,             -- to prefer LSP functions than the mdnotes functions
     auto_list = true,               -- automatic list continuation
+    auto_list_renumber = true,      -- automatic renumbering of ordered lists
     default_keymaps = false,
 	table_best_fit_padding = 0,     -- add padding around cell contents when using tables_best_fit
     toc_depth = 4                   -- depth shown in the ToC
