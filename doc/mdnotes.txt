@@ -343,6 +343,14 @@ subcommands are listed below.
 
    Insert a column to the right of the current column you're in.
 
+:Mdn table_row_insert_above				*Mdn-table_row_insert_above*
+
+   Insert a row to above the current row.
+
+:Mdn table_row_insert_below				*Mdn-table_row_insert_below*
+
+   Insert a row to below the current row.
+
 ==============================================================================
 API                                     		*mdnotes-api*
 
@@ -589,6 +597,14 @@ column_insert_left()					*mdnotes.tables.column_insert_left()*
 column_insert_right()					*mdnotes.tables.column_insert_right()*
 
    Insert a column to the right of the current column you're in.
+
+row_insert_above()					*mdnotes.tables.row_insert_above()*
+
+   Insert a row to above the current row.
+
+row_insert_below()					*mdnotes.tables.row_insert_below()*
+
+   Insert a row to below the current row.
 
 patterns						*mdnotes.patterns*
 

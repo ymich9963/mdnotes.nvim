@@ -194,6 +194,35 @@ local function insert_column(direction)
     write_table(table_lines, startl, endl)
 end
 
+local function insert_row(direction)
+    local table_lines , startl, endl = get_table()
+
+    if not table_lines then
+        -- Errors would already be outputted
+        return
+    end
+
+    local cur_cursor_line = vim.fn.line('.')
+    local cur_table_line_num = cur_cursor_line - startl
+    local cur_table_line = table_lines[cur_table_line_num]
+    local new_table_line = {}
+
+    for _, v in ipairs(cur_table_line) do
+        local text, _ = v:gsub(".", " ")
+        table.insert(new_table_line, text)
+    end
+
+    vim.print(new_table_line)
+
+    if direction == "above" then
+        table.insert(table_lines, cur_table_line_num, new_table_line)
+    elseif direction == "below" then
+        table.insert(table_lines, cur_table_line_num + 1, new_table_line)
+    end
+
+    write_table(table_lines, startl, endl)
+end
+
 function M.create(r, c)
     if not r and not c then
         vim.notify(("Mdn: Please specify both row and column dimensions."), vim.log.levels.ERROR)
@@ -283,6 +312,14 @@ end
 
 function M.column_insert_right()
     insert_column("right")
+end
+
+function M.row_insert_above()
+    insert_row("above")
+end
+
+function M.row_insert_below()
+    insert_row("below")
 end
 
 return M
