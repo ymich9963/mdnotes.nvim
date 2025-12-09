@@ -28,7 +28,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Toggle hyperlinks with `:Mdn hyperlink_toggle` which pastes your copied hyperlink over the selected text or removes it.
 - Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
-- Automatically renumber your ordered lists (`auto_list_renumber = true` by default).
+- Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
 ### 🫦 Tables
