@@ -109,6 +109,7 @@ The default config for `mdnotes` is shown below,
 	prefer_lsp = false,
 	auto_list = true,
 	auto_list_renumber = true,
+	auto_table_best_fit = true,
 	default_keymaps = false,
 	table_best_fit_padding = 0,
 	toc_depth = 4
@@ -177,6 +178,11 @@ auto_list_renumber = `false|true` 			*mdnotes-auto_list_renumber*
 
     Choose whether to renumber ordered lists automatically. Can also be done
     with the |Mdn-ordered_list_renumber|.
+
+auto_table_best_fit = `false|true`			*mdnotes-auto_table_best_fit*
+
+    Choose whether to get the best fit of the table columns automatically.
+    Can also be done with the |Mdn-table_best_fit|.
 
 default_keymaps = `false|true`				*mdnotes-default_keymaps*
 
@@ -402,6 +408,9 @@ setup({opts})                                          	*mdnotes.setup()*
               • {auto_list_renumber} (`false|true`, default `true`)
 		auto-renumber Markdown ordered lists. See
 		|mdnotes-auto_list_renumber|.
+              • {auto_table_best_fit} (`false|true`, default `true`)
+		auto-resize Markdown table columns. See
+		|mdnotes-auto_table_best_fit|.
               • {default_keymaps} (`false|true`, default `false`)
 		use the default keymaps.
               • {table_best_fit_padding} (`integer?`, default `0`)

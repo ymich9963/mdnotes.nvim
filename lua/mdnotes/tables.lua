@@ -84,16 +84,22 @@ local function parse_table(table_start_line_num, table_end_line_num)
     return table_parsed
 end
 
-local function get_table()
+local function get_table(silent)
     local table_valid, startl, endl = check_valid_table()
     if not table_valid then
-        vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
+        end
+
         return nil
     end
 
     local table_lines = parse_table(startl, endl)
     if vim.tbl_isempty(table_lines) then
-        vim.notify(("Mdn: Error parsing table."), vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify(("Mdn: Error parsing table."), vim.log.levels.ERROR)
+        end
+
         return nil
     end
 
@@ -124,7 +130,7 @@ local function get_column_locations()
 end
 
 local function get_table_complex()
-    local table_lines, startl, endl = get_table()
+    local table_lines, startl, endl = get_table(false)
 
     if not table_lines then
         -- Errors would already be outputted
@@ -171,7 +177,7 @@ local function insert_column(direction)
         end
     end
 
-    local table_lines, startl, endl = get_table()
+    local table_lines, startl, endl = get_table(false)
 
     if not table_lines then
         -- Errors would already be outputted
@@ -195,7 +201,7 @@ local function insert_column(direction)
 end
 
 local function insert_row(direction)
-    local table_lines , startl, endl = get_table()
+    local table_lines , startl, endl = get_table(false)
 
     if not table_lines then
         -- Errors would already be outputted
@@ -251,16 +257,16 @@ function M.create(r, c)
     write_table(new_table)
 end
 
-function M.best_fit()
+function M.best_fit(silent)
 
-    local table_lines, startl, endl = get_table()
-    local max_char_count = {}
+    local table_lines, startl, endl = get_table(silent)
 
     if not table_lines then
         -- Errors would already be outputted
         return
     end
 
+    local max_char_count = {}
     local padding = ""
     if require('mdnotes.config').config.table_best_fit_padding > 0 then
         padding = (" "):rep(require('mdnotes.config').config.table_best_fit_padding)

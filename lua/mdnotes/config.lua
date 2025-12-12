@@ -15,6 +15,7 @@ local default_config = {
     prefer_lsp = false,                     -- to prefer LSP functions than the mdnotes functions
     auto_list = true,                       -- automatic list continuation
     auto_list_renumber = true,              -- automatic renumbering of ordered lists
+    auto_table_best_fit = true,             -- automatic table best fit
     default_keymaps = false,
 	table_best_fit_padding = 0,             -- add padding around cell contents when using tables_best_fit
     toc_depth = 4                           -- depth shown in the ToC

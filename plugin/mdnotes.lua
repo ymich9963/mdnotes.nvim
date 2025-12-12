@@ -68,6 +68,18 @@ vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
     end
 })
 
+-- Automatic table best fit
+vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
+    pattern = "*.md",
+    group = mdnotes_group,
+    callback = function()
+        if not require("mdnotes.tables").best_fit(true)
+            and require('mdnotes.config').auto_table_best_fit == true then
+            return
+        end
+    end
+})
+
 local subcommands = nil
 local get_subcommands = function() return {
     home = require("mdnotes").go_to_index_file,
