@@ -35,6 +35,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Create a `ROW` by `COLS` table with `:Mdn table_create ROW COLS`.
 - Automatting setting of the best fit of your columns so that all your cells line up (opt-out). Can also be done manually with `:Mdn table_best_fit` and can also add padding around your cells (`table_best_fit_padding` in config).
 - Insert columns to the left or right of your current column with `:Mdn table_column_insert_left/right`.
+- Delete current column with `:Mdn table_column_delete`.
 - Insert rows to the above or below of your current line with `:Mdn table_row_insert_above/below`.
 
 ### 🖇️ WikiLinks

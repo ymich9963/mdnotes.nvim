@@ -111,6 +111,7 @@ local get_subcommands = function() return {
     table_best_fit = require("mdnotes.tables").best_fit,
     table_column_insert_left = require("mdnotes.tables").column_insert_left,
     table_column_insert_right = require("mdnotes.tables").column_insert_right,
+    table_column_delete = require("mdnotes.tables").column_delete,
     table_row_insert_above = require("mdnotes.tables").row_insert_above,
     table_row_insert_below = require("mdnotes.tables").row_insert_below
 } end

@@ -359,6 +359,10 @@ subcommands are listed below.
 
    Insert a column to the right of the current column you're in.
 
+:Mdn table_column_delete 				*Mdn-table_column_delete*
+
+   Delete current column.
+
 :Mdn table_row_insert_above				*Mdn-table_row_insert_above*
 
    Insert a row to above the current row.
@@ -632,6 +636,10 @@ column_insert_left()					*mdnotes.tables.column_insert_left()*
 column_insert_right()					*mdnotes.tables.column_insert_right()*
 
    Insert a column to the right of the current column you're in.
+
+column_delete()						*mdnotes.tables.column_delete()*
+
+   Delete current column.
 
 row_insert_above()					*mdnotes.tables.row_insert_above()*
 

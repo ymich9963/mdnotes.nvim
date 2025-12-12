@@ -157,7 +157,7 @@ local function get_table_complex()
     return table_complex, startl, endl
 end
 
-local function insert_column(direction)
+local function get_cur_column()
     local table_lines_complex, _, _ = get_table_complex()
 
     if not table_lines_complex then
@@ -166,15 +166,24 @@ local function insert_column(direction)
     end
 
     local cur_cursor_col_pos = vim.fn.getpos(".")[3]
-    local cur_col = 0
 
     for _, line in ipairs(table_lines_complex) do
         for j, cell in ipairs(line) do
             -- Treats the left | as the start point of the column
             if cell.start_pos <= cur_cursor_col_pos and cell.end_pos > cur_cursor_col_pos then
-                cur_col = j
+                return j
             end
         end
+    end
+
+    return nil
+end
+
+local function insert_column(direction)
+    local cur_col = get_cur_column()
+
+    if not cur_col then
+        return
     end
 
     local table_lines, startl, endl = get_table(false)
@@ -318,6 +327,27 @@ end
 
 function M.column_insert_right()
     insert_column("right")
+end
+
+function M.column_delete()
+    local cur_col = get_cur_column()
+
+    if not cur_col then
+        return
+    end
+
+    local table_lines, startl, endl = get_table(false)
+
+    if not table_lines then
+        -- Errors would already be outputted
+        return
+    end
+
+    for _, v in ipairs(table_lines) do
+        table.remove(v, cur_col)
+    end
+
+    write_table(table_lines, startl, endl)
 end
 
 function M.row_insert_above()
