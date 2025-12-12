@@ -209,6 +209,43 @@ local function insert_column(direction)
     write_table(table_lines, startl, endl)
 end
 
+local function move_column(direction)
+    local cur_col = get_cur_column()
+
+    if not cur_col then
+        return
+    end
+
+    local new_col = 0
+    if direction == "left" then
+        new_col = cur_col - 1
+    elseif direction == "right" then
+        new_col = cur_col + 1
+    end
+
+
+    local table_lines, startl, endl = get_table(false)
+
+    if not table_lines then
+        -- Errors would already be outputted
+        return
+    end
+
+    if new_col < 1 or new_col > #table_lines[1] then
+        vim.notify(("Mdn: Column move exceeds table dimensions."), vim.log.levels.ERROR)
+        return
+    end
+
+    local temp_col_val = ""
+    for _, v in ipairs(table_lines) do
+        temp_col_val = v[cur_col]
+        table.remove(v, cur_col)
+        table.insert(v, new_col, temp_col_val)
+    end
+
+    write_table(table_lines, startl, endl)
+end
+
 local function insert_row(direction)
     local table_lines , startl, endl = get_table(false)
 
@@ -348,6 +385,14 @@ function M.column_delete()
     end
 
     write_table(table_lines, startl, endl)
+end
+
+function M.column_move_left()
+    move_column("left")
+end
+
+function M.column_move_right()
+    move_column("right")
 end
 
 function M.row_insert_above()

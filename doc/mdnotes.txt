@@ -359,6 +359,14 @@ subcommands are listed below.
 
    Insert a column to the right of the current column you're in.
 
+:Mdn table_column_move_left				*Mdn-table_column_move_left*
+
+   Move the current column to the left.
+
+:Mdn table_column_move_right				*Mdn-table_column_move_right*
+
+   Move the current column to the right.
+
 :Mdn table_column_delete 				*Mdn-table_column_delete*
 
    Delete current column.
@@ -634,6 +642,14 @@ column_insert_left()					*mdnotes.tables.column_insert_left()*
    Insert a column to the left of the current column you're in.
 
 column_insert_right()					*mdnotes.tables.column_insert_right()*
+
+   Insert a column to the right of the current column you're in.
+
+column_move_left()					*mdnotes.tables.column_move_left()*
+
+   Insert a column to the left of the current column you're in.
+
+column_move_right()					*mdnotes.tables.column_move_right()*
 
    Insert a column to the right of the current column you're in.
 
