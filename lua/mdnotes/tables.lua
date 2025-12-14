@@ -351,8 +351,17 @@ function M.best_fit(silent)
     end
 
     -- Add the dashes for the delimeter row
-    for c, _ in ipairs(table_lines[2]) do
-        table_lines[2][c] = ("-"):rep(max_char_count[c])
+    local new_delimiter_row = ""
+    for c, v in ipairs(table_lines[2]) do
+        local colon1, _, colon2 = v:match("([:]?)([-]+)([:]?)")
+        new_delimiter_row = ("-"):rep(max_char_count[c])
+        if colon1 == ":" then
+            new_delimiter_row =  ":" .. new_delimiter_row:sub(2)
+        end
+        if colon2 == ":" then
+            new_delimiter_row = new_delimiter_row:sub(1, -2) .. ":"
+        end
+        table_lines[2][c] = new_delimiter_row
     end
 
     write_table(table_lines, startl, endl)
@@ -366,6 +375,7 @@ function M.column_insert_right()
     insert_column("right")
 end
 
+-- Can also use visual block mode
 function M.column_delete()
     local cur_col = get_cur_column()
 
@@ -401,6 +411,46 @@ end
 
 function M.row_insert_below()
     insert_row("below")
+end
+
+function M.column_alignment_toggle()
+    local cur_col = get_cur_column()
+
+    if not cur_col then
+        return
+    end
+
+    local table_lines, startl, endl = get_table(false)
+
+    if not table_lines then
+        -- Errors would already be outputted
+        return
+    end
+
+    local delimiter_row = table_lines[2][cur_col]
+    local new_delimiter_row = ""
+
+    -- if delimeter row is --- create :--
+    if delimiter_row:match("^[-]+$") then
+        new_delimiter_row = delimiter_row:gsub("-", ":", 1)
+        -- if delimeter row is :-- create --:
+    elseif delimiter_row:match("^:[-]+[^:]$") then
+        new_delimiter_row = delimiter_row:gsub(":", "-")
+        new_delimiter_row = new_delimiter_row:sub(1, -2) .. ":"
+        -- if delimeter row is --: create :-:
+    elseif delimiter_row:match("^[^:][-]+:$") then
+        new_delimiter_row = delimiter_row:gsub("-", ":", 1)
+        -- if delimeter row is :-: create ---
+    elseif delimiter_row:match("^:[-]+:$") then
+        new_delimiter_row = delimiter_row:gsub(":", "-")
+    else
+        vim.notify(("Mdn: Check that the table delimeter row is in the correct format."), vim.log.levels.ERROR)
+        return
+    end
+
+    table_lines[2][cur_col] = new_delimiter_row
+
+    write_table(table_lines, startl, endl)
 end
 
 return M

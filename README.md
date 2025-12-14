@@ -37,6 +37,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Insert columns to the left or right of your current column with `:Mdn table_column_insert_left/right`.
 - Move columns to the left or right of your current column with `:Mdn table_column_move_left/right`.
 - Delete current column with `:Mdn table_column_delete`.
+- Toggle column alignment with `:Mdn table_column_alignment_toggle`.
 - Insert rows to the above or below of your current line with `:Mdn table_row_insert_above/below`.
 
 ### 🖇️ WikiLinks

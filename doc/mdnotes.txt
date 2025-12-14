@@ -350,6 +350,7 @@ subcommands are listed below.
 
    Set the best fit for the table columns so that all cell borders line up.
    Can also add padding to your cells. See |mdnotes-table_best_fit_padding|.
+   Uses the |ModeChanged| event to preserve undo history.
 
 :Mdn table_column_insert_left				*Mdn-table_column_insert_left*
 
@@ -370,6 +371,10 @@ subcommands are listed below.
 :Mdn table_column_delete 				*Mdn-table_column_delete*
 
    Delete current column.
+
+:Mdn table_column_alignment_toggle			*Mdn-table_column_alignment_toggle*
+
+   Cycle through the left, right and centre alignments in the Markdown table.
 
 :Mdn table_row_insert_above				*Mdn-table_row_insert_above*
 
@@ -656,6 +661,10 @@ column_move_right()					*mdnotes.tables.column_move_right()*
 column_delete()						*mdnotes.tables.column_delete()*
 
    Delete current column.
+
+column_alignment_toggle()				*mdnotes.tables.column_alignment_toggle()*
+
+   Cycle through the left, right and centre alignments in the Markdown table.
 
 row_insert_above()					*mdnotes.tables.row_insert_above()*
 
