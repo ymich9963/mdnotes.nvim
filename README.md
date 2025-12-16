@@ -32,6 +32,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
 ### 🫦 Tables
+- See the [Editing Tables](#editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
 - Create a `ROW` by `COLS` table with `:Mdn table_create ROW COLS`.
 - Automatting setting of the best fit of your columns so that all your cells line up (opt-out). Can also be done manually with `:Mdn table_best_fit` and can also add padding around your cells (`table_best_fit_padding` in config).
 - Insert columns to the left or right of your current column with `:Mdn table_column_insert_left/right`.
@@ -172,6 +173,23 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 |Opening WikiLinks               |Y (`:Mdn open_wikilink`)             |Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)              |Y (`:h gf`, needs .md extension in link, requires settings for Windows)|
  
  **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
+
+## Editing Tables
+`mdnotes` tries to complement Neovim functionality to make editing tables as easy as possible. See the table below for what functions Neovim does and what functions are done by `mdnotes`.
+
+|Feature                         |mdnotes                                   |Neovim                                                                 |
+|--------------------------------|------------------------------------------|-----------------------------------------------------------------------|
+|Insert empty rows               |Y (`:Mdn table_row_insert_above/below`)   |N                                                                      |
+|Duplicate row                   |N                                         |Y (`:h yy`)                                                            |
+|Delete row                      |N                                         |Y (`:h dd`)                                                            |
+|Move row                        |N                                         |Y (`:h dd` and `:h p`)                                                 |
+|Insert empty columns            |Y (`:Mdn table_column_insert_left/right`) |N                                                                      |
+|Duplicate column                |Y (`:Mdn table_column_duplicate`)         |N                                                                      |
+|Delete column                   |Y (`:Mdn table_column_delete`)            |Y (`:h visual-block`)                                                  |
+|Move column                     |Y (`:Mdn table_column_move_left/right`)   |N                                                                      |
+
+
+ **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section.
 
 ## 📢 Supported Markdown Formatting
 Here is the supported Markdown formatting for `mdnotes.nvim`. The plugin tries to adhere to the [CommonMark](https://spec.commonmark.org/) and [GitHub Flavoured Markdown (GFM)](https://github.github.com/gfm/) spec as well as providing WikiLink support. If any problems arise please don't hesitate to create an issue for it!
