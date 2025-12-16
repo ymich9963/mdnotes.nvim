@@ -339,7 +339,8 @@ subcommands are listed below.
 :Mdn table_create {rows} {cols}				*Mdn-table_create*
 
    Create a table of the size {rows} x {cols}. It will get populated with
-   `ROWrCOLc` text automatically. For example on a 3 x 3 table, it would be, 
+   `ROWrCOLc` text automatically. This is to activate the parsers so that the
+   table looks nice on generation. For example on a 3 x 3 table, it would be, 
 >
     |1r1c|1r2c|1r3c|
     |----|----|----|
@@ -634,8 +635,8 @@ generate()						*mdnotes.toc.generate()*
 create({rows}, {cols})					*mdnotes.tables.create()*
 
    Create a table of the size {rows} x {cols}. It will get populated with
-   `ROWrCOLc` text automatically. If not arguments are given then a 3 x 3
-   table is created. For example on a 3 x 3 table, it would be, 
+   `ROWrCOLc` text automatically. This is to activate the parsers so that the
+   table looks nice on generation. For example on a 3 x 3 table, it would be, 
 >
     |1r1c|1r2c|1r3c|
     |----|----|----|
