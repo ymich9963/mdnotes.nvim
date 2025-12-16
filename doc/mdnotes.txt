@@ -376,6 +376,10 @@ subcommands are listed below.
 
    Cycle through the left, right and centre alignments in the Markdown table.
 
+:Mdn table_column_duplicate				*Mdn-table_column_duplicate*
+
+   Duplicate the current column.
+
 :Mdn table_row_insert_above				*Mdn-table_row_insert_above*
 
    Insert a row to above the current row.
@@ -663,6 +667,10 @@ column_delete()						*mdnotes.tables.column_delete()*
    Delete current column.
 
 column_alignment_toggle()				*mdnotes.tables.column_alignment_toggle()*
+
+   Cycle through the left, right and centre alignments in the Markdown table.
+
+column_duplicate()					*mdnotes.tables.column_duplicate()*
 
    Cycle through the left, right and centre alignments in the Markdown table.
 

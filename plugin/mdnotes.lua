@@ -115,6 +115,7 @@ local get_subcommands = function() return {
     table_column_move_right = require("mdnotes.tables").column_move_right,
     table_column_delete = require("mdnotes.tables").column_delete,
     table_column_alignment_toggle = require("mdnotes.tables").column_alignment_toggle,
+    table_column_duplicate = require("mdnotes.tables").column_duplicate,
     table_row_insert_above = require("mdnotes.tables").row_insert_above,
     table_row_insert_below = require("mdnotes.tables").row_insert_below
 } end

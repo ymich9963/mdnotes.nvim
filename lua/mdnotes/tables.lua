@@ -453,4 +453,30 @@ function M.column_alignment_toggle()
     write_table(table_lines, startl, endl)
 end
 
+function M.column_duplicate()
+    local cur_col = get_cur_column()
+
+    if not cur_col then
+        return
+    end
+
+    local table_lines, startl, endl = get_table(false)
+
+    if not table_lines then
+        -- Errors would already be outputted
+        return
+    end
+
+    for _, r in ipairs(table_lines) do
+        for j, c in ipairs(r) do
+            if j == cur_col then
+                table.insert(r, cur_col, c)
+                break
+            end
+        end
+    end
+
+    write_table(table_lines, startl, endl)
+end
+
 return M
