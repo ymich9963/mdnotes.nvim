@@ -37,9 +37,9 @@ function M.setup(user_config)
         M.config.asset_overwrite_behaviour = "error"
     end
 
-    if not vim.tbl_contains({"buffer", "tab", "split", "vsplit"}, M.config.wikilink_open_behaviour) then
-        vim.notify(("Mdn: 'wikilink_open_behaviour' value '%s' is invalid. Can only use 'buffer', 'tab', 'split', or 'vsplit'. Defaulting to 'buffer'."):format(M.config.wikilink_open_behaviour), vim.log.levels.ERROR)
-        M.config.wikilink_open_behaviour = "buffer"
+    if not vim.tbl_contains({"buffer", "tab", "split", "vsplit"}, M.config.open_behaviour) then
+        vim.notify(("Mdn: 'open_behaviour' value '%s' is invalid. Can only use 'buffer', 'tab', 'split', or 'vsplit'. Defaulting to 'buffer'."):format(M.config.open_behaviour), vim.log.levels.ERROR)
+        M.config.open_behaviour = "buffer"
     end
 
     if not vim.tbl_contains({"**", "__"}, M.config.bold_format) then

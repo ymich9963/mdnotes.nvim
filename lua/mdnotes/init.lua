@@ -15,13 +15,13 @@ function M.setup(user_config)
     M.bold_char = M.config.bold_format:sub(1, 1)
     M.italic_char = M.config.italic_format:sub(1, 1)
 
-    if M.config.wikilink_open_behaviour == "buffer" then
+    if M.config.open_behaviour == "buffer" then
         M.open_cmd = 'edit '
-    elseif M.config.wikilink_open_behaviour == "tab" then
+    elseif M.config.open_behaviour == "tab" then
         M.open_cmd = 'tabnew '
-    elseif M.config.wikilink_open_behaviour == "split" then
+    elseif M.config.open_behaviour == "split" then
         M.open_cmd = 'split '
-    elseif M.config.wikilink_open_behaviour == "vsplit" then
+    elseif M.config.open_behaviour == "vsplit" then
         M.open_cmd = 'vsplit '
     end
 end
