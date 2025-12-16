@@ -19,6 +19,10 @@ function M.setup(user_config)
         M.open_cmd = 'edit '
     elseif M.config.wikilink_open_behaviour == "tab" then
         M.open_cmd = 'tabnew '
+    elseif M.config.wikilink_open_behaviour == "split" then
+        M.open_cmd = 'split '
+    elseif M.config.wikilink_open_behaviour == "vsplit" then
+        M.open_cmd = 'vsplit '
     end
 end
 

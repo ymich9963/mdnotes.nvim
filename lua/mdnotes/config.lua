@@ -8,7 +8,7 @@ local default_config = {
     assets_path = "",
     insert_file_behaviour = "copy",         -- "copy" or "move" files when inserting from clipboard
     asset_overwrite_behaviour = "error",    -- "overwrite" or "error" when finding assset file conflicts
-    wikilink_open_behaviour = "buffer",     -- "buffer" or "tab" to open when following links
+    open_behaviour = "buffer",              -- "buffer", "tab", "split", or "vsplit" to open when following links
     bold_format = "**",                     -- "**" or "__"
     italic_format = "*",                    -- "*" or "_"
     date_format = "%a %d %b %Y",            -- date format based on :h strftime()
@@ -37,8 +37,8 @@ function M.setup(user_config)
         M.config.asset_overwrite_behaviour = "error"
     end
 
-    if not vim.tbl_contains({"buffer", "tab"}, M.config.wikilink_open_behaviour) then
-        vim.notify(("Mdn: 'wikilink_open_behaviour' value '%s' is invalid. Can only use 'buffer' or 'tab'. Defaulting to 'buffer'."):format(M.config.wikilink_open_behaviour), vim.log.levels.ERROR)
+    if not vim.tbl_contains({"buffer", "tab", "split", "vsplit"}, M.config.wikilink_open_behaviour) then
+        vim.notify(("Mdn: 'wikilink_open_behaviour' value '%s' is invalid. Can only use 'buffer', 'tab', 'split', or 'vsplit'. Defaulting to 'buffer'."):format(M.config.wikilink_open_behaviour), vim.log.levels.ERROR)
         M.config.wikilink_open_behaviour = "buffer"
     end
 

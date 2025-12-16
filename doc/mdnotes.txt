@@ -142,10 +142,11 @@ overwrite_behaviour = `"string"`			*mdnotes-overwrite_behaviour*
 
 open_behaviour = `"string"`				*mdnotes-open_behaviour*
 
-    Can take the values of `"buffer"` or `"tab"` which defines how Wikilinks are
-    opened using |:Mdn home|, |:Mdn journal|, and |:Mdn wikilink_follow|. With
-    `"buffer"` it opens them in the current buffer, whereas with `"tab"` it opens them
-    in a new tab.
+    Can take the values of `"buffer"`, `"tab"`, `"split"`, or `"vsplit"` which 
+    defines how Wikilinks are opened using |:Mdn home|, |:Mdn journal|, 
+    and |:Mdn wikilink_follow|. With `"buffer"` it opens them in the current
+    buffer, `"tab"` it opens them in a new tab, `"split"` opens them in a
+    horizontal split, and `"vsplit"` in a vertical tab.
 
 bold_format = `"string"`				*mdnotes-bold_format*
 
@@ -192,7 +193,7 @@ table_best_fit_padding = `integer`			*mdnotes-table_best_fit_padding*
 
     Number of spaces to add around the table cells when doing |Mdn-table_best_fit|.
 
-toc_depth = `integer`		l			*mdnotes-toc_depth*
+toc_depth = `integer`		 			*mdnotes-toc_depth*
 
     Heading level depth to include when generating a Table of Contents using
     |Mdn-toc_generate|. For example setting this value to 2 would include only
@@ -411,9 +412,9 @@ setup({opts})                                          	*mdnotes.setup()*
               • {insert_file_behaviour} (`string?`, default `"copy"`)
 		`mdnotes` behaviour when inserting files.
               • {overwrite_behaviour} (`string?`, default `"copy"`)
-		`mdnotes` behaviour when inserting files and the file already
-		exists.
-              • {open_behaviour} (`string?`, default `"copy"`)
+		`mdnotes` behaviour when inserting files and the file 
+		already exists.
+              • {open_behaviour} (`string?`, default `"buffer"`)
 		`mdnotes` behaviour when opening files with |:Mdn-open|.
               • {bold_format} (`string?`, default `"**"`)
 		defines `mdnotes` bold formatting behaviour
