@@ -469,37 +469,37 @@ open() 							*mdnotes.open()*
 
     Open the inline link under cursor. It can be a file or a URL.
 
-toggle()						*mdnotes.outliner.toggle()*
+outliner.toggle()					*mdnotes.outliner.toggle()*
 
     Toggle the outliner mode. Outliner mode essentially sets or deletes
     certain keymaps to simulate working in an outliner program (e.g. Logseq).
 
-follow()						*mdnotes.wikilinks.follow()*
+wikilink.follow()					*mdnotes.wikilinks.follow()*
 
     Open Wikilink under cursor (e.g. `[[link#section]]`).
 
-show_references()					*mdnotes.wikilinks.show_references()*
+wikilink.show_references()				*mdnotes.wikilinks.show_references()*
 
     Show the references of the current Wikilink under cursor in a quickfix
     list. If no Wikilink is under the cursor it shows the references to the
     current buffer.
 
-rename_references()					*mdnotes.wikilinks.rename_references()*
+wikilink.rename_references()				*mdnotes.wikilinks.rename_references()*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
     link.
 
-rename_references_cur_buf()				*mdnotes.wikilinks.rename_references_cur_buf()*
+wikilink.rename_references_cur_buf()			*mdnotes.wikilinks.rename_references_cur_buf()*
 
     Rename references to current buffer and also the file of the current
     buffer.
 
-undo_rename						*mdnotes.wikilinks.undo_rename()*
+wikilink.undo_rename()					*mdnotes.wikilinks.undo_rename()*
 
     Undo the most recent reference rename. Only available when 
     `prefer_lsp = false`. 
 
-check_md_format({pattern}) 				*mdnotes.check_md_format()*
+formatting.check_md_format({pattern}) 			*mdnotes.formatting.check_md_format()*
 
     Check if the text under cursor obeys a Lua pattern that is used to
     describe Markdown formatting. Patterns used are the
@@ -512,7 +512,7 @@ check_md_format({pattern}) 				*mdnotes.check_md_format()*
     Return: ~
       (`false|true`)
 
-check_assets_path() 					*mdnotes.assets.check_assets_path()*
+assets.check_assets_path() 				*mdnotes.assets.check_assets_path()*
 
     Check the existance of the |mdnotes-assets_path| when inserting images or
     files.
@@ -520,7 +520,7 @@ check_assets_path() 					*mdnotes.assets.check_assets_path()*
     Return: ~
       (`false|true`)
 
-insert_image()						*mdnotes.assets.insert_image()*
+assets.insert_image()					*mdnotes.assets.insert_image()*
 
     Insert the image in the clipboard under the cursor and depending on
     |mdnotes-insert_file_behaviour| place it in your |mdnotes-assets_path|. (e.g
@@ -528,12 +528,12 @@ insert_image()						*mdnotes.assets.insert_image()*
     |mdnotes-overwrite_behaviour|.
 
 
-insert_file()						*mdnotes.assets.insert_file()*
+assets.insert_file()					*mdnotes.assets.insert_file()*
 
     Exactly the same as |mdnotes.insert_image()| but it inserts a inline link to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
-cleanup_unused()					*mdnotes.assets.cleanup_unused()*
+assets.cleanup_unused()					*mdnotes.assets.cleanup_unused()*
 
     Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
@@ -541,17 +541,17 @@ cleanup_unused()					*mdnotes.assets.cleanup_unused()*
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-move_unused()						*mdnotes.assets.move_unused()*
+assets.move_unused()					*mdnotes.assets.move_unused()*
 
     Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` move actions. Uses |uv.fs_rename()|.
 
-open_containing_folder					*mdnotes.assets.open_containing_folder()*
+assets.open_containing_folder()				*mdnotes.assets.open_containing_folder()*
 
     Open your assets folder declared in |mdnotes-assets_path|.
 
-buf_history						*mdnotes.history.buf_history*
+history.buf_history					*mdnotes.history.buf_history*
 
     Table containing the sequential buffer history of the visited Markdown
     buffers. It gets populated through an `autocmd` on a `BufEnter` event. If
@@ -559,21 +559,21 @@ buf_history						*mdnotes.history.buf_history*
     previously in, the buffer history removes everything past the buffer they
     went back to, and appends the buffer they've moved forward to.
 
-current_index						*mdnotes.history.current_index*
+history.current_index						*mdnotes.history.current_index*
 
     Current index being pointed to in the |mdnotes.buf_history| table. 
 
-go_back()						*mdnotes.history.go_back()*
+history.go_back()					*mdnotes.history.go_back()*
 
     Go back in the buffer history. Essentially move the index by -1. See
     |mdnotes.buf_history|.
 
-go_forward()						*mdnotes.history.go_forward()*
+history.go_forward()					*mdnotes.history.go_forward()*
 
     Go forward in the buffer history. Essentially move the index by +1. See
     |mdnotes.buf_history|.
 
-clear_history()						*mdnotes.history.clear_history()*
+history.clear()						*mdnotes.history.clear()*
 
     Clear the |mdnotes.buf_history| table.
 
@@ -586,33 +586,33 @@ inline_link.delete()					*mdnotes.formatting.inline_link-delete()*
 
     Remove the inline link from the current inline link under the cursor.
 
-inline_link.toggle()					*mdnotes.formatting.inline_link-toggle()*
+formatting.inline_link.toggle()				*mdnotes.formatting.inline_link-toggle()*
 
     Toggle adding or removing the inline link. When adding it uses
     |mdnotes.inline_link-insert()| and when removing it uses
     |mdnotes.inline_link-delete()|.
 
-bold_toggle()						*mdnotes.formatting.bold_toggle()*
+formatting.bold_toggle()				*mdnotes.formatting.bold_toggle()*
 
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-italic_toggle()						*mdnotes.formatting.italic_toggle()*
+formatting.italic_toggle()				*mdnotes.formatting.italic_toggle()*
 
     Toggle Markdown `*italic*` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-strikethrough_toggle()					*mdnotes.formatting.strikethrough_toggle()*
+formatting.strikethrough_toggle()			*mdnotes.formatting.strikethrough_toggle()*
 
     Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
     command or hover over already bold text to remove.
 
-inline_code_toggle()					*mdnotes.formatting.inline_code_toggle()*
+formatting.inline_code_toggle()				*mdnotes.formatting.inline_code_toggle()*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-task_list_toggle({line1}, {line2})			*mdnotes.formatting.task_list_toggle()*
+formatting.task_list_toggle({line1}, {line2})		*mdnotes.formatting.task_list_toggle()*
 
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
     with |linewise-visual|.
@@ -621,7 +621,7 @@ task_list_toggle({line1}, {line2})			*mdnotes.formatting.task_list_toggle()*
     • {line1}  `(integer?)` Starting line number.
     • {line2}  `(integer?)` Ending line number.
 
-ordered_list_renumber({silent})			*mdnotes.formatting.ordered_list_renumber()*
+formatting.ordered_list_renumber({silent})		*mdnotes.formatting.ordered_list_renumber()*
 
     Renumber an ordered list starting from 1.
 
@@ -629,12 +629,12 @@ ordered_list_renumber({silent})			*mdnotes.formatting.ordered_list_renumber()*
     • {silent}  `(false|true)` Enable or disable error notifications from this
       function. Used in autocmd.
 
-generate()						*mdnotes.toc.generate()*
+toc.generate()						*mdnotes.toc.generate()*
 
     Generate and insert a Table Of Contents of the current file at the cursor
     position.
 
-create({rows}, {cols})					*mdnotes.table.create()*
+table.create({rows}, {cols})				*mdnotes.table.create()*
 
    Create a table of the size {rows} x {cols}. It will get populated with
    `ROWrCOLc` text automatically. This is to activate the parsers so that the
@@ -645,43 +645,43 @@ create({rows}, {cols})					*mdnotes.table.create()*
     |2r1c|2r2c|2r3c|
     |3r1c|3r2c|3r3c|
 
-best_fit()						*mdnotes.table.best_fit()*
+table.best_fit()					*mdnotes.table.best_fit()*
 
    Set the best fit per column of your table so that they are all even.
 
-column_insert_left()					*mdnotes.table.column_insert_left()*
+table.column_insert_left()				*mdnotes.table.column_insert_left()*
 
    Insert a column to the left of the current column you're in.
 
-column_insert_right()					*mdnotes.table.column_insert_right()*
+table.column_insert_right()				*mdnotes.table.column_insert_right()*
 
    Insert a column to the right of the current column you're in.
 
-column_move_left()					*mdnotes.table.column_move_left()*
+table.column_move_left()				*mdnotes.table.column_move_left()*
 
    Insert a column to the left of the current column you're in.
 
-column_move_right()					*mdnotes.table.column_move_right()*
+table.column_move_right()				*mdnotes.table.column_move_right()*
 
    Insert a column to the right of the current column you're in.
 
-column_delete()						*mdnotes.table.column_delete()*
+table.column_delete()					*mdnotes.table.column_delete()*
 
    Delete current column.
 
-column_alignment_toggle()				*mdnotes.table.column_alignment_toggle()*
+table.column_alignment_toggle()				*mdnotes.table.column_alignment_toggle()*
 
    Cycle through the left, right and centre alignments in the Markdown table.
 
-column_duplicate()					*mdnotes.table.column_duplicate()*
+table.column_duplicate()				*mdnotes.table.column_duplicate()*
 
    Cycle through the left, right and centre alignments in the Markdown table.
 
-row_insert_above()					*mdnotes.table.row_insert_above()*
+table.row_insert_above()				*mdnotes.table.row_insert_above()*
 
    Insert a row to above the current row.
 
-row_insert_below()					*mdnotes.table.row_insert_below()*
+table.row_insert_below()				*mdnotes.table.row_insert_below()*
 
    Insert a row to below the current row.
 
