@@ -75,7 +75,7 @@ vim.api.nvim_create_autocmd({"ModeChanged"}, {
     group = mdnotes_group,
     callback = function()
         if require('mdnotes.config').auto_table_best_fit == true then
-            if not require("mdnotes.tables").best_fit(true) then
+            if not require("mdnotes.table").best_fit(true) then
                 return
             end
         end
@@ -109,17 +109,17 @@ local get_commands = function() return {
             undo_rename = require("mdnotes.wikilinks").undo_rename,
         },
         table = {
-            create = require("mdnotes.tables").create,
-            best_fit = require("mdnotes.tables").best_fit,
-            column_insert_left = require("mdnotes.tables").column_insert_left,
-            column_insert_right = require("mdnotes.tables").column_insert_right,
-            column_move_left = require("mdnotes.tables").column_move_left,
-            column_move_right = require("mdnotes.tables").column_move_right,
-            column_delete = require("mdnotes.tables").column_delete,
-            column_alignment_toggle = require("mdnotes.tables").column_alignment_toggle,
-            column_duplicate = require("mdnotes.tables").column_duplicate,
-            row_insert_above = require("mdnotes.tables").row_insert_above,
-            row_insert_below = require("mdnotes.tables").row_insert_belo,
+            create = require("mdnotes.table").create,
+            best_fit = require("mdnotes.table").best_fit,
+            column_insert_left = require("mdnotes.table").column_insert_left,
+            column_insert_right = require("mdnotes.table").column_insert_right,
+            column_move_left = require("mdnotes.table").column_move_left,
+            column_move_right = require("mdnotes.table").column_move_right,
+            column_delete = require("mdnotes.table").column_delete,
+            column_alignment_toggle = require("mdnotes.table").column_alignment_toggle,
+            column_duplicate = require("mdnotes.table").column_duplicate,
+            row_insert_above = require("mdnotes.table").row_insert_above,
+            row_insert_below = require("mdnotes.table").row_insert_below,
         },
         history = {
             go_back = require("mdnotes.history").go_back,

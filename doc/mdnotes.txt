@@ -634,7 +634,7 @@ generate()						*mdnotes.toc.generate()*
     Generate and insert a Table Of Contents of the current file at the cursor
     position.
 
-create({rows}, {cols})					*mdnotes.tables.create()*
+create({rows}, {cols})					*mdnotes.table.create()*
 
    Create a table of the size {rows} x {cols}. It will get populated with
    `ROWrCOLc` text automatically. This is to activate the parsers so that the
@@ -645,43 +645,43 @@ create({rows}, {cols})					*mdnotes.tables.create()*
     |2r1c|2r2c|2r3c|
     |3r1c|3r2c|3r3c|
 
-best_fit()						*mdnotes.tables.best_fit()*
+best_fit()						*mdnotes.table.best_fit()*
 
    Set the best fit per column of your table so that they are all even.
 
-column_insert_left()					*mdnotes.tables.column_insert_left()*
+column_insert_left()					*mdnotes.table.column_insert_left()*
 
    Insert a column to the left of the current column you're in.
 
-column_insert_right()					*mdnotes.tables.column_insert_right()*
+column_insert_right()					*mdnotes.table.column_insert_right()*
 
    Insert a column to the right of the current column you're in.
 
-column_move_left()					*mdnotes.tables.column_move_left()*
+column_move_left()					*mdnotes.table.column_move_left()*
 
    Insert a column to the left of the current column you're in.
 
-column_move_right()					*mdnotes.tables.column_move_right()*
+column_move_right()					*mdnotes.table.column_move_right()*
 
    Insert a column to the right of the current column you're in.
 
-column_delete()						*mdnotes.tables.column_delete()*
+column_delete()						*mdnotes.table.column_delete()*
 
    Delete current column.
 
-column_alignment_toggle()				*mdnotes.tables.column_alignment_toggle()*
+column_alignment_toggle()				*mdnotes.table.column_alignment_toggle()*
 
    Cycle through the left, right and centre alignments in the Markdown table.
 
-column_duplicate()					*mdnotes.tables.column_duplicate()*
+column_duplicate()					*mdnotes.table.column_duplicate()*
 
    Cycle through the left, right and centre alignments in the Markdown table.
 
-row_insert_above()					*mdnotes.tables.row_insert_above()*
+row_insert_above()					*mdnotes.table.row_insert_above()*
 
    Insert a row to above the current row.
 
-row_insert_below()					*mdnotes.tables.row_insert_below()*
+row_insert_below()					*mdnotes.table.row_insert_below()*
 
    Insert a row to below the current row.
 
