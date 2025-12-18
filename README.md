@@ -21,42 +21,42 @@ All the features of `mdnotes` and their associated commands are listed and categ
 ### 🧭 Navigation
 - Open hyperlinks to files and URLs with `:Mdn open`.
 - Set your index and journal files and go there with `:Mdn home` and `:Mdn journal`.
-- Can go backwards and forwards in notes history by using `:Mdn history_go_back` and  `:Mdn history_go_forward`.
-- Open WikiLinks (`[[link]]` or `[[link#Section]])` with `:Mdn wikilink_follow`.
+- Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
+- Open WikiLinks (`[[link]]` or `[[link#Section]])` with `:Mdn wikilink follow`.
 
 ### 💁 Formatting
-- Toggle hyperlinks with `:Mdn hyperlink_toggle` which pastes your copied hyperlink over the selected text or removes it.
-- Toggle the appropriate formatting with `:Mdn bold/italic/inline_code/strikethrough_toggle`.
+- Toggle hyperlinks with `:Mdn inline_link toggle` which pastes your copied hyperlink over the selected text or removes it.
+- Toggle the appropriate formatting with `:Mdn formatting bold/italic/inline_code/strikethrough_toggle`.
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
 - Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
-- Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
+- Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn formatting task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 
 ### 🫦 Tables
 - See the [Editing Tables](#editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
-- Create a `ROW` by `COLS` table with `:Mdn table_create ROW COLS`.
-- Automatting setting of the best fit of your columns so that all your cells line up (opt-out). Can also be done manually with `:Mdn table_best_fit` and can also add padding around your cells (`table_best_fit_padding` in config).
-- Insert columns to the left or right of your current column with `:Mdn table_column_insert_left/right`.
-- Move columns to the left or right of your current column with `:Mdn table_column_move_left/right`.
-- Delete current column with `:Mdn table_column_delete`.
-- Duplicate current column with `:Mdn table_column_duplicate`.
-- Toggle column alignment with `:Mdn table_column_alignment_toggle`.
-- Insert rows to the above or below of your current line with `:Mdn table_row_insert_above/below`.
+- Create a `ROW` by `COLS` table with `:Mdn table create ROW COLS`.
+- Automatting setting of the best fit of your columns so that all your cells line up (opt-out). Can also be done manually with `:Mdn table best_fit` and can also add padding around your cells (`table_best_fit_padding` in config).
+- Insert columns to the left or right of your current column with `:Mdn table column_insert_left/right`.
+- Move columns to the left or right of your current column with `:Mdn table column_move_left/right`.
+- Delete current column with `:Mdn table column_delete`.
+- Duplicate current column with `:Mdn table column_duplicate`.
+- Toggle column alignment with `:Mdn table column_alignment_toggle`.
+- Insert rows to the above or below of your current line with `:Mdn table row_insert_above/below`.
 
 ### 🖇️ WikiLinks
-- Rename link references and the file itself using `:Mdn wikilink_rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
-- Show the references of a Wikilink by hovering over the link and executing `:Mdn wikilink_show_references`. Also show references of the current buffer when not hovering over a Wikilink.
-- Undo the most recent reference rename with `:Mdn wikilink_undo_rename`. **Only** available when `prefer_lsp = false`.
+- Rename link references and the file itself using `:Mdn wikilink rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
+- Show the references of a Wikilink by hovering over the link and executing `:Mdn wikilink show_references`. Also show references of the current buffer when not hovering over a Wikilink.
+- Undo the most recent reference rename with `:Mdn wikilink undo_rename`. **Only** available when `prefer_lsp = false`.
 
 ### 👩‍💼 Asset Management
-- Use `:Mdn assets_cleanup_unused` to easily cleanup assets that you no longer use.
-- Use `:Mdn assets_move_unused` to move unused assets to a separate folder.
-- Insert an image or file from clipboard using `:Mdn insert_image` or `:Mdn insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
-- Open your assets folder using `:Mdn assets_open_containing_folder`. 
+- Use `:Mdn assets cleanup_unused` to easily cleanup assets that you no longer use.
+- Use `:Mdn assets move_unused` to move unused assets to a separate folder.
+- Insert an image or file from clipboard using `:Mdn assets insert_image` or `:Mdn assets insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
+- Open your assets folder using `:Mdn assets open_containing_folder`. 
 
 ### 🧍‍♂️ Uncategorised
-- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc_generate`. Can also customise the depth of the ToC.
+- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC.
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling.
-- Insert a journal entry automatically by doing `:Mdn journal_insert_entry`. 
+- Insert a journal entry automatically by doing `:Mdn journal insert_entry`. 
 - Opt-out use of existing Markdown LSP functions.
 - Supports Windows eccentricities.
 
@@ -133,14 +133,14 @@ For the best Neovim Markdown note-taking experience, I've listed some other proj
  The keymappings below can be enabled by setting `default_keymaps = true` as they are not enabled by default, and they will only be available in Markdown buffers. Place any `mdnotes` keymaps in a  `<Neovim config path>/after/ftplugin/markdown.lua` file so that they're also Markdown specific. For organisation they use the `<leader>m` prefix.
  ```lua
 vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
-vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink_follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
-vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink_show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
-vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink_rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
-vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
-vim.keymap.set("n", "<leader>mh", ":Mdn history_go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
-vim.keymap.set("n", "<leader>ml", ":Mdn history_go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
-vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
-vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
+vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
+vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
+vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
+vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn inline_link toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
+vim.keymap.set("n", "<leader>mh", ":Mdn history go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
+vim.keymap.set("n", "<leader>ml", ":Mdn history go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
+vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
+vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn formatting italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 ```
 ### 👩‍💻 Optional Settings
 Place these settings in your `<Neovim config path>/after/ftplugin/markdown.lua` file so that they are Markdown-specific. First one here is to enable wrapping only for the current Markdown buffer. 
@@ -165,12 +165,12 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 
 |Feature                         |mdnotes                              |LSP                                                        |Neovim                                                                 |
 |--------------------------------|-------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------|
-|Showing references              |Y (`:Mdn show_references`)           |Y (`:h vim.lsp.buf.references()` or `grr`)                 |N                                                                      |
-|Rename links to current buffer  |Y (`:Mdn rename_references`)         |Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only)|N                                                                      |
-|Rename links to hovered WikiLink|Y (`:Mdn rename_references`)         |? (`:h vim.lsp.buf.rename()`, should work but it does not) |N                                                                      |
-|Buffer History                  |Y (Sequential `:Mdn go_back/forward`)|N                                                          |Y (Not Sequential `:h bp`/`:h bn`                                      |
+|Showing references              |Y (`:Mdn wikilink show_references`)           |Y (`:h vim.lsp.buf.references()` or `grr`)                 |N                                                                      |
+|Rename links to current buffer  |Y (`:Mdn wikilink rename_references`)         |Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only)|N                                                                      |
+|Rename links to hovered WikiLink|Y (`:Mdn wikilink rename_references`)         |? (`:h vim.lsp.buf.rename()`, should work but it does not) |N                                                                      |
+|Buffer History                  |Y (Sequential `:Mdn history go_back/forward`)|N                                                          |Y (Not Sequential `:h bp`/`:h bn`                                      |
 |Path Completion                 |N                                    |Y (`:h lsp-completion`)                                    |Y (`:h i_CTRL-X_CTRL-F`)                                               |
-|Opening WikiLinks               |Y (`:Mdn open_wikilink`)             |Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)              |Y (`:h gf`, needs .md extension in link, requires settings for Windows)|
+|Opening WikiLinks               |Y (`:Mdn wikilink follow`)             |Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)              |Y (`:h gf`, needs .md extension in link, requires settings for Windows)|
  
  **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
 
@@ -179,14 +179,14 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 
 |Feature                         |mdnotes                                   |Neovim                                                                 |
 |--------------------------------|------------------------------------------|-----------------------------------------------------------------------|
-|Insert empty rows               |Y (`:Mdn table_row_insert_above/below`)   |N                                                                      |
+|Insert empty rows               |Y (`:Mdn table row_insert_above/below`)   |N                                                                      |
 |Duplicate row                   |N                                         |Y (`:h yy`)                                                            |
 |Delete row                      |N                                         |Y (`:h dd`)                                                            |
 |Move row                        |N                                         |Y (`:h dd` and `:h p`)                                                 |
-|Insert empty columns            |Y (`:Mdn table_column_insert_left/right`) |N                                                                      |
-|Duplicate column                |Y (`:Mdn table_column_duplicate`)         |N                                                                      |
-|Delete column                   |Y (`:Mdn table_column_delete`)            |Y (`:h visual-block`)                                                  |
-|Move column                     |Y (`:Mdn table_column_move_left/right`)   |N                                                                      |
+|Insert empty columns            |Y (`:Mdn table column_insert_left/right`) |N                                                                      |
+|Duplicate column                |Y (`:Mdn table column_duplicate`)         |N                                                                      |
+|Delete column                   |Y (`:Mdn table column_delete`)            |Y (`:h visual-block`)                                                  |
+|Move column                     |Y (`:Mdn table column_move_left/right`)   |N                                                                      |
 
 
  **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section.
@@ -194,7 +194,7 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 ## 📢 Supported Markdown Formatting
 Here is the supported Markdown formatting for `mdnotes.nvim`. The plugin tries to adhere to the [CommonMark](https://spec.commonmark.org/) and [GitHub Flavoured Markdown (GFM)](https://github.github.com/gfm/) spec as well as providing WikiLink support. If any problems arise please don't hesitate to create an issue for it!
 ### Links
-Opened with `:Mdn open`. Inserted with the `:Mdn insert_file/image` and `:Mdn hyperlink_toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
+Opened with `:Mdn open`. Inserted with the `:Mdn assets insert_file/image` and `:Mdn inline_link toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
 ```
     [link](www.neovim.io)
     [link](path/to/file#section)
@@ -206,13 +206,13 @@ Opened with `:Mdn open`. Inserted with the `:Mdn insert_file/image` and `:Mdn hy
     ![image](path/to/image.extension)
 ```
 ### WikiLinks
-Opened with `:Mdn open_wikilink`. Can only be filenames, so `link` can also be `link.md`.
+Opened with `:Mdn wikilink follow`. Can only be filenames, so `link` can also be `link.md`.
 ```
     [[link]]
     [[link#section]]
 ```
 ### Formatting
-Toggled with `:Mdn <format>_toggle`. Using `_` for the bold and italic formats needs to be specified in the `bold_format` and `italic_format` config options. 
+Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the bold and italic formats needs to be specified in the `bold_format` and `italic_format` config options. 
 ```
     **bold**
     __bold__

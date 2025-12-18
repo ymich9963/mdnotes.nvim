@@ -48,14 +48,14 @@ The default keymaps are listed below and they can be enabled using
 |mdnotes-default_keymaps|. They follow a `<leader>m` prefix.
 >lua
     vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
-    vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink_follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
-    vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink_show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
-    vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink_rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
-    vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn hyperlink_toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
-    vim.keymap.set("n", "<leader>mh", ":Mdn history_go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
-    vim.keymap.set("n", "<leader>ml", ":Mdn history_go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
-    vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
-    vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
+    vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
+    vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
+    vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
+    vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn inline_link toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
+    vim.keymap.set("n", "<leader>mh", ":Mdn history go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
+    vim.keymap.set("n", "<leader>ml", ":Mdn history go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
+    vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
+    vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn formatting italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
 
 Note: It is highly recommended you have your keymaps in your
 `after/ftplugin/markdown.lua` file to keep them specific to Markdown files.
@@ -144,7 +144,7 @@ open_behaviour = `"string"`				*mdnotes-open_behaviour*
 
     Can take the values of `"buffer"`, `"tab"`, `"split"`, or `"vsplit"` which 
     defines how Wikilinks are opened using |:Mdn home|, |:Mdn journal|, 
-    and |:Mdn wikilink_follow|. With `"buffer"` it opens them in the current
+    and |:Mdn wikilink-follow|. With `"buffer"` it opens them in the current
     buffer, `"tab"` it opens them in a new tab, `"split"` opens them in a
     horizontal split, and `"vsplit"` in a vertical tab.
 
@@ -230,40 +230,40 @@ subcommands are listed below.
     Toggle an outliner mode (similar to programs like Logseq). This command
     essentially creates or deletes certain keymaps to create the outliner mode.
 
-:Mdn wikilink_follow 					*:Mdn-wikilink_follow*
+:Mdn wikilink follow 					*:Mdn-wikilink-follow*
 
     Open the Wikilink (e.g. `[[link]]` or `[[link#section]]`) under the cursor. 
 
-:Mdn wikilink_show_references 				*:Mdn-wikilink_show_references*
+:Mdn wikilink show_references 				*:Mdn-wikilink-show_references*
 
     Show the references of the current Wikilink under cursor in a quickfix
     list. If no Wikilink is under the cursor it shows the references to the
     current buffer.
 
-:Mdn wikilink_rename_references				*:Mdn-wikilink_rename_references*
+:Mdn wikilink rename_references				*:Mdn-wikilink-rename_references*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
     link. If executed when not hovering over a link, it will prompt to rename
     current buffer and file references.
 
-:Mdn wikilink_undo_rename				*:Mdn-wikilink_undo_rename*
+:Mdn wikilink undo_rename				*:Mdn-wikilink-undo_rename*
 
     Undo the most recent reference rename. Only available when 
     `prefer_lsp = false`. 
 
-:Mdn insert_image					*:Mdn-insert_image*
+:Mdn assets insert_image				*:Mdn-assets-insert_image*
 
     Insert the image in the clipboard under the cursor and depending on
     |mdnotes-insert_file_behaviour| place it in your |mdnotes-assets_path|. (e.g
     `![image](path/to/assets/image.png)`). Overwriting depends on
     |mdnotes-overwrite_behaviour|.
 
-:Mdn insert_file					*:Mdn-insert_file*
+:Mdn assets insert_file					*:Mdn-assets-insert_file*
 
-    Exactly the same as |Mdn-insert_image| but it inserts a hyperlink to the
+    Exactly the same as |Mdn-assets-insert_image| but it inserts a hyperlink to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
-:Mdn assets_cleanup_unused				*:Mdn-assets_cleanup_unused*
+:Mdn assets cleanup_unused				*:Mdn-assets-cleanup_unused*
 
     Cleanup unused assets in your |mdnotes-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
@@ -271,73 +271,74 @@ subcommands are listed below.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-:Mdn assets_move_unused					*:Mdn-assets_move_unused*
+:Mdn assets move_unused					*:Mdn-assets-move_unused*
 
     Move unused assets in your |mdnotes-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
     to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm()|.
 
-:Mdn assets_open_containing_folder			*:Mdn-open_containing_folder*
+:Mdn assets open_containing_folder			*:Mdn-assets-open_containing_folder*
 
     Open your assets folder declared in |mdnotes-assets_path|.
 
-:Mdn history_go_back					*:Mdn-history_go_back*
+:Mdn history go_back					*:Mdn-history-go_back*
 
     Go back to the previously visited Markdown buffer.
 
-:Mdn history_go_forward					*:Mdn-history_go_forward*
+:Mdn history go_forward					*:Mdn-history-go_forward*
 
     Go forward to the Markdown buffer you were in before you went back.
 
-:Mdn history_clear					*:Mdn-history_clear*
+:Mdn history clear					*:Mdn-history-clear*
 
     Clear the history of visited Markdown buffers.
 
-:Mdn hyperlink_toggle 					*:Mdn-hyperlink_toggle*
+:Mdn inline_link toggle					*:Mdn-inline_link-toggle
+*
 
     Toggle inserting and deleting a hyperlink (e.g. `[text](link)`) from your
     clipboard (the `"+` register).
 
-:Mdn bold_toggle					*:Mdn-bold_toggle*
+:Mdn formatting bold_toggle				*:Mdn-formatting-bold_toggle*
 
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-:Mdn italic_toggle					*:Mdn-italic_toggle*
+:Mdn formatting italic_toggle				*:Mdn-formatting-italic_toggle*
 
     Toggle Markdown `*italic*` syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-:Mdn strikethrough_toggle				*:Mdn-strikethrough_toggle*
+:Mdn formatting strikethrough_toggle			*:Mdn-formatting-strikethrough_toggle*
 
     Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
     command or hover over already bold text to remove.
 
-:Mdn inline_code_toggle					*:Mdn-inline_code_toggle*
+:Mdn formatting inline_code_toggle			*:Mdn-formatting-inline_code_toggle*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already bold text to remove.
 
-:Mdn task_list_toggle					*:Mdn-task_list_toggle*
+:Mdn formatting task_list_toggle			*:Mdn-formatting-task_list_toggle*
 
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
     with |linewise-visual|.
 
-:Mdn ordered_list_renumber				*:Mdn-ordered_list_renumber*
+:Mdn formatting ordered_list_renumber			*:Mdn-formatting-ordered_list_renumber*
 
     Renumber an ordered list.
 
-:Mdn journal_insert_entry				*:Mdn-journal_insert_entry*
+:Mdn journal insert_entry				*:Mdn-journal-insert_entry*
 
     Insert at the top of the file the current date and time along with a separator.
     Useful when using a journal.
 
-:Mdn toc_generate					*:Mdn-toc_generate*
+:Mdn toc generate					*:Mdn-toc-generate*
 
     Generate and insert a Table Of Contents of the current file at the cursor 
     position.
 
-:Mdn table_create {rows} {cols}				*Mdn-table_create*
+:Mdn table create {rows} {cols}				*Mdn-table-create*
 
    Create a table of the size {rows} x {cols}. It will get populated with
    `ROWrCOLc` text automatically. This is to activate the parsers so that the
@@ -348,45 +349,45 @@ subcommands are listed below.
     |2r1c|2r2c|2r3c|
     |3r1c|3r2c|3r3c|
 
-:Mdn table_best_fit					*Mdn-table_best_fit*
+:Mdn table best_fit					*Mdn-table-best_fit*
 
    Set the best fit for the table columns so that all cell borders line up.
    Can also add padding to your cells. See |mdnotes-table_best_fit_padding|.
    Uses the |ModeChanged| event to preserve undo history.
 
-:Mdn table_column_insert_left				*Mdn-table_column_insert_left*
+:Mdn table column_insert_left				*Mdn-table-column_insert_left*
 
    Insert a column to the left of the current column you're in.
 
-:Mdn table_column_insert_right				*Mdn-table_column_insert_right*
+:Mdn table column_insert_right				*Mdn-table-column_insert_right*
 
    Insert a column to the right of the current column you're in.
 
-:Mdn table_column_move_left				*Mdn-table_column_move_left*
+:Mdn table column_move_left				*Mdn-table-column_move_left*
 
    Move the current column to the left.
 
-:Mdn table_column_move_right				*Mdn-table_column_move_right*
+:Mdn table column_move_right				*Mdn-table-column_move_right*
 
    Move the current column to the right.
 
-:Mdn table_column_delete 				*Mdn-table_column_delete*
+:Mdn table column_delete 				*Mdn-table-column_delete*
 
    Delete current column.
 
-:Mdn table_column_alignment_toggle			*Mdn-table_column_alignment_toggle*
+:Mdn table column_alignment_toggle			*Mdn-table-column_alignment_toggle*
 
    Cycle through the left, right and centre alignments in the Markdown table.
 
-:Mdn table_column_duplicate				*Mdn-table_column_duplicate*
+:Mdn table column_duplicate				*Mdn-table-column_duplicate*
 
    Duplicate the current column.
 
-:Mdn table_row_insert_above				*Mdn-table_row_insert_above*
+:Mdn table row_insert_above				*Mdn-table-row_insert_above*
 
    Insert a row to above the current row.
 
-:Mdn table_row_insert_below				*Mdn-table_row_insert_below*
+:Mdn table row_insert_below				*Mdn-table-row_insert_below*
 
    Insert a row to below the current row.
 
@@ -438,9 +439,9 @@ setup({opts})                                          	*mdnotes.setup()*
 		use the default keymaps.
               • {table_best_fit_padding} (`integer?`, default `0`)
 		how much padding to add when executing 
-		|Mdn-table_best_fit|.
+		|Mdn-table-best_fit|.
               • {toc_depth} (`integer?`, default `4`)
-		the depth of the ToC when using |Mdn-toc_generate|.
+		the depth of the ToC when using |Mdn-toc-generate|.
 
 go_to_index_file() 			   		*mdnotes.go_to_index_file()*
 

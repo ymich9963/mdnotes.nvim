@@ -82,69 +82,118 @@ vim.api.nvim_create_autocmd({"ModeChanged"}, {
     end
 })
 
-local subcommands = nil
-local get_subcommands = function() return {
-    home = require("mdnotes").go_to_index_file,
-    journal = require("mdnotes").go_to_journal_file,
-    journal_insert_entry = require("mdnotes").journal_insert_entry,
-    open = require("mdnotes").open,
-    outliner_toggle = require("mdnotes.outliner").toggle,
-    wikilink_follow = require("mdnotes.wikilinks").follow,
-    wikilink_show_references = require("mdnotes.wikilinks").show_references,
-    wikilink_rename_references = require("mdnotes.wikilinks").rename_references,
-    wikilink_undo_rename = require("mdnotes.wikilinks").undo_rename,
-    insert_image = require("mdnotes.assets").insert_image,
-    insert_file = require("mdnotes.assets").insert_file,
-    assets_cleanup_unused = require("mdnotes.assets").cleanup_unused,
-    assets_move_unused = require("mdnotes.assets").move_unused,
-    assets_open_containing_folder = require("mdnotes.assets").open_containing_folder,
-    history_go_back = require("mdnotes.history").go_back,
-    history_go_forward = require("mdnotes.history").go_forward,
-    history_clear = require("mdnotes.history").clear,
-    hyperlink_toggle = require("mdnotes.formatting").hyperlink_toggle,
-    bold_toggle = require("mdnotes.formatting").bold_toggle,
-    italic_toggle = require("mdnotes.formatting").italic_toggle,
-    strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
-    inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
-    task_list_toggle = require("mdnotes.formatting").task_list_toggle,
-    ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
-    toc_generate = require("mdnotes.toc").generate,
-    table_create = require("mdnotes.tables").create,
-    table_best_fit = require("mdnotes.tables").best_fit,
-    table_column_insert_left = require("mdnotes.tables").column_insert_left,
-    table_column_insert_right = require("mdnotes.tables").column_insert_right,
-    table_column_move_left = require("mdnotes.tables").column_move_left,
-    table_column_move_right = require("mdnotes.tables").column_move_right,
-    table_column_delete = require("mdnotes.tables").column_delete,
-    table_column_alignment_toggle = require("mdnotes.tables").column_alignment_toggle,
-    table_column_duplicate = require("mdnotes.tables").column_duplicate,
-    table_row_insert_above = require("mdnotes.tables").row_insert_above,
-    table_row_insert_below = require("mdnotes.tables").row_insert_below
-} end
+local commands = nil
+local get_commands = function() return {
+        home = {
+            require("mdnotes").go_to_index_file
+        },
+        open = {
+            require("mdnotes").open
+        },
+        journal = {
+            require("mdnotes").go_to_journal_file,
+            insert_entry = require("mdnotes").journal_insert_entry,
+        },
+        formatting = {
+            bold_toggle = require("mdnotes.formatting").bold_toggle,
+            italic_toggle = require("mdnotes.formatting").italic_toggle,
+            strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
+            inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
+            task_list_toggle = require("mdnotes.formatting").task_list_toggle,
+            ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
+        },
+        wikilink = {
+            follow = require("mdnotes.wikilinks").follow,
+            show_references = require("mdnotes.wikilinks").show_references,
+            rename_references = require("mdnotes.wikilinks").rename_references,
+            undo_rename = require("mdnotes.wikilinks").undo_rename,
+        },
+        table = {
+            create = require("mdnotes.tables").create,
+            best_fit = require("mdnotes.tables").best_fit,
+            column_insert_left = require("mdnotes.tables").column_insert_left,
+            column_insert_right = require("mdnotes.tables").column_insert_right,
+            column_move_left = require("mdnotes.tables").column_move_left,
+            column_move_right = require("mdnotes.tables").column_move_right,
+            column_delete = require("mdnotes.tables").column_delete,
+            column_alignment_toggle = require("mdnotes.tables").column_alignment_toggle,
+            column_duplicate = require("mdnotes.tables").column_duplicate,
+            row_insert_above = require("mdnotes.tables").row_insert_above,
+            row_insert_below = require("mdnotes.tables").row_insert_belo,
+        },
+        history = {
+            go_back = require("mdnotes.history").go_back,
+            go_forward = require("mdnotes.history").go_forward,
+            clear = require("mdnotes.history").clear,
+        },
+        assets = {
+            insert_image = require("mdnotes.assets").insert_image,
+            insert_file = require("mdnotes.assets").insert_file,
+            cleanup_unused = require("mdnotes.assets").cleanup_unused,
+            move_unused = require("mdnotes.assets").move_unused,
+            open_containing_folder = require("mdnotes.assets").open_containing_folder,
+        },
+        outliner_toggle = {
+            require("mdnotes.outliner").toggle
+        },
+        inline_link = {
+            toggle = require("mdnotes.formatting").hyperlink_toggle,
+        },
+        toc = {
+            generate = require("mdnotes.toc").generate
+        },
+    }
+end
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
     local args = vim.split(opts.args, "%s+")
-    local subcmd = args[1]
-    subcommands = subcommands or get_subcommands()
+    local cmd_arg = args[1]
+    local subcmd_arg = ""
+    local func = nil
+    commands = commands or get_commands()
 
-    local func = subcommands[subcmd]
-    if func == subcommands["task_list_toggle"] then
+    local command = commands[cmd_arg]
+    if #args > 1 then
+        subcmd_arg = args[2]
+        func = command[subcmd_arg]
+    else
+        func = command[1]
+    end
+
+    if func == commands["formatting"]["task_list_toggle"] then
         func(opts.line1, opts.line2)
-    elseif func == subcommands["table_create"] then
-        func(args[2], args[3])
+    elseif func == commands["table"]["create"] then
+        func(args[3], args[4])
     elseif func then
         func()
     else
-        vim.notify("Unknown subcommand: " .. (subcmd or ""), vim.log.levels.WARN)
+        vim.notify("Unknown command: " .. cmd_arg .. subcmd_arg, vim.log.levels.ERROR)
     end
 end,
 {
     nargs = "+",
-    complete = function(arg)
-        subcommands = subcommands or get_subcommands()
-        return vim.tbl_filter(function(sub)
-            return sub:match("^" .. arg)
-        end, vim.tbl_keys(subcommands))
+    complete = function(arg, cmd, _)
+        local args = vim.split(cmd, "%s+")
+        commands = commands or get_commands()
+
+        if #args == 2 then
+            -- Command completion
+            return vim.tbl_filter(function(k)
+                return k:find("^" .. arg)
+            end, vim.tbl_keys(commands))
+        elseif #args == 3 then
+            -- Subcommand completion
+            local category = args[2]
+            local subcmd = commands[category]
+
+            if not subcmd then
+                return
+            end
+
+            return vim.tbl_filter(function(k)
+                return k:find("^" .. arg)
+            end, vim.tbl_keys(subcmd))
+        end
     end,
     desc = "Mdnotes main command",
     range = true,
