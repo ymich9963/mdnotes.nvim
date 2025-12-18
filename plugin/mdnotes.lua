@@ -137,7 +137,7 @@ local get_commands = function() return {
             require("mdnotes.outliner").toggle
         },
         inline_link = {
-            toggle = require("mdnotes.formatting").hyperlink_toggle,
+            toggle = require("mdnotes.inline_link").toggle,
         },
         toc = {
             generate = require("mdnotes.toc").generate

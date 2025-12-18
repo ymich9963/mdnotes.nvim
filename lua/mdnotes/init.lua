@@ -66,7 +66,7 @@ function M.open()
     local section = ""
     local section_only = nil
 
-    for start_pos, hyperlink, end_pos in line:gmatch(M.patterns.hyperlink) do
+    for start_pos, hyperlink, end_pos in line:gmatch(M.patterns.inline_link) do
         if start_pos < current_col and end_pos > current_col then
             _, dest = hyperlink:match(M.patterns.text_dest)
             break

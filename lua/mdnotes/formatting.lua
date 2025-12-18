@@ -49,35 +49,6 @@ local function insert_format(format_char)
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
-function M.hyperlink_insert()
-    local reg = vim.fn.getreg('+')
-
-    -- Set if empty
-    if reg == '' then
-        vim.fn.setreg('+','"+ register empty')
-    end
-
-    -- Sanitize text to prevent chaos
-    vim.fn.setreg('+', reg:gsub("[%c]", ""))
-
-    -- Get the selected text
-    local col_start = vim.fn.getpos("'<")[3]
-    local col_end = vim.fn.getpos("'>")[3]
-    local line = vim.api.nvim_get_current_line()
-    local selected_text = line:sub(col_start, col_end)
-
-    -- Create a new modified line with link
-    local new_line = line:sub(1, col_start - 1) .. '[' .. selected_text .. '](' .. reg .. ')' .. line:sub(col_end + 1)
-
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
-end
-
-function M.hyperlink_delete()
-    vim.api.nvim_input('F[di[F[vf)p')
-end
-
 local function delete_format_bold()
     local bold_char = require('mdnotes').bold_char
     vim.api.nvim_input('F' .. bold_char .. ';dwvf' .. bold_char .. 'hdvlp')
@@ -127,14 +98,6 @@ function M.inline_code_toggle()
         delete_format_inline_code()
     else
         insert_format('`')
-    end
-end
-
-function M.hyperlink_toggle()
-    if M.check_md_format(M.patterns.hyperlink) then
-        M.hyperlink_delete()
-    else
-        M.hyperlink_insert()
     end
 end
 

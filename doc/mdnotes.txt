@@ -9,7 +9,7 @@ INTRODUCTION						*mdnotes-intro*
 
 Markdown Notes (mdnotes or Mdn) is a plugin that aims to improve the Neovim
 Markdown note-taking experience by providing features like better Wikilink
-support, adding/removing hyperlinks to images/files/URLs, file history, asset
+support, adding/removing inline links to images/files/URLs, file history, asset
 management, referencing, and formatting. All this without relying
 on any LSP but using one is recommended.
 
@@ -51,7 +51,7 @@ The default keymaps are listed below and they can be enabled using
     vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
     vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
     vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
-    vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn inline_link toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
+    vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn inline_link toggle<CR>", { buffer = true, desc = "Toggle inline_link" })
     vim.keymap.set("n", "<leader>mh", ":Mdn history go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
     vim.keymap.set("n", "<leader>ml", ":Mdn history go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
     vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
@@ -260,7 +260,7 @@ subcommands are listed below.
 
 :Mdn assets insert_file					*:Mdn-assets-insert_file*
 
-    Exactly the same as |Mdn-assets-insert_image| but it inserts a hyperlink to the
+    Exactly the same as |Mdn-assets-insert_image| but it inserts a inline link to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
 :Mdn assets cleanup_unused				*:Mdn-assets-cleanup_unused*
@@ -296,7 +296,7 @@ subcommands are listed below.
 :Mdn inline_link toggle					*:Mdn-inline_link-toggle
 *
 
-    Toggle inserting and deleting a hyperlink (e.g. `[text](link)`) from your
+    Toggle inserting and deleting a inline link (e.g. `[text](link)`) from your
     clipboard (the `"+` register).
 
 :Mdn formatting bold_toggle				*:Mdn-formatting-bold_toggle*
@@ -467,7 +467,7 @@ journal_insert_entry()					*mdnotes.journal_insert_entry()*
 
 open() 							*mdnotes.open()*
 
-    Open the hyperlink under cursor. It can be a file or a URL.
+    Open the inline link under cursor. It can be a file or a URL.
 
 toggle()						*mdnotes.outliner.toggle()*
 
@@ -530,7 +530,7 @@ insert_image()						*mdnotes.assets.insert_image()*
 
 insert_file()						*mdnotes.assets.insert_file()*
 
-    Exactly the same as |mdnotes.insert_image()| but it inserts a hyperlink to the
+    Exactly the same as |mdnotes.insert_image()| but it inserts a inline link to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
 cleanup_unused()					*mdnotes.assets.cleanup_unused()*
@@ -577,20 +577,20 @@ clear_history()						*mdnotes.history.clear_history()*
 
     Clear the |mdnotes.buf_history| table.
 
-hyperlink_insert()					*mdnotes.formatting.hyperlink_insert()*
+inline_link.insert()					*mdnotes.formatting.inline_link-insert()*
 
-    Insert a hyperlink from the clipbaord using the currently highlighted
+    Insert a inline link from the clipbaord using the currently highlighted
     word.
 
-hyperlink_delete()					*mdnotes.formatting.hyperlink_delete()*
+inline_link.delete()					*mdnotes.formatting.inline_link-delete()*
 
-    Remove the hyperlink from the current hyperlink under the cursor.
+    Remove the inline link from the current inline link under the cursor.
 
-hyperlink_toggle()					*mdnotes.formatting.hyperlink_toggle()*
+inline_link.toggle()					*mdnotes.formatting.inline_link-toggle()*
 
-    Toggle adding or removing the hyperlink. When adding it uses
-    |mdnotes.hyperlink_insert()| and when removing it uses
-    |mdnotes.hyperlink_delete()|.
+    Toggle adding or removing the inline link. When adding it uses
+    |mdnotes.inline_link-insert()| and when removing it uses
+    |mdnotes.inline_link-delete()|.
 
 bold_toggle()						*mdnotes.formatting.bold_toggle()*
 
