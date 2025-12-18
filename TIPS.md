@@ -1,6 +1,8 @@
 # Neovim Tips for mdnotes.nvim
 `mdnotes` tries to integrate with stock Neovim as much as possible, and through trying to create a great note-writing experience in Neovim, I came across some great built-in Neovim features that are defitely useful when taking any kind of notes. I've listed them below, and I'll update this list as I find out more. Contributions are welcome!
 
+The contents here are replicated in `:h mdnotes-tips`.
+
 ## Repeating Last Command
 Use `@:` to repeat your last used command, see `:h @:`.
 
