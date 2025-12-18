@@ -167,7 +167,7 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     elseif func then
         func()
     else
-        vim.notify("Unknown command: " .. cmd_arg .. subcmd_arg, vim.log.levels.ERROR)
+        vim.notify("Unknown command: '" .. cmd_arg .. subcmd_arg .. "'", vim.log.levels.ERROR)
     end
 end,
 {
@@ -191,6 +191,7 @@ end,
             end
 
             return vim.tbl_filter(function(k)
+                if type(k) == "number" then return false end
                 return k:find("^" .. arg)
             end, vim.tbl_keys(subcmd))
         end
