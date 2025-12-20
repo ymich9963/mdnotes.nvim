@@ -44,7 +44,7 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
             end
         end
 
-        if not buf_exists then
+        if buf_exists == false then
             table.insert(mdnotes_toc.buf_sections, {
                 buf_num = buf_num,
                 parsed = {
