@@ -142,6 +142,10 @@ local get_commands = function() return {
         toc = {
             generate = require("mdnotes.toc").generate
         },
+        heading = {
+            next = require("mdnotes.heading").goto_next,
+            previous = require("mdnotes.heading").goto_previous,
+        },
     }
 end
 

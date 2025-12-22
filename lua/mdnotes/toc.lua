@@ -15,13 +15,13 @@ end
 
 function M.get_sections_original()
     local sections = {}
-    local buf_lines = vim.api.nvim_buf_get_lines(0, 0, vim.fn.line("$"), false)
+    local buf_lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
     local heading_format_pattern = require('mdnotes.patterns').heading
 
-    for _, line in ipairs(buf_lines) do
+    for lnum, line in ipairs(buf_lines) do
         local heading, text = line:match(heading_format_pattern)
         if text and heading and #heading <= require('mdnotes.config').config.toc_depth then
-            table.insert(sections, {heading = heading, text = text})
+            table.insert(sections, {heading = heading, text = text, lnum = lnum})
         end
     end
 

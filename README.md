@@ -23,6 +23,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Set your index and journal files and go there with `:Mdn home` and `:Mdn journal`.
 - Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
 - Open WikiLinks (`[[link]]` or `[[link#Section]])` with `:Mdn wikilink follow`.
+- Use `:Mdn heading next/previous` to easily navigate headings. 
 
 ### 💁 Formatting
 - Toggle hyperlinks with `:Mdn inline_link toggle` which pastes your copied hyperlink over the selected text or removes it.
@@ -141,6 +142,8 @@ vim.keymap.set("n", "<leader>mh", ":Mdn history go_back<CR>", { buffer = true, d
 vim.keymap.set("n", "<leader>ml", ":Mdn history go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
 vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
 vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn formatting italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
+vim.keymap.set("n", "<leader>mp", ":Mdn heading previous<CR>", { buffer = true, desc = "Go to previous Markdown heading" })
+vim.keymap.set("n", "<leader>mn", ":Mdn heading next<CR>", { buffer = true, desc = "Go to next Markdown heading" })
 ```
 ### 👩‍💻 Optional Settings
 Place these settings in your `<Neovim config path>/after/ftplugin/markdown.lua` file so that they are Markdown-specific. First one here is to enable wrapping only for the current Markdown buffer. 
