@@ -590,7 +590,7 @@ history.clear()						*mdnotes.history.clear()*
 inline_link.insert()					*mdnotes.formatting.inline_link-insert()*
 
     Insert a inline link from the clipbaord using the currently highlighted
-    word.
+    text or the word under cursor.
 
 inline_link.delete()					*mdnotes.formatting.inline_link-delete()*
 

@@ -9,7 +9,7 @@
 
 ## ☀️ Introduction
 
-Mdnotes aims to be a lightweight plugin that improves the Neovim Markdown note-taking experience with minimal configuration required. It does so by providing features like better WikiLink support, adding/removing hyperlinks to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, generating ToC, table helpers, and formatting.
+Mdnotes aims to be a lightweight plugin that improves the Neovim Markdown note-taking experience with minimal configuration required. It does so by providing features like better WikiLink support, adding/removing inline links to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, generating ToC, table helpers, and formatting.
 
 Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes. If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you. I've also written some useful tips for when writing notes in Neovim using built-in features, see [TIPS.md](TIPS.md).
 
@@ -19,14 +19,14 @@ All documentation is available with `:h mdnotes.txt`.
 All the features of `mdnotes` and their associated commands are listed and categorised below.
 
 ### 🧭 Navigation
-- Open hyperlinks to files and URLs with `:Mdn open`.
+- Open inline links to files and URLs with `:Mdn open`.
 - Set your index and journal files and go there with `:Mdn home` and `:Mdn journal`.
 - Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
 - Open WikiLinks (`[[link]]` or `[[link#Section]])` with `:Mdn wikilink follow`.
 - Use `:Mdn heading next/previous` to easily navigate headings. 
 
 ### 💁 Formatting
-- Toggle hyperlinks with `:Mdn inline_link toggle` which pastes your copied hyperlink over the selected text or removes it.
+- Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link.
 - Toggle the appropriate formatting with `:Mdn formatting bold/italic/inline_code/strikethrough_toggle`.
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
 - Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
@@ -137,7 +137,7 @@ vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Ope
 vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
 vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
 vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
-vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn inline_link toggle<CR>", { buffer = true, desc = "Toggle hyperlink" })
+vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn inline_link toggle<CR>", { buffer = true, desc = "Toggle inline link" })
 vim.keymap.set("n", "<leader>mh", ":Mdn history go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
 vim.keymap.set("n", "<leader>ml", ":Mdn history go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
 vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
