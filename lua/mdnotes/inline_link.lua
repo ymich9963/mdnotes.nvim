@@ -14,13 +14,13 @@ function M.insert()
     -- Get the selected text
     local col_start = vim.fn.getpos("'<")[3]
     local col_end = vim.fn.getpos("'>")[3]
+    local current_col = vim.fn.col('.')
     local line = vim.api.nvim_get_current_line()
     local selected_text = line:sub(col_start, col_end)
 
     -- This would happen when there is no selection
-    if selected_text == "" then
+    if current_col ~= col_start then
         -- Get the word under cursor and cursor position
-        local current_col = vim.fn.col('.')
         selected_text = vim.fn.expand("<cword>")
 
         -- Search for the word in the line and check if it's under the cursor

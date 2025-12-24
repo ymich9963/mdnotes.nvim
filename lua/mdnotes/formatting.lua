@@ -22,12 +22,12 @@ local function insert_format(format_char)
     -- Get the selected text
     local col_start = vim.fn.getpos("'<")[3]
     local col_end = vim.fn.getpos("'>")[3]
+    local current_col = vim.fn.col('.')
     local selected_text = line:sub(col_start, col_end)
 
     -- This would happen when executing in NORMAL mode
-    if selected_text == "" then
+     if current_col ~= col_start then
         -- Get the word under cursor and cursor position
-        local current_col = vim.fn.col('.')
         selected_text = vim.fn.expand("<cword>")
 
         -- Search for the word in the line and check if it's under the cursor
