@@ -236,6 +236,10 @@ subcommands are listed below.
 
     Open the Wikilink (e.g. `[[link]]` or `[[link#section]]`) under the cursor. 
 
+:Mdn wikilink create 					*:Mdn-wikilink-create*
+
+    Create a WikiLink by highlighting or hovering over a word and executing. 
+
 :Mdn wikilink show_references 				*:Mdn-wikilink-show_references*
 
     Show the references of the current Wikilink under cursor in a quickfix
@@ -486,7 +490,11 @@ outliner.toggle()					*mdnotes.outliner.toggle()*
 
 wikilink.follow()					*mdnotes.wikilinks.follow()*
 
-    Open Wikilink under cursor (e.g. `[[link#section]]`).
+    Open the Wikilink (e.g. `[[link]]` or `[[link#section]]`) under the cursor. 
+
+wikilink.create()					*mdnotes.wikilinks.create()*
+
+    Create a WikiLink by highlighting or hovering over a word and executing. 
 
 wikilink.show_references()				*mdnotes.wikilinks.show_references()*
 

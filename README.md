@@ -18,11 +18,10 @@ All documentation is available with `:h mdnotes.txt`.
 ## 🔥 Features
 All the features of `mdnotes` and their associated commands are listed and categorised below.
 
-### 🧭 Navigation
+### 🧭 General Navigation
 - Open inline links to files and URLs with `:Mdn open`.
 - Set your index and journal files and go there with `:Mdn home` and `:Mdn journal`.
 - Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
-- Open WikiLinks (`[[link]]` or `[[link#Section]])` with `:Mdn wikilink follow`.
 - Use `:Mdn heading next/previous` to easily navigate headings. 
 
 ### 💁 Formatting
@@ -44,6 +43,8 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Insert rows to the above or below of your current line with `:Mdn table row_insert_above/below`.
 
 ### 🖇️ WikiLinks
+- Create a WikiLink by highlighting or hovering over a word and executing `:Mdn wikilink create`.
+- Open WikiLinks with `:Mdn wikilink follow`.
 - Rename link references and the file itself using `:Mdn wikilink rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn wikilink show_references`. Also show references of the current buffer when not hovering over a Wikilink.
 - Undo the most recent reference rename with `:Mdn wikilink undo_rename`. **Only** available when `prefer_lsp = false`.

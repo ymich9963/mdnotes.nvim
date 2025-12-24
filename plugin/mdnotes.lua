@@ -107,6 +107,7 @@ local get_commands = function() return {
             show_references = require("mdnotes.wikilinks").show_references,
             rename_references = require("mdnotes.wikilinks").rename_references,
             undo_rename = require("mdnotes.wikilinks").undo_rename,
+            create = require("mdnotes.wikilinks").create,
         },
         table = {
             create = require("mdnotes.table").create,
