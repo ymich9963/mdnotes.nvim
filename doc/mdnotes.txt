@@ -301,9 +301,9 @@ subcommands are listed below.
 
 :Mdn inline_link toggle					*:Mdn-inline_link-toggle
 *
-
     Toggle inserting and deleting a inline link (e.g. `[text](link)`) from your
-    clipboard (the `"+` register).
+    clipboard (the `"+` register). When removing a link it saves it to `"0`
+    for later use.
 
 :Mdn formatting bold_toggle				*:Mdn-formatting-bold_toggle*
 
@@ -597,12 +597,15 @@ history.clear()						*mdnotes.history.clear()*
 
 inline_link.insert()					*mdnotes.formatting.inline_link-insert()*
 
-    Insert a inline link from the clipbaord using the currently highlighted
-    text or the word under cursor.
+    Insert a inline link from the clipboard using the currently highlighted
+    text or the word under cursor. Uses the `"+` register to paste from
+    clipboard.
 
 inline_link.delete()					*mdnotes.formatting.inline_link-delete()*
 
     Remove the inline link from the current inline link under the cursor.
+    Saves the link text in the `"0` register and the link in the `"+` register.
+    This allows it to be reused when inserting again.
 
 formatting.inline_link.toggle()				*mdnotes.formatting.inline_link-toggle()*
 

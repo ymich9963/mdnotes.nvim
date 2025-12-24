@@ -43,8 +43,10 @@ function M.insert()
 end
 
 function M.delete()
-    vim.api.nvim_input('F[di[F[vf)p')
+    vim.api.nvim_input('F["0di[f("+di(F[vf)"0p')
 end
+
+-- []()
 
 function M.toggle()
     local check_md_format = require('mdnotes.formatting').check_md_format

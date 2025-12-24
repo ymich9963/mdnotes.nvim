@@ -25,7 +25,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Use `:Mdn heading next/previous` to easily navigate headings. 
 
 ### 💁 Formatting
-- Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link.
+- Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link and saves it to be used later with the same command.
 - Toggle the appropriate formatting with `:Mdn formatting bold/italic/inline_code/strikethrough_toggle`.
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
 - Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
