@@ -1,6 +1,6 @@
 local M = {}
 
-M.patterns = require('mdnotes.patterns')
+local mdnotes_patterns = require('mdnotes.patterns')
 
 function M.check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
@@ -69,7 +69,7 @@ end
 
 function M.bold_toggle()
     local bold_char = require('mdnotes').bold_char
-    if M.check_md_format(M.patterns.bold) then
+    if M.check_md_format(mdnotes_patterns.bold) then
         delete_format_bold()
     else
         insert_format(bold_char .. bold_char)
@@ -78,7 +78,7 @@ end
 
 function M.italic_toggle()
     local italic_char = require('mdnotes').italic_char
-    if M.check_md_format(M.patterns.italic) then
+    if M.check_md_format(mdnotes_patterns.italic) then
         delete_format_italic()
     else
         insert_format(italic_char)
@@ -86,7 +86,7 @@ function M.italic_toggle()
 end
 
 function M.strikethrough_toggle()
-    if M.check_md_format(M.patterns.strikethrough) then
+    if M.check_md_format(mdnotes_patterns.strikethrough) then
         delete_format_strikethrough()
     else
         insert_format('~~')
@@ -94,7 +94,7 @@ function M.strikethrough_toggle()
 end
 
 function M.inline_code_toggle()
-    if M.check_md_format(M.patterns.inline_code) then
+    if M.check_md_format(mdnotes_patterns.inline_code) then
         delete_format_inline_code()
     else
         insert_format('`')
@@ -110,18 +110,18 @@ function M.task_list_toggle(line1, line2)
         lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
     end
     for i, line in ipairs(lines) do
-        local _, list_marker, list_text = line:match(M.patterns.unordered_list)
-        local _, ordered_marker, separator, ordered_text = line:match(M.patterns.ordered_list)
+        local _, list_marker, list_text = line:match(mdnotes_patterns.unordered_list)
+        local _, ordered_marker, separator, ordered_text = line:match(mdnotes_patterns.ordered_list)
         local text = list_text or ordered_text
         local marker = list_marker or ordered_marker .. separator
         local new_text = ""
 
         if marker then
-            local task_marker = text:match(M.patterns.task)
+            local task_marker = text:match(mdnotes_patterns.task)
             if task_marker == "[x]" then
-                new_text, _ = line:gsub(M.patterns.task, " ", 1)
+                new_text, _ = line:gsub(mdnotes_patterns.task, " ", 1)
             elseif task_marker == "[ ]" then
-                new_text, _ = line:gsub(M.patterns.task, " [x] ", 1)
+                new_text, _ = line:gsub(mdnotes_patterns.task, " [x] ", 1)
             elseif not task_marker then
                 new_text = line:gsub(marker, marker .. " [ ]", 1)
             end
