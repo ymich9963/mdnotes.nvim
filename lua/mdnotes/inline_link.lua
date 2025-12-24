@@ -5,7 +5,8 @@ function M.insert()
 
     -- Set if empty
     if reg == '' then
-        vim.fn.setreg('+','"+ register empty')
+        vim.notify("Mdn: Nothing detected in clipboard; \"+ register empty...", vim.log.levels.ERROR)
+        return
     end
 
     -- Sanitize text to prevent chaos
@@ -45,8 +46,6 @@ end
 function M.delete()
     vim.api.nvim_input('F["0di[f("+di(F[vf)"0p')
 end
-
--- []()
 
 function M.toggle()
     local check_md_format = require('mdnotes.formatting').check_md_format
