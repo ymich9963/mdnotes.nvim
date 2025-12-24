@@ -305,6 +305,14 @@ subcommands are listed below.
     clipboard (the `"+` register). When removing a link it saves it to `"0`
     for later use.
 
+:Mdn inline_link rename					*:Mdn-inline_link-rename
+*
+    Rename the link text.
+
+:Mdn inline_link relink					*:Mdn-inline_link-relink
+*
+    Re-link the inline link.
+
 :Mdn formatting bold_toggle				*:Mdn-formatting-bold_toggle*
 
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
@@ -606,6 +614,14 @@ inline_link.delete()					*mdnotes.formatting.inline_link-delete()*
     Remove the inline link from the current inline link under the cursor.
     Saves the link text in the `"0` register and the link in the `"+` register.
     This allows it to be reused when inserting again.
+
+inline_link.rename()					*mdnotes.formatting.inline_link-rename()*
+
+    Rename the link text.
+
+inline_link.relink()					*mdnotes.formatting.inline_link-relink()*
+
+    Re-link the inline link.
 
 formatting.inline_link.toggle()				*mdnotes.formatting.inline_link-toggle()*
 

@@ -139,6 +139,8 @@ local get_commands = function() return {
         },
         inline_link = {
             toggle = require("mdnotes.inline_link").toggle,
+            rename = require("mdnotes.inline_link").rename,
+            relink = require("mdnotes.inline_link").relink,
         },
         toc = {
             generate = require("mdnotes.toc").generate

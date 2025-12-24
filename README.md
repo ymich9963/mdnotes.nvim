@@ -25,11 +25,15 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Use `:Mdn heading next/previous` to easily navigate headings. 
 
 ### 💁 Formatting
-- Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link and saves it to be used later with the same command.
 - Toggle the appropriate formatting with `:Mdn formatting bold/italic/inline_code/strikethrough_toggle`.
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
 - Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn formatting task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
+ 
+### 🔗 Inline Links
+- Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link and saves it to be used later with the same command.
+- Rename the link text with `:Mdn inline_link rename`. 
+- Re-link the inline link with `:Mdn inline_link relink`. 
 
 ### 🫦 Tables
 - See the [Editing Tables](#editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
