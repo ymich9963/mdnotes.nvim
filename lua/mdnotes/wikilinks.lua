@@ -40,12 +40,15 @@ function M.follow()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local wikilink_pattern = require('mdnotes.patterns').wikilink
-    local file_section_pattern = require('mdnotes.patterns').file_section
+    local uri_no_section_pattern = require('mdnotes.patterns').uri_no_section
+    local section_pattern = require('mdnotes.patterns').section
 
     local file, section = "", ""
     for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
-            file, section = link:match(file_section_pattern)
+            file = link:match(uri_no_section_pattern) or ""
+            section = link:match(section_pattern) or ""
+
             file = vim.trim(file)
             section = vim.trim(section)
         end
@@ -169,7 +172,7 @@ function M.rename_references()
     local file, _ = "", ""
     local renamed = ""
     local wikilink_pattern = require('mdnotes.patterns').wikilink
-    local file_section_pattern = require('mdnotes.patterns').file_section
+    local file_section_pattern = require('mdnotes.patterns').uri_no_section
 
     for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then

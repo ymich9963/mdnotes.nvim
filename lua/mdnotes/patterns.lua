@@ -5,8 +5,9 @@ local italic_char = require('mdnotes').italic_char
 
 M = {
     wikilink = "()%[%[(.-)%]%]()",
-    file_section = "([^#]+)#?(.*)",
-    inline_link = "()(%[[^%]]+%]%(.+%))()",
+    uri_no_section = "^([^#]+).*",
+    section = "#(.*)",
+    inline_link = "()(%[[^%]]+%]%([^%)]+%))()",
     text_dest = "%[([^%]]+)%]%((.+)%)",
     bold = "()%" .. bold_char .. "%" .. bold_char .. "([^%" .. bold_char .. "].-)%" .. bold_char .. "%" .. bold_char .. "()",
     italic = "()%" .. italic_char .. "([^%" .. italic_char .. "].-)%" .. italic_char .."()",

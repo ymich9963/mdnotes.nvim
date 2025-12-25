@@ -58,23 +58,29 @@ function M.list_remap(inc_val)
     return indent, "\n"
 end
 
+local function navigate_to_section(section)
+    section = require('mdnotes.toc').get_section(section)
+    vim.fn.cursor(vim.fn.search("# " .. section), 1)
+    vim.api.nvim_input('zz')
+end
+
 function M.open()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local dest = ""
     local path = ""
     local section = ""
-    local section_only = nil
 
-    for start_pos, hyperlink, end_pos in line:gmatch(M.patterns.inline_link) do
+    for start_pos, inline_link, end_pos in line:gmatch(M.patterns.inline_link) do
         if start_pos < current_col and end_pos > current_col then
-            _, dest = hyperlink:match(M.patterns.text_dest)
+            _, dest = inline_link:match(M.patterns.text_dest)
             break
         end
     end
 
-    if dest == "" then
-        vim.notify(("Mdn: Nothing to open."), vim.log.levels.ERROR)
+    if not dest or dest == "" then
+        vim.notify(("Mdn: Nothing to open"), vim.log.levels.ERROR)
+
         return
     end
 
@@ -82,48 +88,36 @@ function M.open()
     dest = dest:gsub("[<>]?", "")
 
     -- Get the path and section
-    path, section = dest:match(M.patterns.file_section)
+    path = dest:match(M.patterns.uri_no_section) or ""
+    section = dest:match(M.patterns.section) or ""
 
     -- Append .md to guarantee a file name
-    if path:sub(-3) ~= ".md" then
+    if path:sub(-3) ~= ".md" and path ~= "" then
         path = path .. ".md"
     end
 
-    -- Check for just a section first
-    if dest:sub(1,1) == "#" then
-        section = dest:sub(2, #dest)
-        section_only = true
-    end
+    -- Handle CURRENT_FILE.md#section and #section
+    if (path == "" or path == vim.fs.basename(vim.api.nvim_buf_get_name(0))) and section then
+        navigate_to_section(section)
 
-    -- Check if the current file is the one in the link
-    if path == vim.fs.basename(vim.api.nvim_buf_get_name(0)) then
-        section_only = true
-    end
-
-    if section_only then
-        section = require('mdnotes.toc').get_section(section)
-        vim.fn.cursor(vim.fn.search("# " .. section), 1)
-        vim.api.nvim_input('zz')
         return
     end
 
     -- Check if the file exists
     if uv.fs_stat(path) then
         vim.cmd(M.open_cmd .. path)
-        if section ~= "" then
-            section = require('mdnotes.toc').get_section(section)
-            vim.fn.cursor(vim.fn.search(section), 1)
-            vim.api.nvim_input('zz')
+        if section and section ~= "" then
+            navigate_to_section(section)
         end
+
         return
     end
 
-    -- Last case is when it should be treated as a URI
+    -- If nothing has happened so far then just open it
+    -- This if-statement should be removed in Neovim 0.12
     if vim.fn.has("win32") == 1 then
         vim.system({'cmd.exe', '/c', 'start', '', dest})
     else
-        -- There might be issues with code below, see issue
-        -- https://github.com/neovim/neovim/issues/36293
         vim.ui.open(dest)
     end
 end
