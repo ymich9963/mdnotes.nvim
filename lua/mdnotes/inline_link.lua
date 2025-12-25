@@ -122,4 +122,44 @@ end
 function M.rename()
     rename_relink("rename")
 end
+
+function M.normalize()
+    local check_md_format = require('mdnotes.formatting').check_md_format
+    if not check_md_format(require("mdnotes.patterns").inline_link) then
+        vim.notify(("Mdn: Could not detect a valid inline link"), vim.log.levels.ERROR)
+        return
+    end
+
+    local current_col = vim.fn.col('.')
+    local line = vim.api.nvim_get_current_line()
+    local text, dest = "", ""
+    local col_start = 0
+    local col_end = 0
+    local new_dest = ""
+    local new_line = ""
+
+    for start_pos, hyperlink, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if start_pos < current_col and end_pos > current_col then
+            text, dest = hyperlink:match(require("mdnotes.patterns").text_dest)
+            col_start = start_pos
+            col_end = end_pos
+            break
+        end
+    end
+
+    new_dest = vim.fs.normalize(dest)
+
+    if new_dest:match("%s") then
+        new_dest = "<" .. new_dest .. ">"
+    end
+
+    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_dest .. ')' .. line:sub(col_end + 1)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+end
+
 return M

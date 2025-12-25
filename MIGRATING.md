@@ -7,29 +7,12 @@ Therefore I've made a list below of the small amount of changes you may need to 
 - Links to files or sections with spaces must be enclosed in `<`/`>` like this `[example](<path/to/file name with spaces.md>)`.
 - WikiLinks can only be file names. 
 
-To change your asset path you can use `:h vimgrep` and then execute `:h cdo` on the resulting quickfix list. See example commands below, and remember to backup your data before executing destructive commands,
-
-- Change `.\assets\` to `./assets/`
+The first two points can be fixed by running the `:Mdn inline_link normalize` command on every reference of your asset folder in your notes. For example if your folder is called `assets` you can use `:h vimgrep` and then execute `:h cdo` on the resulting quickfix list. An example command would be,
+```vim
+:vimgrep /assets/ **
 ```
-vimgrep /\.\\assets\\/ *
-cdo s/\.\\assets\\/\.\/assets\//g
+The command above would search for your assets folder in the current directory and all subdirectories. Then after inspecting the quickfix results are correct, execute the following command to normalise the assets file path,
+```vim
+:cdo Mdn inline_link normalize
 ```
-
-- Change `.\assets\` to `assets/`
-```
-vimgrep /\.\\assets\\/ *
-cdo s/\.\\assets\\/assets\//g
-```
-
-- Change `./assets/` to `assets/`
-```
-vimgrep /\.\/assets\// *
-cdo s/\.\/assets\//assets\//g
-```
-
-- Change all `\)` to `/)`
-```
-vimgrep /\\)/ *
-cdo s/\\)/\/)/g
-```
-
+See `:h Mdn-inline_link-normalize` for what the command does, but executing the above will essentially, change `.\assets\` to `./assets/`, change `.\assets\` to `assets/`, change `./assets/` to `assets/`.

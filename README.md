@@ -11,7 +11,7 @@
 
 Mdnotes aims to be a lightweight plugin that improves the Neovim Markdown note-taking experience with minimal configuration required. It does so by providing features like better WikiLink support, adding/removing inline links to images/files/URLs, sequential Markdown buffer history, asset management, referencing, ordered/unordered/task lists, generating ToC, table helpers, and formatting.
 
-Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes. If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you. I've also written some useful tips for when writing notes in Neovim using built-in features, see [TIPS.md](TIPS.md).
+Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes. If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you. I've also written some useful tips for when writing notes in Neovim using built-in features, see [TIPS.md](TIPS.md)
 
 All documentation is available with `:h mdnotes.txt`.
 
@@ -34,6 +34,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link and saves it to be used later with the same command.
 - Rename the link text with `:Mdn inline_link rename`. 
 - Re-link the inline link with `:Mdn inline_link relink`. 
+- Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
 
 ### 🫦 Tables
 - See the [Editing Tables](#editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.

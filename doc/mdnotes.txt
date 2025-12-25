@@ -313,6 +313,11 @@ subcommands are listed below.
 *
     Re-link the inline link.
 
+:Mdn inline_link normalize				*:Mdn-inline_link-normalize
+*
+    Execute |vim.fs.normalize()| on the inline link below the cursor and also
+    add < and > if the link contains spaces.
+
 :Mdn formatting bold_toggle				*:Mdn-formatting-bold_toggle*
 
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
@@ -622,6 +627,11 @@ inline_link.rename()					*mdnotes.formatting.inline_link-rename()*
 inline_link.relink()					*mdnotes.formatting.inline_link-relink()*
 
     Re-link the inline link.
+
+inline_link.normalize()					*mdnotes.formatting.inline_link-normalize()*
+
+    Execute |vim.fs.normalize()| on the inline link below the cursor and also
+    add < and > if the link contains spaces.
 
 formatting.inline_link.toggle()				*mdnotes.formatting.inline_link-toggle()*
 
