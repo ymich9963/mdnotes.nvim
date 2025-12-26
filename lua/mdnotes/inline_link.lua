@@ -73,7 +73,6 @@ local function rename_relink(rename_or_relink)
     local new_text = ""
     local new_dest = ""
     local new_line = ""
-    local new_col = 0
 
     for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
         start_pos = vim.fn.str2nr(start_pos)
