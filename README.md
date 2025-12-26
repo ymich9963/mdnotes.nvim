@@ -129,9 +129,11 @@ I've specified below some recommended plugins, keymaps, and optional settings fo
 
 ### 🔌 Plugins
 For the best Neovim Markdown note-taking experience, I've listed some other projects to optionally install alongside `mdnotes`,
-- [markview.nvim](https://github.com/OXY2DEV/markview.nvim) - Excellent viewing of Markdown files without any external preview.
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Tree-sitter for Neovim; with this also install the `markdown`, `markdown_inline`, and `latex` parsers.
-- Live Previewer,
+- In-Neovim Previewer for Markdown files (both are excellent),
+    - [markview.nvim](https://github.com/OXY2DEV/markview.nvim)
+    - [render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim)
+- Live Previewer for Markdown files in browser,
     - [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim) - Older, more widely used, has dependencies.
     - [live-preview.nvim](https://github.com/brianhuster/live-preview.nvim) - Newer, no dependencies.
 - LSP - Please see the [Using LSPs Section](#--using-lsps) for more information regarding LSPs, but I recommend,
