@@ -109,7 +109,7 @@ function M.rename()
 end
 
 function M.normalize()
-    local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
+    local validate_tbl = require('mdnotes.inline_link').validate(true, true) or {}
     local text, dest, _, _, col_start, col_end = unpack(validate_tbl)
     local new_dest = ""
     local new_line = ""
@@ -129,8 +129,9 @@ function M.normalize()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
-function M.validate(internal_call)
+function M.validate(internal_call, norm)
     if not internal_call then internal_call = false end
+    if not norm then norm = false end
 
     local check_md_format = require('mdnotes.formatting').check_md_format
 
@@ -166,8 +167,10 @@ function M.validate(internal_call)
     end
 
     if dest:match(" ") and not dest:match("<.+>") then
-        vim.notify("Mdn: Destinations with spaces must be encircled with < and >. Execute ':Mdn inline_link normalize' for a quick fix.", vim.log.levels.ERROR)
-        return nil
+        if norm == false then
+            vim.notify("Mdn: Destinations with spaces must be encircled with < and >. Execute ':Mdn inline_link normalize' for a quick fix.", vim.log.levels.ERROR)
+            return nil
+        end
     end
 
     -- Remove any < or > from dest

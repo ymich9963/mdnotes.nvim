@@ -643,14 +643,16 @@ inline_link.normalize()					*mdnotes.inline_link.normalize()*
     Execute |vim.fs.normalize()| on the inline link below the cursor and also
     add < and > if the link contains spaces.
 
-inline_link.validate({internal_call})			*mdnotes.inline_link.validate()*
+inline_link.validate([{internal_call}, {norm}])		*mdnotes.inline_link.validate()*
 
     Validate any inline link without opening it. Gets called internally for
     |Mdn-open| with `internal_call = true`.
 
     Parameters: ~
-    • {internal_call}  (`false|true`) Specify whether the function is called
+    • {internal_call}  (`false|true?`) Specify whether the function is called
       internally or externally by the user.
+    • {norm}  (`false|true?`) Specify whether |mdnotes.inline_link.normalize()
+      is used.
 
     Return: ~
     • (`nil`) on failure.
