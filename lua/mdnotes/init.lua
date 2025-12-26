@@ -62,6 +62,8 @@ function M.open()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
     local _, dest, path, section, _, _ = unpack(validate_tbl)
 
+    if not dest or not path or not section then return end
+
     -- Check if the file exists
     if uv.fs_stat(path) then
         vim.cmd(M.open_cmd .. path)

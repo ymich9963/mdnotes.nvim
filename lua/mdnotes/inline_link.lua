@@ -66,6 +66,8 @@ local function rename_relink(rename_or_relink)
     local new_text = ""
     local line = vim.api.nvim_get_current_line()
 
+    if not text or not dest then return end
+
     if rename_or_relink == "rename" then
         vim.ui.input({ prompt = "Rename link text '".. text .."' to: " },
         function(input)
@@ -112,6 +114,8 @@ function M.normalize()
     local new_dest = ""
     local new_line = ""
     local line = vim.api.nvim_get_current_line()
+
+    if not text or not dest then return end
 
     new_dest = vim.fs.normalize(dest)
     if new_dest:match("%s") then
@@ -218,6 +222,8 @@ function M.convert_section_to_gfm()
     local new_section = ""
     local line = vim.api.nvim_get_current_line()
     local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
+
+    if not text or not dest then return end
 
     -- Remove any < or > from dest
     dest = dest:gsub("[<>]?", "")
