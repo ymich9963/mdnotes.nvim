@@ -28,11 +28,15 @@ function M.get_sections_original()
     return sections
 end
 
+function M.convert_text_to_gfm(text)
+    local ret = text:lower():gsub("[^%d%a%p ]+", ""):gsub(" ", "-")
+    return ret
+end
+
 function M.get_sections_gfm_from_original(original_sections)
     local gfm_sections = {}
     for _, section in ipairs(original_sections) do
-        local gfm_text = section.text:lower():gsub("[^%d%a%p ]+", ""):gsub(" ", "-")
-        table.insert(gfm_sections, gfm_text)
+        table.insert(gfm_sections, M.convert_text_to_gfm(section.text))
     end
 
     return gfm_sections

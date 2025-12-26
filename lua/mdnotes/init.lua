@@ -59,9 +59,9 @@ function M.list_remap(inc_val)
 end
 
 function M.open()
-    local dest, path, section = require('mdnotes.inline_link').validate(true)
+    local text, dest, path, section = require('mdnotes.inline_link').validate(true)
 
-    if not dest or not path or not section then return end
+    if not text or not dest or not path or not section then return end
 
     -- Check if the file exists
     if uv.fs_stat(path) then

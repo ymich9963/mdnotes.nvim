@@ -299,28 +299,34 @@ subcommands are listed below.
 
     Clear the history of visited Markdown buffers.
 
-:Mdn inline_link toggle					*:Mdn-inline_link-toggle
-*
+:Mdn inline_link toggle					*:Mdn-inline_link-toggle*
+
     Toggle inserting and deleting a inline link (e.g. `[text](link)`) from your
     clipboard (the `"+` register). When removing a link it saves it to `"0`
     for later use.
 
-:Mdn inline_link rename					*:Mdn-inline_link-rename
-*
+:Mdn inline_link rename					*:Mdn-inline_link-rename*
+
     Rename the link text.
 
-:Mdn inline_link relink					*:Mdn-inline_link-relink
-*
+:Mdn inline_link relink					*:Mdn-inline_link-relink*
+
     Re-link the inline link.
 
-:Mdn inline_link normalize				*:Mdn-inline_link-normalize
-*
+:Mdn inline_link normalize				*:Mdn-inline_link-normalize*
+
     Execute |vim.fs.normalize()| on the inline link below the cursor and also
     add < and > if the link contains spaces.
 
-:Mdn inline_link validate				*:Mdn-inline_link-validate
-*
+:Mdn inline_link validate				*:Mdn-inline_link-validate*
+
     Validate any inline link without opening it.
+
+:Mdn inline_link convert_section_to_gfm			*:Mdn-inline_link-convert_section_to_gfm*
+
+    Convert an inline link with a section to a GFM-style section. Useful when
+    using LSP auto-completion and you want to create valid Markdown links on
+    GitHub.
 
 :Mdn formatting bold_toggle				*:Mdn-formatting-bold_toggle*
 
@@ -648,9 +654,14 @@ inline_link.validate({internal_call})			*mdnotes.inline_link.validate()*
 
     Return: ~
     • (`nil`) on failure.
-    • (`string?`, `string?`, `string?`) which is the destination URI, file
+    • (`string?`, `string?`, `string?`, `string?`) which is the link text, destination URI, file
       path, and section, on success.
 
+inline_link.convert_section_to_gfm()			*mdnotes.inline_link.convert_section_to_gfm()*
+
+    Convert an inline link with a section to a GFM-style section. Useful when
+    using LSP auto-completion and you want to create valid Markdown links on
+    GitHub.
 
 formatting.inline_link.toggle()				*mdnotes.formatting.inline_link-toggle()*
 

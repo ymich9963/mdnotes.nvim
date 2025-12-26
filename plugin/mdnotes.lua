@@ -143,6 +143,7 @@ local get_commands = function() return {
             relink = require("mdnotes.inline_link").relink,
             normalize = require("mdnotes.inline_link").normalize,
             validate = require("mdnotes.inline_link").validate,
+            convert_section_to_gfm = require("mdnotes.inline_link").convert_section_to_gfm,
         },
         toc = {
             generate = require("mdnotes.toc").generate

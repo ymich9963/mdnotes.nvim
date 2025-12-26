@@ -36,6 +36,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Re-link the inline link with `:Mdn inline_link relink`. 
 - Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
 - Validate an inline link without opening it by executing `:Mdn inline_link validate`. 
+- Convert an inline link with a section to a [GFM-style section](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
 
 ### 🫦 Tables
 - See the [Editing Tables](#editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.

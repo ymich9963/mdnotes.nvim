@@ -177,15 +177,16 @@ function M.validate(internal_call)
     local current_lnum = vim.fn.line('.')
     local current_col = vim.fn.col('.')
     local line = vim.api.nvim_get_current_line()
+    local text = ""
     local dest = ""
     local path = ""
     local section = ""
 
-    for start_pos, hyperlink, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
+    for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
         if start_pos < current_col and end_pos > current_col then
-            _, dest = hyperlink:match(require("mdnotes.patterns").text_dest)
+            text, dest = inline_link:match(require("mdnotes.patterns").text_dest)
             break
         end
     end
@@ -239,10 +240,53 @@ function M.validate(internal_call)
     end
 
     if internal_call == true then
-        return dest, path, section
+        return text, dest, path, section
     end
 
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
+end
+
+function M.convert_section_to_gfm()
+    local check_md_format = require('mdnotes.formatting').check_md_format
+    if not check_md_format(require("mdnotes.patterns").inline_link) then
+        vim.notify(("Mdn: Could not detect a valid inline link"), vim.log.levels.ERROR)
+        return
+    end
+
+    local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
+    local current_col = vim.fn.col('.')
+    local line = vim.api.nvim_get_current_line()
+    local text, dest = "", ""
+    local col_start = 0
+    local col_end = 0
+    local new_section = ""
+    local new_line = ""
+
+    for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if start_pos < current_col and end_pos > current_col then
+            text, dest = inline_link:match(require("mdnotes.patterns").text_dest)
+            col_start = start_pos
+            col_end = end_pos
+            break
+        end
+    end
+
+    -- Remove any < or > from dest
+    dest = dest:gsub("[<>]?", "")
+
+    local section = dest:match(require("mdnotes.patterns").section) or ""
+    new_section = convert_text_to_gfm(section)
+
+    local hash_location = dest:find("#") or 1
+    local new_dest = dest:sub(1, hash_location) .. new_section
+
+    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_dest .. ')' .. line:sub(col_end)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start})
 end
 
 return M
