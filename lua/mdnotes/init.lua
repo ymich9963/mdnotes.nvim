@@ -58,56 +58,19 @@ function M.list_remap(inc_val)
     return indent, "\n"
 end
 
-local function navigate_to_section(section)
-    section = require('mdnotes.toc').get_section(section)
-    vim.fn.cursor(vim.fn.search("# " .. section), 1)
-    vim.api.nvim_input('zz')
-end
-
 function M.open()
-    local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
-    local dest = ""
-    local path = ""
-    local section = ""
+    local dest, path, section = require('mdnotes.inline_link').validate(true)
 
-    for start_pos, inline_link, end_pos in line:gmatch(M.patterns.inline_link) do
-        if start_pos < current_col and end_pos > current_col then
-            _, dest = inline_link:match(M.patterns.text_dest)
-            break
-        end
-    end
-
-    if not dest or dest == "" then
-        vim.notify(("Mdn: Nothing to open"), vim.log.levels.ERROR)
-
-        return
-    end
-
-    -- Remove any < or > from dest
-    dest = dest:gsub("[<>]?", "")
-
-    -- Get the path and section
-    path = dest:match(M.patterns.uri_no_section) or ""
-    section = dest:match(M.patterns.section) or ""
-
-    -- Append .md to guarantee a file name
-    if path:sub(-3) ~= ".md" and path ~= "" then
-        path = path .. ".md"
-    end
-
-    -- Handle CURRENT_FILE.md#section and #section
-    if (path == "" or path == vim.fs.basename(vim.api.nvim_buf_get_name(0))) and section then
-        navigate_to_section(section)
-
-        return
-    end
+    if not dest or not path or not section then return end
 
     -- Check if the file exists
     if uv.fs_stat(path) then
         vim.cmd(M.open_cmd .. path)
         if section and section ~= "" then
-            navigate_to_section(section)
+            -- Navigate to section
+            section = require('mdnotes.toc').get_section(section)
+            vim.fn.cursor(vim.fn.search("# " .. section), 1)
+            vim.api.nvim_input('zz')
         end
 
         return

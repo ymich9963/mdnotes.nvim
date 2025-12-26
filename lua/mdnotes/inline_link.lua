@@ -1,5 +1,7 @@
 local M = {}
 
+local uv = vim.loop or vim.uv
+
 function M.insert()
     local reg = vim.fn.getreg('+')
 
@@ -71,12 +73,13 @@ local function rename_relink(rename_or_relink)
     local new_text = ""
     local new_dest = ""
     local new_line = ""
+    local new_col = 0
 
-    for start_pos, hyperlink, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
+    for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
         if start_pos < current_col and end_pos > current_col then
-            text, dest = hyperlink:match(require("mdnotes.patterns").text_dest)
+            text, dest = inline_link:match(require("mdnotes.patterns").text_dest)
             col_start = start_pos
             col_end = end_pos
             break
@@ -94,7 +97,7 @@ local function rename_relink(rename_or_relink)
             return
         end
 
-        new_line = line:sub(1, col_start - 1) .. '[' .. new_text .. '](' .. dest .. ')' .. line:sub(col_end + 1)
+        new_line = line:sub(1, col_start - 1) .. '[' .. new_text .. '](' .. dest .. ')' .. line:sub(col_end)
     elseif rename_or_relink == "relink" then
 
         vim.ui.input({ prompt = "Relink '".. dest .."' to: " },
@@ -107,12 +110,12 @@ local function rename_relink(rename_or_relink)
             return
         end
 
-        new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_dest .. ')' .. line:sub(col_end + 1)
+        new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_dest .. ')' .. line:sub(col_end)
     end
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start})
 end
 
 function M.relink()
@@ -160,6 +163,82 @@ function M.normalize()
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+end
+
+function M.validate(internal_call)
+    if not internal_call then internal_call = false end
+
+    local check_md_format = require('mdnotes.formatting').check_md_format
+
+    if not check_md_format(require("mdnotes.patterns").inline_link) then
+        vim.notify("Mdn: No valid inline link detected", vim.log.levels.WARN)
+        return
+    end
+
+    local current_lnum = vim.fn.line('.')
+    local current_col = vim.fn.col('.')
+    local line = vim.api.nvim_get_current_line()
+    local dest = ""
+    local path = ""
+    local section = ""
+
+    for start_pos, hyperlink, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if start_pos < current_col and end_pos > current_col then
+            _, dest = hyperlink:match(require("mdnotes.patterns").text_dest)
+            break
+        end
+    end
+
+    if not dest or dest == "" then
+        vim.notify(("Mdn: Nothing to open"), vim.log.levels.ERROR)
+        return
+    end
+
+    -- Remove any < or > from dest
+    dest = dest:gsub("[<>]?", "")
+
+    path = dest:match(require("mdnotes.patterns").uri_no_section) or ""
+    section = dest:match(require("mdnotes.patterns").section) or ""
+
+    -- Append .md to guarantee a file name
+    if path ~= "" and path:sub(-3) ~= ".md" then
+        path = path .. ".md"
+    end
+
+    -- Handle CURRENT_FILE.md#section and #section
+    if path == "" then
+        path = vim.fs.basename(vim.api.nvim_buf_get_name(0))
+    end
+
+    if not uv.fs_stat(path) and dest:match("%w+://") ~= "https://" then
+        vim.notify("Mdn: Linked file not found", vim.log.levels.ERROR)
+        return nil
+    end
+
+    if section ~= "" then
+        local buf = vim.fn.bufadd(path)
+        local search_ret = 0
+        section = require('mdnotes.toc').get_section(section)
+
+        vim.fn.bufload(buf)
+        vim.api.nvim_buf_call(buf, function()
+            search_ret = vim.fn.search("# " .. section)
+        end)
+
+        if search_ret == 0 then
+            vim.notify("Mdn: Invalid section link", vim.log.levels.ERROR)
+            return nil
+        end
+        vim.fn.cursor(current_lnum, current_col)
+    end
+
+    if internal_call == true then
+        return dest, path, section
+    end
+
+    vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
 end
 
 return M

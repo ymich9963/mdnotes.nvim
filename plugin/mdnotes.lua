@@ -142,6 +142,7 @@ local get_commands = function() return {
             rename = require("mdnotes.inline_link").rename,
             relink = require("mdnotes.inline_link").relink,
             normalize = require("mdnotes.inline_link").normalize,
+            validate = require("mdnotes.inline_link").validate,
         },
         toc = {
             generate = require("mdnotes.toc").generate
