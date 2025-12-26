@@ -171,7 +171,7 @@ function M.validate(internal_call)
 
     if not check_md_format(require("mdnotes.patterns").inline_link) then
         vim.notify("Mdn: No valid inline link detected", vim.log.levels.WARN)
-        return
+        return nil
     end
 
     local current_lnum = vim.fn.line('.')
@@ -192,7 +192,12 @@ function M.validate(internal_call)
 
     if not dest or dest == "" then
         vim.notify(("Mdn: Nothing to open"), vim.log.levels.ERROR)
-        return
+        return nil
+    end
+
+    if dest:match(" ") and not dest:match("<.+>") then
+        vim.notify("Mdn: Destinations with spaces must be encircled with < and >. Execute ':Mdn inline_link normalize' for a quick fix.", vim.log.levels.ERROR)
+        return nil
     end
 
     -- Remove any < or > from dest
