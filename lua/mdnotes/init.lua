@@ -64,6 +64,10 @@ function M.open()
 
     if not dest or not path or not section then return end
 
+    -- Fix bug when opening link that's not saved
+    -- Unsure if undesired but I think makes sense
+    vim.cmd.write()
+
     -- Check if the file exists
     if uv.fs_stat(path) then
         vim.cmd(M.open_cmd .. path)
