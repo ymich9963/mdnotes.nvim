@@ -654,8 +654,8 @@ inline_link.validate({internal_call})			*mdnotes.inline_link.validate()*
 
     Return: ~
     • (`nil`) on failure.
-    • (`string?`, `string?`, `string?`, `string?`) which is the link text, destination URI, file
-      path, and section, on success.
+    • (`table`) which is the link text, destination URI, file path, and section, start 
+      column of link, and end column of link on success.
 
 inline_link.convert_section_to_gfm()			*mdnotes.inline_link.convert_section_to_gfm()*
 

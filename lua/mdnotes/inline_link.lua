@@ -59,31 +59,12 @@ function M.toggle()
 end
 
 local function rename_relink(rename_or_relink)
-    local check_md_format = require('mdnotes.formatting').check_md_format
-    if not check_md_format(require("mdnotes.patterns").inline_link) then
-        vim.notify(("Mdn: Could not detect a valid inline link"), vim.log.levels.ERROR)
-        return
-    end
-
-    local current_col = vim.fn.col('.')
-    local line = vim.api.nvim_get_current_line()
-    local text, dest = "", ""
-    local col_start = 0
-    local col_end = 0
-    local new_text = ""
+    local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
+    local text, dest, _, _, col_start, col_end = unpack(validate_tbl)
     local new_dest = ""
     local new_line = ""
-
-    for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
-            text, dest = inline_link:match(require("mdnotes.patterns").text_dest)
-            col_start = start_pos
-            col_end = end_pos
-            break
-        end
-    end
+    local new_text = ""
+    local line = vim.api.nvim_get_current_line()
 
     if rename_or_relink == "rename" then
         vim.ui.input({ prompt = "Rename link text '".. text .."' to: " },
@@ -126,33 +107,13 @@ function M.rename()
 end
 
 function M.normalize()
-    local check_md_format = require('mdnotes.formatting').check_md_format
-    if not check_md_format(require("mdnotes.patterns").inline_link) then
-        vim.notify(("Mdn: Could not detect a valid inline link"), vim.log.levels.ERROR)
-        return
-    end
-
-    local current_col = vim.fn.col('.')
-    local line = vim.api.nvim_get_current_line()
-    local text, dest = "", ""
-    local col_start = 0
-    local col_end = 0
+    local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
+    local text, dest, _, _, col_start, col_end = unpack(validate_tbl)
     local new_dest = ""
     local new_line = ""
-
-    for start_pos, hyperlink, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
-            text, dest = hyperlink:match(require("mdnotes.patterns").text_dest)
-            col_start = start_pos
-            col_end = end_pos
-            break
-        end
-    end
+    local line = vim.api.nvim_get_current_line()
 
     new_dest = vim.fs.normalize(dest)
-
     if new_dest:match("%s") then
         new_dest = "<" .. new_dest .. ">"
     end
@@ -177,6 +138,8 @@ function M.validate(internal_call)
     local current_lnum = vim.fn.line('.')
     local current_col = vim.fn.col('.')
     local line = vim.api.nvim_get_current_line()
+    local col_start = 0
+    local col_end = 0
     local text = ""
     local dest = ""
     local path = ""
@@ -187,6 +150,8 @@ function M.validate(internal_call)
         end_pos = vim.fn.str2nr(end_pos)
         if start_pos < current_col and end_pos > current_col then
             text, dest = inline_link:match(require("mdnotes.patterns").text_dest)
+            col_start = start_pos
+            col_end = end_pos
             break
         end
     end
@@ -240,38 +205,19 @@ function M.validate(internal_call)
     end
 
     if internal_call == true then
-        return text, dest, path, section
+        return {text, dest, path, section, col_start, col_end}
     end
 
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
 end
 
 function M.convert_section_to_gfm()
-    local check_md_format = require('mdnotes.formatting').check_md_format
-    if not check_md_format(require("mdnotes.patterns").inline_link) then
-        vim.notify(("Mdn: Could not detect a valid inline link"), vim.log.levels.ERROR)
-        return
-    end
-
-    local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
-    local current_col = vim.fn.col('.')
-    local line = vim.api.nvim_get_current_line()
-    local text, dest = "", ""
-    local col_start = 0
-    local col_end = 0
-    local new_section = ""
+    local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
+    local text, dest, _, _, col_start, col_end = unpack(validate_tbl)
     local new_line = ""
-
-    for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
-            text, dest = inline_link:match(require("mdnotes.patterns").text_dest)
-            col_start = start_pos
-            col_end = end_pos
-            break
-        end
-    end
+    local new_section = ""
+    local line = vim.api.nvim_get_current_line()
+    local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
 
     -- Remove any < or > from dest
     dest = dest:gsub("[<>]?", "")
