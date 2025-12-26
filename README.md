@@ -35,6 +35,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Rename the link text with `:Mdn inline_link rename`. 
 - Re-link the inline link with `:Mdn inline_link relink`. 
 - Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
+- Validate an inline link without opening it by executing `:Mdn inline_link validate`. 
 
 ### 🫦 Tables
 - See the [Editing Tables](#editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
@@ -194,7 +195,7 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 |Delete row                      |N                                         |Y (`:h dd`)                                                            |
 |Move row                        |N                                         |Y (`:h dd` and `:h p`)                                                 |
 |Insert empty columns            |Y (`:Mdn table column_insert_left/right`) |N                                                                      |
-|Duplicate column                |Y (`:Mdn table column_duplicate`)         |N                                                                      |
+|Duplicate column                |Y (`:Mdn table column_duplicate`)         |Y (`:h visual-block`)                                                  |
 |Delete column                   |Y (`:Mdn table column_delete`)            |Y (`:h visual-block`)                                                  |
 |Move column                     |Y (`:Mdn table column_move_left/right`)   |N                                                                      |
 

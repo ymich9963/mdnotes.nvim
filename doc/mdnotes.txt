@@ -318,6 +318,10 @@ subcommands are listed below.
     Execute |vim.fs.normalize()| on the inline link below the cursor and also
     add < and > if the link contains spaces.
 
+:Mdn inline_link validate				*:Mdn-inline_link-validate
+*
+    Validate any inline link without opening it.
+
 :Mdn formatting bold_toggle				*:Mdn-formatting-bold_toggle*
 
     Toggle Markdown `**bold**` syntax. Select a word and execute the command
@@ -608,30 +612,45 @@ history.clear()						*mdnotes.history.clear()*
 
     Clear the |mdnotes.buf_history| table.
 
-inline_link.insert()					*mdnotes.formatting.inline_link-insert()*
+inline_link.insert()					*mdnotes.inline_link.insert()*
 
     Insert a inline link from the clipboard using the currently highlighted
     text or the word under cursor. Uses the `"+` register to paste from
     clipboard.
 
-inline_link.delete()					*mdnotes.formatting.inline_link-delete()*
+inline_link.delete()					*mdnotes.inline_link.delete()*
 
     Remove the inline link from the current inline link under the cursor.
     Saves the link text in the `"0` register and the link in the `"+` register.
     This allows it to be reused when inserting again.
 
-inline_link.rename()					*mdnotes.formatting.inline_link-rename()*
+inline_link.rename()					*mdnotes.inline_link.rename()*
 
     Rename the link text.
 
-inline_link.relink()					*mdnotes.formatting.inline_link-relink()*
+inline_link.relink()					*mdnotes.inline_link.relink()*
 
     Re-link the inline link.
 
-inline_link.normalize()					*mdnotes.formatting.inline_link-normalize()*
+inline_link.normalize()					*mdnotes.inline_link.normalize()*
 
     Execute |vim.fs.normalize()| on the inline link below the cursor and also
     add < and > if the link contains spaces.
+
+inline_link.validate({internal_call})			*mdnotes.inline_link.validate()*
+
+    Validate any inline link without opening it. Gets called internally for
+    |Mdn-open| with `internal_call = true`.
+
+    Parameters: ~
+    • {internal_call}  (`false|true`) Specify whether the function is called
+      internally or externally by the user.
+
+    Return: ~
+    • (`nil`) on failure.
+    • (`string?`, `string?`, `string?`) which is the destination URI, file
+      path, and section, on success.
+
 
 formatting.inline_link.toggle()				*mdnotes.formatting.inline_link-toggle()*
 
