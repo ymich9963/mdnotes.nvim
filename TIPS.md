@@ -18,6 +18,11 @@ would look for the word `balls` in all directories, from the current working dir
 :vimgrep /balls/ **
 :cdo s/balls/dict/g
 ```
+### Tags
+An obvious use-case for this is with tags, therefore you can use the above example to search for notes with the corresponding tag,
+```vim
+:vimgrep /#politics/ **
+```
 
 ## Finding Files
 The `:find` command is great for finding files in a directory with a not-so-large number of files. If you use this option, it will automatically look in all subdirectories when called, 

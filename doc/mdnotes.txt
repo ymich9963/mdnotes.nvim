@@ -778,6 +778,12 @@ all occurences of the word `balls` with `dict`, you would do,
 >vim
     :vimgrep /balls/ **
 <
+							*mdnotes-tags*
+An obvious use-case for this is with tags, therefore you can use the above example to
+search for notes with the corresponding tag,
+>vim
+    :vimgrep /#politics/ **
+<
 							*mdnotes-finding-files*
 The `:find` command is great for finding files in a directory with a not-so-large number
 of files. If you use this option, it will automatically look in all subdirectories when
