@@ -248,4 +248,54 @@ function M.create()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
+function M.delete()
+    local line = vim.api.nvim_get_current_line()
+    local current_col = vim.fn.col('.')
+    local found_file = ""
+    local wikilink = ""
+    local wikilink_pattern = require('mdnotes.patterns').wikilink
+    local new_line = ""
+    local col_start = 0
+    local col_end = 0
+
+    for start_pos, file ,end_pos in line:gmatch(wikilink_pattern) do
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if start_pos < current_col and end_pos > current_col then
+            wikilink = file
+            col_start = start_pos
+            col_end = end_pos
+        end
+    end
+
+    -- Append .md to guarantee a file name
+    if wikilink:sub(-3) ~= ".md" then
+        found_file = wikilink .. ".md"
+    else
+        found_file = wikilink
+    end
+
+    if uv.fs_stat(found_file)  then
+        vim.ui.input( { prompt = ("Mdn: Delete '%s' WikiLink and file? Type y/n (default 'n'): "):format(found_file), }, function(input)
+            vim.cmd.redraw()
+            if input == 'y' then
+                vim.fs.rm(found_file)
+            elseif input == 'n' or '' then
+            else
+                vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue..."):format(input), vim.log.levels.ERROR)
+                vim.fn.getchar()
+            end
+        end)
+    else
+        vim.notify("Mdn: WikiLink file not found so proceeding to remove text only", vim.log.levels.WARN)
+    end
+
+
+    new_line = line:sub(1, col_start - 1) .. wikilink .. line:sub(col_end)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end})
+end
+
 return M

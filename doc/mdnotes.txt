@@ -257,6 +257,10 @@ subcommands are listed below.
     Undo the most recent reference rename. Only available when 
     `prefer_lsp = false`. 
 
+:Mdn wikilink delete					*:Mdn-wikilink-delete*
+
+    Delete WikiLink under the cursor.
+
 :Mdn assets insert_image				*:Mdn-assets-insert_image*
 
     Insert the image in the clipboard under the cursor and depending on
@@ -539,6 +543,10 @@ wikilink.undo_rename()					*mdnotes.wikilinks.undo_rename()*
 
     Undo the most recent reference rename. Only available when 
     `prefer_lsp = false`. 
+
+wikilink.delete()					*mdnotes.wikilinks.delete()*
+
+    Delete WikiLink under the cursor.
 
 formatting.check_md_format({pattern}) 			*mdnotes.formatting.check_md_format()*
 
