@@ -515,36 +515,36 @@ outliner.toggle()					*mdnotes.outliner.toggle()*
     Toggle the outliner mode. Outliner mode essentially sets or deletes
     certain keymaps to simulate working in an outliner program (e.g. Logseq).
 
-wikilink.follow()					*mdnotes.wikilinks.follow()*
+wikilink.follow()					*mdnotes.wikilink.follow()*
 
     Open the Wikilink (e.g. `[[link]]` or `[[link#section]]`) under the cursor. 
 
-wikilink.create()					*mdnotes.wikilinks.create()*
+wikilink.create()					*mdnotes.wikilink.create()*
 
     Create a WikiLink by highlighting or hovering over a word and executing. 
 
-wikilink.show_references()				*mdnotes.wikilinks.show_references()*
+wikilink.show_references()				*mdnotes.wikilink.show_references()*
 
     Show the references of the current Wikilink under cursor in a quickfix
     list. If no Wikilink is under the cursor it shows the references to the
     current buffer.
 
-wikilink.rename_references()				*mdnotes.wikilinks.rename_references()*
+wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
 
     Rename the reference to a `[[link]]` and also the file pointing to that
     link.
 
-wikilink.rename_references_cur_buf()			*mdnotes.wikilinks.rename_references_cur_buf()*
+wikilink.rename_references_cur_buf()			*mdnotes.wikilink.rename_references_cur_buf()*
 
     Rename references to current buffer and also the file of the current
     buffer.
 
-wikilink.undo_rename()					*mdnotes.wikilinks.undo_rename()*
+wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
 
     Undo the most recent reference rename. Only available when 
     `prefer_lsp = false`. 
 
-wikilink.delete()					*mdnotes.wikilinks.delete()*
+wikilink.delete()					*mdnotes.wikilink.delete()*
 
     Delete WikiLink under the cursor.
 

@@ -103,12 +103,12 @@ local get_commands = function() return {
             ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
         },
         wikilink = {
-            follow = require("mdnotes.wikilinks").follow,
-            show_references = require("mdnotes.wikilinks").show_references,
-            rename_references = require("mdnotes.wikilinks").rename_references,
-            undo_rename = require("mdnotes.wikilinks").undo_rename,
-            create = require("mdnotes.wikilinks").create,
-            delete = require("mdnotes.wikilinks").delete,
+            follow = require("mdnotes.wikilink").follow,
+            show_references = require("mdnotes.wikilink").show_references,
+            rename_references = require("mdnotes.wikilink").rename_references,
+            undo_rename = require("mdnotes.wikilink").undo_rename,
+            create = require("mdnotes.wikilink").create,
+            delete = require("mdnotes.wikilink").delete,
         },
         table = {
             create = require("mdnotes.table").create,
