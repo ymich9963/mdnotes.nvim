@@ -45,7 +45,94 @@ local function insert_file(file_type)
             cmd_stdout = vim.system({"wl-paste", "--type", "text/uri-list", "|", "sed", "'s|file://||'"}, { text = true }):wait().stdout
         end
     elseif vim.fn.has("mac") == 1 then
-        cmd_stdout = vim.system({"osascript", "-e", "set f to the clipboard as alias", "-e", "POSIX path of f"}, { text = true }):wait().stdout
+        -- Try to get file path first (when user copies a file from Finder)
+        local result = vim.system({"osascript", "-e", "set f to the clipboard as alias", "-e", "POSIX path of f"}, { text = true }):wait()
+        cmd_stdout = result.stdout
+
+        -- If getting file path failed (exit code != 0), check what's in the clipboard
+        if result.code ~= 0 then
+            -- Check if clipboard contains image data (not text or other types)
+            local clipboard_check = vim.system({"osascript", "-e", "clipboard info"}, { text = true }):wait()
+            local has_image_data = clipboard_check.stdout:match("«class PNGf»") or
+                                   clipboard_check.stdout:match("«class TPIC»") or
+                                   clipboard_check.stdout:match("TIFF picture")
+
+            -- Only try pngpaste if we're inserting an image AND clipboard has image data
+            if file_type == "image" and has_image_data then
+                -- Check if pngpaste is available
+                local pngpaste_check = vim.system({"which", "pngpaste"}, { text = true }):wait()
+                if pngpaste_check.code == 0 then
+                    local mdnotes_config = require('mdnotes').config
+
+                    -- Generate a unique filename for the clipboard image with nanosecond precision
+                    -- Format: clipboard_image_YYYYMMDD_HHMMSS_NNNNNNNNN.png (nanoseconds for uniqueness)
+                    local temp_filename = nil
+                    local dest_path = nil
+                    local attempt = 0
+                    local max_attempts = 100
+
+                    -- Keep trying until we find a unique filename or reach max attempts
+                    repeat
+                        if attempt == 0 then
+                            -- First attempt: use timestamp with nanoseconds
+                            local timestamp = os.date("%Y%m%d_%H%M%S")
+                            local nanoseconds = string.format("%d", uv.hrtime()):sub(-9)  -- Get nanosecond precision
+                            temp_filename = ("clipboard_image_%s_%s.png"):format(timestamp, nanoseconds)
+                        else
+                            -- Subsequent attempts: add counter
+                            local timestamp = os.date("%Y%m%d_%H%M%S")
+                            local nanoseconds = string.format("%d", uv.hrtime()):sub(-9)
+                            temp_filename = ("clipboard_image_%s_%s_%d.png"):format(timestamp, nanoseconds, attempt)
+                        end
+
+                        dest_path = vim.fs.joinpath(mdnotes_config.assets_path, temp_filename)
+                        attempt = attempt + 1
+                    until not uv.fs_stat(dest_path) or attempt >= max_attempts
+
+                    -- Check if file exists after attempting to find unique filename
+                    -- This only happens if we hit max_attempts without finding a unique name
+                    if uv.fs_stat(dest_path) then
+                        if mdnotes_config.asset_overwrite_behaviour == "error" then
+                            vim.notify(("Mdn: Could not generate unique filename after %d attempts."):format(max_attempts), vim.log.levels.ERROR)
+                            return
+                        -- else: asset_overwrite_behaviour == "overwrite"
+                        -- Allow pngpaste to overwrite the existing file (continue execution)
+                        end
+                    end
+
+                    -- Use pngpaste to save clipboard image directly to assets folder
+                    local paste_result = vim.system({"pngpaste", dest_path}, { text = true }):wait()
+                    if paste_result.code == 0 then
+                        -- Successfully saved image from clipboard
+                        -- Create and insert the markdown image link (handle spaces like existing code)
+                        local text = ""
+                        if contains_spaces(dest_path) then
+                            text = ("![%s](<%s>)"):format(temp_filename, dest_path)
+                        else
+                            text = ("![%s](%s)"):format(temp_filename, dest_path)
+                        end
+                        vim.api.nvim_put({text}, "c", false, false)
+                        vim.notify(('Mdn: Saved clipboard image to "%s".'):format(dest_path), vim.log.levels.INFO)
+                        return
+                    else
+                        vim.notify("Mdn: Failed to paste image from clipboard. Error: " .. (paste_result.stderr or "unknown"), vim.log.levels.ERROR)
+                        return
+                    end
+                else
+                    vim.notify("Mdn: Clipboard contains image data, but 'pngpaste' is not installed. Install it with: brew install pngpaste", vim.log.levels.ERROR)
+                    return
+                end
+            else
+                -- Clipboard doesn't contain file path or image data
+                -- It might contain text (like a copied file path string)
+                if file_type == "image" then
+                    vim.notify("Mdn: Clipboard doesn't contain a file reference or image data. Try:\n  - Copy a file from Finder (⌘C on a file)\n  - Take a screenshot (⌘⇧⌃4)\n  - Copy an image from an app", vim.log.levels.ERROR)
+                else
+                    vim.notify("Mdn: Clipboard doesn't contain a file reference. Try copying a file from Finder.", vim.log.levels.ERROR)
+                end
+                return
+            end
+        end
     end
 
     if cmd_stdout ~= "" then
