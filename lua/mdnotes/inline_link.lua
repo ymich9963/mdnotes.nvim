@@ -182,7 +182,7 @@ function M.validate(internal_call, norm)
 
     if path ~= "" then
         if not uv.fs_stat(path) and not uv.fs_stat(path .. ".md") then
-            if vim.tbl_contains(uri_exclude_tbl, path:match("%w+")) then
+            if not vim.tbl_contains(uri_exclude_tbl, path:match("%w+")) then
                 vim.notify("Mdn: Linked file not found", vim.log.levels.ERROR)
                 return nil
             end
