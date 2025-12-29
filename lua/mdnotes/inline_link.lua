@@ -149,6 +149,7 @@ function M.validate(internal_call, norm)
     local dest = ""
     local path = ""
     local section = ""
+    local uri_exclude_tbl = {"https", "http"}
 
     for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
         start_pos = vim.fn.str2nr(start_pos)
@@ -179,19 +180,21 @@ function M.validate(internal_call, norm)
     path = dest:match(require("mdnotes.patterns").uri_no_section) or ""
     section = dest:match(require("mdnotes.patterns").section) or ""
 
-    -- Append .md to guarantee a file name
-    if path ~= "" and path:sub(-3) ~= ".md" then
-        path = path .. ".md"
-    end
+    if path ~= "" then
+        if not uv.fs_stat(path) and not uv.fs_stat(path .. ".md") then
+            if vim.tbl_contains(uri_exclude_tbl, path:match("%w+")) then
+                vim.notify("Mdn: Linked file not found", vim.log.levels.ERROR)
+                return nil
+            end
+        end
 
-    -- Handle CURRENT_FILE.md#section and #section
-    if path == "" then
+        -- Append .md to guarantee a file name
+        if path ~= "" and path:sub(-3) ~= ".md"then
+            path = path .. ".md"
+        end
+    else
+        -- Handle #section
         path = vim.fs.basename(vim.api.nvim_buf_get_name(0))
-    end
-
-    if not uv.fs_stat(path) and dest:match("%w+://") ~= "https://" then
-        vim.notify("Mdn: Linked file not found", vim.log.levels.ERROR)
-        return nil
     end
 
     if section ~= "" then

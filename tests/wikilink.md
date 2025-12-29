@@ -1,2 +1,2 @@
 # WikiLinks Test
-
+[[formatting#Tables]]

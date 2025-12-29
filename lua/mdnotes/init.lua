@@ -66,7 +66,7 @@ function M.open()
 
     -- Fix bug when opening link that's not saved
     -- Unsure if undesired but I think makes sense
-    vim.cmd.write()
+    vim.cmd("silent w")
 
     -- Check if the file exists
     if uv.fs_stat(path) then
