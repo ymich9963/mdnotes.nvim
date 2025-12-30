@@ -1,7 +1,5 @@
 local M = {}
 
-local mdnotes_patterns = require('mdnotes.patterns')
-
 function M.check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
@@ -26,7 +24,7 @@ local function insert_format(format_char)
     local selected_text = line:sub(col_start, col_end)
 
     -- This would happen when executing in NORMAL mode
-     if current_col ~= col_start then
+    if current_col ~= col_start then
         -- Get the word under cursor and cursor position
         selected_text = vim.fn.expand("<cword>")
 
@@ -69,6 +67,8 @@ end
 
 function M.bold_toggle()
     local bold_char = require('mdnotes').bold_char
+    local mdnotes_patterns = require('mdnotes.patterns')
+
     if M.check_md_format(mdnotes_patterns.bold) then
         delete_format_bold()
     else
@@ -78,6 +78,8 @@ end
 
 function M.italic_toggle()
     local italic_char = require('mdnotes').italic_char
+    local mdnotes_patterns = require('mdnotes.patterns')
+
     if M.check_md_format(mdnotes_patterns.italic) then
         delete_format_italic()
     else
@@ -86,6 +88,8 @@ function M.italic_toggle()
 end
 
 function M.strikethrough_toggle()
+    local mdnotes_patterns = require('mdnotes.patterns')
+
     if M.check_md_format(mdnotes_patterns.strikethrough) then
         delete_format_strikethrough()
     else
@@ -94,6 +98,8 @@ function M.strikethrough_toggle()
 end
 
 function M.inline_code_toggle()
+    local mdnotes_patterns = require('mdnotes.patterns')
+
     if M.check_md_format(mdnotes_patterns.inline_code) then
         delete_format_inline_code()
     else
@@ -102,6 +108,8 @@ function M.inline_code_toggle()
 end
 
 function M.task_list_toggle(line1, line2)
+    local mdnotes_patterns = require('mdnotes.patterns')
+
     local lines = {}
     local new_lines = {}
     if line1 == line2 then
