@@ -13,6 +13,9 @@ support, adding/removing inline links to images/files/URLs, file history, asset
 management, referencing, and formatting. All this without relying
 on any LSP but using one is recommended.
 
+Note: Ensure you create a backup of your notes before executing any big
+commands!
+
 ==============================================================================
 QUICK START            	             			*mdnotes-quickstart*
 
