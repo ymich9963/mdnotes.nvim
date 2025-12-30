@@ -56,6 +56,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn wikilink show_references`. Also show references of the current buffer when not hovering over a Wikilink.
 - Undo the most recent reference rename with `:Mdn wikilink undo_rename`. **Only** available when `prefer_lsp = false`.
 - Delete the WikiLink under the cursor with `:Mdn wikilink delete`. 
+- Normalize your WikiLink path with `:Mdn wikilink normalize`. 
 
 ### 👩‍💼 Asset Management
 - Use `:Mdn assets delete_unused` to easily cleanup assets that you no longer use.

@@ -43,26 +43,26 @@ function M.follow()
     local uri_no_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
     local fragment_pattern = require('mdnotes.patterns').fragment
 
-    local file, fragment = "", ""
+    local wikilink, fragment = "", ""
     for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
-            file = link:match(uri_no_fragment_pattern) or ""
+            wikilink = link:match(uri_no_fragment_pattern) or ""
             fragment = link:match(fragment_pattern) or ""
 
-            file = vim.trim(file)
+            wikilink = vim.fs.normalize(vim.trim(wikilink))
             fragment = vim.trim(fragment)
         end
     end
 
-    if file == "" and fragment == "" then
+    if wikilink == "" and fragment == "" then
         vim.notify(("Mdn: No WikiLink under the cursor was detected."), vim.log.levels.ERROR)
     end
 
-    if file ~= "" then
-        if file:sub(-3) == ".md" then
-            vim.cmd(require('mdnotes').open_cmd .. file)
+    if wikilink ~= "" then
+        if wikilink:sub(-3) == ".md" then
+            vim.cmd(require('mdnotes').open_cmd .. wikilink)
         else
-            vim.cmd(require('mdnotes').open_cmd .. file .. '.md')
+            vim.cmd(require('mdnotes').open_cmd .. wikilink .. '.md')
         end
     end
 
@@ -296,6 +296,38 @@ function M.delete()
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end})
+end
+
+function M.normalize()
+    local line = vim.api.nvim_get_current_line()
+    local current_col = vim.fn.col('.')
+    local wikilink = ""
+    local wikilink_pattern = require('mdnotes.patterns').wikilink
+    local new_line = ""
+    local col_start = 0
+    local col_end = 0
+    local new_wikilink = ""
+
+    for start_pos, file ,end_pos in line:gmatch(wikilink_pattern) do
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if start_pos < current_col and end_pos > current_col then
+            wikilink = file
+            col_start = start_pos
+            col_end = end_pos
+        end
+    end
+
+    new_wikilink = vim.fs.normalize(wikilink)
+    if new_wikilink:match("%s") then
+        new_wikilink = "<" .. new_wikilink .. ">"
+    end
+
+    new_line = line:sub(1, col_start - 1) .. '[[' .. new_wikilink .. ']]' .. line:sub(col_end + 1)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
 return M

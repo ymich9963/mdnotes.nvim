@@ -261,6 +261,10 @@ subcommands are listed below.
 
     Delete WikiLink under the cursor.
 
+:Mdn wikilink normalize					*:Mdn-wikilink-normalize*
+
+    Normalize WikiLink path under cursor.
+
 :Mdn assets insert_image				*:Mdn-assets-insert_image*
 
     Insert the image in the clipboard under the cursor and depending on
@@ -547,6 +551,10 @@ wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
 wikilink.delete()					*mdnotes.wikilink.delete()*
 
     Delete WikiLink under the cursor.
+
+wikilink.normalize()					*mdnotes.wikilink.normalize()*
+
+    Normalize WikiLink path under cursor.
 
 formatting.check_md_format({pattern}) 			*mdnotes.formatting.check_md_format()*
 

@@ -109,6 +109,7 @@ local get_commands = function() return {
             undo_rename = require("mdnotes.wikilink").undo_rename,
             create = require("mdnotes.wikilink").create,
             delete = require("mdnotes.wikilink").delete,
+            normalize = require("mdnotes.wikilink").normalize,
         },
         table = {
             create = require("mdnotes.table").create,
