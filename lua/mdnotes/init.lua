@@ -60,9 +60,9 @@ end
 
 function M.open()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local _, uri, path, section, _, _ = unpack(validate_tbl)
+    local _, uri, path, fragment, _, _ = unpack(validate_tbl)
 
-    if not uri or not path or not section then return end
+    if not uri or not path or not fragment then return end
 
     -- Fix bug when opening link that's not saved
     -- Unsure if undesired but I think makes sense
@@ -71,10 +71,10 @@ function M.open()
     -- Check if the file exists
     if uv.fs_stat(path) then
         vim.cmd(M.open_cmd .. path)
-        if section and section ~= "" then
-            -- Navigate to section
-            section = require('mdnotes.toc').get_section(section)
-            vim.fn.cursor(vim.fn.search("# " .. section), 1)
+        if fragment and fragment ~= "" then
+            -- Navigate to fragment
+            fragment = require('mdnotes.toc').get_fragment(fragment)
+            vim.fn.cursor(vim.fn.search("# " .. fragment), 1)
             vim.api.nvim_input('zz')
         end
 

@@ -4,7 +4,7 @@
 Therefore I've made a list below of the small amount of changes you may need to do when migrating to `mdnotes`.
 
 - Asset paths must have `/`.
-- Links to files or sections with spaces must be enclosed in `<`/`>` like this `[example](<path/to/file name with spaces.md>)`.
+- Links to files or fragments with spaces must be enclosed in `<`/`>` like this `[example](<path/to/file name with spaces.md>)`.
 - WikiLinks can only be file names. 
 
 The first two points can be fixed by running the `:Mdn inline_link normalize` command on every reference of your asset folder in your notes. For example if your folder is called `assets` you can use `:h vimgrep` and then execute `:h cdo` on the resulting quickfix list. An example command would be,

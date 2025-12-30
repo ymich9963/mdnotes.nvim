@@ -24,7 +24,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
     end,
 })
 
--- Parsing sections for :Mdn generate_toc and :Mdn open
+-- Parsing fragments for :Mdn generate_toc and :Mdn open
 vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
     group = mdnotes_group,
@@ -32,24 +32,24 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
         local mdnotes_toc = require('mdnotes.toc')
         local buf_exists = false
         local buf_num = args.buf
-        local original_sections = mdnotes_toc.get_sections_original()
-        for _,v in ipairs(mdnotes_toc.buf_sections) do
+        local original_fragments = mdnotes_toc.get_fragments_original()
+        for _,v in ipairs(mdnotes_toc.buf_fragments) do
             if v.buf_num == buf_num then
                 buf_exists = true
-                if v.parsed.original ~= original_sections then
-                    v.parsed.original = original_sections
-                    v.parsed.gfm = mdnotes_toc.get_sections_gfm_from_original(original_sections)
+                if v.parsed.original ~= original_fragments then
+                    v.parsed.original = original_fragments
+                    v.parsed.gfm = mdnotes_toc.get_fragments_gfm_from_original(original_fragments)
                 end
                 break
             end
         end
 
         if buf_exists == false then
-            table.insert(mdnotes_toc.buf_sections, {
+            table.insert(mdnotes_toc.buf_fragments, {
                 buf_num = buf_num,
                 parsed = {
-                    original = original_sections,
-                    gfm = mdnotes_toc.get_sections_gfm_from_original(original_sections)
+                    original = original_fragments,
+                    gfm = mdnotes_toc.get_fragments_gfm_from_original(original_fragments)
                 }
             })
         end
@@ -144,7 +144,7 @@ local get_commands = function() return {
             relink = require("mdnotes.inline_link").relink,
             normalize = require("mdnotes.inline_link").normalize,
             validate = require("mdnotes.inline_link").validate,
-            convert_section_to_gfm = require("mdnotes.inline_link").convert_section_to_gfm,
+            convert_fragment_to_gfm = require("mdnotes.inline_link").convert_fragment_to_gfm,
         },
         toc = {
             generate = require("mdnotes.toc").generate

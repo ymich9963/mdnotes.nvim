@@ -234,7 +234,7 @@ subcommands are listed below.
 
 :Mdn wikilink follow 					*:Mdn-wikilink-follow*
 
-    Open the Wikilink (e.g. `[[link]]` or `[[link#section]]`) under the cursor. 
+    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
 
 :Mdn wikilink create 					*:Mdn-wikilink-create*
 
@@ -326,9 +326,9 @@ subcommands are listed below.
 
     Validate any inline link without opening it.
 
-:Mdn inline_link convert_section_to_gfm			*:Mdn-inline_link-convert_section_to_gfm*
+:Mdn inline_link convert_fragment_to_gfm			*:Mdn-inline_link-convert_fragment_to_gfm*
 
-    Convert an inline link with a section to a GFM-style section. Useful when
+    Convert an inline link with a fragment to a GFM-style fragment. Useful when
     using LSP auto-completion and you want to create valid Markdown links on
     GitHub.
 
@@ -517,7 +517,7 @@ outliner.toggle()					*mdnotes.outliner.toggle()*
 
 wikilink.follow()					*mdnotes.wikilink.follow()*
 
-    Open the Wikilink (e.g. `[[link]]` or `[[link#section]]`) under the cursor. 
+    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
 
 wikilink.create()					*mdnotes.wikilink.create()*
 
@@ -664,12 +664,12 @@ inline_link.validate([{internal_call}, {norm}])		*mdnotes.inline_link.validate()
 
     Return: ~
     • (`nil`) on failure.
-    • (`table`) which is the link text, destination URI, file path, and section, start 
+    • (`table`) which is the link text, destination URI, file path, and fragment, start 
       column of link, and end column of link on success.
 
-inline_link.convert_section_to_gfm()			*mdnotes.inline_link.convert_section_to_gfm()*
+inline_link.convert_fragment_to_gfm()			*mdnotes.inline_link.convert_fragment_to_gfm()*
 
-    Convert an inline link with a section to a GFM-style section. Useful when
+    Convert an inline link with a fragment to a GFM-style fragment. Useful when
     using LSP auto-completion and you want to create valid Markdown links on
     GitHub.
 

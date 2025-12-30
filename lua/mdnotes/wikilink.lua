@@ -40,21 +40,21 @@ function M.follow()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
     local wikilink_pattern = require('mdnotes.patterns').wikilink
-    local uri_no_section_pattern = require('mdnotes.patterns').uri_no_section
-    local section_pattern = require('mdnotes.patterns').section
+    local uri_no_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
+    local fragment_pattern = require('mdnotes.patterns').fragment
 
-    local file, section = "", ""
+    local file, fragment = "", ""
     for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
-            file = link:match(uri_no_section_pattern) or ""
-            section = link:match(section_pattern) or ""
+            file = link:match(uri_no_fragment_pattern) or ""
+            fragment = link:match(fragment_pattern) or ""
 
             file = vim.trim(file)
-            section = vim.trim(section)
+            fragment = vim.trim(fragment)
         end
     end
 
-    if file == "" and section == "" then
+    if file == "" and fragment == "" then
         vim.notify(("Mdn: No WikiLink under the cursor was detected."), vim.log.levels.ERROR)
     end
 
@@ -67,8 +67,8 @@ function M.follow()
     end
 
 
-    if section ~= "" then
-        vim.fn.cursor(vim.fn.search(section), 1)
+    if fragment ~= "" then
+        vim.fn.cursor(vim.fn.search(fragment), 1)
         vim.api.nvim_input('zz')
     end
 end
@@ -172,12 +172,12 @@ function M.rename_references()
     local file, _ = "", ""
     local renamed = ""
     local wikilink_pattern = require('mdnotes.patterns').wikilink
-    local file_section_pattern = require('mdnotes.patterns').uri_no_section
+    local file_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
 
     for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
         if start_pos < current_col and end_pos > current_col then
-            -- Match link to links with section names but ignore the section name
-            file, _ = link:match(file_section_pattern)
+            -- Match link to links with fragment names but ignore the fragment name
+            file, _ = link:match(file_fragment_pattern)
             file = vim.trim(file)
         end
     end

@@ -148,7 +148,7 @@ function M.validate(internal_call, norm)
     local text = ""
     local uri = ""
     local path = ""
-    local section = ""
+    local fragment = ""
     local uri_exclude_tbl = {"https", "http"}
 
     for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
@@ -177,8 +177,8 @@ function M.validate(internal_call, norm)
     -- Remove any < or > from uri
     uri = uri:gsub("[<>]?", "")
 
-    path = uri:match(require("mdnotes.patterns").uri_no_section) or ""
-    section = uri:match(require("mdnotes.patterns").section) or ""
+    path = uri:match(require("mdnotes.patterns").uri_no_fragment) or ""
+    fragment = uri:match(require("mdnotes.patterns").fragment) or ""
 
     if path ~= "" then
         if not uv.fs_stat(path) and not uv.fs_stat(path .. ".md") then
@@ -193,39 +193,39 @@ function M.validate(internal_call, norm)
             path = path .. ".md"
         end
     else
-        -- Handle #section
+        -- Handle #fragment
         path = vim.fs.basename(vim.api.nvim_buf_get_name(0))
     end
 
-    if section ~= "" then
+    if fragment ~= "" then
         local buf = vim.fn.bufadd(path)
         local search_ret = 0
-        section = require('mdnotes.toc').get_section(section)
+        fragment = require('mdnotes.toc').get_fragment(fragment)
 
         vim.fn.bufload(buf)
         vim.api.nvim_buf_call(buf, function()
-            search_ret = vim.fn.search("# " .. section)
+            search_ret = vim.fn.search("# " .. fragment)
         end)
 
         if search_ret == 0 then
-            vim.notify("Mdn: Invalid section link", vim.log.levels.ERROR)
+            vim.notify("Mdn: Invalid fragment link", vim.log.levels.ERROR)
             return nil
         end
         vim.fn.cursor(current_lnum, current_col)
     end
 
     if internal_call == true then
-        return {text, uri, path, section, col_start, col_end}
+        return {text, uri, path, fragment, col_start, col_end}
     end
 
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
 end
 
-function M.convert_section_to_gfm()
+function M.convert_fragment_to_gfm()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
     local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
     local new_line = ""
-    local new_section = ""
+    local new_fragment = ""
     local line = vim.api.nvim_get_current_line()
     local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
 
@@ -234,11 +234,11 @@ function M.convert_section_to_gfm()
     -- Remove any < or > from uri
     uri = uri:gsub("[<>]?", "")
 
-    local section = uri:match(require("mdnotes.patterns").section) or ""
-    new_section = convert_text_to_gfm(section)
+    local fragment = uri:match(require("mdnotes.patterns").fragment) or ""
+    new_fragment = convert_text_to_gfm(fragment)
 
     local hash_location = uri:find("#") or 1
-    local new_uri = uri:sub(1, hash_location) .. new_section
+    local new_uri = uri:sub(1, hash_location) .. new_fragment
 
     new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end)
 

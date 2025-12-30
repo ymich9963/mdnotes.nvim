@@ -36,7 +36,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Re-link the inline link with `:Mdn inline_link relink`. 
 - Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
 - Validate an inline link without opening it by executing `:Mdn inline_link validate`. 
-- Convert an inline link with a section to a [GFM-style section](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
+- Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
 
 ### 🫦 Tables
 - See the [Editing Tables](#editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
@@ -212,11 +212,11 @@ Here is the supported Markdown formatting for `mdnotes.nvim`. The plugin tries t
 Opened with `:Mdn open`. Inserted with the `:Mdn assets insert_file/image` and `:Mdn inline_link toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
 ```
     [link](www.neovim.io)
-    [link](path/to/file#section)
-    [link](path/to/file#gfm-style-section-wth-spaces)
-    [link](<path/to/file with spaces.md#section>)
+    [link](path/to/file#fragment)
+    [link](path/to/file#gfm-style-fragment-wth-spaces)
+    [link](<path/to/file with spaces.md#fragment>)
     [link](#Original Section)
-    [link](#original-section)
+    [link](#original-fragment)
     [link](path/to/file.extension)
     ![image](path/to/image.extension)
 ```
@@ -224,7 +224,7 @@ Opened with `:Mdn open`. Inserted with the `:Mdn assets insert_file/image` and `
 Opened with `:Mdn wikilink follow`. Can only be filenames, so `link` can also be `link.md`.
 ```
     [[link]]
-    [[link#section]]
+    [[link#fragment]]
 ```
 ### Formatting
 Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the bold and italic formats needs to be specified in the `bold_format` and `italic_format` config options. 
