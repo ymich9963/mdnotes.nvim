@@ -124,34 +124,97 @@ function M.insert_file()
     insert_file()
 end
 
-function M.cleanup_unused()
+local function get_used_assets(silent)
+    if not silent then silent = false end
+    local mdnotes_config = require('mdnotes').config
+    local uri = ""
+    local used_assets = {}
+    local temp_qflist = vim.fn.getqflist()
+    local assets_list = {}
+
+    -- Vimgrep inline links with asset paths with no spaces
+    vim.cmd.vimgrep({args = {"/](" .. mdnotes_config.assets_path .. "\\//", '*'}, mods = {emsg_silent = true}})
+    local assets_qf_list_no_spaces = vim.fn.getqflist()
+
+    -- Vimgrep inline links with asset paths with spaces
+    vim.cmd.vimgrep({args = {"/](<" .. mdnotes_config.assets_path .. "\\//", '*'}, mods = {emsg_silent = true}})
+    local assets_qf_list_spaces = vim.fn.getqflist()
+
+    -- Join the two tables
+    assets_list = assets_qf_list_spaces
+    for _, v in ipairs(assets_qf_list_no_spaces) do
+        table.insert(assets_list, v)
+    end
+
+    for _, v in ipairs(assets_list) do
+        for _, inline_link, _ in v.text:gmatch(require("mdnotes.patterns").inline_link) do
+            _, uri = inline_link:match(require("mdnotes.patterns").text_dest)
+
+            -- Remove any < or > from dest
+            uri = uri:gsub("[<>]?", "")
+
+            table.insert(used_assets, vim.fs.basename(uri))
+            break
+        end
+    end
+
+    if silent == false then
+        vim.notify("Mdn: Found " .. #used_assets .. " used assets", vim.log.levels.INFO)
+    end
+
+    vim.fn.setqflist(temp_qflist)
+    return used_assets
+end
+
+local function move_delete(move_or_delete)
     if not M.check_assets_path() then return end
 
-    vim.notify(("Mdn: Starting cleanup process..."), vim.log.levels.INFO)
-
-    local temp_qflist = vim.fn.getqflist()
+    local used_assets = get_used_assets(true)
     local mdnotes_config = require('mdnotes').config
-    local cleanup_all = false
+    local unused_assets_path = vim.fs.normalize(vim.fs.joinpath(mdnotes_config.assets_path, "../unused_assets"))
+    local path_used = ""
+    local text1 = ""
+    local text2 = ""
+    local all = false
     local cancel = false
+    local mv = nil
+    local del = nil
+
+    if move_or_delete == "move" then
+        path_used = unused_assets_path
+        text1 = "move"
+        text2 = "Moved"
+        mv = true
+        if vim.fn.isdirectory(path_used) == 0 then
+            uv.fs_mkdir(path_used, tonumber('777', 8))
+        end
+    elseif move_or_delete == "delete" then
+        path_used = mdnotes_config.assets_path
+        text1 = "delete"
+        text2 = "Deleted"
+        del = true
+    end
+
+    vim.notify(("Mdn: Starting %s assets process..."):format(text1), vim.log.levels.INFO)
+
     for name, _ in vim.fs.dir(mdnotes_config.assets_path) do
         if cancel then break end
-
-        vim.cmd.vimgrep({args = {'/\\](' .. mdnotes_config.assets_path .. '\\/' .. name .. ')/', '*'}, mods = {emsg_silent = true}})
-
-        if vim.tbl_isempty(vim.fn.getqflist()) then
-            if not cleanup_all then
-                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to delete file(s) or 'c' to cancel (default 'n'): "):format(name), }, function(input)
+        if not vim.tbl_contains(used_assets, name) then
+            if not all then
+                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to %s file(s) or 'c' to cancel (default 'n'): "):format(name, text1), }, function(input)
                     vim.cmd.redraw()
                     if input == 'y' then
-                        vim.fs.rm(vim.fs.joinpath(mdnotes_config.assets_path, name))
-                        vim.notify(("Mdn: Removed '%s'. Press any key to continue..."):format(name), vim.log.levels.WARN)
+                        if mv then uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name)) end
+                        if del then vim.fs.rm(vim.fs.joinpath(mdnotes_config.assets_path, name)) end
+                        vim.notify(("Mdn: %s '%s'. Press any key to continue..."):format(text2, name), vim.log.levels.WARN)
                         vim.fn.getchar()
                     elseif input == 'a' then
-                        vim.fs.rm(vim.fs.joinpath(mdnotes_config.assets_path, name))
-                        cleanup_all = true
+                        if mv then uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name)) end
+                        if del then vim.fs.rm(vim.fs.joinpath(mdnotes_config.assets_path, name)) end
+                        all = true
                     elseif input == 'c' then
                         cancel = true
-                        vim.notify(("Mdn: Cancelled cleanup. Press any key to continue..."):format(name), vim.log.levels.WARN)
+                        vim.notify(("Mdn: Cancelled command. Press any key to continue..."):format(name), vim.log.levels.WARN)
                         vim.fn.getchar()
                     elseif input == 'n' or '' then
                         vim.notify(("Mdn: Skipped '%s'. Press any key to continue..."):format(name), vim.log.levels.WARN)
@@ -162,68 +225,22 @@ function M.cleanup_unused()
                     end
                 end)
             else
-                vim.fs.rm(vim.fs.joinpath(mdnotes_config.assets_path, name))
+                if mv then uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name)) end
+                if del then vim.fs.rm(vim.fs.joinpath(mdnotes_config.assets_path, name)) end
             end
         end
     end
 
-    vim.fn.setqflist(temp_qflist)
     vim.cmd.redraw()
-    vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
+    vim.notify(("Mdn: Finished %s process."):format(text1), vim.log.levels.INFO)
+end
+
+function M.delete_unused()
+    move_delete("delete")
 end
 
 function M.move_unused()
-    if not M.check_assets_path() then return end
-
-    vim.notify(("Mdn: Starting move process..."), vim.log.levels.INFO)
-
-    local mdnotes_config = require('mdnotes').config
-    local unused_assets_path = vim.fs.normalize(vim.fs.joinpath(mdnotes_config.assets_path, "../unused_assets"))
-
-    if vim.fn.isdirectory(unused_assets_path) == 0 then
-        uv.fs_mkdir(unused_assets_path, tonumber('777', 8))
-    end
-
-    local temp_qflist = vim.fn.getqflist()
-    local move_all = false
-    local cancel = false
-    for name, _ in vim.fs.dir(mdnotes_config.assets_path) do
-        if cancel then break end
-
-        vim.cmd.vimgrep({args = {'/\\](' .. mdnotes_config.assets_path .. '\\/' .. name .. ')/', '*'}, mods = {emsg_silent = true}})
-
-        if not vim.tbl_isempty(vim.fn.getqflist()) then
-            if not move_all then
-                vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to move file(s) or 'c' to cancel (default 'n'): "):format(name), }, function(input)
-                    vim.cmd.redraw()
-                    if input == 'y' then
-                        uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
-                        vim.notify(("Mdn: Moved '%s'. Press any key to continue..."):format(name), vim.log.levels.WARN)
-                        vim.fn.getchar()
-                    elseif input == 'a' then
-                        uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
-                        move_all = true
-                    elseif input == 'c' then
-                        cancel = true
-                        vim.notify(("Mdn: Cancelled move. Press any key to continue..."):format(name), vim.log.levels.WARN)
-                        vim.fn.getchar()
-                    elseif input == 'n' or '' then
-                        vim.notify(("Mdn: Skipped '%s'. Press any key to continue..."):format(name), vim.log.levels.WARN)
-                        vim.fn.getchar()
-                    else
-                        vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue..."):format(input), vim.log.levels.ERROR)
-                        vim.fn.getchar()
-                    end
-                end)
-            else
-                uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name))
-            end
-        end
-    end
-
-    vim.fn.setqflist(temp_qflist)
-    vim.cmd.redraw()
-    vim.notify(("Mdn: Finished cleanup."), vim.log.levels.INFO)
+    move_delete("move")
 end
 
 return M

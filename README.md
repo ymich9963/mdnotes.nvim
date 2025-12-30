@@ -58,7 +58,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Delete the WikiLink under the cursor with `:Mdn wikilink delete`. 
 
 ### 👩‍💼 Asset Management
-- Use `:Mdn assets cleanup_unused` to easily cleanup assets that you no longer use.
+- Use `:Mdn assets delete_unused` to easily cleanup assets that you no longer use.
 - Use `:Mdn assets move_unused` to move unused assets to a separate folder.
 - Insert an image or file from clipboard using `:Mdn assets insert_image` or `:Mdn assets insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 - Open your assets folder using `:Mdn assets open_containing_folder`. 

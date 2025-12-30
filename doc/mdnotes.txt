@@ -273,7 +273,7 @@ subcommands are listed below.
     Exactly the same as |Mdn-assets-insert_image| but it inserts a inline link to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
-:Mdn assets cleanup_unused				*:Mdn-assets-cleanup_unused*
+:Mdn assets delete_unused				*:Mdn-assets-delete_unused*
 
     Cleanup unused assets in your |mdnotes-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
@@ -582,7 +582,7 @@ assets.insert_file()					*mdnotes.assets.insert_file()*
     Exactly the same as |mdnotes.insert_image()| but it inserts a inline link to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
-assets.cleanup_unused()					*mdnotes.assets.cleanup_unused()*
+assets.delete_unused()					*mdnotes.assets.delete_unused()*
 
     Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
