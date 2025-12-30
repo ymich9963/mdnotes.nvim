@@ -60,9 +60,9 @@ end
 
 function M.open()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local _, dest, path, section, _, _ = unpack(validate_tbl)
+    local _, uri, path, section, _, _ = unpack(validate_tbl)
 
-    if not dest or not path or not section then return end
+    if not uri or not path or not section then return end
 
     -- Fix bug when opening link that's not saved
     -- Unsure if undesired but I think makes sense
@@ -84,9 +84,9 @@ function M.open()
     -- If nothing has happened so far then just open it
     -- This if-statement should be removed in Neovim 0.12
     if vim.fn.has("win32") == 1 then
-        vim.system({'cmd.exe', '/c', 'start', '', dest})
+        vim.system({'cmd.exe', '/c', 'start', '', uri})
     else
-        vim.ui.open(dest)
+        vim.ui.open(uri)
     end
 end
 

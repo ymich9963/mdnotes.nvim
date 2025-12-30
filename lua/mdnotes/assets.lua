@@ -148,9 +148,9 @@ local function get_used_assets(silent)
 
     for _, v in ipairs(assets_list) do
         for _, inline_link, _ in v.text:gmatch(require("mdnotes.patterns").inline_link) do
-            _, uri = inline_link:match(require("mdnotes.patterns").text_dest)
+            _, uri = inline_link:match(require("mdnotes.patterns").text_uri)
 
-            -- Remove any < or > from dest
+            -- Remove any < or > from uri
             uri = uri:gsub("[<>]?", "")
 
             table.insert(used_assets, vim.fs.basename(uri))

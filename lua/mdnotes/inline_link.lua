@@ -60,13 +60,13 @@ end
 
 local function rename_relink(rename_or_relink)
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local text, dest, _, _, col_start, col_end = unpack(validate_tbl)
-    local new_dest = ""
+    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local new_uri = ""
     local new_line = ""
     local new_text = ""
     local line = vim.api.nvim_get_current_line()
 
-    if not text or not dest then return end
+    if not text or not uri then return end
 
     if rename_or_relink == "rename" then
         vim.ui.input({ prompt = "Rename link text '".. text .."' to: " },
@@ -79,20 +79,20 @@ local function rename_relink(rename_or_relink)
             return
         end
 
-        new_line = line:sub(1, col_start - 1) .. '[' .. new_text .. '](' .. dest .. ')' .. line:sub(col_end)
+        new_line = line:sub(1, col_start - 1) .. '[' .. new_text .. '](' .. uri .. ')' .. line:sub(col_end)
     elseif rename_or_relink == "relink" then
 
-        vim.ui.input({ prompt = "Relink '".. dest .."' to: " },
+        vim.ui.input({ prompt = "Relink '".. uri .."' to: " },
         function(input)
-            new_dest = input
+            new_uri = input
         end)
 
-        if new_dest == "" or new_dest == nil then
+        if new_uri == "" or new_uri == nil then
             vim.notify(("Mdn: Please enter valid text"), vim.log.levels.ERROR)
             return
         end
 
-        new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_dest .. ')' .. line:sub(col_end)
+        new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end)
     end
 
     -- Set the line and cursor position
@@ -110,19 +110,19 @@ end
 
 function M.normalize()
     local validate_tbl = require('mdnotes.inline_link').validate(true, true) or {}
-    local text, dest, _, _, col_start, col_end = unpack(validate_tbl)
-    local new_dest = ""
+    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local new_uri = ""
     local new_line = ""
     local line = vim.api.nvim_get_current_line()
 
-    if not text or not dest then return end
+    if not text or not uri then return end
 
-    new_dest = vim.fs.normalize(dest)
-    if new_dest:match("%s") then
-        new_dest = "<" .. new_dest .. ">"
+    new_uri = vim.fs.normalize(uri)
+    if new_uri:match("%s") then
+        new_uri = "<" .. new_uri .. ">"
     end
 
-    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_dest .. ')' .. line:sub(col_end + 1)
+    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end + 1)
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
@@ -146,7 +146,7 @@ function M.validate(internal_call, norm)
     local col_start = 0
     local col_end = 0
     local text = ""
-    local dest = ""
+    local uri = ""
     local path = ""
     local section = ""
     local uri_exclude_tbl = {"https", "http"}
@@ -155,30 +155,30 @@ function M.validate(internal_call, norm)
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
         if start_pos < current_col and end_pos > current_col then
-            text, dest = inline_link:match(require("mdnotes.patterns").text_dest)
+            text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
             col_start = start_pos
             col_end = end_pos
             break
         end
     end
 
-    if not dest or dest == "" then
+    if not uri or uri == "" then
         vim.notify(("Mdn: Nothing to open"), vim.log.levels.ERROR)
         return nil
     end
 
-    if dest:match(" ") and not dest:match("<.+>") then
+    if uri:match(" ") and not uri:match("<.+>") then
         if norm == false then
             vim.notify("Mdn: Destinations with spaces must be encircled with < and >. Execute ':Mdn inline_link normalize' for a quick fix.", vim.log.levels.ERROR)
             return nil
         end
     end
 
-    -- Remove any < or > from dest
-    dest = dest:gsub("[<>]?", "")
+    -- Remove any < or > from uri
+    uri = uri:gsub("[<>]?", "")
 
-    path = dest:match(require("mdnotes.patterns").uri_no_section) or ""
-    section = dest:match(require("mdnotes.patterns").section) or ""
+    path = uri:match(require("mdnotes.patterns").uri_no_section) or ""
+    section = uri:match(require("mdnotes.patterns").section) or ""
 
     if path ~= "" then
         if not uv.fs_stat(path) and not uv.fs_stat(path .. ".md") then
@@ -215,7 +215,7 @@ function M.validate(internal_call, norm)
     end
 
     if internal_call == true then
-        return {text, dest, path, section, col_start, col_end}
+        return {text, uri, path, section, col_start, col_end}
     end
 
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
@@ -223,24 +223,24 @@ end
 
 function M.convert_section_to_gfm()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local text, dest, _, _, col_start, col_end = unpack(validate_tbl)
+    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
     local new_line = ""
     local new_section = ""
     local line = vim.api.nvim_get_current_line()
     local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
 
-    if not text or not dest then return end
+    if not text or not uri then return end
 
-    -- Remove any < or > from dest
-    dest = dest:gsub("[<>]?", "")
+    -- Remove any < or > from uri
+    uri = uri:gsub("[<>]?", "")
 
-    local section = dest:match(require("mdnotes.patterns").section) or ""
+    local section = uri:match(require("mdnotes.patterns").section) or ""
     new_section = convert_text_to_gfm(section)
 
-    local hash_location = dest:find("#") or 1
-    local new_dest = dest:sub(1, hash_location) .. new_section
+    local hash_location = uri:find("#") or 1
+    local new_uri = uri:sub(1, hash_location) .. new_section
 
-    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_dest .. ')' .. line:sub(col_end)
+    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end)
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
