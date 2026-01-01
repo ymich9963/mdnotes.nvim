@@ -1,6 +1,7 @@
 local M = {}
 
 local uv = vim.loop or vim.uv
+M.uri_website_tbl = {"https", "http"}
 
 function M.insert()
     local reg = vim.fn.getreg('+')
@@ -129,9 +130,10 @@ function M.normalize()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
-function M.validate(internal_call, norm)
+function M.validate(internal_call, norm, ignore_fragment)
     if not internal_call then internal_call = false end
     if not norm then norm = false end
+    if not ignore_fragment then ignore_fragment = false end
 
     local check_md_format = require('mdnotes.formatting').check_md_format
 
@@ -149,7 +151,6 @@ function M.validate(internal_call, norm)
     local uri = ""
     local path = ""
     local fragment = ""
-    local uri_exclude_tbl = {"https", "http"}
 
     for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
         start_pos = vim.fn.str2nr(start_pos)
@@ -182,7 +183,7 @@ function M.validate(internal_call, norm)
 
     if path ~= "" then
         if not uv.fs_stat(path) and not uv.fs_stat(path .. ".md") then
-            if not vim.tbl_contains(uri_exclude_tbl, path:match("%w+")) then
+            if not vim.tbl_contains(M.uri_website_tbl, path:match("%w+")) then
                 vim.notify("Mdn: Linked file not found", vim.log.levels.ERROR)
                 return nil
             end
@@ -197,7 +198,7 @@ function M.validate(internal_call, norm)
         path = vim.fs.basename(vim.api.nvim_buf_get_name(0))
     end
 
-    if fragment ~= "" then
+    if fragment ~= "" and ignore_fragment == false then
         local buf = vim.fn.bufadd(path)
         local search_ret = 0
         fragment = require('mdnotes.toc').get_fragment(fragment)

@@ -298,6 +298,11 @@ subcommands are listed below.
 
     Open your assets folder declared in |mdnotes-assets_path|.
 
+:Mdn assets download_website_html			*:Mdn-assets-download_website_html*
+
+    Download the HTML of the website in the inline link, and place it in the
+    assets folder. 
+
 :Mdn history go_back					*:Mdn-history-go_back*
 
     Go back to the previously visited Markdown buffer.
@@ -610,6 +615,11 @@ assets.move_unused()					*mdnotes.assets.move_unused()*
 assets.open_containing_folder()				*mdnotes.assets.open_containing_folder()*
 
     Open your assets folder declared in |mdnotes-assets_path|.
+
+assets.download_website_html()				*mdnotes.assets.download_website_html()*
+
+    Download the HTML of the website in the inline link, and place it in the
+    assets folder. 
 
 history.buf_history					*mdnotes.history.buf_history*
 

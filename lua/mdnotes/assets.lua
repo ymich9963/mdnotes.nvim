@@ -243,4 +243,49 @@ function M.move_unused()
     move_delete("move")
 end
 
+function M.download_website_html()
+    local validate_tbl = require('mdnotes.inline_link').validate(true, nil, true) or {}
+    local uri_website_tbl = require('mdnotes.inline_link').uri_website_tbl or {}
+    local mdnotes_config = require('mdnotes').config
+    local _, uri, _, _, _, _ = unpack(validate_tbl)
+    local filename = ""
+    local filepath = ""
+    local res = nil
+
+    if not uri then return end
+
+    if not vim.tbl_contains(uri_website_tbl, uri:match("%w+")) then
+        vim.notify("Mdn: Detected inline link does not contain website link", vim.log.levels.ERROR)
+        return nil
+    end
+
+    vim.notify(("Mdn: Downloading '%s' website html..."):format(uri), vim.log.levels.INFO)
+
+    -- Create a filename of max 72 characters
+    filename = uri:gsub("[:/#?.()%[%]]+", "_") .. ".html"
+    filepath = vim.fs.joinpath(mdnotes_config.assets_path, filename)
+
+    if vim.fn.executable('curl') ~= 1 then
+        vim.notify("Mdn: The 'curl' utility was not detected", vim.log.levels.ERROR)
+        return nil
+    end
+
+    vim.system(
+        {"curl", "-Ls", uri},
+        {text = true},
+        function(obj)
+            if obj.code == 0 then
+                res = obj.stdout
+            end
+        end
+    ):wait()
+
+    if res then
+        vim.fn.writefile(vim.split(res, "\n"), filepath)
+        vim.notify(("Mdn: Saved '%s' to '%s'"):format(uri, filepath), vim.log.levels.INFO)
+    else
+        vim.notify("Mdn: Error with request response", vim.log.levels.ERROR)
+    end
+end
+
 return M

@@ -135,6 +135,7 @@ local get_commands = function() return {
             delete_unused = require("mdnotes.assets").delete_unused,
             move_unused = require("mdnotes.assets").move_unused,
             open_containing_folder = require("mdnotes.assets").open_containing_folder,
+            download_website_html  = require("mdnotes.assets").download_website_html,
         },
         outliner_toggle = {
             require("mdnotes.outliner").toggle
