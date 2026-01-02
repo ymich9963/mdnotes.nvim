@@ -27,44 +27,35 @@ local default_config = {
     toc_depth = 4                           -- depth shown in the ToC
 }
 
-local function get_config(user_config)
+local function validate_config(user_config)
     local config = vim.tbl_deep_extend("force", default_config, user_config or {})
-    config.index_file = vim.fs.normalize(config.index_file)
-    config.journal_file = vim.fs.normalize(config.journal_file)
-    config.assets_path = vim.fs.normalize(config.assets_path)
 
-    if not vim.tbl_contains({"copy", "move"}, config.insert_file_behaviour) then
-        vim.notify(("Mdn: 'insert_file_behaviour' value '%s' is invalid. Can only use 'copy' or 'move'. Defaulting to 'copy'."):format(M.config.insert_file_behaviour), vim.log.levels.ERROR)
-        config.insert_file_behaviour = "copy"
-    end
-
-    if not vim.tbl_contains({"overwrite", "error"}, config.asset_overwrite_behaviour) then
-        vim.notify(("Mdn: 'asset_overwrite_behaviour' value '%s' is invalid. Can only use 'overwrite' or 'error'. Defaulting to 'error'."):format(M.config.asset_overwrite_behaviour), vim.log.levels.ERROR)
-        config.asset_overwrite_behaviour = "error"
-    end
-
-    if not vim.tbl_contains({"buffer", "tab", "split", "vsplit"}, config.open_behaviour) then
-        vim.notify(("Mdn: 'open_behaviour' value '%s' is invalid. Can only use 'buffer', 'tab', 'split', or 'vsplit'. Defaulting to 'buffer'."):format(M.config.open_behaviour), vim.log.levels.ERROR)
-        config.open_behaviour = "buffer"
-    end
-
-    if not vim.tbl_contains({"**", "__"}, config.bold_format) then
-        vim.notify(("Mdn: 'bold_format' character '%s' is invalid. Can only use '**' or '__'. Defaulting to '**'."):format(M.config.bold_format), vim.log.levels.ERROR)
-        config.bold_format = "**"
-    end
-
-    if not vim.tbl_contains({"*", "_"}, config.italic_format) then
-        vim.notify(("Mdn: 'italic_format' character '%s' is invalid. Can only use '*' or '_'. Defaulting to '*'."):format(M.config.italic_format), vim.log.levels.ERROR)
-        config.italic_format = "*"
-    end
+    vim.validate("index_file", config.index_file, "string")
+    vim.validate("journal_file", config.journal_file, "string")
+    vim.validate("assets_path", config.assets_path, "string")
+    vim.validate("insert_file_behaviour", config.insert_file_behaviour, "string", false, "'copy' or 'move'")
+    vim.validate("asset_overwrite_behaviour", config.asset_overwrite_behaviour, "string", false, "'overwrite' or 'error'")
+    vim.validate("open_behaviour", config.open_behaviour, "string", false, "'buffer', 'tab', 'split', or 'vsplit'")
+    vim.validate("bold_format", config.bold_format, "string", false, "'**' or '__'")
+    vim.validate("italic_format", config.italic_format, "string", false, "'*' or '_'")
+    vim.validate("date_format", config.date_format, "string")
+    vim.validate("prefer_lsp", config.prefer_lsp, "boolean")
+    vim.validate("auto_list", config.auto_list, "boolean")
+    vim.validate("auto_list_renumber", config.auto_list_renumber, "boolean")
+    vim.validate("auto_table_best_fit", config.auto_table_best_fit, "boolean")
+    vim.validate("default_keymaps", config.default_keymaps, "boolean")
+    vim.validate("table_best_fit_padding", config.table_best_fit_padding, "number")
+    vim.validate("toc_depth", config.toc_depth, "number")
 
     return config
 end
 
 function M.setup(user_config)
-    M.config = get_config(user_config)
+    M.config = validate_config(user_config)
+    M.config.index_file = vim.fs.normalize(M.config.index_file)
+    M.config.journal_file = vim.fs.normalize(M.config.journal_file)
+    M.config.assets_path = vim.fs.normalize(M.config.assets_path)
     M.patterns = require('mdnotes.patterns')
-
     M.bold_char = M.config.bold_format:sub(1, 1)
     M.italic_char = M.config.italic_format:sub(1, 1)
 

@@ -13,7 +13,7 @@ Mdnotes aims to be a lightweight plugin that improves the Neovim Markdown note-t
 
 Please see the [Features](#-features) below for a descriptive list of features and their commands. Also see the [Recommendations](#-recommendations) section for the recommended `mdnotes` setup, and the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes. If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you. I've also written some useful tips for when writing notes in Neovim using built-in features, see [TIPS.md](TIPS.md). Lastly, if executing any big commands, ensure you have a notes backup!
 
-All documentation is available with `:h mdnotes.txt`.
+All documentation is available with `:h mdnotes.txt`. Execute `:checkhealth mdnotes` to ensure there are no problems.
 
 ## 🔥 Features
 All the features of `mdnotes` and their associated commands are listed and categorised below.
