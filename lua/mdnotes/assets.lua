@@ -22,7 +22,7 @@ function M.open_containing_folder()
 
     -- There might be issues with code below, see issue
     -- https://github.com/neovim/neovim/issues/36293
-    vim.ui.open(require('mdnotes.config').config.assets_path)
+    vim.ui.open(require('mdnotes').config.assets_path)
 end
 
 local function contains_spaces(text)

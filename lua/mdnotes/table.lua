@@ -314,8 +314,8 @@ function M.best_fit(silent)
 
     local max_char_count = {}
     local padding = ""
-    if require('mdnotes.config').config.table_best_fit_padding > 0 then
-        padding = (" "):rep(require('mdnotes.config').config.table_best_fit_padding)
+    if require('mdnotes').config.table_best_fit_padding > 0 then
+        padding = (" "):rep(require('mdnotes').config.table_best_fit_padding)
     end
 
     -- Trim whitespace in each cell

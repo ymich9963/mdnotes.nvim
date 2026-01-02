@@ -90,7 +90,7 @@ and specify your config using `opts = {}` or with a `setup({})` function,
     }
     -- or
     config = {
-        require("mdnotes.config").setup({
+        require("mdnotes").setup({
             -- Config here
         })
     }

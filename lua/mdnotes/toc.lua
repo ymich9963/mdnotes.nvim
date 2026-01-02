@@ -20,7 +20,7 @@ function M.get_fragments_original()
 
     for lnum, line in ipairs(buf_lines) do
         local heading, text = line:match(heading_format_pattern)
-        if text and heading and #heading <= require('mdnotes.config').config.toc_depth then
+        if text and heading and #heading <= require('mdnotes').config.toc_depth then
             table.insert(fragments, {heading = heading, text = text, lnum = lnum})
         end
     end

@@ -34,7 +34,7 @@ Can use either `opts` or `config` with the traditional `setup({})` function,
 	}
 	-- or
 	config = {
-	    require("mdnotes.config").setup({
+	    require("mdnotes").setup({
 		-- Config here
 	    })
 	}
