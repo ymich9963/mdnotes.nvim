@@ -207,22 +207,20 @@ local function move_delete(move_or_delete)
                         if mv then uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name)) end
                         if del then vim.fs.rm(vim.fs.joinpath(mdnotes_config.assets_path, name)) end
                         vim.notify(("Mdn: %s '%s'. Press any key to continue..."):format(text2, name), vim.log.levels.WARN)
-                        vim.fn.getchar()
                     elseif input == 'a' then
                         if mv then uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name)) end
                         if del then vim.fs.rm(vim.fs.joinpath(mdnotes_config.assets_path, name)) end
                         all = true
+                        vim.notify(("Mdn: Process will be done for all corresponding files. Press any key to continue..."):format(name), vim.log.levels.WARN)
                     elseif input == 'c' then
                         cancel = true
                         vim.notify(("Mdn: Cancelled command. Press any key to continue..."):format(name), vim.log.levels.WARN)
-                        vim.fn.getchar()
                     elseif input == 'n' or '' then
                         vim.notify(("Mdn: Skipped '%s'. Press any key to continue..."):format(name), vim.log.levels.WARN)
-                        vim.fn.getchar()
                     else
                         vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue..."):format(input), vim.log.levels.ERROR)
-                        vim.fn.getchar()
                     end
+                    vim.fn.getchar()
                 end)
             else
                 if mv then uv.fs_rename(vim.fs.joinpath(mdnotes_config.assets_path, name), vim.fs.joinpath(unused_assets_path, name)) end

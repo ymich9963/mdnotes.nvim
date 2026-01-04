@@ -196,6 +196,7 @@ function M.rename_references()
     function(input)
         renamed = input
     end)
+
     if renamed == "" or renamed == nil then
         vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
         return
