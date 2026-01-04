@@ -4,8 +4,6 @@ local uv = vim.loop or vim.uv
 
 M.config = {}
 M.patterns = {}
-M.bold_char = ""
-M.italic_char = ""
 M.open_cmd = nil
 
 local default_config = {
@@ -15,8 +13,8 @@ local default_config = {
     insert_file_behaviour = "copy",         -- "copy" or "move" files when inserting from clipboard
     asset_overwrite_behaviour = "error",    -- "overwrite" or "error" when finding assset file conflicts
     open_behaviour = "buffer",              -- "buffer", "tab", "split", or "vsplit" to open when following links
-    bold_format = "**",                     -- "**" or "__"
-    italic_format = "*",                    -- "*" or "_"
+    strong_format = "**",                   -- "**" or "__"
+    emphasis_format = "*",                  -- "*" or "_"
     date_format = "%a %d %b %Y",            -- date format based on :h strftime()
     prefer_lsp = false,                     -- to prefer LSP functions than the mdnotes functions
     auto_list = true,                       -- automatic list continuation
@@ -36,8 +34,8 @@ local function validate_config(user_config)
     vim.validate("insert_file_behaviour", config.insert_file_behaviour, "string", false, "'copy' or 'move'")
     vim.validate("asset_overwrite_behaviour", config.asset_overwrite_behaviour, "string", false, "'overwrite' or 'error'")
     vim.validate("open_behaviour", config.open_behaviour, "string", false, "'buffer', 'tab', 'split', or 'vsplit'")
-    vim.validate("bold_format", config.bold_format, "string", false, "'**' or '__'")
-    vim.validate("italic_format", config.italic_format, "string", false, "'*' or '_'")
+    vim.validate("strong_format", config.strong_format, "string", false, "'**' or '__'")
+    vim.validate("emphasis_format", config.emphasis_format, "string", false, "'*' or '_'")
     vim.validate("date_format", config.date_format, "string")
     vim.validate("prefer_lsp", config.prefer_lsp, "boolean")
     vim.validate("auto_list", config.auto_list, "boolean")
@@ -56,8 +54,6 @@ function M.setup(user_config)
     M.config.journal_file = vim.fs.normalize(M.config.journal_file)
     M.config.assets_path = vim.fs.normalize(M.config.assets_path)
     M.patterns = require('mdnotes.patterns')
-    M.bold_char = M.config.bold_format:sub(1, 1)
-    M.italic_char = M.config.italic_format:sub(1, 1)
 
     if M.config.open_behaviour == "buffer" then
         M.open_cmd = 'edit '

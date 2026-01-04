@@ -25,7 +25,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Use `:Mdn heading next/previous` to easily navigate headings. 
 
 ### 💁 Formatting
-- Toggle the appropriate formatting with `:Mdn formatting bold/italic/inline_code/strikethrough_toggle`.
+- Toggle the appropriate formatting with `:Mdn formatting strong/emphasis/inline_code/strikethrough_toggle`.
 - Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
 - Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn formatting task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
@@ -154,8 +154,8 @@ vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink rename_references<CR>', { buf
 vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn inline_link toggle<CR>", { buffer = true, desc = "Toggle inline link" })
 vim.keymap.set("n", "<leader>mh", ":Mdn history go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
 vim.keymap.set("n", "<leader>ml", ":Mdn history go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
-vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
-vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn formatting italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
+vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting strong_toggle<CR>", { buffer = true, desc = "Toggle strong formatting" })
+vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn formatting emphasis_toggle<CR>", { buffer = true, desc = "Toggle emphasis formatting" })
 vim.keymap.set("n", "<leader>mp", ":Mdn heading previous<CR>", { buffer = true, desc = "Go to previous Markdown heading" })
 vim.keymap.set("n", "<leader>mn", ":Mdn heading next<CR>", { buffer = true, desc = "Go to next Markdown heading" })
 ```
@@ -229,12 +229,12 @@ Opened with `:Mdn wikilink follow`. Can only be filenames, so `link` can also be
     [[link#fragment]]
 ```
 ### Formatting
-Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the bold and italic formats needs to be specified in the `bold_format` and `italic_format` config options. 
+Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the strong and emphasis formats needs to be specified in the `strong_format` and `emphasis_format` config options. 
 ```
-    **bold**
-    __bold__
-    *italic*
-    _italic_
+    **strong**
+    __strong__
+    *emphasis*
+    _emphasis_
     ~~strikethrough~~
     `inline code`
 ```

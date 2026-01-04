@@ -6,7 +6,7 @@ Emphasis emphasis emphasis
 Emphasis emphasis emphasis
 Emphasis emphasis emphasis
 
-## Strong Emphasis (bold)
+## Strong (bold)
 Strong strong strong
 Strong strong strong
 Strong strong strong

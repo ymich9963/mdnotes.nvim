@@ -95,8 +95,8 @@ local get_commands = function() return {
             insert_entry = require("mdnotes").journal_insert_entry,
         },
         formatting = {
-            bold_toggle = require("mdnotes.formatting").bold_toggle,
-            italic_toggle = require("mdnotes.formatting").italic_toggle,
+            strong_toggle = require("mdnotes.formatting").strong_toggle,
+            emphasis_toggle = require("mdnotes.formatting").emphasis_toggle,
             strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
             inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
             task_list_toggle = require("mdnotes.formatting").task_list_toggle,
@@ -180,7 +180,7 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     elseif func then
         func()
     else
-        vim.notify("Unknown command: '" .. cmd_arg .. subcmd_arg .. "'", vim.log.levels.ERROR)
+        vim.notify("Unknown command: '" .. cmd_arg .. " " .. subcmd_arg .. "'", vim.log.levels.ERROR)
     end
 end,
 {

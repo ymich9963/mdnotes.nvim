@@ -57,8 +57,8 @@ The default keymaps are listed below and they can be enabled using
     vim.keymap.set({"v", "n"}, "<leader>mk", ":Mdn inline_link toggle<CR>", { buffer = true, desc = "Toggle inline_link" })
     vim.keymap.set("n", "<leader>mh", ":Mdn history go_back<CR>", { buffer = true, desc = "Go to back to previously visited Markdown buffer" })
     vim.keymap.set("n", "<leader>ml", ":Mdn history go_forward<CR>", { buffer = true, desc = "Go to next visited Markdown buffer" })
-    vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting bold_toggle<CR>", { buffer = true, desc = "Toggle bold formatting" })
-    vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn formatting italic_toggle<CR>", { buffer = true, desc = "Toggle italic formatting" })
+    vim.keymap.set({"v", "n"}, "<leader>mb", ":Mdn formatting strong_toggle<CR>", { buffer = true, desc = "Toggle strong formatting" })
+    vim.keymap.set({"v", "n"}, "<leader>mi", ":Mdn formatting emphasis_toggle<CR>", { buffer = true, desc = "Toggle emphasis formatting" })
     vim.keymap.set("n", "<leader>mp", ":Mdn heading previous<CR>", { buffer = true, desc = "Go to previous Markdown heading" })
     vim.keymap.set("n", "<leader>mn", ":Mdn heading next<CR>", { buffer = true, desc = "Go to next Markdown heading" })
 
@@ -108,8 +108,8 @@ The default config for `mdnotes` is shown below,
 	insert_file_behaviour = "copy",
 	overwrite_behaviour = "error",
 	open_behaviour = "buffer",
-	bold_format = "**",
-	italic_format = "*",
+	strong_format = "**",
+	emphasis_format = "*",
 	date_format = "%a %d %b %Y",
 	prefer_lsp = false,
 	auto_list = true,
@@ -153,15 +153,15 @@ open_behaviour = `"string"`				*mdnotes-open_behaviour*
     buffer, `"tab"` it opens them in a new tab, `"split"` opens them in a
     horizontal split, and `"vsplit"` in a vertical tab.
 
-bold_format = `"string"`				*mdnotes-bold_format*
+strong_format = `"string"`				*mdnotes-strong_format*
 
     Can take the valid values of `"**"` or `"__"` which defines how the
-    Markdown `**bold**` or `__bold__` formatting is executed.
+    Markdown `**strong**` or `__strong__` formatting is executed.
 
-italic_format = `"string"`				*mdnotes-italic_format*
+emphasis_format = `"string"`				*mdnotes-emphasis_format*
 
     Can take the valid values of `"*"` or `"_"` which defines how the
-    Markdown `*italic*` or `_italic_` formatting is executed.
+    Markdown `*emphasis*` or `_emphasis_` formatting is executed.
 
 date_format = `"string"`				*mdnotes-date_format*
 
@@ -344,25 +344,25 @@ subcommands are listed below.
     using LSP auto-completion and you want to create valid Markdown links on
     GitHub.
 
-:Mdn formatting bold_toggle				*:Mdn-formatting-bold_toggle*
+:Mdn formatting strong_toggle				*:Mdn-formatting-strong_toggle*
 
-    Toggle Markdown `**bold**` syntax. Select a word and execute the command
-    or hover over already bold text to remove.
+    Toggle Markdown `**strong**` syntax. Select a word and execute the command
+    or hover over already strong text to remove.
 
-:Mdn formatting italic_toggle				*:Mdn-formatting-italic_toggle*
+:Mdn formatting emphasis_toggle				*:Mdn-formatting-emphasis_toggle*
 
-    Toggle Markdown `*italic*` syntax. Select a word and execute the command
-    or hover over already bold text to remove.
+    Toggle Markdown `*emphasis*` syntax. Select a word and execute the command
+    or hover over already strong text to remove.
 
 :Mdn formatting strikethrough_toggle			*:Mdn-formatting-strikethrough_toggle*
 
     Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
-    command or hover over already bold text to remove.
+    command or hover over already strong text to remove.
 
 :Mdn formatting inline_code_toggle			*:Mdn-formatting-inline_code_toggle*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
-    or hover over already bold text to remove.
+    or hover over already strong text to remove.
 
 :Mdn formatting task_list_toggle			*:Mdn-formatting-task_list_toggle*
 
@@ -470,10 +470,10 @@ setup({opts})                                          	*mdnotes.setup()*
 		already exists.
               • {open_behaviour} (`string?`, default `"buffer"`)
 		`mdnotes` behaviour when opening files with |:Mdn-open|.
-              • {bold_format} (`string?`, default `"**"`)
-		defines `mdnotes` bold formatting behaviour
-              • {italic_format} (`string?`, default `"*"`)
-		defines `mdnotes` italic formatting behaviour
+              • {strong_format} (`string?`, default `"**"`)
+		defines `mdnotes` strong formatting behaviour
+              • {emphasis_format} (`string?`, default `"*"`)
+		defines `mdnotes` emphasis formatting behaviour
               • {date_format} (`string?`, default `"%a %d %b %Y"`)
 		defines the date format used when inserting a journal entry.
 		See |strftime|.
@@ -700,25 +700,25 @@ formatting.inline_link.toggle()				*mdnotes.formatting.inline_link-toggle()*
     |mdnotes.inline_link-insert()| and when removing it uses
     |mdnotes.inline_link-delete()|.
 
-formatting.bold_toggle()				*mdnotes.formatting.bold_toggle()*
+formatting.strong_toggle()				*mdnotes.formatting.strong_toggle()*
 
-    Toggle Markdown `**bold**` syntax. Select a word and execute the command
-    or hover over already bold text to remove.
+    Toggle Markdown `**strong**` syntax. Select a word and execute the command
+    or hover over already strong text to remove.
 
-formatting.italic_toggle()				*mdnotes.formatting.italic_toggle()*
+formatting.emphasis_toggle()				*mdnotes.formatting.emphasis_toggle()*
 
-    Toggle Markdown `*italic*` syntax. Select a word and execute the command
-    or hover over already bold text to remove.
+    Toggle Markdown `*emphasis*` syntax. Select a word and execute the command
+    or hover over already strong text to remove.
 
 formatting.strikethrough_toggle()			*mdnotes.formatting.strikethrough_toggle()*
 
     Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
-    command or hover over already bold text to remove.
+    command or hover over already strong text to remove.
 
 formatting.inline_code_toggle()				*mdnotes.formatting.inline_code_toggle()*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
-    or hover over already bold text to remove.
+    or hover over already strong text to remove.
 
 formatting.task_list_toggle({line1}, {line2})		*mdnotes.formatting.task_list_toggle()*
 

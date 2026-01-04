@@ -22,13 +22,13 @@ M.check = function()
         config_ok = false
     end
 
-    if not vim.tbl_contains({"**", "__"}, config.bold_format) then
-        vim.health.error(("'bold_format' character '%s' is invalid. Can only use '**' or '__'. Defaulting to '**'."):format(M.config.bold_format))
+    if not vim.tbl_contains({"**", "__"}, config.strong_format) then
+        vim.health.error(("'strong_format' character '%s' is invalid. Can only use '**' or '__'. Defaulting to '**'."):format(M.config.strong_format))
         config_ok = false
     end
 
-    if not vim.tbl_contains({"*", "_"}, config.italic_format) then
-        vim.health.error(("'italic_format' character '%s' is invalid. Can only use '*' or '_'. Defaulting to '*'."):format(M.config.italic_format))
+    if not vim.tbl_contains({"*", "_"}, config.emphasis_format) then
+        vim.health.error(("'emphasis_format' character '%s' is invalid. Can only use '*' or '_'. Defaulting to '*'."):format(M.config.emphasis_format))
         config_ok = false
     end
 

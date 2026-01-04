@@ -1,5 +1,12 @@
 local M = {}
 
+M.format_indicators = {
+    emphasis = function() return require('mdnotes').config.emphasis_format end,
+    strong = function() return require('mdnotes').config.strong_format end,
+    strikethrough = function() return "~" end,
+    inline_code = function() return "`" end,
+}
+
 function M.check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
@@ -13,14 +20,11 @@ function M.check_md_format(pattern)
     return false
 end
 
-local function insert_format(format_char)
-    local line = vim.api.nvim_get_current_line()
-    local new_line = ""
-
-    -- Get the selected text
+function M.get_selected_text()
     local col_start = vim.fn.getpos("'<")[3]
     local col_end = vim.fn.getpos("'>")[3]
     local current_col = vim.fn.col('.')
+    local line = vim.api.nvim_get_current_line()
     local selected_text = line:sub(col_start, col_end)
 
     -- This would happen when executing in NORMAL mode
@@ -32,78 +36,96 @@ local function insert_format(format_char)
         for start_pos, end_pos in line:gmatch("()" .. selected_text .. "()") do
             start_pos = vim.fn.str2nr(start_pos)
             end_pos = vim.fn.str2nr(end_pos)
-            if start_pos < current_col and end_pos > current_col then
+            if start_pos <= current_col and end_pos > current_col then
                 col_start = start_pos
                 col_end = end_pos - 1
+                break
             end
         end
     end
 
-    -- Create a new modified line with link
-    new_line = line:sub(1, col_start - 1) .. format_char .. selected_text .. format_char .. line:sub(col_end + 1)
+    return selected_text, col_start, col_end
+end
+
+local function insert_format(format_char)
+    local line = vim.api.nvim_get_current_line()
+    local selected_text, col_start, col_end = M.get_selected_text()
+
+    -- Create a new modified line
+    local new_line = line:sub(1, col_start - 1) .. format_char .. selected_text .. format_char .. line:sub(col_end + 1)
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end})
 end
 
-local function delete_format_bold()
-    local bold_char = require('mdnotes').bold_char
-    vim.api.nvim_input('F' .. bold_char .. ';dwvf' .. bold_char .. 'hdvlp')
+local function delete_format(pattern)
+    local current_col = vim.fn.col('.')
+    local line = vim.api.nvim_get_current_line()
+    local col_start = 0
+    local col_end = 0
+    local found_text = ""
+
+    for start_pos, text, end_pos in line:gmatch(pattern) do
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if start_pos < current_col and end_pos > current_col then
+            found_text = text
+            col_start = start_pos
+            col_end = end_pos
+            break
+        end
+    end
+
+    -- Create a new modified line with link
+    local new_line = line:sub(1, col_start - 1) .. found_text .. line:sub(col_end)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start - 1})
 end
 
-local function delete_format_italic()
-    local italic_char = require('mdnotes').italic_char
-    vim.api.nvim_input('F' .. italic_char .. 'dwvf' .. italic_char ..'hdvp')
-end
-
-local function delete_format_strikethrough()
-    vim.api.nvim_input('F~;dwvf~hdvlp')
-end
-
-local function delete_format_inline_code()
-    vim.api.nvim_input('F`dwvf`hdvp')
-end
-
-function M.bold_toggle()
-    local bold_char = require('mdnotes').bold_char
+function M.strong_toggle()
+    local fi_strong = M.format_indicators.strong()
     local mdnotes_patterns = require('mdnotes.patterns')
 
-    if M.check_md_format(mdnotes_patterns.bold) then
-        delete_format_bold()
+    if M.check_md_format(mdnotes_patterns.strong) == true then
+        delete_format(mdnotes_patterns.strong)
     else
-        insert_format(bold_char .. bold_char)
+        insert_format(fi_strong)
     end
 end
 
-function M.italic_toggle()
-    local italic_char = require('mdnotes').italic_char
+function M.emphasis_toggle()
+    local fi_emphasis = M.format_indicators.emphasis()
     local mdnotes_patterns = require('mdnotes.patterns')
 
-    if M.check_md_format(mdnotes_patterns.italic) then
-        delete_format_italic()
+    if M.check_md_format(mdnotes_patterns.emphasis) == true then
+        delete_format(mdnotes_patterns.emphasis)
     else
-        insert_format(italic_char)
+        insert_format(fi_emphasis)
     end
 end
 
 function M.strikethrough_toggle()
+    local fi_strikethrough = M.format_indicators.strikethrough()
     local mdnotes_patterns = require('mdnotes.patterns')
 
-    if M.check_md_format(mdnotes_patterns.strikethrough) then
-        delete_format_strikethrough()
+    if M.check_md_format(mdnotes_patterns.strikethrough) == true then
+        delete_format(mdnotes_patterns.strikethrough)
     else
-        insert_format('~~')
+        insert_format(fi_strikethrough)
     end
 end
 
 function M.inline_code_toggle()
+    local fi_inline_code = M.format_indicators.inline_code()
     local mdnotes_patterns = require('mdnotes.patterns')
 
-    if M.check_md_format(mdnotes_patterns.inline_code) then
-        delete_format_inline_code()
+    if M.check_md_format(mdnotes_patterns.inline_code) == true then
+        delete_format(mdnotes_patterns.inline_code)
     else
-        insert_format('`')
+        insert_format(fi_inline_code)
     end
 end
 

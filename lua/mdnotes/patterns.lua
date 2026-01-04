@@ -1,7 +1,7 @@
 local M = {}
 
-local bold_char = require('mdnotes').bold_char
-local italic_char = require('mdnotes').italic_char
+local fi_emphasis = function() return require('mdnotes.formatting').format_indicators.emphasis() end
+local fi_strong = function() return require('mdnotes.formatting').format_indicators.strong():sub(1,1) end
 
 M = {
     wikilink = "()%[%[(.-)%]%]()",
@@ -9,8 +9,8 @@ M = {
     fragment = "#(.*)",
     inline_link = "()(%[.+%]%([^%)]+%))()",
     text_uri = "%[([^%]]+)%]%((.+)%)",
-    bold = "()%" .. bold_char .. "%" .. bold_char .. "([^%" .. bold_char .. "].-)%" .. bold_char .. "%" .. bold_char .. "()",
-    italic = "()%" .. italic_char .. "([^%" .. italic_char .. "].-)%" .. italic_char .."()",
+    strong = "()%" .. fi_strong() .. "%" .. fi_strong() .. "([^%" .. fi_strong() .. "].-)%" .. fi_strong() .. "%" .. fi_strong() .. "()",
+    emphasis = "()%" .. fi_emphasis() .. "([^%" .. fi_emphasis() .. "].-)%" .. fi_emphasis() .."()",
     strikethrough = "()~~(.-)~~()",
     inline_code = "()`([^`]+)`()",
     unordered_list = "^([%s]-)([-+*])[%s](.+)",

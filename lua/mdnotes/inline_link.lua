@@ -3,133 +3,6 @@ local M = {}
 local uv = vim.loop or vim.uv
 M.uri_website_tbl = {"https", "http"}
 
-function M.insert()
-    local reg = vim.fn.getreg('+')
-
-    -- Set if empty
-    if reg == '' then
-        vim.notify("Mdn: Nothing detected in clipboard; \"+ register empty...", vim.log.levels.ERROR)
-        return
-    end
-
-    -- Sanitize text to prevent chaos
-    vim.fn.setreg('+', reg:gsub("[%c]", ""))
-
-    -- Get the selected text
-    local col_start = vim.fn.getpos("'<")[3]
-    local col_end = vim.fn.getpos("'>")[3]
-    local current_col = vim.fn.col('.')
-    local line = vim.api.nvim_get_current_line()
-    local selected_text = line:sub(col_start, col_end)
-
-    -- This would happen when there is no selection
-    if current_col ~= col_start then
-        -- Get the word under cursor and cursor position
-        selected_text = vim.fn.expand("<cword>")
-
-        -- Search for the word in the line and check if it's under the cursor
-        for start_pos, end_pos in line:gmatch("()" .. selected_text .. "()") do
-            start_pos = vim.fn.str2nr(start_pos)
-            end_pos = vim.fn.str2nr(end_pos)
-            if start_pos < current_col and end_pos > current_col then
-                col_start = start_pos
-                col_end = end_pos - 1
-            end
-        end
-    end
-
-    -- Create a new modified line with link
-    local new_line = line:sub(1, col_start - 1) .. '[' .. selected_text .. '](' .. reg .. ')' .. line:sub(col_end + 1)
-
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
-end
-
-function M.delete()
-    vim.api.nvim_input('F["0di[f("+di(F[vf)"0p')
-end
-
-function M.toggle()
-    local check_md_format = require('mdnotes.formatting').check_md_format
-    if check_md_format(require("mdnotes.patterns").inline_link) then
-        M.delete()
-    else
-        M.insert()
-    end
-end
-
-local function rename_relink(rename_or_relink)
-    local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
-    local new_uri = ""
-    local new_line = ""
-    local new_text = ""
-    local line = vim.api.nvim_get_current_line()
-
-    if not text or not uri then return end
-
-    if rename_or_relink == "rename" then
-        vim.ui.input({ prompt = "Rename link text '".. text .."' to: " },
-        function(input)
-            new_text = input
-        end)
-
-        if new_text == "" or new_text == nil then
-            vim.notify(("Mdn: Please enter valid text"), vim.log.levels.ERROR)
-            return
-        end
-
-        new_line = line:sub(1, col_start - 1) .. '[' .. new_text .. '](' .. uri .. ')' .. line:sub(col_end)
-    elseif rename_or_relink == "relink" then
-
-        vim.ui.input({ prompt = "Relink '".. uri .."' to: " },
-        function(input)
-            new_uri = input
-        end)
-
-        if new_uri == "" or new_uri == nil then
-            vim.notify(("Mdn: Please enter valid text"), vim.log.levels.ERROR)
-            return
-        end
-
-        new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end)
-    end
-
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start})
-end
-
-function M.relink()
-    rename_relink("relink")
-end
-
-function M.rename()
-    rename_relink("rename")
-end
-
-function M.normalize()
-    local validate_tbl = require('mdnotes.inline_link').validate(true, true) or {}
-    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
-    local new_uri = ""
-    local new_line = ""
-    local line = vim.api.nvim_get_current_line()
-
-    if not text or not uri then return end
-
-    new_uri = vim.fs.normalize(uri)
-    if new_uri:match("%s") then
-        new_uri = "<" .. new_uri .. ">"
-    end
-
-    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end + 1)
-
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
-end
-
 function M.validate(internal_call, norm, ignore_fragment)
     if not internal_call then internal_call = false end
     if not norm then norm = false end
@@ -220,6 +93,117 @@ function M.validate(internal_call, norm, ignore_fragment)
     end
 
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
+end
+
+function M.insert()
+    local reg = vim.fn.getreg('+')
+
+    -- Set if empty
+    if reg == '' then
+        vim.notify("Mdn: Nothing detected in clipboard; \"+ register empty...", vim.log.levels.ERROR)
+        return
+    end
+
+    -- Sanitize text to prevent chaos
+    vim.fn.setreg('+', reg:gsub("[%c]", ""))
+
+    local line = vim.api.nvim_get_current_line()
+    local selected_text, col_start, col_end = require('mdnotes.formatting').get_selected_text()
+
+    -- Create a new modified line with link
+    local new_line = line:sub(1, col_start - 1) .. '[' .. selected_text .. '](' .. reg .. ')' .. line:sub(col_end + 1)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+end
+
+function M.delete()
+    local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
+    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local line = vim.api.nvim_get_current_line()
+
+    if not text or not uri then return end
+
+
+    -- Create a new modified line with link
+    local new_line = line:sub(1, col_start - 1) .. text .. line:sub(col_end)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start - 1})
+end
+
+function M.toggle()
+    local check_md_format = require('mdnotes.formatting').check_md_format
+    if check_md_format(require("mdnotes.patterns").inline_link) then
+        M.delete()
+    else
+        M.insert()
+    end
+end
+
+local function rename_relink(rename_or_relink)
+    local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
+    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local prompt = ""
+    local user_input = ""
+    local new_line = ""
+    local line = vim.api.nvim_get_current_line()
+
+    if not text or not uri then return end
+
+    if rename_or_relink == "rename" then
+        prompt = "Rename link text '".. text .."' to: "
+    elseif rename_or_relink == "relink" then
+        prompt = "Relink '".. uri .."' to: "
+    end
+
+    vim.ui.input({ prompt =  prompt }, function(input) user_input = input end)
+
+    if user_input == "" or user_input == nil then
+        vim.notify(("Mdn: Please enter valid text"), vim.log.levels.ERROR)
+        return
+    end
+
+    if rename_or_relink == "rename" then
+        new_line = line:sub(1, col_start - 1) .. '[' .. user_input .. '](' .. uri .. ')' .. line:sub(col_end)
+    elseif rename_or_relink == "relink" then
+        new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. user_input .. ')' .. line:sub(col_end)
+    end
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start})
+end
+
+function M.relink()
+    rename_relink("relink")
+end
+
+function M.rename()
+    rename_relink("rename")
+end
+
+function M.normalize()
+    local validate_tbl = require('mdnotes.inline_link').validate(true, true) or {}
+    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local new_uri = ""
+    local new_line = ""
+    local line = vim.api.nvim_get_current_line()
+
+    if not text or not uri then return end
+
+    new_uri = vim.fs.normalize(uri)
+    if new_uri:match("%s") then
+        new_uri = "<" .. new_uri .. ">"
+    end
+
+    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end + 1)
+
+    -- Set the line and cursor position
+    vim.api.nvim_set_current_line(new_line)
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
 function M.convert_fragment_to_gfm()
