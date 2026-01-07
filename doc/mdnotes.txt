@@ -373,6 +373,12 @@ subcommands are listed below.
 
     Renumber an ordered list.
 
+:Mdn formatting unformat_lines				*:Mdn-formatting-unformat_lines*
+
+    Unformat the current line or the selected lines. Removes format indicators
+    for strong, emphasis, strikethrough, inline code, heading, inline link,
+    ordered list, unordered list, and task.
+
 :Mdn journal insert_entry				*:Mdn-journal-insert_entry*
 
     Insert at the top of the file the current date and time along with a separator.
@@ -736,6 +742,16 @@ formatting.ordered_list_renumber({silent})		*mdnotes.formatting.ordered_list_ren
     Parameters: ~
     • {silent}  `(false|true)` Enable or disable error notifications from this
       function. Used in autocmd.
+
+formatting.unformat_lines({line1}, {line2})		*mdnotes.formatting.unformat_lines()*
+
+    Unformat the current line or the selected lines. Removes format indicators
+    for strong, emphasis, strikethrough, inline code, heading, inline link,
+    ordered list, unordered list, and task.
+
+    Parameters: ~
+    • {line1}  `(integer?)` Starting line number.
+    • {line2}  `(integer?)` Ending line number.
 
 toc.generate()						*mdnotes.toc.generate()*
 

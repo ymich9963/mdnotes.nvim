@@ -53,6 +53,7 @@ function M.setup(user_config)
     M.config.index_file = vim.fs.normalize(M.config.index_file)
     M.config.journal_file = vim.fs.normalize(M.config.journal_file)
     M.config.assets_path = vim.fs.normalize(M.config.assets_path)
+    -- TODO: Remove this
     M.patterns = require('mdnotes.patterns')
 
     if M.config.open_behaviour == "buffer" then

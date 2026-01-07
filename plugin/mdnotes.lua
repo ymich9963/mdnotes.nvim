@@ -101,6 +101,7 @@ local get_commands = function() return {
             inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
             task_list_toggle = require("mdnotes.formatting").task_list_toggle,
             ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
+            unformat_lines = require("mdnotes.formatting").unformat_lines,
         },
         wikilink = {
             follow = require("mdnotes.wikilink").follow,
@@ -173,7 +174,7 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func = command[1]
     end
 
-    if func == commands["formatting"]["task_list_toggle"] then
+    if func == commands["formatting"]["task_list_toggle"] or func == commands["formatting"]["unformat_lines"] then
         func(opts.line1, opts.line2)
     elseif func == commands["table"]["create"] then
         func(args[3], args[4])

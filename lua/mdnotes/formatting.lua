@@ -226,4 +226,59 @@ function M.ordered_list_renumber(silent)
     vim.api.nvim_buf_set_lines(0, list_startl, list_endl, false, new_list_lines)
 end
 
+function M.unformat_lines(line1, line2)
+    local mdnotes_patterns = require('mdnotes.patterns')
+    local lines = {}
+    local new_lines = {}
+
+    local patterns = {
+        mdnotes_patterns.strong,
+        mdnotes_patterns.wikilink,
+        mdnotes_patterns.emphasis,
+        mdnotes_patterns.strikethrough,
+        mdnotes_patterns.inline_code,
+        mdnotes_patterns.heading,
+        mdnotes_patterns.inline_link,
+        mdnotes_patterns.ordered_list,
+        mdnotes_patterns.unordered_list,
+        mdnotes_patterns.task,
+    }
+
+    if line1 == line2 then
+        lines = {vim.api.nvim_get_current_line()}
+    else
+        lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
+    end
+
+    for _, line in ipairs(lines) do
+        line = line:gsub("[^%d%a%p ]+", "")
+        for _, pattern in ipairs(patterns) do
+            if pattern == mdnotes_patterns.heading then
+                local _, heading_text = line:match(pattern)
+                if heading_text then line = heading_text end
+            elseif pattern == mdnotes_patterns.inline_link then
+                for start_pos, inline_link, end_pos in line:gmatch(pattern) do
+                    local inline_text, _ = inline_link:match(mdnotes_patterns.text_uri)
+                    if inline_text then line = line:sub(1, vim.fn.str2nr(start_pos) - 1) .. inline_text .. line:sub(vim.fn.str2nr(end_pos)) end
+                end
+            elseif pattern == mdnotes_patterns.ordered_list then
+                local _, _, _, ol_text = line:match(pattern)
+                if ol_text then line = ol_text end
+            elseif pattern == mdnotes_patterns.unordered_list then
+                local _, _, ul_text = line:match(pattern)
+                if ul_text then line = ul_text end
+            elseif pattern == mdnotes_patterns.task then
+                line = line:gsub(pattern, "")
+            else
+                for start_pos, text, end_pos in line:gmatch(pattern) do
+                    if text then line = line:sub(1, vim.fn.str2nr(start_pos) - 1) .. text .. line:sub(vim.fn.str2nr(end_pos)) end
+                end
+            end
+        end
+        table.insert(new_lines, line)
+    end
+
+    vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
+end
+
 return M
