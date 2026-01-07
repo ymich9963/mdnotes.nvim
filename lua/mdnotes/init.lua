@@ -3,7 +3,6 @@ local M = {}
 local uv = vim.loop or vim.uv
 
 M.config = {}
-M.patterns = {}
 M.open_cmd = nil
 
 local default_config = {
@@ -53,8 +52,6 @@ function M.setup(user_config)
     M.config.index_file = vim.fs.normalize(M.config.index_file)
     M.config.journal_file = vim.fs.normalize(M.config.journal_file)
     M.config.assets_path = vim.fs.normalize(M.config.assets_path)
-    -- TODO: Remove this
-    M.patterns = require('mdnotes.patterns')
 
     if M.config.open_behaviour == "buffer" then
         M.open_cmd = 'edit '
@@ -69,18 +66,19 @@ end
 
 function M.list_remap(inc_val)
     -- ul = unordered list, ol = ordered list
+    local mdnotes_patterns = require('mdnotes.patterns')
     local line = vim.api.nvim_get_current_line()
-    local ul_indent, ul_marker, ul_text = line:match(M.patterns.unordered_list)
-    local ol_indent, ol_marker, ol_separator, ol_text = line:match(M.patterns.ordered_list)
+    local ul_indent, ul_marker, ul_text = line:match(mdnotes_patterns.unordered_list)
+    local ol_indent, ol_marker, ol_separator, ol_text = line:match(mdnotes_patterns.ordered_list)
     local indent = ul_indent or ol_indent
     local text = ul_text or ol_text or ""
 
-    text = text:gsub(M.patterns.task, "")
+    text = text:gsub(mdnotes_patterns.task, "")
     text = text:gsub("[%s]", "")
 
     if text and text ~= "" then
         if ul_marker then
-            if ul_text:match(M.patterns.task) then
+            if ul_text:match(mdnotes_patterns.task) then
                 return indent, "\n" .. ul_marker .. " " .. "[ ] "
             else
                 return indent, "\n" .. ul_marker .. " "
@@ -88,7 +86,7 @@ function M.list_remap(inc_val)
         end
 
         if ol_marker then
-            if ol_text:match(M.patterns.task) then
+            if ol_text:match(mdnotes_patterns.task) then
                 return indent, "\n" .. tostring(tonumber(ol_marker + inc_val)) .. ol_separator .. " " .. "[ ] "
             else
                 return indent, "\n" .. tostring(tonumber(ol_marker + inc_val)) .. ol_separator .. " "
