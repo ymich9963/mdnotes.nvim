@@ -140,7 +140,7 @@ function M.rename_references_cur_buf()
     local cur_file_name = cur_file_basename:match("(.+)%.[^%.]+$")
     local renamed = ""
 
-    vim.ui.input({ prompt = "Rename current buffer '".. cur_file_name .."' to: " },
+    vim.ui.input({ prompt = "Rename current buffer: ", default = cur_file_name },
     function(input)
         renamed = input
     end)
@@ -192,7 +192,7 @@ function M.rename_references()
         return
     end
 
-    vim.ui.input({ prompt = "Rename '".. file .."' to: " },
+    vim.ui.input({ prompt = "Rename file: ", default = file },
     function(input)
         renamed = input
     end)

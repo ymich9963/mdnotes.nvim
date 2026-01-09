@@ -146,20 +146,22 @@ end
 local function rename_relink(rename_or_relink)
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
     local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
-    local prompt = ""
     local user_input = ""
     local new_line = ""
     local line = vim.api.nvim_get_current_line()
+    local args = {}
 
     if not text or not uri then return end
 
     if rename_or_relink == "rename" then
-        prompt = "Rename link text '".. text .."' to: "
+        args.prompt = "Rename link text: "
+        args.default = text
     elseif rename_or_relink == "relink" then
-        prompt = "Relink '".. uri .."' to: "
+        args.prompt = "Relink URI: "
+        args.default = uri
     end
 
-    vim.ui.input({ prompt =  prompt }, function(input) user_input = input end)
+    vim.ui.input(args, function(input) user_input = input end)
 
     if user_input == "" or user_input == nil then
         vim.notify(("Mdn: Please enter valid text"), vim.log.levels.ERROR)
