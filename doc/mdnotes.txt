@@ -230,11 +230,47 @@ subcommands are listed below.
     Winows it's currently using, >lua
 	vim.system({"cmd.exe", "/c", "start", link}) 
 
-:Mdn outliner_toggle					*:Mdn-outliner_toggle*
+:Mdn outliner toggle					*:Mdn-outliner-toggle*
 
     Toggle an outliner mode (similar to programs like Logseq). This command
     essentially creates or deletes certain keymaps to create the outliner mode.
+    Indentation is also changed to use the outliner indentation commands
+    |Mdn-outliner-indent| and |Mdn-outliner-unindent|.
 
+:Mdn outliner indent					*:Mdn-outliner-indent*
+
+    Indents the bulleted list using the indentation of the parent child items.
+    For example,
+>
+    - Parent
+    - Parent
+	- Child
+	- Child
+<
+    when indenting the second `Parent` using the command,
+>
+    - Parent
+	- Parent
+	    - Child
+	    - Child
+	
+:Mdn outliner unindent					*:Mdn-outliner-unindent*
+
+    Unindents the bulleted list using the indentation of the parent child items.
+    For example,
+>
+    - Parent
+	- Child or Parent
+	    - Child
+	    - Child
+<
+    when unindenting the second `Parent` using the command,
+>
+    - Parent
+    - Child or Parent
+	- Child
+	- Child
+	
 :Mdn wikilink follow 					*:Mdn-wikilink-follow*
 
     Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
@@ -530,9 +566,45 @@ open() 							*mdnotes.open()*
 
 outliner.toggle()					*mdnotes.outliner.toggle()*
 
-    Toggle the outliner mode. Outliner mode essentially sets or deletes
-    certain keymaps to simulate working in an outliner program (e.g. Logseq).
+    Toggle an outliner mode (similar to programs like Logseq). This command
+    essentially creates or deletes certain keymaps to create the outliner mode.
+    Indentation is also changed to use the outliner indentation commands
+    |Mdn-outliner-indent| and |Mdn-outliner-unindent|.
 
+outliner.indent()					*mdnotes.outliner.indent()*
+
+    Indents the bulleted list using the indentation of the parent child items.
+    For example,
+>
+    - Parent
+    - Parent
+	- Child
+	- Child
+<
+    when indenting the second `Parent` using the command,
+>
+    - Parent
+	- Parent
+	    - Child
+	    - Child
+	
+outliner.unindent()					*mdnotes.outliner.unindent()*
+
+    Unindents the bulleted list using the indentation of the parent child items.
+    For example,
+>
+    - Parent
+	- Child or Parent
+	    - Child
+	    - Child
+<
+    when unindenting the second `Parent` using the command,
+>
+    - Parent
+    - Child or Parent
+	- Child
+	- Child
+	
 wikilink.follow()					*mdnotes.wikilink.follow()*
 
     Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 

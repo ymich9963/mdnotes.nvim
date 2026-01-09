@@ -82,81 +82,95 @@ vim.api.nvim_create_autocmd({"ModeChanged"}, {
     end
 })
 
+-- Outliner State Message
+vim.api.nvim_create_autocmd({"CursorMoved"}, {
+    pattern = {"*.md"},
+    group = mdnotes_group,
+    callback = function()
+        if require("mdnotes.outliner").outliner_state == true then
+            vim.notify("-- MDN OUTLINER --", vim.log.levels.INFO)
+            return
+        end
+    end
+})
+
 local commands = nil
 local get_commands = function() return {
-        home = {
-            require("mdnotes").go_to_index_file
-        },
-        open = {
-            require("mdnotes").open
-        },
-        journal = {
-            require("mdnotes").go_to_journal_file,
-            insert_entry = require("mdnotes").journal_insert_entry,
-        },
-        formatting = {
-            strong_toggle = require("mdnotes.formatting").strong_toggle,
-            emphasis_toggle = require("mdnotes.formatting").emphasis_toggle,
-            strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
-            inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
-            task_list_toggle = require("mdnotes.formatting").task_list_toggle,
-            ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
-            unformat_lines = require("mdnotes.formatting").unformat_lines,
-        },
-        wikilink = {
-            follow = require("mdnotes.wikilink").follow,
-            show_references = require("mdnotes.wikilink").show_references,
-            rename_references = require("mdnotes.wikilink").rename_references,
-            undo_rename = require("mdnotes.wikilink").undo_rename,
-            create = require("mdnotes.wikilink").create,
-            delete = require("mdnotes.wikilink").delete,
-            normalize = require("mdnotes.wikilink").normalize,
-        },
-        table = {
-            create = require("mdnotes.table").create,
-            best_fit = require("mdnotes.table").best_fit,
-            column_insert_left = require("mdnotes.table").column_insert_left,
-            column_insert_right = require("mdnotes.table").column_insert_right,
-            column_move_left = require("mdnotes.table").column_move_left,
-            column_move_right = require("mdnotes.table").column_move_right,
-            column_delete = require("mdnotes.table").column_delete,
-            column_alignment_toggle = require("mdnotes.table").column_alignment_toggle,
-            column_duplicate = require("mdnotes.table").column_duplicate,
-            row_insert_above = require("mdnotes.table").row_insert_above,
-            row_insert_below = require("mdnotes.table").row_insert_below,
-        },
-        history = {
-            go_back = require("mdnotes.history").go_back,
-            go_forward = require("mdnotes.history").go_forward,
-            clear = require("mdnotes.history").clear,
-        },
-        assets = {
-            insert_image = require("mdnotes.assets").insert_image,
-            insert_file = require("mdnotes.assets").insert_file,
-            delete_unused = require("mdnotes.assets").delete_unused,
-            move_unused = require("mdnotes.assets").move_unused,
-            open_containing_folder = require("mdnotes.assets").open_containing_folder,
-            download_website_html  = require("mdnotes.assets").download_website_html,
-        },
-        outliner_toggle = {
-            require("mdnotes.outliner").toggle
-        },
-        inline_link = {
-            toggle = require("mdnotes.inline_link").toggle,
-            rename = require("mdnotes.inline_link").rename,
-            relink = require("mdnotes.inline_link").relink,
-            normalize = require("mdnotes.inline_link").normalize,
-            validate = require("mdnotes.inline_link").validate,
-            convert_fragment_to_gfm = require("mdnotes.inline_link").convert_fragment_to_gfm,
-        },
-        toc = {
-            generate = require("mdnotes.toc").generate
-        },
-        heading = {
-            next = require("mdnotes.heading").goto_next,
-            previous = require("mdnotes.heading").goto_previous,
-        },
-    }
+    home = {
+        require("mdnotes").go_to_index_file
+    },
+    open = {
+        require("mdnotes").open
+    },
+    journal = {
+        require("mdnotes").go_to_journal_file,
+        insert_entry = require("mdnotes").journal_insert_entry,
+    },
+    formatting = {
+        strong_toggle = require("mdnotes.formatting").strong_toggle,
+        emphasis_toggle = require("mdnotes.formatting").emphasis_toggle,
+        strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
+        inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
+        task_list_toggle = require("mdnotes.formatting").task_list_toggle,
+        ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
+        unformat_lines = require("mdnotes.formatting").unformat_lines,
+    },
+    wikilink = {
+        follow = require("mdnotes.wikilink").follow,
+        show_references = require("mdnotes.wikilink").show_references,
+        rename_references = require("mdnotes.wikilink").rename_references,
+        undo_rename = require("mdnotes.wikilink").undo_rename,
+        create = require("mdnotes.wikilink").create,
+        delete = require("mdnotes.wikilink").delete,
+        normalize = require("mdnotes.wikilink").normalize,
+    },
+    table = {
+        create = require("mdnotes.table").create,
+        best_fit = require("mdnotes.table").best_fit,
+        column_insert_left = require("mdnotes.table").column_insert_left,
+        column_insert_right = require("mdnotes.table").column_insert_right,
+        column_move_left = require("mdnotes.table").column_move_left,
+        column_move_right = require("mdnotes.table").column_move_right,
+        column_delete = require("mdnotes.table").column_delete,
+        column_alignment_toggle = require("mdnotes.table").column_alignment_toggle,
+        column_duplicate = require("mdnotes.table").column_duplicate,
+        row_insert_above = require("mdnotes.table").row_insert_above,
+        row_insert_below = require("mdnotes.table").row_insert_below,
+    },
+    history = {
+        go_back = require("mdnotes.history").go_back,
+        go_forward = require("mdnotes.history").go_forward,
+        clear = require("mdnotes.history").clear,
+    },
+    assets = {
+        insert_image = require("mdnotes.assets").insert_image,
+        insert_file = require("mdnotes.assets").insert_file,
+        delete_unused = require("mdnotes.assets").delete_unused,
+        move_unused = require("mdnotes.assets").move_unused,
+        open_containing_folder = require("mdnotes.assets").open_containing_folder,
+        download_website_html  = require("mdnotes.assets").download_website_html,
+    },
+    outliner= {
+        toggle = require("mdnotes.outliner").toggle,
+        indent = require("mdnotes.outliner").indent,
+        unindent = require("mdnotes.outliner").unindent,
+    },
+    inline_link = {
+        toggle = require("mdnotes.inline_link").toggle,
+        rename = require("mdnotes.inline_link").rename,
+        relink = require("mdnotes.inline_link").relink,
+        normalize = require("mdnotes.inline_link").normalize,
+        validate = require("mdnotes.inline_link").validate,
+        convert_fragment_to_gfm = require("mdnotes.inline_link").convert_fragment_to_gfm,
+    },
+    toc = {
+        generate = require("mdnotes.toc").generate
+    },
+    heading = {
+        next = require("mdnotes.heading").goto_next,
+        previous = require("mdnotes.heading").goto_previous,
+    },
+}
 end
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
