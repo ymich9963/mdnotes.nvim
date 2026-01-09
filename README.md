@@ -67,11 +67,11 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Download website HTML to your assets folder with `:Mdn assets download_website_html`.
 
 ### 🧍‍♂️ Uncategorised
-- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC.
+- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC by changing the `toc_depth = 4`.
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling. Can also use outliner-like indentation with `:Mdn outliner indent/unindent`.
 - Insert a journal entry automatically by doing `:Mdn journal insert_entry`. 
 - Tips for repeating last command, find/replace words, finding tags, and finding files, can be found in [TIPS.md](TIPS.md).
-- Opt-out use of existing Markdown LSP functions.
+- Opt-in use of existing Markdown LSP functions by setting `prefer_lsp = true`.
 - Supports Windows eccentricities.
 
 ## 👽 Setup
