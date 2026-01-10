@@ -238,6 +238,7 @@ Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the strong and emp
     _emphasis_
     ~~strikethrough~~
     `inline code`
+    <autolink>
 ```
 ### Lists
 All ordered and unordered CommonMark lists along with GFM task lists are supported.
