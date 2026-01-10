@@ -3,7 +3,7 @@ local M = {}
 M.format_indicators = {
     emphasis = function() return require('mdnotes').config.emphasis_format end,
     strong = function() return require('mdnotes').config.strong_format end,
-    strikethrough = function() return "~" end,
+    strikethrough = function() return "~~" end,
     inline_code = function() return "`" end,
 }
 
