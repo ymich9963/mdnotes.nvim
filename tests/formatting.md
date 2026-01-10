@@ -26,16 +26,6 @@ Autolink autolink autolink
 Autolink autolink autolink
 Autolink autolink autolink
 
-## Inline Link (hyperlinks)
-[link](https://github.com/ymich9963/mdnotes.nvim)
-[link](../README.md)
-[link](../README.md#-introduction)
-[link](<../README.md# ☀️ Introduction>) -- does not work
-[link](<#Empasis (italic)>) -- does not work
-[link](#emphasis-(italic))
-
-## Images
-
 ## Lists
 - Item
 + Item
