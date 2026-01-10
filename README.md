@@ -36,7 +36,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Rename the link text with `:Mdn inline_link rename`. 
 - Re-link the inline link with `:Mdn inline_link relink`. 
 - Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
-- Validate an inline link without opening it by executing `:Mdn inline_link validate`. 
+- Validate an inline link without opening it by executing `:Mdn inline_link validate`. This ensures that your inline link has a valid destination.
 - Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
 
 ### 🫦 Tables

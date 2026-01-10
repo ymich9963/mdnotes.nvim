@@ -37,7 +37,7 @@ function M.validate(internal_call, norm, ignore_fragment)
     end
 
     if not uri or uri == "" then
-        vim.notify(("Mdn: Nothing to open"), vim.log.levels.ERROR)
+        vim.notify(("Mdn: No URI detected"), vim.log.levels.ERROR)
         return nil
     end
 

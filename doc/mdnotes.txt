@@ -372,7 +372,8 @@ subcommands are listed below.
 
 :Mdn inline_link validate				*:Mdn-inline_link-validate*
 
-    Validate any inline link without opening it.
+    Validate any inline link without opening it to ensure it has a valid
+    destination.
 
 :Mdn inline_link convert_fragment_to_gfm			*:Mdn-inline_link-convert_fragment_to_gfm*
 
