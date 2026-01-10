@@ -30,3 +30,6 @@ The `:find` command is great for finding files in a directory with a not-so-larg
 vim.opt.path:append{"**"} -- Use :find for all subdirectories
 ```
 but you can also call it as `:find **` and when you press `<Tab>`, it will autocomplete with the directories.
+
+## Indenting
+To indent in INSERT mode use `:h i_CTRL+T` and `:h i_CTRL+D` and to indent in NORMAL mode use `:h <<` and `:h >>`. The ones in insert mode are commonly mapped to `<TAB>` and `<S-TAB>` since that is a very common mapping in other programs. In `mdnotes` there are the `:h :Mdn-outliner-indent/unindnet` commands which provide the same indenting functionality but also execute more outliner-style indenting when using nested lists. This was inspired by applications such as Logseq.
