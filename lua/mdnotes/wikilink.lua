@@ -13,6 +13,32 @@ local function check_md_lsp()
     end
 end
 
+local function get_wikilink()
+    local line = vim.api.nvim_get_current_line()
+    local current_col = vim.fn.col('.')
+    local wikilink_pattern = require('mdnotes.patterns').wikilink
+    local uri_no_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
+    local fragment_pattern = require('mdnotes.patterns').fragment
+    local col_start = 0
+    local col_end = 0
+
+    local wikilink, wikilink_no_fragment, fragment = "", "", ""
+    for start_pos, found_wikilink ,end_pos in line:gmatch(wikilink_pattern) do
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if start_pos < current_col and end_pos > current_col then
+            wikilink = found_wikilink
+            wikilink_no_fragment = found_wikilink:match(uri_no_fragment_pattern) or ""
+            fragment = found_wikilink:match(fragment_pattern) or ""
+            col_start = start_pos
+            col_end = end_pos
+            break
+        end
+    end
+
+    return wikilink, wikilink_no_fragment, fragment, col_start, col_end
+end
+
 function M.follow()
     if check_md_lsp() then
         -- Doing some weird shit with the qf list for this
@@ -37,22 +63,7 @@ function M.follow()
         end
     end
 
-    local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
-    local wikilink_pattern = require('mdnotes.patterns').wikilink
-    local uri_no_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
-    local fragment_pattern = require('mdnotes.patterns').fragment
-
-    local wikilink, fragment = "", ""
-    for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
-        if start_pos < current_col and end_pos > current_col then
-            wikilink = link:match(uri_no_fragment_pattern) or ""
-            fragment = link:match(fragment_pattern) or ""
-
-            wikilink = vim.fs.normalize(vim.trim(wikilink))
-            fragment = vim.trim(fragment)
-        end
-    end
+    local _, wikilink, fragment, _, _ = get_wikilink()
 
     if wikilink == "" and fragment == "" then
         vim.notify(("Mdn: No WikiLink under the cursor was detected."), vim.log.levels.ERROR)
@@ -66,7 +77,6 @@ function M.follow()
         end
     end
 
-
     if fragment ~= "" then
         vim.fn.cursor(vim.fn.search(fragment), 1)
         vim.api.nvim_input('zz')
@@ -79,26 +89,17 @@ function M.show_references()
         return
     end
 
-    local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
-    local found_file = ""
-    local wikilink_pattern = require('mdnotes.patterns').wikilink
+    local wikilink, _, _, _, _ = get_wikilink()
 
-    for start_pos, file ,end_pos in line:gmatch(wikilink_pattern) do
-        if start_pos < current_col and end_pos > current_col then
-            found_file = file
-        end
-    end
-
-    if found_file == "" then
+    if wikilink == "" then
         -- If wikilink pattern isn't detected use current file name
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
-        found_file = cur_file_basename:match("(.+)%.[^%.]+$")
+        wikilink = cur_file_basename:match("(.+)%.[^%.]+$")
     end
 
-    vim.cmd.vimgrep({args = {'/\\[\\[' .. found_file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
-    if #vim.fn.getqflist() == 1 then
-        vim.notify(("Mdn: No references found for '" .. found_file .. "' ."), vim.log.levels.ERROR)
+    vim.cmd.vimgrep({args = {'/\\[\\[' .. wikilink .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
+    if #vim.fn.getqflist() == 1 or vim.tbl_isempty(vim.fn.getqflist()) then
+        vim.notify(("Mdn: No references found for '" .. wikilink .. "'"), vim.log.levels.ERROR)
         return
     end
     vim.cmd.copen()
@@ -166,21 +167,8 @@ end
 
 function M.rename_references()
     local cur_buf_num = vim.api.nvim_win_get_buf(0)
-    local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
-
-    local file, _ = "", ""
     local renamed = ""
-    local wikilink_pattern = require('mdnotes.patterns').wikilink
-    local file_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
-
-    for start_pos, link ,end_pos in line:gmatch(wikilink_pattern) do
-        if start_pos < current_col and end_pos > current_col then
-            -- Match link to links with fragment names but ignore the fragment name
-            file, _ = link:match(file_fragment_pattern)
-            file = vim.trim(file)
-        end
-    end
+    local _, file, _, _, _ = get_wikilink()
 
     if file == "" then
         M.rename_references_cur_buf()
@@ -230,24 +218,10 @@ function M.create()
 end
 
 function M.delete()
-    local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
     local found_file = ""
-    local wikilink = ""
-    local wikilink_pattern = require('mdnotes.patterns').wikilink
-    local new_line = ""
-    local col_start = 0
-    local col_end = 0
-
-    for start_pos, file ,end_pos in line:gmatch(wikilink_pattern) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
-            wikilink = file
-            col_start = start_pos
-            col_end = end_pos
-        end
-    end
+    local _, wikilink, _, col_start, col_end = get_wikilink()
+    local line = vim.api.nvim_get_current_line()
+    local file_removed = false
 
     -- Append .md to guarantee a file name
     if wikilink:sub(-3) ~= ".md" then
@@ -261,7 +235,9 @@ function M.delete()
             vim.cmd.redraw()
             if input == 'y' then
                 vim.fs.rm(found_file)
+                file_removed = true
             elseif input == 'n' or '' then
+                vim.notify("Mdn: Did not delete WikiLink file", vim.log.levels.WARN)
             else
                 vim.notify(("Mdn: Skipping unknown input '%s'. Press any key to continue..."):format(input), vim.log.levels.ERROR)
                 vim.fn.getchar()
@@ -272,32 +248,20 @@ function M.delete()
     end
 
 
-    new_line = line:sub(1, col_start - 1) .. wikilink .. line:sub(col_end)
+    if file_removed == true then
+        local new_line = line:sub(1, col_start - 1) .. wikilink .. line:sub(col_end)
 
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end})
+        -- Set the line and cursor position
+        vim.api.nvim_set_current_line(new_line)
+        vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end})
+    end
 end
 
 function M.normalize()
     local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
-    local wikilink = ""
-    local wikilink_pattern = require('mdnotes.patterns').wikilink
     local new_line = ""
-    local col_start = 0
-    local col_end = 0
     local new_wikilink = ""
-
-    for start_pos, file ,end_pos in line:gmatch(wikilink_pattern) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
-            wikilink = file
-            col_start = start_pos
-            col_end = end_pos
-        end
-    end
+    local wikilink, _, _, col_start, col_end = get_wikilink()
 
     new_wikilink = vim.fs.normalize(wikilink)
     if new_wikilink:match("%s") then
