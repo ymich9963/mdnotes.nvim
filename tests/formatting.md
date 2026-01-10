@@ -21,6 +21,11 @@ Code code code
 Code code code
 Code code code
 
+## Autolinks
+Autolink autolink autolink
+Autolink autolink autolink
+Autolink autolink autolink
+
 ## Inline Link (hyperlinks)
 [link](https://github.com/ymich9963/mdnotes.nvim)
 [link](../README.md)

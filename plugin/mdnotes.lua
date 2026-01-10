@@ -111,6 +111,7 @@ local get_commands = function() return {
         emphasis_toggle = require("mdnotes.formatting").emphasis_toggle,
         strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
         inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
+        autolink_toggle = require("mdnotes.formatting").autolink_toggle,
         task_list_toggle = require("mdnotes.formatting").task_list_toggle,
         ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
         unformat_lines = require("mdnotes.formatting").unformat_lines,

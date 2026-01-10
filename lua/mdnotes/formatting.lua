@@ -5,6 +5,7 @@ M.format_indicators = {
     strong = function() return require('mdnotes').config.strong_format end,
     strikethrough = function() return "~~" end,
     inline_code = function() return "`" end,
+    autolink = function() return "<>" end,
 }
 
 function M.check_md_format(pattern)
@@ -47,12 +48,24 @@ function M.get_selected_text()
     return selected_text, col_start, col_end
 end
 
-local function insert_format(format_char)
+local function insert_format(format_char, split)
+    if not split then split = false end
     local line = vim.api.nvim_get_current_line()
     local selected_text, col_start, col_end = M.get_selected_text()
+    local fi1 = format_char
+    local fi2 = format_char
+
+    if split == true then
+        fi1 = format_char:sub(1,1)
+        fi2 = format_char:sub(2,2)
+    end
+
+    if fi2 == "" then
+        fi2 = fi1
+    end
 
     -- Create a new modified line
-    local new_line = line:sub(1, col_start - 1) .. format_char .. selected_text .. format_char .. line:sub(col_end + 1)
+    local new_line = line:sub(1, col_start - 1) .. fi1 .. selected_text .. fi2 .. line:sub(col_end + 1)
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
@@ -126,6 +139,17 @@ function M.inline_code_toggle()
         delete_format(mdnotes_patterns.inline_code)
     else
         insert_format(fi_inline_code)
+    end
+end
+
+function M.autolink_toggle()
+    local fi_inline_code = M.format_indicators.autolink()
+    local mdnotes_patterns = require('mdnotes.patterns')
+
+    if M.check_md_format(mdnotes_patterns.autolink) == true then
+        delete_format(mdnotes_patterns.autolink)
+    else
+        insert_format(fi_inline_code, true)
     end
 end
 

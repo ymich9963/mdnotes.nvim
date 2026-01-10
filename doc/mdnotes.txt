@@ -400,6 +400,11 @@ subcommands are listed below.
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already strong text to remove.
 
+:Mdn formatting autolink_toggle				*:Mdn-formatting-autolink_toggle
+*
+    Toggle Markdown `<autolink>` (<>) syntax. Select a word and execute the command
+    or hover over already strong text to remove.
+
 :Mdn formatting task_list_toggle			*:Mdn-formatting-task_list_toggle*
 
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
@@ -796,6 +801,11 @@ formatting.strikethrough_toggle()			*mdnotes.formatting.strikethrough_toggle()*
 formatting.inline_code_toggle()				*mdnotes.formatting.inline_code_toggle()*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
+    or hover over already strong text to remove.
+
+formatting.autolink_toggle()				*mdnotes.formatting.autolink_toggle()*
+
+    Toggle Markdown `<autolink>` (<>) syntax. Select a word and execute the command
     or hover over already strong text to remove.
 
 formatting.task_list_toggle({line1}, {line2})		*mdnotes.formatting.task_list_toggle()*
