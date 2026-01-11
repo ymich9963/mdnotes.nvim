@@ -118,7 +118,7 @@ and specify your config using `opts = {}` or with a `setup({})` function,
 }
 ```
 ### 📂 Directory Setup
-Sample directory structure for `mdnotes` is shown below. If this directory configuration doesn't suit you please make an issue and hopefully I'll be able to work around it,
+Sample directory structure for `mdnotes` is shown below. This plugin was made with this type of directory structure in mind because this is how I use it. If this directory configuration doesn't suit you please make an issue and hopefully I'll be able to accomodate anyone's needs,
 ```
 notes/
 ├───assets/
