@@ -1,8 +1,14 @@
+---@module 'mdnotes.inline_link'
 local M = {}
 
 local uv = vim.loop or vim.uv
+
+---@type table<string> URIs that indicate websites
 M.uri_website_tbl = {"https", "http"}
 
+---Check if inline link is an image
+---@param inline_link string
+---@return '"!"'|'""' img_text Text to use when checking for an inline link
 local function is_img(inline_link)
     if inline_link:sub(1,1) == "!" then
         return "!"
@@ -11,6 +17,11 @@ local function is_img(inline_link)
     end
 end
 
+---Check and validate that the inline link detected is valid
+---@param internal_call boolean? Set if called internally to return inline link data
+---@param norm boolean? Only set when used internall within the normalize() function 
+---@param ignore_fragment boolean? Set to ignore the fragment check
+---@return nil
 function M.validate(internal_call, norm, ignore_fragment)
     if not internal_call then internal_call = false end
     if not norm then norm = false end
@@ -105,6 +116,7 @@ function M.validate(internal_call, norm, ignore_fragment)
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
 end
 
+---Insert Markdown inline link with the text in the clipboard
 function M.insert()
     local reg = vim.fn.getreg('+')
 
@@ -128,13 +140,13 @@ function M.insert()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
+--Delete Markdown inline link and leave the text
 function M.delete()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
     local _, text, uri, _, _, col_start, col_end = unpack(validate_tbl)
     local line = vim.api.nvim_get_current_line()
 
     if not text or not uri then return end
-
 
     -- Create a new modified line with link
     local new_line = line:sub(1, col_start - 1) .. text .. line:sub(col_end)
@@ -144,6 +156,7 @@ function M.delete()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start - 1})
 end
 
+---Toggle inserting and deleting inline links
 function M.toggle()
     local check_md_format = require('mdnotes.formatting').check_md_format
     if check_md_format(require("mdnotes.patterns").inline_link) then
@@ -153,6 +166,8 @@ function M.toggle()
     end
 end
 
+---Rename or relink an inline link
+---@param rename_or_relink '"rename"'|'"relink"'
 local function rename_relink(rename_or_relink)
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
     local img_txt, text, uri, _, _, col_start, col_end = unpack(validate_tbl)
@@ -189,14 +204,17 @@ local function rename_relink(rename_or_relink)
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start})
 end
 
+---Relink inline link
 function M.relink()
     rename_relink("relink")
 end
 
+---Rename inline link
 function M.rename()
     rename_relink("rename")
 end
 
+---Normalize inline link
 function M.normalize()
     local validate_tbl = require('mdnotes.inline_link').validate(true, true) or {}
     local img_txt, text, uri, _, _, col_start, col_end = unpack(validate_tbl)
@@ -218,6 +236,7 @@ function M.normalize()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
+---Convert the fragment to GFM-style fragment
 function M.convert_fragment_to_gfm()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
     local img_txt, text, uri, _, _, col_start, col_end = unpack(validate_tbl)

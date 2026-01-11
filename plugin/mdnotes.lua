@@ -1,3 +1,5 @@
+---Mdnotes
+
 if vim.g.loaded_mdnotes then
     return
 end
@@ -177,6 +179,7 @@ local get_commands = function() return {
 end
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
+    ---@type table<any>
     local args = vim.split(opts.args, "%s+")
     local cmd_arg = args[1]
     local subcmd_arg = ""

@@ -1,8 +1,21 @@
+---@module 'mdnotes.table'
 local M = {}
 
+---@class MdnotesTableComplexData
+---@field content string Cell content
+---@field start_pos integer Cell start position
+---@field end_pos integer Cell end position
+---@field line integer Line in the table
+
+---@alias MdnotesTableContents table<table<string>> Contents of a table
+---@alias MdnotesTableColLoc table<table<integer>> Table column locations
+---@alias MdnotesTableComplex table<table<MdnotesTableComplexData>> Complex table data which is just more information about the table
+
+---Write the table to the buffer
+---@param contents MdnotesTableContents
+---@param start_line integer?
+---@param end_line integer?
 local function write_table(contents, start_line, end_line)
-    local table_start_line_num = start_line or nil
-    local table_end_line_num = end_line or nil
     local table_formatted = {}
 
     -- Append a blank entry to have a | at the end
@@ -18,10 +31,11 @@ local function write_table(contents, start_line, end_line)
     if not start_line and not end_line  then
         vim.api.nvim_put(table_formatted, "V", false, false)
     else
-        vim.api.nvim_buf_set_lines(0, table_start_line_num, table_end_line_num, false, table_formatted)
+        vim.api.nvim_buf_set_lines(0, start_line or 0, end_line or 0, false, table_formatted)
     end
 end
 
+---Check if there is a table under the cursor
 local function check_valid_table()
     local cur_line_num = vim.fn.line('.')
     local max_line_num = vim.fn.line('$')
@@ -61,6 +75,10 @@ local function check_valid_table()
     return table_valid, table_start_line_num, table_end_line_num
 end
 
+---Parse the table in the specified line numbers
+---@param table_start_line_num integer
+---@param table_end_line_num integer
+---@return MdnotesTableContents
 local function parse_table(table_start_line_num, table_end_line_num)
     local table_parsed = {}
 
@@ -84,14 +102,21 @@ local function parse_table(table_start_line_num, table_end_line_num)
     return table_parsed
 end
 
+---Get the table contents and start and end lines
+---@param silent boolean? Output errors
+---@return MdnotesTableContents|nil
+---@return integer|nil
+---@return integer|nil
 local function get_table(silent)
+    if not silent then silent = false end
+
     local table_valid, startl, endl = check_valid_table()
-    if not table_valid then
+    if not table_valid or not startl or not endl then
         if silent == false then
             vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
         end
 
-        return nil
+        return nil, nil, nil
     end
 
     local table_lines = parse_table(startl, endl)
@@ -100,18 +125,20 @@ local function get_table(silent)
             vim.notify(("Mdn: Error parsing table."), vim.log.levels.ERROR)
         end
 
-        return nil
+        return nil, nil, nil
     end
 
     return table_lines, startl, endl
 end
 
+---Get the table column locations
+---@return MdnotesTableColLoc|nil
 local function get_column_locations()
     -- Fence post problem, all tables will have n+1 | characters with n being the text    
     local table_valid, startl, endl = check_valid_table()
     if not table_valid then
         vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
-        return
+        return nil
     end
 
     local table_lines = vim.api.nvim_buf_get_lines(0, startl or 0, endl or 0, false)
@@ -129,8 +156,12 @@ local function get_column_locations()
     return col_locations_table
 end
 
+---Get the table contents along with some more information (which is why it's called complex)
+---@return MdnotesTableComplex|nil
+---@return integer|nil
+---@return integer|nil
 local function get_table_complex()
-    local table_lines, startl, endl = get_table(false)
+    local table_lines, startl, endl = get_table()
 
     if not table_lines then
         -- Errors would already be outputted
@@ -157,6 +188,8 @@ local function get_table_complex()
     return table_complex, startl, endl
 end
 
+---Get the current column based on cursor location
+---@return integer|nil
 local function get_cur_column()
     local table_lines_complex, _, _ = get_table_complex()
 
@@ -179,6 +212,8 @@ local function get_cur_column()
     return nil
 end
 
+---Insert a column to the table either left or right
+---@param direction '"left"'|'"right"' Column insertion direction
 local function insert_column(direction)
     local cur_col = get_cur_column()
 
@@ -186,14 +221,13 @@ local function insert_column(direction)
         return
     end
 
-    local table_lines, startl, endl = get_table(false)
+    local table_lines, startl, endl = get_table()
 
-    if not table_lines then
+    if not table_lines or not startl or not endl then
         -- Errors would already be outputted
         return
     end
 
-    -- No need to check for left
     if direction == "right" then
         cur_col = cur_col + 1
     end
@@ -209,6 +243,8 @@ local function insert_column(direction)
     write_table(table_lines, startl, endl)
 end
 
+---Move a column either left or right
+---@param direction '"left"'|'"right"' Column move direction
 local function move_column(direction)
     local cur_col = get_cur_column()
 
@@ -224,9 +260,9 @@ local function move_column(direction)
     end
 
 
-    local table_lines, startl, endl = get_table(false)
+    local table_lines, startl, endl = get_table()
 
-    if not table_lines then
+    if not table_lines or not startl or not endl then
         -- Errors would already be outputted
         return
     end
@@ -246,10 +282,12 @@ local function move_column(direction)
     write_table(table_lines, startl, endl)
 end
 
+---Insert a row either above or below
+---@param direction '"above"'|'"below"' Row insertion direction
 local function insert_row(direction)
-    local table_lines , startl, endl = get_table(false)
+    local table_lines , startl, endl = get_table()
 
-    if not table_lines then
+    if not table_lines or not startl or not endl then
         -- Errors would already be outputted
         return
     end
@@ -275,6 +313,9 @@ local function insert_row(direction)
     write_table(table_lines, startl, endl)
 end
 
+---Create a table with r rows and c columns
+---@param r integer Rows
+---@param c integer Columns
 function M.create(r, c)
     if not r and not c then
         vim.notify(("Mdn: Please specify both row and column dimensions."), vim.log.levels.ERROR)
@@ -367,15 +408,17 @@ function M.best_fit(silent)
     write_table(table_lines, startl, endl)
 end
 
+---Insert column to the left of the current column
 function M.column_insert_left()
     insert_column("left")
 end
 
+---Insert column to the right of the current column
 function M.column_insert_right()
     insert_column("right")
 end
 
--- Can also use visual block mode
+---Delete current column. Can also use visual block mode
 function M.column_delete()
     local cur_col = get_cur_column()
 
@@ -383,7 +426,7 @@ function M.column_delete()
         return
     end
 
-    local table_lines, startl, endl = get_table(false)
+    local table_lines, startl, endl = get_table()
 
     if not table_lines then
         -- Errors would already be outputted
@@ -397,22 +440,27 @@ function M.column_delete()
     write_table(table_lines, startl, endl)
 end
 
+---Move current column to the left
 function M.column_move_left()
     move_column("left")
 end
 
+---Move current column to the right
 function M.column_move_right()
     move_column("right")
 end
 
+---Insert a row above the current row
 function M.row_insert_above()
     insert_row("above")
 end
 
+---Insert a row below the current row
 function M.row_insert_below()
     insert_row("below")
 end
 
+---Toggle alignment of the current column
 function M.column_alignment_toggle()
     local cur_col = get_cur_column()
 
@@ -420,7 +468,7 @@ function M.column_alignment_toggle()
         return
     end
 
-    local table_lines, startl, endl = get_table(false)
+    local table_lines, startl, endl = get_table()
 
     if not table_lines then
         -- Errors would already be outputted
@@ -453,6 +501,7 @@ function M.column_alignment_toggle()
     write_table(table_lines, startl, endl)
 end
 
+---Duplicate the current column. Inserts it to the right
 function M.column_duplicate()
     local cur_col = get_cur_column()
 
@@ -460,7 +509,7 @@ function M.column_duplicate()
         return
     end
 
-    local table_lines, startl, endl = get_table(false)
+    local table_lines, startl, endl = get_table()
 
     if not table_lines then
         -- Errors would already be outputted

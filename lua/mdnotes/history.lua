@@ -1,8 +1,13 @@
+---@module 'mdnotes.history'
 local M = {}
 
+---@type table<integer> Table containing visited buffer numbers
 M.buf_history = {}
+
+---@type integer Current index when traversing the buffer history
 M.current_index = 0
 
+---Go back in the buffer history
 function M.go_back()
     if M.current_index > 1 then
         M.current_index = M.current_index - 1
@@ -17,6 +22,7 @@ function M.go_back()
     end
 end
 
+---Go forward in the buffer history
 function M.go_forward()
     if M.current_index < #M.buf_history then
         M.current_index = M.current_index + 1
@@ -31,6 +37,7 @@ function M.go_forward()
     end
 end
 
+---Clear the buffer history and reset the current index
 function M.clear()
     M.buf_history = {}
     M.current_index = 0

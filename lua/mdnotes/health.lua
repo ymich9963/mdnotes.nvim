@@ -1,3 +1,4 @@
+---Mdnotes :checkhealth mdnotes
 local M = {}
 
 M.check = function()

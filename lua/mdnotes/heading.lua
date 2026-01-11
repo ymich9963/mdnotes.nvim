@@ -1,5 +1,11 @@
+---@module 'mdnotes.heading'
 local M = {}
 
+---Get the header that the current text is under
+---@param buf_fragments MdnotesBufFragments
+---@return MdnotesFragmentOriginal original_fragment
+---@return integer index Index of current header from the class
+---@return integer cur_buf_num Current buffer number
 local function get_current_header(buf_fragments)
     local cur_buf_num = vim.api.nvim_get_current_buf()
     local cur_lnum = vim.fn.line(".")
@@ -13,8 +19,11 @@ local function get_current_header(buf_fragments)
             end
         end
     end
+
+    return {heading = "", text = "", lnum = 0}, 0, 0
 end
 
+---Go to next Markdown heading
 function M.goto_next()
     local buf_fragments = require('mdnotes.toc').buf_fragments
     local _, index, cur_buf_num = get_current_header(buf_fragments)
@@ -28,6 +37,7 @@ function M.goto_next()
     end
 end
 
+---Go to previous Markdown heading
 function M.goto_previous()
     local buf_fragments = require('mdnotes.toc').buf_fragments
     local _, index, cur_buf_num = get_current_header(buf_fragments)

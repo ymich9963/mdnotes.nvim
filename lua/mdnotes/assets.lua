@@ -1,7 +1,9 @@
+---@module 'mdnotes.assets'
 local M = {}
 
 local uv = vim.loop or vim.uv
 
+---Check if assets path is available and if it exists
 function M.check_assets_path()
     local mdnotes_config_assets_path = require('mdnotes').config.assets_path
     if mdnotes_config_assets_path == "" or not mdnotes_config_assets_path then
@@ -17,6 +19,7 @@ function M.check_assets_path()
     return true
 end
 
+---Open assets folder
 function M.open_containing_folder()
     if not M.check_assets_path() then return end
 
@@ -25,12 +28,12 @@ function M.open_containing_folder()
     vim.ui.open(require('mdnotes').config.assets_path)
 end
 
-local function contains_spaces(text)
-    return string.find(text, "%s") ~= nil
-end
-
-local function insert_file(file_type)
+---Insert a file or image as an inline link
+---@param is_image boolean? File type to insert
+local function insert_file(is_image)
     if not M.check_assets_path() then return end
+
+    if not is_image then is_image = false end
 
     -- Get the file paths as a table
     local cmd_stdout = ""
@@ -103,27 +106,32 @@ local function insert_file(file_type)
     local asset_path = vim.fs.joinpath(mdnotes_config.assets_path, file_name)
     local text = ""
 
-    if contains_spaces(asset_path) then
+    if asset_path:match("%s") then
         text = ("[%s](<%s>)"):format(file_name, asset_path)
     else
         text = ("[%s](%s)"):format(file_name, asset_path)
     end
 
-    if file_type == "image" then
+    if is_image == true then
         text = "!" .. text
     end
 
     vim.api.nvim_put({text}, "c", false, false)
 end
 
+---Insert an image as an inline link
 function M.insert_image()
-    insert_file("image")
+    insert_file(true)
 end
 
+---Insert a file as an inline link
 function M.insert_file()
     insert_file()
 end
 
+---Get the assets that are already used in the notes
+---@param silent boolean? Silent output to cmdline
+---@return table<string>
 local function get_used_assets(silent)
     if not silent then silent = false end
     local mdnotes_config = require('mdnotes').config
@@ -166,6 +174,8 @@ local function get_used_assets(silent)
     return used_assets
 end
 
+---Move or delete assets
+---@param move_or_delete '"move"'|'"delete"' Select to move or delete the assets
 local function move_delete(move_or_delete)
     if not M.check_assets_path() then return end
 
@@ -233,14 +243,17 @@ local function move_delete(move_or_delete)
     vim.notify(("Mdn: Finished %s process."):format(text1), vim.log.levels.INFO)
 end
 
+---Delete unused assets
 function M.delete_unused()
     move_delete("delete")
 end
 
+---Move unused assets to a new folder
 function M.move_unused()
     move_delete("move")
 end
 
+---Download the the HTML of the inline link URL and place it in assets folder
 function M.download_website_html()
     local validate_tbl = require('mdnotes.inline_link').validate(true, nil, true) or {}
     local uri_website_tbl = require('mdnotes.inline_link').uri_website_tbl or {}

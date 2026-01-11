@@ -1,7 +1,21 @@
+---@module 'mdnotes.toc'
 local M = {}
 
+---@class MdnotesFragmentOriginal
+---@field  heading string The '#' present in the heading
+---@field  text string Original fragment text from the file headings
+---@field  lnum integer Line number of the heading
+
+---@alias MdnotesFragmentGfm table<string> Parsed GFM-style fragment text
+
+---@class MdnotesBufFragments
+---@field buf_num integer Buffer number
+---@field parsed table<MdnotesFragmentOriginal, MdnotesFragmentGfm> 
 M.buf_fragments = {}
 
+---Get original fragment from GFM-style fragment
+---@param fragment string GFM-style fragment
+---@return string
 function M.get_fragment(fragment)
     for _, v in ipairs(M.buf_fragments) do
         for i, vv in ipairs(v.parsed.gfm) do
@@ -10,9 +24,12 @@ function M.get_fragment(fragment)
             end
         end
     end
+
     return fragment
 end
 
+---Get fragments from current Markdown buffer headings
+---@return MdnotesFragmentOriginal
 function M.get_fragments_original()
     local fragments = {}
     local buf_lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -28,11 +45,17 @@ function M.get_fragments_original()
     return fragments
 end
 
+---Convert the inputted text to GFM-style text
+---@param text string Text for conver
+---@return string
 function M.convert_text_to_gfm(text)
     local ret = text:lower():gsub("[^%d%a%p ]+", ""):gsub(" ", "-")
     return ret
 end
 
+---Get the GFM-style fragments from the original fragments
+---@param original_fragments MdnotesFragmentOriginal
+---@return MdnotesFragmentGfm
 function M.get_fragments_gfm_from_original(original_fragments)
     local gfm_fragments = {}
     for _, fragment in ipairs(original_fragments) do
@@ -42,6 +65,7 @@ function M.get_fragments_gfm_from_original(original_fragments)
     return gfm_fragments
 end
 
+---Generate Table of Contents (ToC)
 function M.generate()
     if vim.bo.filetype ~= "markdown" then
         vim.notify(("Mdn: Cannot generate a ToC for a non-Markdown file."), vim.log.levels.ERROR)

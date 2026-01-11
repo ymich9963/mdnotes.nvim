@@ -1,29 +1,54 @@
+---@module 'mdnotes'
 local M = {}
 
 local uv = vim.loop or vim.uv
 
+---@type MdnotesConfig
 M.config = {}
+
+---@type string|nil Open command for opening buffers
 M.open_cmd = nil
 
+---Mdnotes Config Class
+---@class MdnotesConfig
+---@field index_file string? Index file name or path
+---@field journal_file string? Journal file name or path
+---@field assets_path string? Path to assets folder
+---@field insert_file_behaviour '"copy"'|'"move"'? Behaviour when inserting assets from clipboard
+---@field asset_overwrite_behaviour '"overwrite"'|'"error"'? Behaviour when the asset being inserted already exists
+---@field open_behaviour '"buffer"'|'"tab"'|'"split"'|'"vsplit"'? Behaviour when opening buffers
+---@field strong_format '"**"'|'"__"'? Strong format indicator
+---@field emphasis_format '"*"'|'"_"'? Emphasis format indicator
+---@field date_format string? Date format when using insert_journal_entry(), see :h strftime()
+---@field prefer_lsp boolean? To prefer Markdown LSP functions rather than the mdnotes functions
+---@field auto_list boolean? Automatic list continuation
+---@field auto_list_renumber boolean? Automatic renumbering of ordered lists
+---@field auto_table_best_fit boolean? Automatic table best fit
+---@field default_keymaps boolean?
+---@field table_best_fit_padding integer? Add padding around cell contents when using tables_best_fit
+---@field toc_depth integer? Depth shown in the ToC
 local default_config = {
     index_file = "",
     journal_file = "",
     assets_path = "",
-    insert_file_behaviour = "copy",         -- "copy" or "move" files when inserting from clipboard
-    asset_overwrite_behaviour = "error",    -- "overwrite" or "error" when finding assset file conflicts
-    open_behaviour = "buffer",              -- "buffer", "tab", "split", or "vsplit" to open when following links
-    strong_format = "**",                   -- "**" or "__"
-    emphasis_format = "*",                  -- "*" or "_"
-    date_format = "%a %d %b %Y",            -- date format based on :h strftime()
-    prefer_lsp = false,                     -- to prefer LSP functions than the mdnotes functions
-    auto_list = true,                       -- automatic list continuation
-    auto_list_renumber = true,              -- automatic renumbering of ordered lists
-    auto_table_best_fit = true,             -- automatic table best fit
+    insert_file_behaviour = "copy",
+    asset_overwrite_behaviour = "error",
+    open_behaviour = "buffer",
+    strong_format = "**",
+    emphasis_format = "*",
+    date_format = "%a %d %b %Y",
+    prefer_lsp = false,
+    auto_list = true,
+    auto_list_renumber = true,
+    auto_table_best_fit = true,
     default_keymaps = false,
-	table_best_fit_padding = 0,             -- add padding around cell contents when using tables_best_fit
-    toc_depth = 4                           -- depth shown in the ToC
+    table_best_fit_padding = 0,
+    toc_depth = 4
 }
 
+---Validate user config
+---@param user_config MdnotesConfig
+---@return MdnotesConfig
 local function validate_config(user_config)
     local config = vim.tbl_deep_extend("force", default_config, user_config or {})
 
@@ -47,6 +72,8 @@ local function validate_config(user_config)
     return config
 end
 
+---Setup function
+---@param user_config MdnotesConfig
 function M.setup(user_config)
     M.config = validate_config(user_config)
     M.config.index_file = vim.fs.normalize(M.config.index_file)
@@ -64,6 +91,8 @@ function M.setup(user_config)
     end
 end
 
+---Remap used for <CR>, o, O
+---@param inc_val integer Value to increment the list item by
 function M.list_remap(inc_val)
     -- ul = unordered list, ol = ordered list
     local mdnotes_patterns = require('mdnotes.patterns')
@@ -97,6 +126,7 @@ function M.list_remap(inc_val)
     return indent, "\n"
 end
 
+---Open inline links
 function M.open()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
     local _, _, uri, path, fragment, _, _ = unpack(validate_tbl)
@@ -129,6 +159,7 @@ function M.open()
     end
 end
 
+---Go to index file
 function M.go_to_index_file()
     if M.config.index_file == "" then
         vim.notify(("Mdn: Please specify an index file to use this feature."), vim.log.levels.ERROR)
@@ -138,6 +169,7 @@ function M.go_to_index_file()
     vim.cmd(M.open_cmd .. M.config.index_file)
 end
 
+---Go to journal file
 function M.go_to_journal_file()
     if M.config.journal_file == "" then
         vim.notify(("Mdn: Please specify a journal file to use this feature."), vim.log.levels.ERROR)
@@ -147,6 +179,7 @@ function M.go_to_journal_file()
     vim.cmd(M.open_cmd .. M.config.journal_file)
 end
 
+---Insert an entry to the journal file
 function M.journal_insert_entry()
     local strftime = vim.fn.strftime(M.config.date_format):match("([^\n\r\t]+)")
     local journal_entry_template = {
@@ -163,6 +196,7 @@ function M.journal_insert_entry()
     vim.api.nvim_win_set_cursor(0, {3 ,0})
 end
 
+---Open containing folder of index file
 function M.open_containing_folder()
     local index_file = M.config.index_file
     if not index_file or index_file == "" then

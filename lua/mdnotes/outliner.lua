@@ -1,8 +1,12 @@
+---@module 'mdnotes.outliner'
 local M = {}
 
+---@type boolean
 M.outliner_state = false
+
 local config_autolist = require('mdnotes').config.auto_list
 
+---Toggling the Outliner mode
 function  M.toggle()
     local mdnotes = require('mdnotes')
 
@@ -34,6 +38,9 @@ function  M.toggle()
     end
 end
 
+---Get the indent level of the current line
+---@param line string?
+---@return integer
 local function get_indent(line)
     if not line then line = vim.api.nvim_get_current_line() end
 
@@ -47,6 +54,7 @@ local function get_indent(line)
     return indent_lvl
 end
 
+---Get the items of the list under the cursor
 local function get_list_items()
     local buf_lines = vim.api.nvim_buf_get_lines(0, vim.fn.line('.') - 1, -1, false)
     local line_indent_lvl = get_indent()
@@ -63,6 +71,7 @@ local function get_list_items()
     return list_lines
 end
 
+---Indent the current parent-child list
 function M.indent()
     local lines = get_list_items()
     local cur_lnum = vim.fn.line('.') - 1
@@ -77,6 +86,7 @@ function M.indent()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), cur_col + vim.o.shiftwidth - 1})
 end
 
+---Unindent the current parent-child list
 function M.unindent()
     local lines = get_list_items()
     local cur_lnum = vim.fn.line('.') - 1

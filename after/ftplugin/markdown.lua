@@ -1,8 +1,11 @@
-local mdnotes = require("mdnotes")
+---Mdnotes Markdown specific keymaps
 
-if mdnotes.config.auto_list then
+local mdnotes = function() return require("mdnotes") end
+
+---Auto-list keymaps
+if mdnotes().config.auto_list then
     vim.keymap.set("i", "<CR>", function ()
-        local _, list_remap = mdnotes.list_remap(1)
+        local _, list_remap = mdnotes().list_remap(1)
         return list_remap
     end,
     {
@@ -13,7 +16,7 @@ if mdnotes.config.auto_list then
 
     vim.keymap.set("n", "o", function ()
         local row = vim.api.nvim_win_get_cursor(0)[1]
-        local indent, list_remap = mdnotes.list_remap(1)
+        local indent, list_remap = mdnotes().list_remap(1)
         list_remap = list_remap:gsub("[\n]","")
 
         if not indent then
@@ -36,7 +39,7 @@ if mdnotes.config.auto_list then
 
     vim.keymap.set("n", "O", function ()
         local row = vim.api.nvim_win_get_cursor(0)[1]
-        local indent, list_remap = mdnotes.list_remap(-1)
+        local indent, list_remap = mdnotes().list_remap(-1)
         list_remap = list_remap:gsub("[\n]","")
 
         if not indent then
@@ -58,7 +61,8 @@ if mdnotes.config.auto_list then
     })
 end
 
-if mdnotes.config.default_keymaps then
+---Default keymaps
+if mdnotes().config.default_keymaps then
     vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
     vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
     vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })

@@ -1,10 +1,10 @@
+---@module 'mdnotes.wikilink'
 local M = {}
 
 local uv = vim.loop or vim.uv
 
-local old_name = ""
-local new_name = ""
-
+---Check for Markdown LSPs
+---@return boolean
 local function check_md_lsp()
     if not vim.tbl_isempty(vim.lsp.get_clients({bufnr = 0})) and vim.bo.filetype == "markdown" and require('mdnotes').config.prefer_lsp then
         return true
@@ -13,6 +13,12 @@ local function check_md_lsp()
     end
 end
 
+---Get the current WikiLink under the cursor if it exists
+---@return string wikilink Whole of the WikiLink
+---@return string wikilink_no_fragment WikiLink without the fragment
+---@return string fragment The fragment in the WikiLink
+---@return integer col_start The start position of the WikiLink in the current line
+---@return integer col_end The end position of the WikiLink in the current line
 local function get_wikilink()
     local line = vim.api.nvim_get_current_line()
     local current_col = vim.fn.col('.')
@@ -39,6 +45,7 @@ local function get_wikilink()
     return wikilink, wikilink_no_fragment, fragment, col_start, col_end
 end
 
+---Follow the WikiLink under the cursor
 function M.follow()
     if check_md_lsp() then
         -- Doing some weird shit with the qf list for this
@@ -83,6 +90,7 @@ function M.follow()
     end
 end
 
+---Show the references to the current WikiLink under the cursor
 function M.show_references()
     if check_md_lsp() then
         vim.lsp.buf.references()
@@ -105,6 +113,11 @@ function M.show_references()
     vim.cmd.copen()
 end
 
+
+local old_name = ""
+local new_name = ""
+
+---Undo the most recent rename
 function M.undo_rename()
     if check_md_lsp() then
         vim.notify("Mdn: undo_rename is only available when your config has prefer_lsp = false.", vim.log.levels.ERROR)
@@ -130,6 +143,7 @@ function M.undo_rename()
     vim.api.nvim_win_set_buf(0, cur_buf_num)
 end
 
+---Rename references of the current buffer
 function M.rename_references_cur_buf()
     if check_md_lsp() then
         vim.lsp.buf.rename()
@@ -165,6 +179,9 @@ function M.rename_references_cur_buf()
     new_name = renamed
 end
 
+---Rename references of the WikiLink under the cursor
+---If there is no WikiLink under the cursor, it prompt to rename
+---the current buffer
 function M.rename_references()
     local cur_buf_num = vim.api.nvim_win_get_buf(0)
     local renamed = ""
@@ -205,6 +222,7 @@ function M.rename_references()
     new_name = renamed
 end
 
+---Create a WikiLink from the word under the cursor
 function M.create()
     local line = vim.api.nvim_get_current_line()
     local selected_text, col_start, col_end = require('mdnotes.formatting').get_selected_text()
@@ -217,6 +235,7 @@ function M.create()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
+---Delete the current WikiLink and the associated file
 function M.delete()
     local found_file = ""
     local _, wikilink, _, col_start, col_end = get_wikilink()
@@ -257,6 +276,7 @@ function M.delete()
     end
 end
 
+---Normalize the WikiLink under the cursor
 function M.normalize()
     local line = vim.api.nvim_get_current_line()
     local new_line = ""
@@ -275,6 +295,9 @@ function M.normalize()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
+---Show any orphan pages in the current directory
+---@param print boolean? Whether to print to cmdline or not
+---@return table<string> orphans Table of orphan pages
 function M.show_orphans(print)
     if not print then print = true end
     local orphans = {}
@@ -305,6 +328,8 @@ function M.show_orphans(print)
     else
         return orphans
     end
+
+    return {}
 end
 
 return M
