@@ -3,6 +3,14 @@ local M = {}
 local uv = vim.loop or vim.uv
 M.uri_website_tbl = {"https", "http"}
 
+local function is_img(inline_link)
+    if inline_link:sub(1,1) == "!" then
+        return "!"
+    else
+        return ""
+    end
+end
+
 function M.validate(internal_call, norm, ignore_fragment)
     if not internal_call then internal_call = false end
     if not norm then norm = false end
@@ -20,6 +28,7 @@ function M.validate(internal_call, norm, ignore_fragment)
     local line = vim.api.nvim_get_current_line()
     local col_start = 0
     local col_end = 0
+    local img_txt = ""
     local text = ""
     local uri = ""
     local path = ""
@@ -29,6 +38,7 @@ function M.validate(internal_call, norm, ignore_fragment)
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
         if start_pos < current_col and end_pos > current_col then
+            img_txt = is_img(inline_link)
             text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
             col_start = start_pos
             col_end = end_pos
@@ -89,7 +99,7 @@ function M.validate(internal_call, norm, ignore_fragment)
     end
 
     if internal_call == true then
-        return {text, uri, path, fragment, col_start, col_end}
+        return {img_txt, text, uri, path, fragment, col_start, col_end}
     end
 
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
@@ -120,7 +130,7 @@ end
 
 function M.delete()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local _, text, uri, _, _, col_start, col_end = unpack(validate_tbl)
     local line = vim.api.nvim_get_current_line()
 
     if not text or not uri then return end
@@ -145,7 +155,7 @@ end
 
 local function rename_relink(rename_or_relink)
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local img_txt, text, uri, _, _, col_start, col_end = unpack(validate_tbl)
     local user_input = ""
     local new_line = ""
     local line = vim.api.nvim_get_current_line()
@@ -169,9 +179,9 @@ local function rename_relink(rename_or_relink)
     end
 
     if rename_or_relink == "rename" then
-        new_line = line:sub(1, col_start - 1) .. '[' .. user_input .. '](' .. uri .. ')' .. line:sub(col_end)
+        new_line = line:sub(1, col_start - 1) .. img_txt .. '[' .. user_input .. '](' .. uri .. ')' .. line:sub(col_end)
     elseif rename_or_relink == "relink" then
-        new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. user_input .. ')' .. line:sub(col_end)
+        new_line = line:sub(1, col_start - 1) .. img_txt .. '[' .. text .. '](' .. user_input .. ')' .. line:sub(col_end)
     end
 
     -- Set the line and cursor position
@@ -189,7 +199,7 @@ end
 
 function M.normalize()
     local validate_tbl = require('mdnotes.inline_link').validate(true, true) or {}
-    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local img_txt, text, uri, _, _, col_start, col_end = unpack(validate_tbl)
     local new_uri = ""
     local new_line = ""
     local line = vim.api.nvim_get_current_line()
@@ -201,7 +211,7 @@ function M.normalize()
         new_uri = "<" .. new_uri .. ">"
     end
 
-    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end + 1)
+    new_line = line:sub(1, col_start - 1) .. img_txt .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end + 1)
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
@@ -210,7 +220,7 @@ end
 
 function M.convert_fragment_to_gfm()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local text, uri, _, _, col_start, col_end = unpack(validate_tbl)
+    local img_txt, text, uri, _, _, col_start, col_end = unpack(validate_tbl)
     local new_line = ""
     local new_fragment = ""
     local line = vim.api.nvim_get_current_line()
@@ -227,7 +237,7 @@ function M.convert_fragment_to_gfm()
     local hash_location = uri:find("#") or 1
     local new_uri = uri:sub(1, hash_location) .. new_fragment
 
-    new_line = line:sub(1, col_start - 1) .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end)
+    new_line = line:sub(1, col_start - 1) .. img_txt .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end)
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)

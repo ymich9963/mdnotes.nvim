@@ -245,7 +245,7 @@ function M.download_website_html()
     local validate_tbl = require('mdnotes.inline_link').validate(true, nil, true) or {}
     local uri_website_tbl = require('mdnotes.inline_link').uri_website_tbl or {}
     local mdnotes_config = require('mdnotes').config
-    local _, uri, _, _, _, _ = unpack(validate_tbl)
+    local _, _, uri, _, _, _, _ = unpack(validate_tbl)
     local filename = ""
     local filepath = ""
     local res = nil

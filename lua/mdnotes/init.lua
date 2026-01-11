@@ -99,7 +99,7 @@ end
 
 function M.open()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local _, uri, path, fragment, _, _ = unpack(validate_tbl)
+    local _, _, uri, path, fragment, _, _ = unpack(validate_tbl)
 
     if not uri or not path or not fragment then return end
 
