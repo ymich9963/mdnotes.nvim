@@ -140,7 +140,7 @@ end
 
 function M.go_to_journal_file()
     if M.config.journal_file == "" then
-        vim.notify(("Mdn: Please specify a diary file to use this feature."), vim.log.levels.ERROR)
+        vim.notify(("Mdn: Please specify a journal file to use this feature."), vim.log.levels.ERROR)
         return
     end
 
@@ -161,6 +161,18 @@ function M.journal_insert_entry()
     vim.api.nvim_win_set_cursor(0, {1 ,0})
     vim.api.nvim_put(journal_entry_template, "V", false, false)
     vim.api.nvim_win_set_cursor(0, {3 ,0})
+end
+
+function M.open_containing_folder()
+    local index_file = M.config.index_file
+    if not index_file or index_file == "" then
+        vim.notify(("Mdn: Please specify an index file to use this feature."), vim.log.levels.ERROR)
+        return
+    end
+
+    -- There might be issues with code below, see issue
+    -- https://github.com/neovim/neovim/issues/36293
+    vim.ui.open(vim.fs.dirname(index_file))
 end
 
 return M

@@ -20,7 +20,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 
 ### 🧭 General Navigation
 - Open inline links to files and URLs with `:Mdn open`.
-- Set your index and journal files and go there with `:Mdn home` and `:Mdn journal`.
+- Set your index and journal files and go there with `:Mdn index` and `:Mdn journal`.
 - Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
 - Use `:Mdn heading next/previous` to easily navigate headings. 
 
@@ -71,6 +71,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC by changing the `toc_depth = 4`.
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling. Can also use outliner-like indentation with `:Mdn outliner indent/unindent`.
 - Insert a journal entry automatically by doing `:Mdn journal insert_entry`. 
+- Open your folder containing the index file with `:Mdn index open_containing_folder`. 
 - Tips for repeating last command, find/replace words, finding tags, and finding files, can be found in [TIPS.md](TIPS.md).
 - Opt-in use of existing Markdown LSP functions by setting `prefer_lsp = true`.
 - Supports Windows eccentricities.

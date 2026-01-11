@@ -96,8 +96,9 @@ vim.api.nvim_create_autocmd({"CursorMoved"}, {
 
 local commands = nil
 local get_commands = function() return {
-    home = {
-        require("mdnotes").go_to_index_file
+    index = {
+        require("mdnotes").go_to_index_file,
+        open_containing_folder = require("mdnotes").open_containing_folder,
     },
     open = {
         require("mdnotes").open

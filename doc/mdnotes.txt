@@ -123,16 +123,18 @@ The default config for `mdnotes` is shown below,
 <
 index_file = `"path"`					*mdnotes-index_file*
 
-    Can be any path to your index file which is then accessed by |:Mdn-home|.
+    Can be any path to your index file which is then accessed by
+    |:Mdn-index|.
 
 journal_file = `"path"`					*mdnotes-journal_file*
 
-    Can be any path to your journal file which is then accessed by |:Mdn journal|.
+    Can be any path to your journal file which is then accessed by |:Mdn-journal|.
 
 assets_path = `"path"`					*mdnotes-assets_path*
 
     Can be any path to your assets folder. This is where any asset you insert
-    by using |:Mdn insert_image| or |:Mdn insert_file| is copied or moved to.
+    by using |:Mdn-assets-insert_image| or |:Mdn-assets-insert_file| is copied or
+    moved to.
 
 insert_file_behaviour = `"string"`			*mdnotes-insert_file_behaviour*
 
@@ -149,8 +151,8 @@ overwrite_behaviour = `"string"`			*mdnotes-overwrite_behaviour*
 open_behaviour = `"string"`				*mdnotes-open_behaviour*
 
     Can take the values of `"buffer"`, `"tab"`, `"split"`, or `"vsplit"` which 
-    defines how Wikilinks are opened using |:Mdn home|, |:Mdn journal|, 
-    and |:Mdn wikilink-follow|. With `"buffer"` it opens them in the current
+    defines how buffers are opened using |:Mdn-index|, |:Mdn-journal|, 
+    and |:Mdn-wikilink-follow|. With `"buffer"` it opens them in the current
     buffer, `"tab"` it opens them in a new tab, `"split"` opens them in a
     horizontal split, and `"vsplit"` in a vertical tab.
 
@@ -217,7 +219,7 @@ COMMANDS                                         	*mdnotes-commands*
 The Mdnotes plugin uses subcommands through calling `:Mdn <sub command>`. The
 subcommands are listed below.
 
-:Mdn home 	                                       	*:Mdn-home*
+:Mdn index	 	                              	*:Mdn-index*
 
     Opens the index file depending on |mdnotes-open_behaviour|
 
