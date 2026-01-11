@@ -305,6 +305,10 @@ subcommands are listed below.
 
     Normalize WikiLink path under cursor.
 
+:Mdn wikilink show_orphans				*:Mdn-wikilink-show_orphans*
+
+    Show orphan pages (pages with no references) in current directory.
+
 :Mdn assets insert_image				*:Mdn-assets-insert_image*
 
     Insert the image in the clipboard under the cursor and depending on
@@ -648,6 +652,10 @@ wikilink.delete()					*mdnotes.wikilink.delete()*
 wikilink.normalize()					*mdnotes.wikilink.normalize()*
 
     Normalize WikiLink path under cursor.
+
+wikilink.show_orphans()					*mdnotes.wikilink.show_orphans()*
+
+    Show orphan pages (pages with no references) in current directory.
 
 formatting.check_md_format({pattern}) 			*mdnotes.formatting.check_md_format()*
 

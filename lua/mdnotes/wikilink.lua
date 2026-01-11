@@ -275,4 +275,36 @@ function M.normalize()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
 end
 
+function M.show_orphans(print)
+    if not print then print = true end
+    local orphans = {}
+    local tempqf_list = vim.fn.getqflist()
+    local count = 0
+
+    vim.notify("Mdn: Searching notes for orphans...", vim.log.levels.INFO)
+    for file, type in vim.fs.dir(".") do
+        -- Only check .md files that are not hidden
+        if file:sub(-3) == ".md" and file:sub(1,1) ~= "." and type == "file" then
+            file = file:gsub(".md", "")
+            vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '/', '*'}, mods = {emsg_silent = true}})
+            if vim.tbl_isempty(vim.fn.getqflist()) then
+                count = count + 1
+                vim.notify("Mdn: Found " .. tostring(count) .. " orphan pages so far..." , vim.log.levels.INFO)
+                table.insert(orphans, file .. ".md")
+            end
+        end
+    end
+
+    vim.fn.setqflist(tempqf_list)
+    if print == true then
+        if vim.tbl_isempty(orphans) then
+            vim.notify("Mdn: No orphan pages detected", vim.log.levels.INFO)
+        else
+            vim.print(orphans)
+        end
+    else
+        return orphans
+    end
+end
+
 return M
