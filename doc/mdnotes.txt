@@ -235,10 +235,10 @@ subcommands are listed below.
 
 :Mdn outliner toggle					*:Mdn-outliner-toggle*
 
-    Toggle an outliner mode (similar to programs like Logseq). This command
-    essentially creates or deletes certain keymaps to create the outliner mode.
+    Toggle an Outliner mode (similar to programs like Logseq). This command
+    essentially creates or deletes certain keymaps to create the Outliner mode.
     Indentation is also changed to use the outliner indentation commands
-    |Mdn-outliner-indent| and |Mdn-outliner-unindent|.
+    |Mdn-outliner-indent| and |Mdn-outliner-unindent|. See |mdnotes-outliner|.
 
 :Mdn outliner indent					*:Mdn-outliner-indent*
 
@@ -579,45 +579,21 @@ open() 							*mdnotes.open()*
 
 outliner.toggle()					*mdnotes.outliner.toggle()*
 
-    Toggle an outliner mode (similar to programs like Logseq). This command
-    essentially creates or deletes certain keymaps to create the outliner mode.
+    Toggle an Outliner mode (similar to programs like Logseq). This command
+    essentially creates or deletes certain keymaps to create the Outliner mode.
     Indentation is also changed to use the outliner indentation commands
-    |Mdn-outliner-indent| and |Mdn-outliner-unindent|.
+    |Mdn-outliner-indent| and |Mdn-outliner-unindent|. See |mdnotes-outliner|.
 
 outliner.indent()					*mdnotes.outliner.indent()*
 
     Indents the bulleted list using the indentation of the parent child items.
-    For example,
->
-    - Parent
-    - Parent
-	- Child
-	- Child
-<
-    when indenting the second `Parent` using the command,
->
-    - Parent
-	- Parent
-	    - Child
-	    - Child
+    See |mdnotes-outliner|.
 	
 outliner.unindent()					*mdnotes.outliner.unindent()*
 
-    Unindents the bulleted list using the indentation of the parent child items.
-    For example,
->
-    - Parent
-	- Child or Parent
-	    - Child
-	    - Child
-<
-    when unindenting the second `Parent` using the command,
->
-    - Parent
-    - Child or Parent
-	- Child
-	- Child
-	
+    Unindents the bulleted list using the indentation of the parent child
+    items. See |mdnotes-outliner|.
+
 wikilink.follow()					*mdnotes.wikilink.follow()*
 
     Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
@@ -918,6 +894,63 @@ patterns						*mdnotes.patterns*
     and end cursor positions (e.g. `"()~~(.-)~~()"`). 
     See |mdnotes.check_md_format()|
 
+
+==============================================================================
+OUTLINER                                     		*mdnotes-outliner*
+
+An Outliner mode is implemented in `mdnotes` that aims to replicate behaviour
+of outliner applications such as Logseq. See the link below for an explanation
+of how Logseq's indentation works.
+
+https://discuss.logseq.com/t/what-is-indentation-and-why-does-it-matter-in-logseq/8438
+
+This behaviour is almost fully replicated using the |:Mdn-outliner-indent| and
+|:Mdn-outliner-unindent| commands.
+
+For example, in this text below,
+>
+    - Parent
+    - Parent
+	- Child
+	- Child
+<
+when indenting the second `Parent` using the command it should become,
+>
+    - Parent
+	- Parent
+	    - Child
+	    - Child
+
+and when unidenting the new child (the previous parent), it should go from,
+>
+    - Parent
+	- Child or Parent
+	    - Child
+	    - Child
+<
+to,
+>
+    - Parent
+    - Child or Parent
+	- Child
+	- Child
+
+However in a case like this below,
+>
+    - Parent
+    - Parent
+    - Parent
+<
+each Parent would be indented individually.
+
+When using Outliner mode with |:Mdn-outliner-toggle| the indenting commands
+are mapped to the widely used `<TAB>` and `<S-TAB>` for indenting and
+unindenting respectively. The |mdnotes-auto_list| state is also saved, and when
+entering the Outliner mode it is changed to true and reverted back to the
+config entry when exiting Outliner mode by re-toggling.
+
+A state message with the text `-- MDN OUTLINER --` is also shown at every
+|CursorMoved| event, to remind the user they are in Outliner mode.
 
 ==============================================================================
 TIPS                                     		*mdnotes-tips*
