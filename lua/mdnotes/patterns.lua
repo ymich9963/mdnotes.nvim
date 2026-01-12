@@ -1,7 +1,7 @@
 local M = {}
 
-local fi_emphasis = function() return require('mdnotes.formatting').format_indicators.emphasis() end
-local fi_strong = function() return require('mdnotes.formatting').format_indicators.strong():sub(1,1) end
+local fi_emphasis = function() return require('mdnotes').config.emphasis_format end
+local fi_strong = function() return require('mdnotes').config.strong_format:sub(1,1) end
 
 M = {
     wikilink = "()%[%[(.-)%]%]()",
