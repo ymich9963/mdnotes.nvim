@@ -36,26 +36,11 @@ function M.validate(internal_call, norm, ignore_fragment)
 
     local current_lnum = vim.fn.line('.')
     local current_col = vim.fn.col('.')
-    local line = vim.api.nvim_get_current_line()
-    local col_start = 0
-    local col_end = 0
-    local img_txt = ""
-    local text = ""
-    local uri = ""
-    local path = ""
-    local fragment = ""
+    local inline_link_pattern = require("mdnotes.patterns").inline_link
 
-    for start_pos, inline_link, end_pos in line:gmatch(require("mdnotes.patterns").inline_link) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
-            img_txt = is_img(inline_link)
-            text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
-            col_start = start_pos
-            col_end = end_pos
-            break
-        end
-    end
+    local inline_link, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern(inline_link_pattern)
+    local img_txt = is_img(inline_link)
+    local text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
 
     if not uri or uri == "" then
         vim.notify(("Mdn: No URI detected"), vim.log.levels.ERROR)
@@ -72,8 +57,8 @@ function M.validate(internal_call, norm, ignore_fragment)
     -- Remove any < or > from uri
     uri = uri:gsub("[<>]?", "")
 
-    path = uri:match(require("mdnotes.patterns").uri_no_fragment) or ""
-    fragment = uri:match(require("mdnotes.patterns").fragment) or ""
+    local path = uri:match(require("mdnotes.patterns").uri_no_fragment) or ""
+    local fragment = uri:match(require("mdnotes.patterns").fragment) or ""
 
     if path ~= "" then
         if not uv.fs_stat(path) and not uv.fs_stat(path .. ".md") then

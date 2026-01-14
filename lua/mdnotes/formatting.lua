@@ -141,22 +141,8 @@ end
 ---Check current line position for text in a Markdown format
 ---@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
 local function delete_format(pattern)
-    local current_col = vim.fn.col('.')
     local line = vim.api.nvim_get_current_line()
-    local col_start = 0
-    local col_end = 0
-    local found_text = ""
-
-    for start_pos, text, end_pos in line:gmatch(pattern) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
-            found_text = text
-            col_start = start_pos
-            col_end = end_pos
-            break
-        end
-    end
+    local found_text, col_start, col_end = M.get_text_in_pattern(pattern)
 
     -- Create a new modified line with link
     local new_line = line:sub(1, col_start - 1) .. found_text .. line:sub(col_end)
@@ -348,10 +334,9 @@ function M.unformat_lines(line1, line2)
                 local _, heading_text = line:match(pattern)
                 if heading_text then line = heading_text end
             elseif pattern == mdnotes_patterns.inline_link then
-                for start_pos, inline_link, end_pos in line:gmatch(pattern) do
-                    local inline_text, _ = inline_link:match(mdnotes_patterns.text_uri)
-                    if inline_text then line = line:sub(1, vim.fn.str2nr(start_pos) - 1) .. inline_text .. line:sub(vim.fn.str2nr(end_pos)) end
-                end
+                local inline_link, start_pos, end_pos = require('mdnotes.formatting').get_selected_text(pattern)
+                local inline_text, _ = inline_link:match(mdnotes_patterns.text_uri)
+                if inline_text then line = line:sub(1, vim.fn.str2nr(start_pos) - 1) .. inline_text .. line:sub(vim.fn.str2nr(end_pos)) end
             elseif pattern == mdnotes_patterns.ordered_list then
                 local _, _, _, ol_text = line:match(pattern)
                 if ol_text then line = ol_text end
@@ -361,9 +346,8 @@ function M.unformat_lines(line1, line2)
             elseif pattern == mdnotes_patterns.task then
                 line = line:gsub(pattern, "")
             else
-                for start_pos, text, end_pos in line:gmatch(pattern) do
-                    if text then line = line:sub(1, vim.fn.str2nr(start_pos) - 1) .. text .. line:sub(vim.fn.str2nr(end_pos)) end
-                end
+                local text, start_pos, end_pos = require('mdnotes.formatting').get_selected_text(pattern)
+                if text then line = line:sub(1, vim.fn.str2nr(start_pos) - 1) .. text .. line:sub(vim.fn.str2nr(end_pos)) end
             end
         end
         table.insert(new_lines, line)

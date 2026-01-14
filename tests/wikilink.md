@@ -9,7 +9,7 @@ Test for following WikiLink with fragment
 [[formatting#Tables]]
 
 Test for fragment with spaces
-[[formatting#Inline Link (hyperlinks)]]
+[[formatting#Inline Code]]
 
 Tets for wikilink normalize
 [[..\tests\formatting.md]]

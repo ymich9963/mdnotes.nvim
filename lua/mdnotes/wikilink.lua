@@ -20,8 +20,6 @@ end
 ---@return integer col_start The start position of the WikiLink in the current line
 ---@return integer col_end The end position of the WikiLink in the current line
 local function get_wikilink()
-    local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
     local wikilink_pattern = require('mdnotes.patterns').wikilink
     local uri_no_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
     local fragment_pattern = require('mdnotes.patterns').fragment
@@ -29,18 +27,9 @@ local function get_wikilink()
     local col_end = 0
 
     local wikilink, wikilink_no_fragment, fragment = "", "", ""
-    for start_pos, found_wikilink ,end_pos in line:gmatch(wikilink_pattern) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
-            wikilink = found_wikilink
-            wikilink_no_fragment = found_wikilink:match(uri_no_fragment_pattern) or ""
-            fragment = found_wikilink:match(fragment_pattern) or ""
-            col_start = start_pos
-            col_end = end_pos
-            break
-        end
-    end
+    wikilink, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern(wikilink_pattern)
+    wikilink_no_fragment = wikilink:match(uri_no_fragment_pattern) or ""
+    fragment = wikilink:match(fragment_pattern) or ""
 
     return wikilink, wikilink_no_fragment, fragment, col_start, col_end
 end
