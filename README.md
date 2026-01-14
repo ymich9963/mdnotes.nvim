@@ -272,3 +272,5 @@ I wanted to make a more Neovim-centric Markdown notes plugin that tries to work 
 - [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)
 - [markdown.nvim](https://github.com/tadmccorkle/markdown.nvim) 
  
+## Tests
+Using [mini.test](https://github.com/nvim-mini/mini.test) for testing. For this project, if you want to run the tests then you need to install mini.test as a plugin.
