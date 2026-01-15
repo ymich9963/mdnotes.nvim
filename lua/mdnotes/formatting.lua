@@ -197,7 +197,7 @@ function M.autolink_toggle()
     if M.check_md_format(md_format.autolink.pattern()) == true then
         delete_format(md_format.autolink.pattern())
     else
-        insert_format(md_format.autolink.indicator())
+        insert_format(md_format.autolink.indicator(), true)
     end
 end
 
