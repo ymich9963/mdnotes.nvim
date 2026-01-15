@@ -135,7 +135,7 @@ local function insert_format(format_char, split)
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end})
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), vim.fn.getcurpos()[3] + #fi1 - 1})
 end
 
 ---Check current line position for text in a Markdown format
@@ -147,9 +147,13 @@ local function delete_format(pattern)
     -- Create a new modified line with link
     local new_line = line:sub(1, col_start - 1) .. found_text .. line:sub(col_end)
 
+    -- Find the character count change before the cursor
+    -- since only those characters change its position
+    local char_count_change_bef_cursor = (#line - #new_line) / 2
+
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start - 1})
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), vim.fn.getcurpos()[3] - char_count_change_bef_cursor - 1})
 end
 
 ---Toggle the strong Markdown formatting
