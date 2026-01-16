@@ -48,7 +48,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Delete current column with `:Mdn table column_delete`.
 - Duplicate current column with `:Mdn table column_duplicate`.
 - Toggle column alignment with `:Mdn table column_alignment_toggle`.
-- Insert rows to the above or below of your current line with `:Mdn table row_insert_above/below`.
+- Insert empty rows to the above or below of your current line with `:Mdn table row_insert_above/below`.
 
 ### 🖇️ WikiLinks
 - Create a WikiLink by highlighting or hovering over a word and executing `:Mdn wikilink create`.
@@ -232,6 +232,7 @@ Opened with `:Mdn wikilink follow`. Can only be filenames, so `link` can also be
     [[link]]
     [[link#fragment]]
     [[link#fragment with spaces]]
+    [[link#fragment-with-spaces]]
 ```
 ### Formatting
 Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the strong and emphasis formats needs to be specified in the `strong_format` and `emphasis_format` config options. 
