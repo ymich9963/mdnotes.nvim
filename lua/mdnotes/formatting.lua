@@ -285,11 +285,6 @@ function M.ordered_list_renumber(silent)
         end
     end
 
-    -- Just in case idk
-    if list_startl == 0 or list_endl == 0 then
-        return
-    end
-
     -- Get list
     local list_lines = vim.api.nvim_buf_get_lines(0, list_startl, list_endl, false)
 

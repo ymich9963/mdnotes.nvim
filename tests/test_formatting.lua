@@ -132,4 +132,49 @@ T['unordered_list'] = function()
     end
 end
 
+T['ordered_list'] = function()
+    local ordered_list_indicators = {".", ")"}
+
+    for _, ol_indicator in ipairs(ordered_list_indicators) do
+        local lines = {"1" .. ol_indicator .. " item"}
+        local buf = create_md_buffer(child, lines)
+
+        child.lua([[require('mdnotes').new_line_remap('o')]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            "1" .. ol_indicator .. " item",
+            "2" .. ol_indicator .. "  "
+        })
+
+        child.lua([[require('mdnotes').new_line_remap('<CR>')]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            "1" .. ol_indicator .. " item",
+            "2" .. ol_indicator .. "  ",
+            ""
+        })
+
+        child.api.nvim_input("<ESC>kk")
+        child.lua([[require('mdnotes').new_line_remap('O')]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            "0" .. ol_indicator .. "  ",
+            "1" .. ol_indicator .. " item",
+            "2" .. ol_indicator .. "  ",
+            ""
+        })
+
+        child.api.nvim_input("<ESC>")
+
+        child.lua([[require('mdnotes.formatting').ordered_list_renumber()]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            "1" .. ol_indicator .. "  ",
+            "2" .. ol_indicator .. " item",
+            "3" .. ol_indicator .. "  ",
+            ""
+        })
+    end
+end
+
 return T
