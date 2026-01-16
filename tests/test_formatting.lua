@@ -1,6 +1,7 @@
 local MiniTest = require('mini.test')
 local new_set = MiniTest.new_set
-local expect, eq = MiniTest.expect, MiniTest.expect.equality
+local eq = MiniTest.expect.equality
+local create_md_buffer = require('tests/helpers').create_md_buffer
 
 -- Create (but not start) child Neovim object
 local child = MiniTest.new_child_neovim()
@@ -24,10 +25,8 @@ local T = new_set({
 
 T['emphasis'] = function()
     -- Setup test buffer
-    local buf = child.api.nvim_create_buf(false, true)
     local lines = {"emphasis"}
-    child.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-    child.api.nvim_set_current_buf(buf)
+    local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
@@ -43,10 +42,8 @@ end
 
 T['strong'] = function()
     -- Setup test buffer
-    local buf = child.api.nvim_create_buf(false, true)
     local lines = {"strong"}
-    child.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-    child.api.nvim_set_current_buf(buf)
+    local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').strong_toggle()]])
@@ -62,10 +59,8 @@ end
 
 T['strikethrough'] = function()
     -- Setup test buffer
-    local buf = child.api.nvim_create_buf(false, true)
     local lines = {"strikethrough"}
-    child.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-    child.api.nvim_set_current_buf(buf)
+    local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
@@ -81,10 +76,8 @@ end
 
 T['inline_code'] = function()
     -- Setup test buffer
-    local buf = child.api.nvim_create_buf(false, true)
     local lines = {"inline_code"}
-    child.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-    child.api.nvim_set_current_buf(buf)
+    local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
@@ -100,10 +93,8 @@ end
 
 T['autolink'] = function()
     -- Setup test buffer
-    local buf = child.api.nvim_create_buf(false, true)
     local lines = {"autolink"}
-    child.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-    child.api.nvim_set_current_buf(buf)
+    local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').autolink_toggle()]])
@@ -115,6 +106,30 @@ T['autolink'] = function()
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "autolink")
     eq(child.fn.getcurpos()[3], 1)
+end
+
+T['unordered_list'] = function()
+    local unordered_list_indicators = {"-", "+", "*"}
+
+    for _, ul_indicator in ipairs(unordered_list_indicators) do
+        local lines = {ul_indicator .. " item"}
+        local buf = create_md_buffer(child, lines)
+
+        child.lua([[require('mdnotes').new_line_remap('o')]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {ul_indicator .. " item", ul_indicator .. "  "})
+
+        child.lua([[require('mdnotes').new_line_remap('<CR>')]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {ul_indicator .. " item", ul_indicator .. "  ", ""})
+
+        child.api.nvim_input("<ESC>kk")
+        child.lua([[require('mdnotes').new_line_remap('O')]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {ul_indicator .. "  ", ul_indicator .. " item", ul_indicator .. "  ", ""})
+
+        child.api.nvim_input("<ESC>")
+    end
 end
 
 return T

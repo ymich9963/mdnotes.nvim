@@ -5,8 +5,7 @@ local mdnotes = function() return require("mdnotes") end
 ---Auto-list keymaps
 if mdnotes().config.auto_list then
     vim.keymap.set("i", "<CR>", function ()
-        local _, list_remap = mdnotes().list_remap(1)
-        return list_remap
+        return mdnotes().new_line_remap("<CR>", true)
     end,
     {
         expr = true,
@@ -15,22 +14,7 @@ if mdnotes().config.auto_list then
     })
 
     vim.keymap.set("n", "o", function ()
-        local row = vim.api.nvim_win_get_cursor(0)[1]
-        local indent, list_remap = mdnotes().list_remap(1)
-        list_remap = list_remap:gsub("[\n]","")
-
-        if not indent then
-            indent = ""
-        end
-
-        vim.api.nvim_buf_set_lines(0, row, row, false, { indent .. list_remap })
-        vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
-
-        if list_remap == "" then
-            vim.cmd.startinsert()
-        else
-            vim.api.nvim_input("$i ")
-        end
+        mdnotes().new_line_remap("o")
     end,
     {
         desc = "Mdnotes 'o' remap for auto-lists",
@@ -38,22 +22,7 @@ if mdnotes().config.auto_list then
     })
 
     vim.keymap.set("n", "O", function ()
-        local row = vim.api.nvim_win_get_cursor(0)[1]
-        local indent, list_remap = mdnotes().list_remap(-1)
-        list_remap = list_remap:gsub("[\n]","")
-
-        if not indent then
-            indent = ""
-        end
-
-        vim.api.nvim_buf_set_lines(0, row - 1, row - 1, false, { indent .. list_remap })
-        vim.api.nvim_win_set_cursor(0, { row, 0 })
-
-        if list_remap == "" then
-            vim.cmd.startinsert()
-        else
-            vim.api.nvim_input("$i ")
-        end
+        mdnotes().new_line_remap("O")
     end,
     {
         desc = "Mdnotes 'O' remap for auto-lists",

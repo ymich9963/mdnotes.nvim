@@ -126,6 +126,46 @@ function M.list_remap(inc_val)
     return indent, "\n"
 end
 
+---New line remaps
+---@param key '"o"'|'"O"'|'"<CR>"'
+---@param expr_set boolean? If remap is used when opts.expr is true
+---@return string|nil
+function M.new_line_remap(key, expr_set)
+    if not expr_set then expr_set = false end
+    local row = vim.api.nvim_win_get_cursor(0)[1]
+    local indent, list_remap = "", ""
+
+    if key == "o" or key == "<CR>" then
+        indent, list_remap = M.list_remap(1)
+    elseif key == "O" then
+        indent, list_remap = M.list_remap(-1)
+    end
+
+    if expr_set == true then
+        return list_remap
+    end
+
+    list_remap = list_remap:gsub("[\n]","")
+
+    if not indent then
+        indent = ""
+    end
+
+    if key == "o" or key == "<CR>" then
+        vim.api.nvim_buf_set_lines(0, row, row, false, { indent .. list_remap })
+        vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
+    elseif key == "O" then
+        vim.api.nvim_buf_set_lines(0, row - 1, row - 1, false, { indent .. list_remap })
+        vim.api.nvim_win_set_cursor(0, { row, 0 })
+    end
+
+    if list_remap == "" then
+        vim.cmd.startinsert()
+    else
+        vim.api.nvim_input("$i ")
+    end
+end
+
 ---Open inline links
 function M.open()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
