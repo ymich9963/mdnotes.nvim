@@ -91,9 +91,10 @@ function M.setup(user_config)
     end
 end
 
----Remap used for <CR>, o, O
+---Get the list item's indent level and indicator. Also increment when using ordered lists
 ---@param inc_val integer Value to increment the list item by
-function M.list_remap(inc_val)
+---@return string indent, string list_indicator Indent of the list item and the corresponding list indicator
+local function get_indent_indicator(inc_val)
     -- ul = unordered list, ol = ordered list
     local mdnotes_patterns = require('mdnotes.patterns')
     local line = vim.api.nvim_get_current_line()
@@ -136,9 +137,9 @@ function M.new_line_remap(key, expr_set)
     local indent, list_remap = "", ""
 
     if key == "o" or key == "<CR>" then
-        indent, list_remap = M.list_remap(1)
+        indent, list_remap = get_indent_indicator(1)
     elseif key == "O" then
-        indent, list_remap = M.list_remap(-1)
+        indent, list_remap = get_indent_indicator(-1)
     end
 
     if expr_set == true then
