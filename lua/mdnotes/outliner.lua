@@ -24,8 +24,7 @@ function  M.toggle()
         vim.keymap.set('i', '<TAB>', '<cmd>Mdn outliner indent<CR>', { buffer = true })
         vim.keymap.set('i', '<S-TAB>', '<cmd>Mdn outliner unindent<CR>', { buffer = true })
         vim.keymap.set("i", "<CR>", function ()
-            local _, list_remap = mdnotes.list_remap(1)
-            return list_remap
+            return mdnotes.new_line_remap("<CR>", true)
         end,
         {
             expr = true,
