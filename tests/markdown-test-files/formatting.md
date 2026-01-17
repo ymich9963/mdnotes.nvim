@@ -39,8 +39,8 @@ Autolink autolink autolink
 
 ## Task Lists
 - [x] Task lists with all ordered and unordered lists above
-- [X] Task lists with all ordered and unordered lists above
-- [ ] Task lists with all ordered and unordered lists above
+1) [X] Task lists with all ordered and unordered lists above 
+1. [ ] Task lists with all ordered and unordered lists above
 
 ## Tables
 

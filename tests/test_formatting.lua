@@ -177,4 +177,75 @@ T['ordered_list'] = function()
     end
 end
 
+T['task_list'] = function()
+    local unordered_list_indicators = {"-", "+", "*"}
+
+    for _, ul_indicator in ipairs(unordered_list_indicators) do
+        local lines = {ul_indicator .. " item"}
+        local buf = create_md_buffer(child, lines)
+
+        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            ul_indicator .. " [ ] item",
+        })
+
+        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            ul_indicator .. " [x] item",
+        })
+
+        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            ul_indicator .. " item",
+        })
+
+        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        child.lua([[require('mdnotes').new_line_remap('o')]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            ul_indicator .. " [ ] item",
+            ul_indicator .. " [ ]  ",
+        })
+
+        child.api.nvim_input("<ESC>")
+    end
+
+    local ordered_list_indicators = {".", ")"}
+    for _, ol_indicator in ipairs(ordered_list_indicators) do
+        local lines = {"1" .. ol_indicator .. " item"}
+        local buf = create_md_buffer(child, lines)
+
+        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            "1" .. ol_indicator .. " [ ] item",
+        })
+
+        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            "1" .. ol_indicator .. " [x] item",
+        })
+
+        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            "1" .. ol_indicator .. " item",
+        })
+
+        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        child.lua([[require('mdnotes').new_line_remap('o')]])
+        lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+        eq(lines, {
+            "1" .. ol_indicator .. " [ ] item",
+            "2" .. ol_indicator .. " [ ]  ",
+        })
+
+        child.api.nvim_input("<ESC>")
+    end
+end
+
 return T

@@ -201,28 +201,54 @@ function M.autolink_toggle()
     end
 end
 
----Toggle task list state
----@param line1 number First line of selection
----@param line2 number Last line of selection
-function M.task_list_toggle(line1, line2)
+---Resolve the list content
+---@param line string Line containing list item
+---@return string indent, string marker, string text List item contents that have been deemed important by me
+local function resolve_list_content(line)
     local mdnotes_patterns = require('mdnotes.patterns')
 
+    local ul_indent, ul_marker, ul_text = line:match(mdnotes_patterns.unordered_list)
+    local ol_indent, ol_marker, ol_separator, ol_text = line:match(mdnotes_patterns.ordered_list)
+
+    ol_separator = ol_separator or ""
+    ol_marker = ol_marker or ""
+
+    local indent = (ul_indent or ol_indent) or ""
+    local marker = ul_marker or (ol_marker .. ol_separator)
+    local text = (ul_text or ol_text) or ""
+
+    return indent, marker, text
+end
+
+---Toggle task list state
+---@param line1 integer First line of selection
+---@param line2 integer Last line of selection
+function M.task_list_toggle(line1, line2)
+    if not line1 then line1 = vim.fn.line('.') end
+    if not line2 then line2 = vim.fn.line('.') end
+
+    local mdnotes_patterns = require('mdnotes.patterns')
     local lines = {}
     local new_lines = {}
+    local new_text = ""
+
     if line1 == line2 then
         lines = {vim.api.nvim_get_current_line()}
     else
         lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
     end
+
     for i, line in ipairs(lines) do
-        local _, list_marker, list_text = line:match(mdnotes_patterns.unordered_list)
-        local _, ordered_marker, separator, ordered_text = line:match(mdnotes_patterns.ordered_list)
-        local text = list_text or ordered_text
-        local marker = list_marker or ordered_marker .. separator
-        local new_text = ""
+        local _, marker, text = resolve_list_content(line)
 
         if marker then
-            local task_marker = text:match(mdnotes_patterns.task)
+
+            -- In the case where e.g. 1. or 1) then the . or ) need to be escaped
+            if #marker == 2 then
+                marker = marker:sub(1,1) .. "%" .. marker:sub(2,2)
+            end
+
+            local task_marker, _ = text:match(mdnotes_patterns.task)
             if task_marker == "[x]" then
                 new_text, _ = line:gsub(mdnotes_patterns.task, " ", 1)
             elseif task_marker == "[ ]" then
@@ -236,6 +262,7 @@ function M.task_list_toggle(line1, line2)
             break
         end
     end
+
     vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
 end
 
