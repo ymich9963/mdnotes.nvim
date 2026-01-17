@@ -1,6 +1,7 @@
 local MiniTest = require('mini.test')
 local new_set = MiniTest.new_set
 local eq = MiniTest.expect.equality
+local helpers = require('tests/helpers')
 local create_md_buffer = require('tests/helpers').create_md_buffer
 
 -- Create (but not start) child Neovim object
@@ -109,9 +110,7 @@ T['autolink'] = function()
 end
 
 T['unordered_list'] = function()
-    local unordered_list_indicators = {"-", "+", "*"}
-
-    for _, ul_indicator in ipairs(unordered_list_indicators) do
+    for _, ul_indicator in ipairs(helpers.unordered_list_indicators) do
         local lines = {ul_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
@@ -133,9 +132,7 @@ T['unordered_list'] = function()
 end
 
 T['ordered_list'] = function()
-    local ordered_list_indicators = {".", ")"}
-
-    for _, ol_indicator in ipairs(ordered_list_indicators) do
+    for _, ol_indicator in ipairs(helpers.ordered_list_indicators) do
         local lines = {"1" .. ol_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
@@ -178,9 +175,7 @@ T['ordered_list'] = function()
 end
 
 T['task_list'] = function()
-    local unordered_list_indicators = {"-", "+", "*"}
-
-    for _, ul_indicator in ipairs(unordered_list_indicators) do
+    for _, ul_indicator in ipairs(helpers.unordered_list_indicators) do
         local lines = {ul_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
@@ -213,8 +208,7 @@ T['task_list'] = function()
         child.api.nvim_input("<ESC>")
     end
 
-    local ordered_list_indicators = {".", ")"}
-    for _, ol_indicator in ipairs(ordered_list_indicators) do
+    for _, ol_indicator in ipairs(helpers.ordered_list_indicators) do
         local lines = {"1" .. ol_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
