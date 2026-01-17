@@ -38,7 +38,7 @@ function M.validate(internal_call, norm, ignore_fragment)
     local current_col = vim.fn.col('.')
     local inline_link_pattern = require("mdnotes.patterns").inline_link
 
-    local inline_link, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern(inline_link_pattern)
+    local inline_link, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern_under_cursor(inline_link_pattern)
     local img_txt = is_img(inline_link)
     local text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
 

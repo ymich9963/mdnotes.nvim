@@ -27,7 +27,7 @@ local function get_wikilink()
     local col_end = 0
 
     local wikilink, wikilink_no_fragment, fragment = "", "", ""
-    wikilink, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern(wikilink_pattern)
+    wikilink, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern_under_cursor(wikilink_pattern)
     wikilink_no_fragment = wikilink:match(uri_no_fragment_pattern) or ""
     fragment = wikilink:match(fragment_pattern) or ""
 

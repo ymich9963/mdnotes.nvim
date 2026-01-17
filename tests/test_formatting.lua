@@ -242,4 +242,31 @@ T['task_list'] = function()
     end
 end
 
+T['unformat_lines'] = function()
+    local lines = {
+        "# Heading",
+        "*emphasis*",
+        "**strong**",
+        "[[WikiLink]]",
+        "~~strikethrough~~",
+        "`inline code`",
+        "1) ordered item",
+        "- unordered item",
+    }
+    local buf = create_md_buffer(child, lines)
+
+    child.lua([[require('mdnotes.formatting').unformat_lines(1,8)]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines, {
+        "Heading",
+        "emphasis",
+        "strong",
+        "WikiLink",
+        "strikethrough",
+        "inline code",
+        "ordered item",
+        "unordered item",
+    })
+end
+
 return T
