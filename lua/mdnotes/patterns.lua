@@ -1,9 +1,6 @@
 ---@module 'mdnotes.patterns'
 local M = {}
 
-local fi_emphasis = function() return require('mdnotes').config.emphasis_format end
-local fi_strong = function() return require('mdnotes').config.strong_format:sub(1,1) end
-
 ---@alias MdnotesPattern string Pattern that returns the start and end columns, as well as the text
 
 ---@class MdnotesPatterns
@@ -27,8 +24,8 @@ M = {
     fragment = "#(.*)",
     inline_link = "()([!]?%[.+%]%([^%)]+%))()",
     text_uri = "%[([^%]]+)%]%((.+)%)",
-    strong = "()%" .. fi_strong() .. "%" .. fi_strong() .. "([^%" .. fi_strong() .. "].-)%" .. fi_strong() .. "%" .. fi_strong() .. "()",
-    emphasis = "()%" .. fi_emphasis() .. "([^%" .. fi_emphasis() .. "].-)%" .. fi_emphasis() .."()",
+    strong = "()[%*_][%*_]([^%*_].-)[%*_][%*_]()",
+    emphasis = "()[%*_]([^%*_].-)[%*_]()",
     strikethrough = "()~~(.-)~~()",
     inline_code = "()`([^`]+)`()",
     autolink = "()<(.-)>()",
