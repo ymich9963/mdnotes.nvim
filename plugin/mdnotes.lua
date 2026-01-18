@@ -63,7 +63,7 @@ vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
     pattern = "*.md",
     group = mdnotes_group,
     callback = function()
-        if require('mdnotes').auto_list_renumber == true then
+        if require('mdnotes').config.auto_list_renumber == true then
             if not require("mdnotes.formatting").ordered_list_renumber(true) then
                 return
             end
