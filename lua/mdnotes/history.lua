@@ -7,6 +7,20 @@ M.buf_history = {}
 ---@type integer Current index when traversing the buffer history
 M.current_index = 0
 
+---Record buffer to buffer history
+---@param buf_num integer Buffer number to record
+function M.record_buf(buf_num)
+    if M.current_index == 0 or M.buf_history[M.current_index] ~= buf_num then
+        -- If the user has went back and the current buffer is not the same as the stored buffer
+        -- Create a copy of the list up to the current index and then add the new buffer
+        if M.current_index < #M.buf_history then
+            M.buf_history = vim.list_slice(M.buf_history, 1, M.current_index)
+        end
+        table.insert(M.buf_history, buf_num)
+        M.current_index = #M.buf_history
+    end
+end
+
 ---Go back in the buffer history
 function M.go_back()
     if M.current_index > 1 then

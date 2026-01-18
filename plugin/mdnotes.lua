@@ -12,17 +12,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*.md",
     group = mdnotes_group,
     callback = function(args)
-        local mdnotes_history = require('mdnotes.history')
-        local buf_num = args.buf
-        if mdnotes_history.current_index == 0 or mdnotes_history.buf_history[mdnotes_history.current_index] ~= buf_num then
-            -- If the user has went back and the current buffer is not the same as the stored buffer
-            -- Create a copy of the list up to the current index and then add the new buffer
-            if mdnotes_history.current_index < #mdnotes_history.buf_history then
-                mdnotes_history.buf_history = vim.list_slice(mdnotes_history.buf_history, 1, mdnotes_history.current_index)
-            end
-            table.insert(mdnotes_history.buf_history, buf_num)
-            mdnotes_history.current_index = #mdnotes_history.buf_history
-        end
+        require('mdnotes.history').record_buf(args.buf)
     end,
 })
 
