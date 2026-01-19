@@ -21,30 +21,7 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
     group = mdnotes_group,
     callback = function(args)
-        local mdnotes_toc = require('mdnotes.toc')
-        local buf_exists = false
-        local buf_num = args.buf
-        local original_fragments = mdnotes_toc.get_fragments_original()
-        for _,v in ipairs(mdnotes_toc.buf_fragments) do
-            if v.buf_num == buf_num then
-                buf_exists = true
-                if v.parsed.original ~= original_fragments then
-                    v.parsed.original = original_fragments
-                    v.parsed.gfm = mdnotes_toc.get_fragments_gfm_from_original(original_fragments)
-                end
-                break
-            end
-        end
-
-        if buf_exists == false then
-            table.insert(mdnotes_toc.buf_fragments, {
-                buf_num = buf_num,
-                parsed = {
-                    original = original_fragments,
-                    gfm = mdnotes_toc.get_fragments_gfm_from_original(original_fragments)
-                }
-            })
-        end
+        require('mdnotes.toc').populate_buf_fragments(args.buf)
     end,
 })
 

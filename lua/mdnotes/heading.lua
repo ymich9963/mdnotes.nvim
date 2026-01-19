@@ -3,7 +3,7 @@ local M = {}
 
 ---Get the header that the current text is under
 ---@param buf_fragments MdnotesBufFragments
----@return MdnotesFragmentOriginal original_fragment
+---@return MdnotesFragment fragment
 ---@return integer index Index of current header from the class
 ---@return integer cur_buf_num Current buffer number
 local function get_current_header(buf_fragments)
@@ -11,11 +11,11 @@ local function get_current_header(buf_fragments)
     local cur_lnum = vim.fn.line(".")
 
     for _, v in ipairs(buf_fragments) do
-        for j, vv in ipairs(v.parsed.original) do
+        for j, vv in ipairs(v.parsed.fragments) do
             -- Once the header entry's lnum is more than the current
             -- it means we have to subtract 1 to get the current header
             if v.buf_num == cur_buf_num and vv.lnum > cur_lnum then
-                return v.parsed.original[j - 1], j - 1, cur_buf_num
+                return v.parsed.fragments[j - 1], j - 1, cur_buf_num
             end
         end
     end
@@ -30,7 +30,7 @@ function M.goto_next()
 
     for _, v in ipairs(buf_fragments) do
         if v.buf_num == cur_buf_num then
-            vim.fn.cursor(vim.fn.search(v.parsed.original[index + 1].text), 1)
+            vim.fn.cursor(vim.fn.search(v.parsed.fragments[index + 1].text), 1)
             vim.api.nvim_input('zz')
             break
         end
@@ -46,7 +46,7 @@ function M.goto_previous()
         if v.buf_num == cur_buf_num then
             -- Reset to 2 so that in the next line it is 1
             if index - 1 < 1 then index = 2 end
-            vim.fn.cursor(vim.fn.search(v.parsed.original[index - 1].text), 1)
+            vim.fn.cursor(vim.fn.search(v.parsed.fragments[index - 1].text), 1)
             vim.api.nvim_input('zz')
             break
         end
