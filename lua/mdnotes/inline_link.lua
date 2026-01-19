@@ -17,6 +17,17 @@ local function is_img(inline_link)
     end
 end
 
+---Check if inline link is an image
+---@param uri string
+---@return boolean is_url Text to use when checking for an inline link
+local function is_url(uri)
+    if vim.tbl_contains(M.uri_website_tbl, uri:match("%w+")) then
+        return true
+    else
+        return false
+    end
+end
+
 ---Check and validate that the inline link detected is valid
 ---@param internal_call boolean? Set if called internally to return inline link data
 ---@param norm boolean? Only set when used internall within the normalize() function 
@@ -41,6 +52,7 @@ function M.validate(internal_call, norm, ignore_fragment)
     local inline_link, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern_under_cursor(inline_link_pattern)
     local img_txt = is_img(inline_link)
     local text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
+    local is_url_ret = is_url(uri)
 
     if not uri or uri == "" then
         vim.notify(("Mdn: No URI detected"), vim.log.levels.ERROR)
@@ -49,7 +61,7 @@ function M.validate(internal_call, norm, ignore_fragment)
 
     if uri:match(" ") and not uri:match("<.+>") then
         if norm == false then
-            vim.notify("Mdn: Destinations with spaces must be encircled with < and >. Execute ':Mdn inline_link normalize' for a quick fix.", vim.log.levels.ERROR)
+            vim.notify("Mdn: Destinations with spaces must be enclosed with < and >. Execute ':Mdn inline_link normalize' for a quick fix.", vim.log.levels.ERROR)
             return nil
         end
     end
@@ -77,10 +89,10 @@ function M.validate(internal_call, norm, ignore_fragment)
         path = vim.fs.basename(vim.api.nvim_buf_get_name(0))
     end
 
-    if fragment ~= "" and ignore_fragment == false then
+    if fragment ~= "" and ignore_fragment == false and is_url_ret == false then
         local buf = vim.fn.bufadd(path)
         local search_ret = 0
-        fragment = require('mdnotes.toc').get_fragment(fragment)
+        fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
 
         vim.fn.bufload(buf)
         vim.api.nvim_buf_call(buf, function()
