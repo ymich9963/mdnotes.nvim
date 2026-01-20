@@ -493,11 +493,11 @@ subcommands are listed below.
 
 :Mdn heading previous					*Mdn-header-previous*
 
-   Go to the previous Markdown heading.
+   Go to the previous Markdown heading. Wraps around.
 
 :Mdn heading next					*Mdn-header-next*
 
-   Go to the next Markdown heading.
+   Go to the next Markdown heading. Wraps around.
 
 ==============================================================================
 API                                     		*mdnotes-api*
