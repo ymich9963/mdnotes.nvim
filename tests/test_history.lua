@@ -1,7 +1,6 @@
 local MiniTest = require('mini.test')
 local new_set = MiniTest.new_set
 local eq = MiniTest.expect.equality
-local helpers = require('tests/helpers')
 local create_md_buffer = require('tests/helpers').create_md_buffer
 
 -- Create (but not start) child Neovim object
