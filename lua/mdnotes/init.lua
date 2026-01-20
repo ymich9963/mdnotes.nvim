@@ -132,7 +132,7 @@ end
 ---@param expr_set boolean? If remap is used when opts.expr is true
 ---@return string|nil
 function M.new_line_remap(key, expr_set)
-    if not expr_set then expr_set = false end
+    if expr_set == nil then expr_set = false end
     local row = vim.api.nvim_win_get_cursor(0)[1]
     local indent, list_remap = "", ""
 
@@ -148,7 +148,7 @@ function M.new_line_remap(key, expr_set)
 
     list_remap = list_remap:gsub("[\n]","")
 
-    if not indent then
+    if indent == nil then
         indent = ""
     end
 
@@ -172,7 +172,7 @@ function M.open()
     local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
     local _, _, uri, path, fragment, _, _ = unpack(validate_tbl)
 
-    if not uri or not path or not fragment then return end
+    if uri == nil or path == nil or fragment == nil then return end
 
     -- Fix bug when opening link that's not saved
     -- Unsure if undesired but I think makes sense
@@ -183,7 +183,7 @@ function M.open()
         vim.cmd(M.open_cmd .. path)
         if fragment and fragment ~= "" then
             -- Navigate to fragment
-            fragment = require('mdnotes.toc').get_fragment(fragment)
+            fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
             vim.fn.cursor(vim.fn.search("# " .. fragment), 1)
             vim.api.nvim_input('zz')
         end
