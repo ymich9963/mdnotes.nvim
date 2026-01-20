@@ -40,7 +40,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
 
 ### 🫦 Tables
-- See the [Editing Tables](#editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
+- See the [Editing Tables](#-editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
 - Create a `ROW` by `COLS` table with `:Mdn table create ROW COLS`.
 - Automatting setting of the best fit of your columns so that all your cells line up (opt-out). Can also be done manually with `:Mdn table best_fit` and can also add padding around your cells (`table_best_fit_padding` in config).
 - Insert columns to the left or right of your current column with `:Mdn table column_insert_left/right`.
@@ -195,7 +195,7 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
  
  **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
 
-## Editing Tables
+## 🦠 Editing Tables
 `mdnotes` tries to complement Neovim functionality to make editing tables as easy as possible. See the table below for what functions Neovim does and what functions are done by `mdnotes`.
 
 |Feature                         |mdnotes                                   |Neovim                                                                 |
