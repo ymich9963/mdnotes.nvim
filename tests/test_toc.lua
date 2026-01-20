@@ -1,7 +1,6 @@
 local MiniTest = require('mini.test')
 local new_set = MiniTest.new_set
 local eq = MiniTest.expect.equality
-local helpers = require('tests/helpers')
 local create_md_buffer = require('tests/helpers').create_md_buffer
 
 -- Create (but not start) child Neovim object
@@ -241,13 +240,28 @@ T['generate()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
+    local ret = child.lua([[
+    local cur_buf = vim.api.nvim_get_current_buf()
+    require('mdnotes.toc').populate_buf_fragments(cur_buf)
+    return require('mdnotes.toc').generate(false)
+    ]])
+    eq(ret, {"- [Heading 1](#heading-1)", "    - [Heading 2](#heading-2)"})
+
     child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     require('mdnotes.toc').populate_buf_fragments(cur_buf)
     require('mdnotes.toc').generate()
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines, { "- [Heading 1](#heading-1)", "    - [Heading 2](#heading-2)", "# Heading 1", "Text here", "", "## Heading 2", "Text here" })
+    eq(lines, {
+        "- [Heading 1](#heading-1)",
+        "    - [Heading 2](#heading-2)",
+        "# Heading 1",
+        "Text here",
+        "",
+        "## Heading 2",
+        "Text here"
+    })
 end
 
 return T
