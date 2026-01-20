@@ -26,86 +26,147 @@ local T = new_set({
 
 T['emphasis'] = function()
     -- Setup test buffer
-    local lines = {"emphasis"}
+    local lines = {"emphasis emphasis"}
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "*emphasis*")
+    eq(lines[1], "*emphasis* emphasis")
     eq(child.fn.getcurpos()[3], 2)
+
+    child.fn.cursor(1, 12)
+    child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "*emphasis* *emphasis*")
+    eq(child.fn.getcurpos()[3], 13)
 
     child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "emphasis")
+    eq(lines[1], "*emphasis* emphasis")
+    eq(child.fn.getcurpos()[3], 12)
+
+    child.fn.cursor(1, 2)
+    child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "emphasis emphasis")
     eq(child.fn.getcurpos()[3], 1)
 end
 
 T['strong'] = function()
     -- Setup test buffer
-    local lines = {"strong"}
+    local lines = {"strong strong"}
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').strong_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "**strong**")
+    eq(lines[1], "**strong** strong")
     eq(child.fn.getcurpos()[3], 3)
 
+    child.fn.cursor(1, 12)
     child.lua([[require('mdnotes.formatting').strong_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "strong")
+    eq(lines[1], "**strong** **strong**")
+    eq(child.fn.getcurpos()[3], 14)
+
+    child.fn.cursor(1, 14)
+    child.lua([[require('mdnotes.formatting').strong_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "**strong** strong")
+    eq(child.fn.getcurpos()[3], 12)
+
+    child.fn.cursor(3, 3)
+    child.lua([[require('mdnotes.formatting').strong_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "strong strong")
     eq(child.fn.getcurpos()[3], 1)
 end
 
 T['strikethrough'] = function()
     -- Setup test buffer
-    local lines = {"strikethrough"}
+    local lines = {"strikethrough strikethrough"}
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "~~strikethrough~~")
+    eq(lines[1], "~~strikethrough~~ strikethrough")
     eq(child.fn.getcurpos()[3], 3)
+
+    child.fn.cursor(1, 21)
+    child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "~~strikethrough~~ ~~strikethrough~~")
+    eq(child.fn.getcurpos()[3], 23)
 
     child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "strikethrough")
+    eq(lines[1], "~~strikethrough~~ strikethrough")
+    eq(child.fn.getcurpos()[3], 21)
+
+    child.fn.cursor(1, 3)
+    child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "strikethrough strikethrough")
     eq(child.fn.getcurpos()[3], 1)
 end
 
 T['inline_code'] = function()
     -- Setup test buffer
-    local lines = {"inline_code"}
+    local lines = {"inline_code inline_code"}
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "`inline_code`")
+    eq(lines[1], "`inline_code` inline_code")
     eq(child.fn.getcurpos()[3], 2)
+
+    child.fn.cursor(1, 15)
+    child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "`inline_code` `inline_code`")
+    eq(child.fn.getcurpos()[3], 16)
 
     child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "inline_code")
+    eq(lines[1], "`inline_code` inline_code")
+    eq(child.fn.getcurpos()[3], 15)
+
+    child.fn.cursor(1, 2)
+    child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "inline_code inline_code")
     eq(child.fn.getcurpos()[3], 1)
 end
 
 T['autolink'] = function()
     -- Setup test buffer
-    local lines = {"autolink"}
+    local lines = {"autolink autolink"}
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[require('mdnotes.formatting').autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "<autolink>")
+    eq(lines[1], "<autolink> autolink")
     eq(child.fn.getcurpos()[3], 2)
+
+    child.fn.cursor(1, 12)
+    child.lua([[require('mdnotes.formatting').autolink_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "<autolink> <autolink>")
+    eq(child.fn.getcurpos()[3], 13)
 
     child.lua([[require('mdnotes.formatting').autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "autolink")
+    eq(lines[1], "<autolink> autolink")
+    eq(child.fn.getcurpos()[3], 12)
+
+    child.fn.cursor(1, 2)
+    child.lua([[require('mdnotes.formatting').autolink_toggle()]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "autolink autolink")
     eq(child.fn.getcurpos()[3], 1)
 end
 
