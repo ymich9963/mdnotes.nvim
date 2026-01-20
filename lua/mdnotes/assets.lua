@@ -6,7 +6,7 @@ local uv = vim.loop or vim.uv
 ---Check if assets path is available and if it exists
 function M.check_assets_path()
     local mdnotes_config_assets_path = require('mdnotes').config.assets_path
-    if mdnotes_config_assets_path == "" or not mdnotes_config_assets_path then
+    if mdnotes_config_assets_path == "" or mdnotes_config_assets_path == nil then
         vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
         return false
     end
@@ -33,7 +33,7 @@ end
 local function insert_file(is_image)
     if not M.check_assets_path() then return end
 
-    if not is_image then is_image = false end
+    if is_image == nil then is_image = false end
 
     -- Get the file paths as a table
     local cmd_stdout = ""
@@ -133,7 +133,7 @@ end
 ---@param silent boolean? Silent output to cmdline
 ---@return table<string>
 local function get_used_assets(silent)
-    if not silent then silent = false end
+    if silent == nil then silent = false end
     local mdnotes_config = require('mdnotes').config
     local uri = ""
     local used_assets = {}
@@ -208,9 +208,9 @@ local function move_delete(move_or_delete)
     vim.notify(("Mdn: Starting %s assets process..."):format(text1), vim.log.levels.INFO)
 
     for name, _ in vim.fs.dir(mdnotes_config.assets_path) do
-        if cancel then break end
-        if not vim.tbl_contains(used_assets, name) then
-            if not all then
+        if cancel == true then break end
+        if vim.tbl_contains(used_assets, name) == false then
+            if all == false then
                 vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to %s file(s) or 'c' to cancel (default 'n'): "):format(name, text1), }, function(input)
                     vim.cmd.redraw()
                     if input == 'y' then
@@ -263,7 +263,7 @@ function M.download_website_html()
     local filepath = ""
     local res = nil
 
-    if not uri then return end
+    if uri == nil then return end
 
     if not vim.tbl_contains(uri_website_tbl, uri:match("%w+")) then
         vim.notify("Mdn: Detected inline link does not contain website link", vim.log.levels.ERROR)

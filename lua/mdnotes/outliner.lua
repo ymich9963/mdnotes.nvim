@@ -41,12 +41,12 @@ end
 ---@param line string?
 ---@return integer
 local function get_indent(line)
-    if not line then line = vim.api.nvim_get_current_line() end
+    if line == nil then line = vim.api.nvim_get_current_line() end
 
     local mdnotes_patterns = require('mdnotes.patterns')
 
     local ul_indent, ul_marker, _ = line:match(mdnotes_patterns.unordered_list)
-    if not ul_marker and not ul_indent then return -1 end
+    if ul_marker == nil and ul_indent == nil then return -1 end
 
     local _, indent_lvl = ul_indent:gsub("%s", "")
 

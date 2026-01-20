@@ -71,8 +71,8 @@ end
 ---@param startl integer?
 ---@param endl integer?
 function M.write_table(contents, startl, endl)
-    if not startl then startl = vim.fn.line('.') end
-    if not endl then endl = vim.fn.line('.') end
+    if startl == nil then startl = vim.fn.line('.') end
+    if endl == nil then endl = vim.fn.line('.') end
     local table_formatted = {}
 
     -- Append a blank entry to have a | at the end
@@ -96,7 +96,7 @@ end
 ---@param r integer Rows
 ---@param c integer Columns
 function M.create(r, c)
-    if not r and not c then
+    if r == nil or c == nil then
         vim.notify(("Mdn: Please specify both row and column dimensions"), vim.log.levels.ERROR)
         return
     end
@@ -154,10 +154,10 @@ end
 ---@param silent boolean? Output errors
 ---@return MdnotesTableContents|nil, integer|nil, integer|nil
 function M.get_table(silent)
-    if not silent then silent = false end
+    if silent == nil then silent = false end
 
     local table_valid, startl, endl = M.check_valid_table()
-    if not table_valid or not startl or not endl then
+    if table_valid == false or startl == nil or endl == nil then
         if silent == false then
             vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
         end
@@ -182,7 +182,7 @@ end
 function M.get_column_locations()
     -- Fence post problem, all tables will have n+1 | characters with n being the text    
     local table_valid, startl, endl = M.check_valid_table()
-    if not table_valid or not startl or not endl then
+    if table_valid == false or startl == nil or endl == nil then
         vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
         return nil
     end
@@ -207,7 +207,7 @@ end
 function M.get_table_complex()
     local table_lines, startl, endl = M.get_table()
 
-    if not table_lines then
+    if table_lines == nil then
         -- Errors would already be outputted
         return
     end
@@ -237,7 +237,7 @@ end
 function M.get_cur_column()
     local table_lines_complex, _, _ = M.get_table_complex()
 
-    if not table_lines_complex then
+    if table_lines_complex == nil then
         -- Errors would already be outputted
         return
     end
@@ -261,13 +261,13 @@ end
 local function insert_column(direction)
     local cur_col = M.get_cur_column()
 
-    if not cur_col then
+    if cur_col == nil then
         return
     end
 
     local table_lines, startl, endl = M.get_table()
 
-    if not table_lines or not startl or not endl then
+    if table_lines == nil or startl == nil or endl == nil then
         -- Errors would already be outputted
         return
     end
@@ -303,7 +303,7 @@ end
 local function move_column(direction)
     local cur_col = M.get_cur_column()
 
-    if not cur_col then
+    if cur_col == nil then
         return
     end
 
@@ -316,7 +316,7 @@ local function move_column(direction)
 
     local table_lines, startl, endl = M.get_table()
 
-    if not table_lines or not startl or not endl then
+    if table_lines == nil or startl == nil or endl == nil then
         -- Errors would already be outputted
         return
     end
@@ -351,7 +351,7 @@ end
 local function insert_row(direction)
     local table_lines , startl, endl = M.get_table()
 
-    if not table_lines or not startl or not endl then
+    if table_lines == nil or startl == nil or endl == nil then
         -- Errors would already be outputted
         return
     end
@@ -392,7 +392,7 @@ end
 function M.best_fit(silent)
     local table_lines, startl, endl = M.get_table(silent)
 
-    if not table_lines then
+    if table_lines == nil then
         -- Errors would already be outputted
         return
     end
@@ -456,13 +456,13 @@ end
 function M.column_delete()
     local cur_col = M.get_cur_column()
 
-    if not cur_col then
+    if cur_col == nil then
         return
     end
 
     local table_lines, startl, endl = M.get_table()
 
-    if not table_lines then
+    if table_lines == nil then
         -- Errors would already be outputted
         return
     end
@@ -478,13 +478,13 @@ end
 function M.column_alignment_toggle()
     local cur_col = M.get_cur_column()
 
-    if not cur_col then
+    if cur_col == nil then
         return
     end
 
     local table_lines, startl, endl = M.get_table()
 
-    if not table_lines then
+    if table_lines == nil then
         -- Errors would already be outputted
         return
     end
@@ -519,13 +519,13 @@ end
 function M.column_duplicate()
     local cur_col = M.get_cur_column()
 
-    if not cur_col then
+    if cur_col == nil then
         return
     end
 
     local table_lines, startl, endl = M.get_table()
 
-    if not table_lines then
+    if table_lines == nil then
         -- Errors would already be outputted
         return
     end

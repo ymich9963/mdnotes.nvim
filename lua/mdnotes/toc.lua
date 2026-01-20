@@ -47,7 +47,7 @@ end
 ---@param bufnr integer?
 ---@return table<MdnotesFragment>
 function M.get_fragments_from_buf(bufnr)
-    if not bufnr then bufnr = 0 end
+    if bufnr == nil then bufnr = 0 end
     local fragments = {}
     local buf_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
     local heading_format_pattern = require('mdnotes.patterns').heading
@@ -111,7 +111,10 @@ function M.parse_fragments_to_gfm_style(fragments)
 end
 
 ---Generate Table of Contents (ToC)
-function M.generate()
+---@param write_to_buf boolean? Whether to insert the resulting text or not
+---@return table<string>|nil toc
+function M.generate(write_to_buf)
+    if write_to_buf == nil then write_to_buf = true end
     if vim.bo.filetype ~= "markdown" then
         vim.notify(("Mdn: Cannot generate a ToC for a non-Markdown file."), vim.log.levels.ERROR)
         return
@@ -131,7 +134,7 @@ function M.generate()
         end
     end
 
-    if not found then
+    if found == false then
         vim.notify(("Mdn: Parsed fragments for current buffer not found."), vim.log.levels.ERROR)
         return
     end
@@ -141,7 +144,15 @@ function M.generate()
         local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
         table.insert(toc, ("%s- [%s](#%s)"):format(spaces, fragments[i].text, gfm_fragments[i]))
     end
-    vim.api.nvim_put(toc, "l", false, false)
+
+    if write_to_buf == true then
+        vim.print("true")
+        vim.api.nvim_put(toc, "l", false, false)
+        return nil
+    elseif write_to_buf == false then
+        vim.print("false")
+        return toc
+    end
 end
 
 return M

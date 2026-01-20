@@ -117,7 +117,7 @@ end
 ---@param format_char MdnotesFormatIndicators
 ---@param split boolean? Should the inputted format indicator be separated
 local function insert_format(format_char, split)
-    if not split then split = false end
+    if split == nil then split = false end
     local line = vim.api.nvim_get_current_line()
     local selected_text, col_start, col_end = M.get_selected_text()
     local fi1 = format_char
@@ -226,8 +226,8 @@ end
 ---@param line1 integer First line of selection
 ---@param line2 integer Last line of selection
 function M.task_list_toggle(line1, line2)
-    if not line1 then line1 = vim.fn.line('.') end
-    if not line2 then line2 = vim.fn.line('.') end
+    if line1 == nil then line1 = vim.fn.line('.') end
+    if line2 == nil then line2 = vim.fn.line('.') end
 
     local mdnotes_patterns = require('mdnotes.patterns')
     local lines = {}
@@ -255,7 +255,7 @@ function M.task_list_toggle(line1, line2)
                 new_text, _ = line:gsub(mdnotes_patterns.task, " ", 1)
             elseif task_marker == "[ ]" then
                 new_text, _ = line:gsub(mdnotes_patterns.task, " [x] ", 1)
-            elseif not task_marker then
+            elseif task_marker == nil then
                 new_text = line:gsub(marker, marker .. " [ ]", 1)
             end
             table.insert(new_lines, new_text)
@@ -271,7 +271,7 @@ end
 ---Renumber the ordered list
 ---@param silent boolean? Output error message or not
 function M.ordered_list_renumber(silent)
-    if not silent then silent = false end
+    if silent == nil then silent = false end
     local cur_line = vim.api.nvim_get_current_line()
     local cur_lnum = vim.fn.line('.')
     local ordered_list_pattern = require('mdnotes.patterns').ordered_list
@@ -283,7 +283,7 @@ function M.ordered_list_renumber(silent)
     local list_endl = 0
 
 
-    if not num or not separator then
+    if num == nil or separator == nil then
         if silent == true then
             return nil
         else
@@ -332,8 +332,8 @@ end
 ---@param line1 number First line of selection
 ---@param line2 number Last line of selection
 function M.unformat_lines(line1, line2)
-    if not line1 then line1 = vim.fn.line('.') end
-    if not line2 then line2 = vim.fn.line('.') end
+    if line1 == nil then line1 = vim.fn.line('.') end
+    if line2 == nil then line2 = vim.fn.line('.') end
 
     local mdnotes_patterns = require('mdnotes.patterns')
     local lines = {}

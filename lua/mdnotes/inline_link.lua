@@ -34,9 +34,9 @@ end
 ---@param ignore_fragment boolean? Set to ignore the fragment check
 ---@return nil
 function M.validate(internal_call, norm, ignore_fragment)
-    if not internal_call then internal_call = false end
-    if not norm then norm = false end
-    if not ignore_fragment then ignore_fragment = false end
+    if internal_call == nil then internal_call = false end
+    if norm == nil then norm = false end
+    if ignore_fragment == nil then ignore_fragment = false end
 
     local check_md_format = require('mdnotes.formatting').check_md_format
 
@@ -143,7 +143,7 @@ function M.delete()
     local _, text, uri, _, _, col_start, col_end = unpack(validate_tbl)
     local line = vim.api.nvim_get_current_line()
 
-    if not text or not uri then return end
+    if text == nil or uri == nil then return end
 
     -- Create a new modified line with link
     local new_line = line:sub(1, col_start - 1) .. text .. line:sub(col_end)
@@ -173,7 +173,7 @@ local function rename_relink(rename_or_relink)
     local line = vim.api.nvim_get_current_line()
     local args = {}
 
-    if not text or not uri then return end
+    if text == nil or uri == nil then return end
 
     if rename_or_relink == "rename" then
         args.prompt = "Rename link text: "
@@ -219,7 +219,7 @@ function M.normalize()
     local new_line = ""
     local line = vim.api.nvim_get_current_line()
 
-    if not text or not uri then return end
+    if text == nil or uri == nil then return end
 
     new_uri = vim.fs.normalize(uri)
     if new_uri:match("%s") then
@@ -242,7 +242,7 @@ function M.convert_fragment_to_gfm()
     local line = vim.api.nvim_get_current_line()
     local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
 
-    if not text or not uri then return end
+    if text == nil or uri == nil then return end
 
     -- Remove any < or > from uri
     uri = uri:gsub("[<>]?", "")

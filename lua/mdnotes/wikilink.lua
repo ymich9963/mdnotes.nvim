@@ -288,7 +288,7 @@ end
 ---@param print boolean? Whether to print to cmdline or not
 ---@return table<string> orphans Table of orphan pages
 function M.show_orphans(print)
-    if not print then print = true end
+    if print == nil then print = true end
     local orphans = {}
     local tempqf_list = vim.fn.getqflist()
     local count = 0
