@@ -9,5 +9,5 @@ if #vim.api.nvim_list_uis() == 0 then
     vim.cmd('set rtp+=' .. mini_path)
 
     -- Set up 'mini.test'
-    require('mini.test').setup()
+    require('mini.test').setup({ execute = { stop_on_error = true, }, })
 end
