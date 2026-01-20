@@ -45,14 +45,31 @@ local md_format = {
     },
 }
 
+---Checks if the current character is an indicator
+local function is_indicator(line, cur_col)
+    local check_text = line:sub(cur_col - 1, cur_col + 1)
+
+    if check_text:sub(2,2):match("[*_<>`~]") and (check_text:sub(1,1):match("[*_<>`~%s]") or check_text:sub(3,3):match("[*_<>`~%s]")) then
+        return true
+    end
+
+    return false
+end
+
 ---Check current line position for text in a Markdown format
 ---@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
+---@return boolean|nil
 function M.check_md_format(pattern)
     local line = vim.api.nvim_get_current_line()
-    local current_col = vim.fn.col('.')
+    local cur_col = vim.fn.col('.')
+
+    if is_indicator(line, cur_col) == true then
+        vim.notify("Mdn: Place your cursor over text and not format indicators", vim.log.levels.WARN)
+        return nil
+    end
 
     for start_pos, _, end_pos in line:gmatch(pattern) do
-        if start_pos < current_col and end_pos > current_col then
+        if start_pos < cur_col and end_pos > cur_col then
             return true
         end
     end
@@ -72,16 +89,17 @@ function M.get_selected_text()
     -- This would happen when executing in NORMAL mode
     if current_col ~= col_start then
         -- Get the word under cursor and cursor position
-        selected_text = vim.fn.expand("<cword>")
+        selected_text = vim.fn.expand("<cWORD>")
 
         -- Search for the word in the line and check if it's under the cursor
-        for start_pos, end_pos in line:gmatch("()" .. selected_text .. "()") do
-            start_pos = vim.fn.str2nr(start_pos)
-            end_pos = vim.fn.str2nr(end_pos)
-            if start_pos <= current_col and end_pos > current_col then
-                col_start = start_pos
-                col_end = end_pos - 1
-                break
+        for i = 1, #line do
+            local start_pos, end_pos = line:find(selected_text, i)
+            if start_pos and end_pos then
+                if start_pos <= current_col and end_pos >= current_col then
+                    col_start = start_pos
+                    col_end = end_pos
+                    break
+                end
             end
         end
     end
@@ -102,7 +120,7 @@ function M.get_text_in_pattern_under_cursor(pattern)
     for start_pos, text, end_pos in line:gmatch(pattern) do
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
-        if start_pos < current_col and end_pos > current_col then
+        if start_pos <= current_col and end_pos > current_col then
             found_text = text
             col_start = start_pos
             col_end = end_pos
@@ -158,47 +176,52 @@ local function delete_format(pattern)
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), vim.fn.getcurpos()[3] - char_count_change_bef_cursor - 1})
 end
 
----Toggle the strong Markdown formatting
-function M.strong_toggle()
-    if M.check_md_format(md_format.strong.pattern()) == true then
-        delete_format(md_format.strong.pattern())
-    else
-        insert_format(md_format.strong.indicator())
+---Toggle the emphasis Markdown formatting
+function M.emphasis_toggle()
+    local ret = M.check_md_format(md_format.emphasis.pattern())
+    if ret == true then
+        delete_format(md_format.emphasis.pattern())
+    elseif ret == false then
+        insert_format(md_format.emphasis.indicator())
     end
 end
 
----Toggle the emphasis Markdown formatting
-function M.emphasis_toggle()
-    if M.check_md_format(md_format.emphasis.pattern()) == true then
-        delete_format(md_format.emphasis.pattern())
-    else
-        insert_format(md_format.emphasis.indicator())
+---Toggle the strong Markdown formatting
+function M.strong_toggle()
+    local ret = M.check_md_format(md_format.strong.pattern())
+    if ret == true then
+        delete_format(md_format.strong.pattern())
+    elseif ret == false then
+        insert_format(md_format.strong.indicator())
     end
 end
 
 ---Toggle the strikethrough Markdown formatting
 function M.strikethrough_toggle()
-    if M.check_md_format(md_format.strikethrough.pattern()) == true then
+    local ret = M.check_md_format(md_format.strikethrough.pattern())
+    if ret == true then
         delete_format(md_format.strikethrough.pattern())
-    else
+    elseif ret == false then
         insert_format(md_format.strikethrough.indicator())
     end
 end
 
 ---Toggle the inline code Markdown formatting
 function M.inline_code_toggle()
-    if M.check_md_format(md_format.inline_code.pattern()) == true then
+    local ret = M.check_md_format(md_format.inline_code.pattern())
+    if ret == true then
         delete_format(md_format.inline_code.pattern())
-    else
+    elseif ret == false then
         insert_format(md_format.inline_code.indicator())
     end
 end
 
 ---Toggle the autolink Markdown formatting
 function M.autolink_toggle()
-    if M.check_md_format(md_format.autolink.pattern()) == true then
+    local ret = M.check_md_format(md_format.autolink.pattern())
+    if ret == true then
         delete_format(md_format.autolink.pattern())
-    else
+    elseif ret == false then
         insert_format(md_format.autolink.indicator(), true)
     end
 end
