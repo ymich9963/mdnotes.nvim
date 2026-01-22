@@ -6,7 +6,7 @@ URL
 [link](https://github.com/ymich9963/mdnotes.nvim)
 
 File
-[link](../../README.md)
+[link](../../README.md )
 
 File with GFM fragment
 [link](../../README.md#-introduction)

@@ -91,6 +91,43 @@ function M.setup(user_config)
     end
 end
 
+---Open inline links
+function M.open()
+    local _, _, uri, _, _ = M.get_il_data()
+    if uri == nil then return end
+
+    local path = M.get_path_from_uri(uri)
+    if path == nil then return end
+
+    local fragment = M.get_fragment_from_uri(uri)
+    if fragment == nil then return end
+
+    -- Fix bug when opening link that's not saved
+    -- Unsure if undesired but I think makes sense
+    vim.cmd("silent w")
+
+    -- Check if the file exists and is a Markdown file
+    if uv.fs_stat(path) and path:sub(-3) == ".md" then
+        vim.cmd(M.open_cmd .. path)
+        if fragment ~= "" then
+            -- Navigate to fragment
+            fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
+            vim.fn.cursor(vim.fn.search("# " .. fragment), 1)
+            vim.api.nvim_input('zz')
+        end
+
+        return
+    end
+
+    -- If nothing has happened so far then just open it
+    -- This if-statement should be removed in Neovim 0.12
+    if vim.fn.has("win32") == 1 then
+        vim.system({'cmd.exe', '/c', 'start', '', uri})
+    else
+        vim.ui.open(uri)
+    end
+end
+
 ---Get the list item's indent level and indicator. Also increment when using ordered lists
 ---@param inc_val integer Value to increment the list item by
 ---@return string indent, string list_indicator Indent of the list item and the corresponding list indicator
@@ -164,39 +201,6 @@ function M.new_line_remap(key, expr_set)
         vim.cmd.startinsert()
     else
         vim.api.nvim_input("$i ")
-    end
-end
-
----Open inline links
-function M.open()
-    local validate_tbl = require('mdnotes.inline_link').validate(true) or {}
-    local _, _, uri, path, fragment, _, _ = unpack(validate_tbl)
-
-    if uri == nil or path == nil or fragment == nil then return end
-
-    -- Fix bug when opening link that's not saved
-    -- Unsure if undesired but I think makes sense
-    vim.cmd("silent w")
-
-    -- Check if the file exists
-    if uv.fs_stat(path) then
-        vim.cmd(M.open_cmd .. path)
-        if fragment and fragment ~= "" then
-            -- Navigate to fragment
-            fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
-            vim.fn.cursor(vim.fn.search("# " .. fragment), 1)
-            vim.api.nvim_input('zz')
-        end
-
-        return
-    end
-
-    -- If nothing has happened so far then just open it
-    -- This if-statement should be removed in Neovim 0.12
-    if vim.fn.has("win32") == 1 then
-        vim.system({'cmd.exe', '/c', 'start', '', uri})
-    else
-        vim.ui.open(uri)
     end
 end
 

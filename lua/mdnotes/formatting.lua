@@ -45,31 +45,15 @@ local md_format = {
     },
 }
 
----Checks if the current character is an indicator
-local function is_indicator(line, cur_col)
-    local check_text = line:sub(cur_col - 1, cur_col + 1)
-
-    if check_text:sub(2,2):match("[*_<>`~]") and (check_text:sub(1,1):match("[*_<>`~%s]") or check_text:sub(3,3):match("[*_<>`~%s]")) then
-        return true
-    end
-
-    return false
-end
-
 ---Check current line position for text in a Markdown format
 ---@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
 ---@return boolean|nil
-function M.check_md_format(pattern)
+function M.check_md_format_under_cursor(pattern)
     local line = vim.api.nvim_get_current_line()
     local cur_col = vim.fn.col('.')
 
-    if is_indicator(line, cur_col) == true then
-        vim.notify("Mdn: Place your cursor over text and not format indicators", vim.log.levels.WARN)
-        return nil
-    end
-
     for start_pos, _, end_pos in line:gmatch(pattern) do
-        if start_pos < cur_col and end_pos > cur_col then
+        if start_pos <= cur_col and end_pos > cur_col then
             return true
         end
     end
@@ -170,15 +154,18 @@ local function delete_format(pattern)
     -- Find the character count change before the cursor
     -- since only those characters change its position
     local char_count_change_bef_cursor = (#line - #new_line) / 2
+    local new_col_pos = vim.fn.getcurpos()[3] - char_count_change_bef_cursor - 1
+
+    if new_col_pos < 0 then new_col_pos = 0 end
 
     -- Set the line and cursor position
     vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), vim.fn.getcurpos()[3] - char_count_change_bef_cursor - 1})
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), new_col_pos})
 end
 
 ---Toggle the emphasis Markdown formatting
 function M.emphasis_toggle()
-    local ret = M.check_md_format(md_format.emphasis.pattern())
+    local ret = M.check_md_format_under_cursor(md_format.emphasis.pattern())
     if ret == true then
         delete_format(md_format.emphasis.pattern())
     elseif ret == false then
@@ -188,7 +175,7 @@ end
 
 ---Toggle the strong Markdown formatting
 function M.strong_toggle()
-    local ret = M.check_md_format(md_format.strong.pattern())
+    local ret = M.check_md_format_under_cursor(md_format.strong.pattern())
     if ret == true then
         delete_format(md_format.strong.pattern())
     elseif ret == false then
@@ -198,7 +185,7 @@ end
 
 ---Toggle the strikethrough Markdown formatting
 function M.strikethrough_toggle()
-    local ret = M.check_md_format(md_format.strikethrough.pattern())
+    local ret = M.check_md_format_under_cursor(md_format.strikethrough.pattern())
     if ret == true then
         delete_format(md_format.strikethrough.pattern())
     elseif ret == false then
@@ -208,7 +195,7 @@ end
 
 ---Toggle the inline code Markdown formatting
 function M.inline_code_toggle()
-    local ret = M.check_md_format(md_format.inline_code.pattern())
+    local ret = M.check_md_format_under_cursor(md_format.inline_code.pattern())
     if ret == true then
         delete_format(md_format.inline_code.pattern())
     elseif ret == false then
@@ -218,7 +205,7 @@ end
 
 ---Toggle the autolink Markdown formatting
 function M.autolink_toggle()
-    local ret = M.check_md_format(md_format.autolink.pattern())
+    local ret = M.check_md_format_under_cursor(md_format.autolink.pattern())
     if ret == true then
         delete_format(md_format.autolink.pattern())
     elseif ret == false then

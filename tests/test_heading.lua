@@ -32,7 +32,7 @@ T['get_current_heading()'] = function()
         "## Heading 2",
         "Text here",
     }
-    local buf = create_md_buffer(child, lines)
+    create_md_buffer(child, lines)
 
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
