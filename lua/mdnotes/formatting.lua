@@ -229,7 +229,7 @@ end
 ---Resolve the list content
 ---@param line string Line containing list item
 ---@return string indent, string marker, string text List item contents that have been deemed important by me
-local function resolve_list_content(line)
+function M.resolve_list_content(line)
     local mdnotes_patterns = require('mdnotes.patterns')
 
     local ul_indent, ul_marker, ul_text = line:match(mdnotes_patterns.unordered_list)
@@ -264,7 +264,7 @@ function M.task_list_toggle(line1, line2)
     end
 
     for i, line in ipairs(lines) do
-        local _, marker, text = resolve_list_content(line)
+        local _, marker, text = M.resolve_list_content(line)
 
         if marker then
 

@@ -40,27 +40,24 @@ end
 ---Get the indent level of the current line
 ---@param line string?
 ---@return integer
-local function get_indent(line)
+function M.get_indent(line)
     if line == nil then line = vim.api.nvim_get_current_line() end
 
-    local mdnotes_patterns = require('mdnotes.patterns')
+    local indent, _, _ = require('mdnotes.formatting').resolve_list_content(line)
 
-    local ul_indent, ul_marker, _ = line:match(mdnotes_patterns.unordered_list)
-    if ul_marker == nil and ul_indent == nil then return -1 end
+    local _, indent_lvl = indent:gsub("%s", "")
 
-    local _, indent_lvl = ul_indent:gsub("%s", "")
-
-    return indent_lvl
+    return indent_lvl or 0
 end
 
 ---Get the items of the list under the cursor
-local function get_list_items()
+function M.get_cur_list_items()
     local buf_lines = vim.api.nvim_buf_get_lines(0, vim.fn.line('.') - 1, -1, false)
-    local line_indent_lvl = get_indent()
+    local line_indent_lvl = M.get_indent()
     local list_lines = {}
 
     for i, line in ipairs(buf_lines) do
-        local cur_indent_lvl = get_indent(line)
+        local cur_indent_lvl = M.get_indent(line)
         if cur_indent_lvl == line_indent_lvl and i > 1 then break end
         if cur_indent_lvl >= line_indent_lvl then
             table.insert(list_lines, line)
@@ -72,7 +69,7 @@ end
 
 ---Indent the current parent-child list
 function M.indent()
-    local lines = get_list_items()
+    local lines = M.get_cur_list_items()
     local cur_lnum = vim.fn.line('.') - 1
     local cur_col = vim.fn.col('.')
     local new_lines = {}
@@ -87,7 +84,7 @@ end
 
 ---Unindent the current parent-child list
 function M.unindent()
-    local lines = get_list_items()
+    local lines = M.get_cur_list_items()
     local cur_lnum = vim.fn.line('.') - 1
     local cur_col = vim.fn.col('.')
     local new_lines = {}
@@ -98,8 +95,12 @@ function M.unindent()
         table.insert(new_lines, line:sub(vim.o.shiftwidth + 1))
     end
 
+    -- If indenting from a column close to the start
+    local new_col = cur_col - vim.o.shiftwidth - 1
+    if new_col < 1 then new_col = 1 end
+
     vim.api.nvim_buf_set_lines(0, cur_lnum, cur_lnum + #new_lines, false, new_lines)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), cur_col - vim.o.shiftwidth - 1})
+    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), new_col})
 end
 
 return M
