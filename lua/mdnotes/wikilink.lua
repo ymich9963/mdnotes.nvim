@@ -264,9 +264,6 @@ function M.normalize()
     local wikilink, _, _, col_start, col_end = get_wikilink()
 
     new_wikilink = vim.fs.normalize(wikilink)
-    if new_wikilink:match("%s") then
-        new_wikilink = "<" .. new_wikilink .. ">"
-    end
 
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {'[[' .. new_wikilink .. ']]'})
