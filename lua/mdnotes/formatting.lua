@@ -120,7 +120,7 @@ end
 ---@param split boolean? Should the inputted format indicator be separated
 local function insert_format(format_char, split)
     if split == nil then split = false end
-    local line = vim.api.nvim_get_current_line()
+    local lnum = vim.fn.line('.')
     local selected_text, col_start, col_end = M.get_selected_text()
     local fi1 = format_char
     local fi2 = format_char
@@ -135,32 +135,31 @@ local function insert_format(format_char, split)
     end
 
     -- Create a new modified line
-    local new_line = line:sub(1, col_start - 1) .. fi1 .. selected_text .. fi2 .. line:sub(col_end + 1)
+    -- local new_line = line:sub(1, col_start - 1) .. fi1 .. selected_text .. fi2 .. line:sub(col_end + 1)
 
     -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), vim.fn.getcurpos()[3] + #fi1 - 1})
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {fi1 .. selected_text .. fi2})
+    vim.fn.cursor({lnum, vim.fn.getcurpos()[3] + #fi1 - 1})
 end
 
 ---Check current line position for text in a Markdown format
 ---@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
 local function delete_format(pattern)
     local line = vim.api.nvim_get_current_line()
+    local lnum = vim.fn.line('.')
     local found_text, col_start, col_end = M.get_text_in_pattern_under_cursor(pattern)
-
-    -- Create a new modified line with link
-    local new_line = line:sub(1, col_start - 1) .. found_text .. line:sub(col_end)
 
     -- Find the character count change before the cursor
     -- since only those characters change its position
+    local new_line = line:sub(1, col_start - 1) .. found_text .. line:sub(col_end)
     local char_count_change_bef_cursor = (#line - #new_line) / 2
     local new_col_pos = vim.fn.getcurpos()[3] - char_count_change_bef_cursor - 1
 
     if new_col_pos < 0 then new_col_pos = 0 end
 
     -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), new_col_pos})
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {found_text})
+    vim.fn.cursor({lnum, new_col_pos})
 end
 
 ---Toggle the emphasis Markdown formatting

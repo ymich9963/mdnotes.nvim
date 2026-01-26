@@ -213,23 +213,21 @@ end
 
 ---Create a WikiLink from the word under the cursor
 function M.create()
-    local line = vim.api.nvim_get_current_line()
     local selected_text, col_start, col_end = require('mdnotes.formatting').get_selected_text()
-
-    -- Create a new modified line with link
-    local new_line = line:sub(1, col_start - 1) .. '[[' .. selected_text .. ']]' .. line:sub(col_end + 1)
+    local lnum = vim.fn.line('.')
+    local cur_col = vim.fn.col('.')
 
     -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {'[[' .. selected_text .. ']]'})
+    vim.fn.cursor({lnum, cur_col + 2})
 end
 
 ---Delete the current WikiLink and the associated file
 function M.delete()
     local found_file = ""
     local _, wikilink, _, col_start, col_end = get_wikilink()
-    local line = vim.api.nvim_get_current_line()
-    local file_removed = false
+    local lnum = vim.fn.line('.')
+    local cur_col = vim.fn.col('.')
 
     -- Append .md to guarantee a file name
     if wikilink:sub(-3) ~= ".md" then
@@ -243,7 +241,6 @@ function M.delete()
             vim.cmd.redraw()
             if input == 'y' then
                 vim.fs.rm(found_file)
-                file_removed = true
             elseif input == 'n' or '' then
                 vim.notify("Mdn: Did not delete WikiLink file", vim.log.levels.WARN)
             else
@@ -255,20 +252,14 @@ function M.delete()
         vim.notify("Mdn: WikiLink file not found so proceeding to remove text only", vim.log.levels.WARN)
     end
 
-
-    if file_removed == true then
-        local new_line = line:sub(1, col_start - 1) .. wikilink .. line:sub(col_end)
-
-        -- Set the line and cursor position
-        vim.api.nvim_set_current_line(new_line)
-        vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end})
-    end
+    -- Set the line and cursor position
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {wikilink})
+    vim.fn.cursor({lnum, cur_col - 2})
 end
 
 ---Normalize the WikiLink under the cursor
 function M.normalize()
-    local line = vim.api.nvim_get_current_line()
-    local new_line = ""
+    local lnum = vim.fn.line('.')
     local new_wikilink = ""
     local wikilink, _, _, col_start, col_end = get_wikilink()
 
@@ -277,11 +268,9 @@ function M.normalize()
         new_wikilink = "<" .. new_wikilink .. ">"
     end
 
-    new_line = line:sub(1, col_start - 1) .. '[[' .. new_wikilink .. ']]' .. line:sub(col_end + 1)
-
     -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {'[[' .. new_wikilink .. ']]'})
+    vim.fn.cursor({lnum, col_start})
 end
 
 ---Show any orphan pages in the current directory

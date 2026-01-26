@@ -160,31 +160,24 @@ function M.insert(uri)
         return
     end
 
-    local line = vim.api.nvim_get_current_line()
-    local selected_text, col_start, col_end = require('mdnotes.formatting').get_selected_text()
-
-    -- Create a new modified line with link
-    local new_line = line:sub(1, col_start - 1) .. '[' .. selected_text .. '](' .. uri .. ')' .. line:sub(col_end + 1)
     local cur_col = vim.fn.col('.')
+    local selected_text, col_start, col_end = require('mdnotes.formatting').get_selected_text()
+    local lnum = vim.fn.line('.')
 
     -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), cur_col + 1})
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {'[' .. selected_text .. '](' .. uri .. ')'})
+    vim.fn.cursor({lnum, cur_col + 1})
 end
 
 --Delete Markdown inline link and leave the text
 function M.delete()
     local _, text, uri, col_start, col_end = require('mdnotes.inline_link').get_il_data()
-    local line = vim.api.nvim_get_current_line()
+    local lnum = vim.fn.line('.')
 
     if text == nil or uri == nil then return end
 
-    -- Create a new modified line with link
-    local new_line = line:sub(1, col_start - 1) .. text .. line:sub(col_end)
-
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start - 1})
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {text})
+    vim.fn.cursor({vim.fn.line('.'), col_start - 1})
 end
 
 ---Toggle inserting and deleting inline links
@@ -203,8 +196,7 @@ end
 local function rename_relink(mode, new_text)
     local img_char, link_text, uri, col_start, col_end = require('mdnotes.inline_link').get_il_data(nil, true)
     local user_input = ""
-    local new_line = ""
-    local line = vim.api.nvim_get_current_line()
+    local lnum = vim.fn.line('.')
     local args = {}
 
     if link_text == nil or uri == nil then return end
@@ -229,14 +221,12 @@ local function rename_relink(mode, new_text)
     end
 
     if mode == "rename" then
-        new_line = line:sub(1, col_start - 1) .. img_char .. '[' .. user_input .. '](' .. uri .. ')' .. line:sub(col_end)
+        vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {img_char .. '[' .. user_input .. '](' .. uri .. ')'})
     elseif mode == "relink" then
-        new_line = line:sub(1, col_start - 1) .. img_char .. '[' .. link_text .. '](' .. user_input .. ')' .. line:sub(col_end)
+        vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {img_char .. '[' .. link_text .. '](' .. user_input .. ')'})
     end
 
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start})
+    vim.fn.cursor({lnum, col_start})
 end
 
 ---Relink inline link
@@ -255,8 +245,7 @@ end
 function M.normalize()
     local img_char, text, uri, col_start, col_end = require('mdnotes.inline_link').get_il_data(nil, true)
     local new_uri = ""
-    local new_line = ""
-    local line = vim.api.nvim_get_current_line()
+    local lnum = vim.fn.line('.')
 
     if text == nil or uri == nil then return end
 
@@ -265,19 +254,15 @@ function M.normalize()
         new_uri = "<" .. new_uri .. ">"
     end
 
-    new_line = line:sub(1, col_start - 1) .. img_char .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end + 1)
-
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_end + 2})
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {img_char .. '[' .. text .. '](' .. new_uri .. ')'})
+    vim.fn.cursor({lnum, col_start})
 end
 
 ---Convert the fragment of the inline link under the cursor to GFM-style fragment
 function M.convert_fragment_to_gfm()
     local img_char, text, uri, col_start, col_end = require('mdnotes.inline_link').get_il_data(nil, true)
-    local new_line = ""
     local new_fragment = ""
-    local line = vim.api.nvim_get_current_line()
+    local lnum = vim.fn.line('.')
     local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
 
     if text == nil or uri == nil then return end
@@ -291,11 +276,8 @@ function M.convert_fragment_to_gfm()
     local hash_location = uri:find("#") or 1
     local new_uri = uri:sub(1, hash_location) .. new_fragment
 
-    new_line = line:sub(1, col_start - 1) .. img_char .. '[' .. text .. '](' .. new_uri .. ')' .. line:sub(col_end)
-
-    -- Set the line and cursor position
-    vim.api.nvim_set_current_line(new_line)
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), col_start})
+    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {img_char .. '[' .. text .. '](' .. new_uri .. ')'})
+    vim.fn.cursor({lnum, col_start})
 end
 
 function M.validate()
