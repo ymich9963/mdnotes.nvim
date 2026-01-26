@@ -138,8 +138,8 @@ local function insert_format(format_char, split)
     -- local new_line = line:sub(1, col_start - 1) .. fi1 .. selected_text .. fi2 .. line:sub(col_end + 1)
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {fi1 .. selected_text .. fi2})
-    vim.fn.cursor({lnum, vim.fn.getcurpos()[3] + #fi1 - 1})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end, {fi1 .. selected_text .. fi2})
+    vim.fn.cursor({lnum, vim.fn.getcurpos()[3] + #fi1})
 end
 
 ---Check current line position for text in a Markdown format
@@ -153,12 +153,12 @@ local function delete_format(pattern)
     -- since only those characters change its position
     local new_line = line:sub(1, col_start - 1) .. found_text .. line:sub(col_end)
     local char_count_change_bef_cursor = (#line - #new_line) / 2
-    local new_col_pos = vim.fn.getcurpos()[3] - char_count_change_bef_cursor - 1
+    local new_col_pos = vim.fn.getcurpos()[3] - char_count_change_bef_cursor
 
     if new_col_pos < 0 then new_col_pos = 0 end
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {found_text})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {found_text})
     vim.fn.cursor({lnum, new_col_pos})
 end
 

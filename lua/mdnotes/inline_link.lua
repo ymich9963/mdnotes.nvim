@@ -109,6 +109,42 @@ function M.get_fragment_from_uri(uri, check_valid)
     return fragment
 end
 
+---Open inline links
+---@return integer|vim.SystemObj|nil
+function M.open()
+    local _, _, uri, _, _ = M.get_il_data()
+    if uri == nil then return end
+
+    local path = M.get_path_from_uri(uri)
+    if path == nil then return end
+
+    local fragment = M.get_fragment_from_uri(uri)
+    if fragment == nil then return end
+
+    local open_cmd = require('mdnotes').open_cmd
+
+    -- Check if the file exists and is a Markdown file
+    if uv.fs_stat(path) and path:sub(-3) == ".md" then
+        vim.cmd(open_cmd .. path)
+        if fragment ~= "" then
+            -- Navigate to fragment
+            fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
+            vim.fn.cursor(vim.fn.search("# " .. fragment), 1)
+            vim.api.nvim_input('zz')
+        end
+
+        return vim.api.nvim_get_current_buf()
+    end
+
+    -- If nothing has happened so far then just open it
+    -- This if-statement should be removed in Neovim 0.12
+    if vim.fn.has("win32") == 1 then
+        return vim.system({'cmd.exe', '/c', 'start', '', uri})
+    else
+        return vim.ui.open(uri)
+    end
+end
+
 ---Check if inline link is an image
 ---@param inline_link string?
 ---@param text boolean? Return text instead of boolean
@@ -165,7 +201,7 @@ function M.insert(uri)
     local lnum = vim.fn.line('.')
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {'[' .. selected_text .. '](' .. uri .. ')'})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end, {'[' .. selected_text .. '](' .. uri .. ')'})
     vim.fn.cursor({lnum, cur_col + 1})
 end
 
@@ -176,7 +212,7 @@ function M.delete()
 
     if text == nil or uri == nil then return end
 
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {text})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {text})
     vim.fn.cursor({vim.fn.line('.'), col_start - 1})
 end
 
@@ -221,9 +257,9 @@ local function rename_relink(mode, new_text)
     end
 
     if mode == "rename" then
-        vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {img_char .. '[' .. user_input .. '](' .. uri .. ')'})
+        vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {img_char .. '[' .. user_input .. '](' .. uri .. ')'})
     elseif mode == "relink" then
-        vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {img_char .. '[' .. link_text .. '](' .. user_input .. ')'})
+        vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {img_char .. '[' .. link_text .. '](' .. user_input .. ')'})
     end
 
     vim.fn.cursor({lnum, col_start})
@@ -254,7 +290,7 @@ function M.normalize()
         new_uri = "<" .. new_uri .. ">"
     end
 
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {img_char .. '[' .. text .. '](' .. new_uri .. ')'})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {img_char .. '[' .. text .. '](' .. new_uri .. ')'})
     vim.fn.cursor({lnum, col_start})
 end
 
@@ -276,7 +312,7 @@ function M.convert_fragment_to_gfm()
     local hash_location = uri:find("#") or 1
     local new_uri = uri:sub(1, hash_location) .. new_fragment
 
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {img_char .. '[' .. text .. '](' .. new_uri .. ')'})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {img_char .. '[' .. text .. '](' .. new_uri .. ')'})
     vim.fn.cursor({lnum, col_start})
 end
 

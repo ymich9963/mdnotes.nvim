@@ -218,7 +218,7 @@ function M.create()
     local cur_col = vim.fn.col('.')
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {'[[' .. selected_text .. ']]'})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {'[[' .. selected_text .. ']]'})
     vim.fn.cursor({lnum, cur_col + 2})
 end
 
@@ -253,7 +253,7 @@ function M.delete()
     end
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {wikilink})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {wikilink})
     vim.fn.cursor({lnum, cur_col - 2})
 end
 
@@ -266,7 +266,7 @@ function M.normalize()
     new_wikilink = vim.fs.normalize(wikilink)
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum, col_start - 1, lnum, col_end - 1, {'[[' .. new_wikilink .. ']]'})
+    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {'[[' .. new_wikilink .. ']]'})
     vim.fn.cursor({lnum, col_start})
 end
 

@@ -91,43 +91,6 @@ function M.setup(user_config)
     end
 end
 
----Open inline links
-function M.open()
-    local _, _, uri, _, _ = M.get_il_data()
-    if uri == nil then return end
-
-    local path = M.get_path_from_uri(uri)
-    if path == nil then return end
-
-    local fragment = M.get_fragment_from_uri(uri)
-    if fragment == nil then return end
-
-    -- Fix bug when opening link that's not saved
-    -- Unsure if undesired but I think makes sense
-    vim.cmd("silent w")
-
-    -- Check if the file exists and is a Markdown file
-    if uv.fs_stat(path) and path:sub(-3) == ".md" then
-        vim.cmd(M.open_cmd .. path)
-        if fragment ~= "" then
-            -- Navigate to fragment
-            fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
-            vim.fn.cursor(vim.fn.search("# " .. fragment), 1)
-            vim.api.nvim_input('zz')
-        end
-
-        return
-    end
-
-    -- If nothing has happened so far then just open it
-    -- This if-statement should be removed in Neovim 0.12
-    if vim.fn.has("win32") == 1 then
-        vim.system({'cmd.exe', '/c', 'start', '', uri})
-    else
-        vim.ui.open(uri)
-    end
-end
-
 ---Get the list item's indent level and indicator. Also increment when using ordered lists
 ---@param inc_val integer Value to increment the list item by
 ---@return string indent, string list_indicator Indent of the list item and the corresponding list indicator
@@ -191,10 +154,10 @@ function M.new_line_remap(key, expr_set)
 
     if key == "o" or key == "<CR>" then
         vim.api.nvim_buf_set_lines(0, row, row, false, { indent .. list_remap })
-        vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
+        vim.fn.cursor({ row + 1, 0 })
     elseif key == "O" then
         vim.api.nvim_buf_set_lines(0, row - 1, row - 1, false, { indent .. list_remap })
-        vim.api.nvim_win_set_cursor(0, { row, 0 })
+        vim.fn.cursor({ row, 0 })
     end
 
     if list_remap == "" then
@@ -236,9 +199,9 @@ function M.journal_insert_entry()
         "",
     }
 
-    vim.api.nvim_win_set_cursor(0, {1 ,0})
+    vim.fn.cursor({1 ,0})
     vim.api.nvim_put(journal_entry_template, "V", false, false)
-    vim.api.nvim_win_set_cursor(0, {3 ,0})
+    vim.fn.cursor({3 ,0})
 end
 
 ---Open containing folder of index file
