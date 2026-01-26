@@ -145,6 +145,36 @@ T['get_fragment_from_uri()'] = function()
     eq(ret, "fragment")
 end
 
+T['open()'] = function()
+    local lines = {
+        "[file1](tests/test-data/files/file1.md) [file2](tests/test-data/files/file2.md)",
+        "[file1](tests/test-data/files/file1.md#section-2) [file2](tests/test-data/files/file2.md#file-2)",
+        "![image1](tests/test-data/images/neovim-mark-flat.svg) ![image2](tests/test-data/images/neovim-mark.svg)",
+        "[url1](https://neovim.io/) [url2](https://neovim.io/doc/user/#Q_ct)",
+        "[section](#test-section)",
+        "",
+        "# Test Section"
+    }
+    local buf = create_md_buffer(child, lines)
+
+    child.fn.cursor(2,1)
+    local ret = child.lua([[return require('mdnotes.inline_link').open()]])
+    lines = child.api.nvim_buf_get_lines(ret, 0, -1, false)
+    eq(lines, {
+        "# File 1",
+        "this is file1",
+        "",
+        "## Section 2",
+        "text"
+    })
+    eq(child.fn.getcurpos()[2], 4)
+
+    child.cmd("buffer " .. buf)
+    child.fn.cursor(5,1)
+    child.lua([[require('mdnotes.inline_link').open()]])
+    eq(child.fn.getcurpos()[2], 7)
+end
+
 T['is_img()'] = function()
     local lines = {
         "[text](link)",
