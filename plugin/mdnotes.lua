@@ -16,7 +16,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
     end,
 })
 
--- Parsing fragments for :Mdn generate_toc and :Mdn open
+-- Parsing fragments for :Mdn generate_toc and :Mdn inline_link open
 vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
     group = mdnotes_group,
@@ -68,9 +68,6 @@ local get_commands = function() return {
     index = {
         require("mdnotes").go_to_index_file,
         open_containing_folder = require("mdnotes").open_containing_folder,
-    },
-    open = {
-        require("mdnotes").open
     },
     journal = {
         require("mdnotes").go_to_journal_file,
@@ -128,6 +125,7 @@ local get_commands = function() return {
         unindent = require("mdnotes.outliner").unindent,
     },
     inline_link = {
+        open = require("mdnotes.inline_link").open,
         toggle = require("mdnotes.inline_link").toggle,
         rename = require("mdnotes.inline_link").rename,
         relink = require("mdnotes.inline_link").relink,

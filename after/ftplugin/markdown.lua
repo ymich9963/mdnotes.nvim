@@ -32,7 +32,7 @@ end
 
 ---Default keymaps
 if mdnotes().config.default_keymaps then
-    vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
+    vim.keymap.set('n', '<leader>mgx', ':Mdn inline_link open<CR>', { buffer = true, desc = "Open inline link URI under cursor" })
     vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
     vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
     vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })

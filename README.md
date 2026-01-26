@@ -19,7 +19,7 @@ All documentation is available with `:h mdnotes.txt`. Execute `:checkhealth mdno
 All the features of `mdnotes` and their associated commands are listed and categorised below.
 
 ### 🧭 General Navigation
-- Open inline links to files and URLs with `:Mdn open`.
+- Open inline links to files and URLs with `:Mdn inline_link open`.
 - Set your index and journal files and go there with `:Mdn index` and `:Mdn journal`.
 - Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
 - Use `:Mdn heading next/previous` to easily navigate headings. 
@@ -150,7 +150,7 @@ For the best Neovim Markdown note-taking experience, I've listed some other proj
 ### ⌨️ Keymaps
  The keymappings below can be enabled by setting `default_keymaps = true` as they are not enabled by default, and they will only be available in Markdown buffers. Place any `mdnotes` keymaps in a  `<Neovim config path>/after/ftplugin/markdown.lua` file so that they're also Markdown specific. For organisation they use the `<leader>m` prefix.
  ```lua
-vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
+vim.keymap.set('n', '<leader>mgx', ':Mdn inline_link open<CR>', { buffer = true, desc = "Open inline link URI under cursor" })
 vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
 vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
 vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
@@ -215,7 +215,7 @@ The main reason I started this project was dissatisfaction with Markdown LSPs at
 ## 📢 Supported Markdown Formatting
 Here is the supported Markdown formatting for `mdnotes.nvim`. The plugin tries to adhere to the [CommonMark](https://spec.commonmark.org/) and [GitHub Flavoured Markdown (GFM)](https://github.github.com/gfm/) spec as well as providing WikiLink support. If any problems arise please don't hesitate to create an issue for it!
 ### Links
-Opened with `:Mdn open`. Inserted with the `:Mdn assets insert_file/image` and `:Mdn inline_link toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
+Opened with `:Mdn inline_link open`. Inserted with the `:Mdn assets insert_file/image` and `:Mdn inline_link toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
 ```
     [link](www.neovim.io)
     [link](path/to/file#fragment)

@@ -50,7 +50,7 @@ KEYMAPS            	             			*mdnotes-keymaps*
 The default keymaps are listed below and they can be enabled using 
 |mdnotes-default_keymaps|. They follow a `<leader>m` prefix.
 >lua
-    vim.keymap.set('n', '<leader>mgx', ':Mdn open<CR>', { buffer = true, desc = "Open URL or file under cursor" })
+    vim.keymap.set('n', '<leader>mgx', ':Mdn inline_link open<CR>', { buffer = true, desc = "Open inline link URI under cursor" })
     vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
     vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
     vim.keymap.set('n', '<leader>mgrn', ':Mdn wikilink rename_references<CR>', { buffer = true, desc = "Rename references of link or current buffer" })
@@ -227,12 +227,6 @@ subcommands are listed below.
 
     Opens the journal file depending on |mdnotes-open_behaviour|
 
-:Mdn open 	                                      	*:Mdn-open*
-
-    Opens the asset under the cursor. Uses |vim.ui.open()| but due to a bug for
-    Winows it's currently using, >lua
-	vim.system({"cmd.exe", "/c", "start", link}) 
-
 :Mdn outliner toggle					*:Mdn-outliner-toggle*
 
     Toggle an Outliner mode (similar to programs like Logseq). This command
@@ -357,6 +351,12 @@ subcommands are listed below.
 :Mdn history clear					*:Mdn-history-clear*
 
     Clear the history of visited Markdown buffers.
+
+:Mdn inline_link open					*:Mdn-inline_link-open*
+
+    Opens the asset under the cursor. Uses |vim.ui.open()| but due to a bug for
+    Winows it's currently using, >lua
+	vim.system({"cmd.exe", "/c", "start", link}) 
 
 :Mdn inline_link toggle					*:Mdn-inline_link-toggle*
 
