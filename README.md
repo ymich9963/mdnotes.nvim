@@ -18,8 +18,16 @@ All documentation is available with `:h mdnotes.txt`. Execute `:checkhealth mdno
 ## 🔥 Features
 All the features of `mdnotes` and their associated commands are listed and categorised below.
 
-### 🧭 General Navigation
+### 🔗 Inline Links
 - Open inline links to files and URLs with `:Mdn inline_link open`.
+- Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link and saves it to be used later with the same command.
+- Rename the link text with `:Mdn inline_link rename`. 
+- Re-link the inline link with `:Mdn inline_link relink`. 
+- Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
+- Validate an inline link without opening it by executing `:Mdn inline_link validate`. This ensures that your inline link has a valid destination.
+- Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
+
+### 🧭 General Navigation
 - Set your index and journal files and go there with `:Mdn index` and `:Mdn journal`.
 - Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
 - Use `:Mdn heading next/previous` to easily navigate headings. 
@@ -31,14 +39,6 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn formatting task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 - Unformat your line(s) with `:Mdn formatting unformat_lines`. 
  
-### 🔗 Inline Links
-- Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link and saves it to be used later with the same command.
-- Rename the link text with `:Mdn inline_link rename`. 
-- Re-link the inline link with `:Mdn inline_link relink`. 
-- Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
-- Validate an inline link without opening it by executing `:Mdn inline_link validate`. This ensures that your inline link has a valid destination.
-- Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
-
 ### 🫦 Tables
 - See the [Editing Tables](#-editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
 - Create a `ROW` by `COLS` table with `:Mdn table create ROW COLS`.
