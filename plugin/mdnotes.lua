@@ -59,7 +59,7 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
 })
 
 -- Automatic ordered list renumbering
-vim.api.nvim_create_autocmd({"TextChanged", "TextChangedI"}, {
+vim.api.nvim_create_autocmd({"TextChangedI"}, {
     pattern = "*.md",
     group = mdnotes_group,
     callback = function()
@@ -233,4 +233,5 @@ end,
     desc = "Mdnotes main command",
     range = true,
 })
+
 
