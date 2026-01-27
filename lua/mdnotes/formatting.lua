@@ -211,21 +211,19 @@ end
 
 ---Resolve the list content
 ---@param line string Line containing list item
----@return string indent, string marker, string text List item contents that have been deemed important by me
+---@return string indent, string marker, string separator, string text List item contents that have been deemed important by me
 function M.resolve_list_content(line)
     local mdnotes_patterns = require('mdnotes.patterns')
 
     local ul_indent, ul_marker, ul_text = line:match(mdnotes_patterns.unordered_list)
     local ol_indent, ol_marker, ol_separator, ol_text = line:match(mdnotes_patterns.ordered_list)
 
-    ol_separator = ol_separator or ""
-    ol_marker = ol_marker or ""
-
     local indent = (ul_indent or ol_indent) or ""
-    local marker = ul_marker or (ol_marker .. ol_separator)
+    local marker = ul_marker or ol_marker
+    local separator = ol_separator or ""
     local text = (ul_text or ol_text) or ""
 
-    return indent, marker, text
+    return indent, marker, separator, text
 end
 
 ---Toggle task list state
@@ -247,9 +245,10 @@ function M.task_list_toggle(line1, line2)
     end
 
     for i, line in ipairs(lines) do
-        local _, marker, text = M.resolve_list_content(line)
+        local _, marker, separator, text = M.resolve_list_content(line)
 
         if marker then
+            marker = marker .. separator
 
             -- In the case where e.g. 1. or 1) then the . or ) need to be escaped
             if #marker == 2 then

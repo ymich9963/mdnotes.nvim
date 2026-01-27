@@ -29,9 +29,9 @@ M = {
     strikethrough = "()~~(.-)~~()",
     inline_code = "()`([^`]+)`()",
     autolink = "()<(.-)>()",
-    unordered_list = "^([%s]-)([-+*])[%s](.+)",
-    ordered_list = "^([%s]-)([%d]+)([%.%)])[%s](.+)",
-    task = "[%s]-(%[[ xX]%])[%s].-",
+    unordered_list = "^([%s]-)([-+*])[%s](.*)",
+    ordered_list = "^([%s]-)([%d]+)([%.%)])[%s](.*)",
+    task = "[%s]-(%[[ xX]%])[%s]+.-",
     heading = "^([%#]+)[%s]+(.+)",
 }
 

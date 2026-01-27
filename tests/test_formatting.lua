@@ -175,18 +175,18 @@ T['unordered_list'] = function()
         local lines = {ul_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
-        child.lua([[require('mdnotes').new_line_remap('o')]])
+        child.lua([[require('mdnotes').new_line_remap('o', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-        eq(lines, {ul_indicator .. " item", ul_indicator .. "  "})
+        eq(lines, {ul_indicator .. " item", ul_indicator .. " "})
 
-        child.lua([[require('mdnotes').new_line_remap('<CR>')]])
+        child.lua([[require('mdnotes').new_line_remap('<CR>', true)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-        eq(lines, {ul_indicator .. " item", ul_indicator .. "  ", ""})
+        eq(lines, {ul_indicator .. " item", ul_indicator .. " "})
 
         child.api.nvim_input("<ESC>kk")
-        child.lua([[require('mdnotes').new_line_remap('O')]])
+        child.lua([[require('mdnotes').new_line_remap('O', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-        eq(lines, {ul_indicator .. "  ", ul_indicator .. " item", ul_indicator .. "  ", ""})
+        eq(lines, {ul_indicator .. " ", ul_indicator .. " item", ul_indicator .. " "})
 
         child.api.nvim_input("<ESC>")
     end
@@ -197,40 +197,38 @@ T['ordered_list'] = function()
         local lines = {"1" .. ol_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
-        child.lua([[require('mdnotes').new_line_remap('o')]])
+        child.lua([[require('mdnotes').new_line_remap('o', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " item",
-            "2" .. ol_indicator .. "  "
+            "2" .. ol_indicator .. " "
         })
 
-        child.lua([[require('mdnotes').new_line_remap('<CR>')]])
+        child.lua([[require('mdnotes').new_line_remap('<CR>', true)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " item",
-            "2" .. ol_indicator .. "  ",
-            ""
+            "2" .. ol_indicator .. " ",
         })
 
         child.api.nvim_input("<ESC>kk")
-        child.lua([[require('mdnotes').new_line_remap('O')]])
+        child.lua([[require('mdnotes').new_line_remap('O', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
-            "0" .. ol_indicator .. "  ",
+            "0" .. ol_indicator .. " ",
             "1" .. ol_indicator .. " item",
-            "2" .. ol_indicator .. "  ",
-            ""
+            "2" .. ol_indicator .. " ",
         })
 
         child.api.nvim_input("<ESC>")
 
+        child.fn.cursor(2,0)
         child.lua([[require('mdnotes.formatting').ordered_list_renumber()]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
-            "1" .. ol_indicator .. "  ",
+            "1" .. ol_indicator .. " ",
             "2" .. ol_indicator .. " item",
-            "3" .. ol_indicator .. "  ",
-            ""
+            "3" .. ol_indicator .. " ",
         })
     end
 end
@@ -263,7 +261,7 @@ T['task_list'] = function()
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             ul_indicator .. " [ ] item",
-            ul_indicator .. " [ ]  ",
+            ul_indicator .. " [ ] ",
         })
 
         child.api.nvim_input("<ESC>")
@@ -296,7 +294,7 @@ T['task_list'] = function()
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " [ ] item",
-            "2" .. ol_indicator .. " [ ]  ",
+            "2" .. ol_indicator .. " [ ] ",
         })
 
         child.api.nvim_input("<ESC>")

@@ -1,8 +1,6 @@
 ---@module 'mdnotes'
 local M = {}
 
-local uv = vim.loop or vim.uv
-
 ---@type MdnotesConfig
 M.config = {}
 
@@ -95,31 +93,31 @@ end
 ---@param inc_val integer Value to increment the list item by
 ---@return string indent, string list_indicator Indent of the list item and the corresponding list indicator
 local function get_indent_indicator(inc_val)
-    -- ul = unordered list, ol = ordered list
     local mdnotes_patterns = require('mdnotes.patterns')
     local line = vim.api.nvim_get_current_line()
-    local ul_indent, ul_marker, ul_text = line:match(mdnotes_patterns.unordered_list)
-    local ol_indent, ol_marker, ol_separator, ol_text = line:match(mdnotes_patterns.ordered_list)
-    local indent = ul_indent or ol_indent
-    local text = ul_text or ol_text or ""
+    local indent, marker, separator, text = require('mdnotes.formatting').resolve_list_content(line)
 
-    text = text:gsub(mdnotes_patterns.task, "")
-    text = text:gsub("[%s]", "")
+    local type = "unordered"
+    if separator ~= "" then
+        type = "ordered"
+    end
 
-    if text and text ~= "" then
-        if ul_marker then
-            if ul_text:match(mdnotes_patterns.task) then
-                return indent, "\n" .. ul_marker .. " " .. "[ ] "
+    local check_text = text:gsub(mdnotes_patterns.task, ""):gsub("[%s]", "")
+
+    if check_text and check_text ~= "" then
+        if type == "unordered" then
+            if text:match(mdnotes_patterns.task) then
+                return indent, "\n" .. marker .. " " .. "[ ] "
             else
-                return indent, "\n" .. ul_marker .. " "
+                return indent, "\n" .. marker .. " "
             end
         end
 
-        if ol_marker then
-            if ol_text:match(mdnotes_patterns.task) then
-                return indent, "\n" .. tostring(tonumber(ol_marker + inc_val)) .. ol_separator .. " " .. "[ ] "
+        if type == "ordered" then
+            if text:match(mdnotes_patterns.task) then
+                return indent, "\n" .. tostring(tonumber(marker + inc_val)) .. separator .. " " .. "[ ] "
             else
-                return indent, "\n" .. tostring(tonumber(ol_marker + inc_val)) .. ol_separator .. " "
+                return indent, "\n" .. tostring(tonumber(marker + inc_val)) .. separator .. " "
             end
         end
     end
