@@ -133,7 +133,7 @@ end
 ---@return string|nil
 function M.new_line_remap(key, expr_set)
     if expr_set == nil then expr_set = false end
-    local row = vim.api.nvim_win_get_cursor(0)[1]
+    local lnum = vim.fn.line('.')
     local indent, list_remap = "", ""
 
     if key == "o" or key == "<CR>" then
@@ -153,18 +153,14 @@ function M.new_line_remap(key, expr_set)
     end
 
     if key == "o" or key == "<CR>" then
-        vim.api.nvim_buf_set_lines(0, row, row, false, { indent .. list_remap })
-        vim.fn.cursor({ row + 1, 0 })
+        vim.api.nvim_buf_set_lines(0, lnum, lnum, false, { indent .. list_remap })
+        vim.fn.cursor({ lnum + 1, #indent + #list_remap + 1 })
     elseif key == "O" then
-        vim.api.nvim_buf_set_lines(0, row - 1, row - 1, false, { indent .. list_remap })
-        vim.fn.cursor({ row, 0 })
+        vim.api.nvim_buf_set_lines(0, lnum - 1, lnum - 1, false, { indent .. list_remap })
+        vim.fn.cursor({ lnum, #indent + #list_remap + 1 })
     end
 
-    if list_remap == "" then
-        vim.cmd.startinsert()
-    else
-        vim.api.nvim_input("$i ")
-    end
+    vim.api.nvim_input('a')
 end
 
 ---Go to index file

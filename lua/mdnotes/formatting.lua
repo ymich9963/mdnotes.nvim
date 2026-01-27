@@ -134,9 +134,6 @@ local function insert_format(format_char, split)
         fi2 = fi1
     end
 
-    -- Create a new modified line
-    -- local new_line = line:sub(1, col_start - 1) .. fi1 .. selected_text .. fi2 .. line:sub(col_end + 1)
-
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end, {fi1 .. selected_text .. fi2})
     vim.fn.cursor({lnum, vim.fn.getcurpos()[3] + #fi1})
