@@ -93,16 +93,17 @@ function M.write_table(contents, startl, endl)
 end
 
 ---Create a table with r rows and c columns
----@param r integer Rows
----@param c integer Columns
-function M.create(r, c)
-    if r == nil or c == nil then
+---@param rows integer Rows
+---@param columns integer Columns
+function M.create(rows, columns)
+    if rows == nil or columns == nil then
         vim.notify("Mdn: Please specify both row and column dimensions", vim.log.levels.ERROR)
         return
     end
 
-    local rows = r
-    local columns = c
+    vim.validate("rows", rows, "number")
+    vim.validate("columns", columns, "number")
+
     local row_entry = {}
     local new_table = {}
     local header_row = {}
