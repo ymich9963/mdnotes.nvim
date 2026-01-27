@@ -171,7 +171,7 @@ end
 ---Go to index file
 function M.go_to_index_file()
     if M.config.index_file == "" then
-        vim.notify(("Mdn: Please specify an index file to use this feature."), vim.log.levels.ERROR)
+        vim.notify("Mdn: Please specify an index file to use this feature", vim.log.levels.ERROR)
         return
     end
 
@@ -181,7 +181,7 @@ end
 ---Go to journal file
 function M.go_to_journal_file()
     if M.config.journal_file == "" then
-        vim.notify(("Mdn: Please specify a journal file to use this feature."), vim.log.levels.ERROR)
+        vim.notify("Mdn: Please specify a journal file to use this feature", vim.log.levels.ERROR)
         return
     end
 
@@ -209,7 +209,7 @@ end
 function M.open_containing_folder()
     local index_file = M.config.index_file
     if not index_file or index_file == "" then
-        vim.notify(("Mdn: Please specify an index file to use this feature."), vim.log.levels.ERROR)
+        vim.notify("Mdn: Please specify an index file to use this feature", vim.log.levels.ERROR)
         return
     end
 

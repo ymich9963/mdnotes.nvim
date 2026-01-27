@@ -116,7 +116,7 @@ end
 function M.generate(write_to_buf)
     if write_to_buf == nil then write_to_buf = true end
     if vim.bo.filetype ~= "markdown" then
-        vim.notify(("Mdn: Cannot generate a ToC for a non-Markdown file."), vim.log.levels.ERROR)
+        vim.notify("Mdn: Cannot generate a ToC for a non-Markdown file", vim.log.levels.ERROR)
         return
     end
 
@@ -135,7 +135,7 @@ function M.generate(write_to_buf)
     end
 
     if found == false then
-        vim.notify(("Mdn: Parsed fragments for current buffer not found."), vim.log.levels.ERROR)
+        vim.notify("Mdn: Parsed fragments for current buffer not found", vim.log.levels.ERROR)
         return
     end
 

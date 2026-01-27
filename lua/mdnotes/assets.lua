@@ -7,12 +7,12 @@ local uv = vim.loop or vim.uv
 function M.check_assets_path()
     local mdnotes_config_assets_path = require('mdnotes').config.assets_path
     if mdnotes_config_assets_path == "" or mdnotes_config_assets_path == nil then
-        vim.notify(("Mdn: Please specify assets path to use this feature."), vim.log.levels.ERROR)
+        vim.notify(("Mdn: Please specify assets path to use this feature"), vim.log.levels.ERROR)
         return false
     end
 
     if vim.fn.isdirectory(mdnotes_config_assets_path) == 0 then
-        vim.notify(("Mdn: Assets path %s doesn't exist. Change path or create it."):format(mdnotes_config_assets_path), vim.log.levels.ERROR)
+        vim.notify(("Mdn: Assets path %s doesn't exist - change path or create it"):format(mdnotes_config_assets_path), vim.log.levels.ERROR)
         return false
     end
 
@@ -62,13 +62,13 @@ local function insert_file(is_image)
     table.remove(file_paths)
 
     if #file_paths > 1 then
-        vim.notify('Mdn: Too many files paths detected. Please select only one file.', vim.log.levels.WARN)
+        vim.notify('Mdn: Too many files paths detected - please select only one file', vim.log.levels.WARN)
         return
     end
 
     -- Exit if none found
     if file_paths[1] == 'None' or nil then
-        vim.notify('Mdn: No file paths found in clipboard.', vim.log.levels.WARN)
+        vim.notify('Mdn: No file paths found in clipboard', vim.log.levels.WARN)
         return
     end
 
@@ -79,7 +79,7 @@ local function insert_file(is_image)
     -- Check overwrite behaviour
     if uv.fs_stat(vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
         if mdnotes_config.asset_overwrite_behaviour == "error" then
-            vim.notify(("Mdn: File you are trying to place into your assets already exists."), vim.log.levels.ERROR)
+            vim.notify(("Mdn: File you are trying to place into your assets already exists"), vim.log.levels.ERROR)
             return
         elseif mdnotes_config.asset_overwrite_behaviour == "overwrite" then
         end
@@ -87,18 +87,18 @@ local function insert_file(is_image)
 
     if mdnotes_config.insert_file_behaviour == "copy" then
         if not uv.fs_copyfile(file_path, vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
-            vim.notify(("Mdn: File copy failed."), vim.log.levels.ERROR)
+            vim.notify(("Mdn: File copy failed"), vim.log.levels.ERROR)
             vim.print(file_path, file_name)
             return
         else
-            vim.notify(('Mdn: Copied "%s" to your assets folder at "%s".'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
+            vim.notify(('Mdn: Copied "%s" to your assets folder at "%s"'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
         end
     elseif mdnotes_config.insert_file_behaviour == "move" then
         if not uv.fs_rename(file_path, vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
             vim.notify(("Mdn: File move failed."), vim.log.levels.ERROR)
             return
         else
-            vim.notify(('Mdn: Moved "%s" to your assets folder at "%s".'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
+            vim.notify(('Mdn: Moved "%s" to your assets folder at "%s"'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
         end
     end
 
@@ -240,7 +240,7 @@ local function move_delete(move_or_delete)
     end
 
     vim.cmd.redraw()
-    vim.notify(("Mdn: Finished %s process."):format(text1), vim.log.levels.INFO)
+    vim.notify(("Mdn: Finished %s process"):format(text1), vim.log.levels.INFO)
 end
 
 ---Delete unused assets
@@ -257,7 +257,7 @@ end
 function M.download_website_html()
     local uri_website_tbl = require('mdnotes.inline_link').uri_website_tbl or {}
     local mdnotes_config = require('mdnotes').config
-    local _, _, uri, _, _, _, _ = require('mdnotes.inline_link').get_il_data(true)
+    local _, _, uri, _, _, _, _ = require('mdnotes.inline_link').get_il_data(nil, true)
     local filename = ""
     local filepath = ""
     local res = nil

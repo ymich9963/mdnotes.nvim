@@ -252,7 +252,7 @@ local function rename_relink(mode, new_text)
     end
 
     if user_input == "" or user_input == nil then
-        vim.notify(("Mdn: Please enter valid text"), vim.log.levels.ERROR)
+        vim.notify("Mdn: Please enter valid text", vim.log.levels.ERROR)
         return
     end
 
@@ -325,7 +325,7 @@ function M.validate()
 
     local uri = il_data_tbl[3]
     if uri:match(" ") and not uri:match("<.+>") then
-        vim.notify("Mdn: Destinations with spaces must be enclosed with < and >. Execute ':Mdn inline_link normalize' for a quick fix.", vim.log.levels.ERROR)
+        vim.notify("Mdn: Destinations with spaces must be enclosed with < and >. Execute ':Mdn inline_link normalize' for a quick fix", vim.log.levels.ERROR)
         return nil
     end
 

@@ -16,7 +16,7 @@ function  M.toggle()
 
         vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
         vim.api.nvim_buf_del_keymap(0 ,'i', '<S-TAB>')
-        vim.notify("Mdn: Exited Mdnotes Outliner Mode.", vim.log.levels.INFO)
+        vim.notify("Mdn: Exited Mdnotes Outliner Mode", vim.log.levels.INFO)
     elseif M.outliner_state == false then
         M.outliner_state = true
         mdnotes.config.auto_list = true

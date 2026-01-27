@@ -29,10 +29,10 @@ function M.go_back()
         if vim.api.nvim_buf_is_valid(prev_buf) then
             vim.cmd("buffer " .. prev_buf)
         else
-            vim.notify("Mdn: Attempting to access an invalid buffer.", vim.log.levels.ERROR)
+            vim.notify("Mdn: Attempting to access an invalid buffer", vim.log.levels.ERROR)
         end
     else
-        vim.notify("Mdn: No more buffers to go back to.", vim.log.levels.WARN)
+        vim.notify("Mdn: No more buffers to go back to", vim.log.levels.WARN)
     end
 end
 
@@ -44,10 +44,10 @@ function M.go_forward()
         if vim.api.nvim_buf_is_valid(next_buf) then
             vim.cmd("buffer " .. next_buf)
         else
-            vim.notify("Mdn: Attempting to access an invalid buffer.", vim.log.levels.ERROR)
+            vim.notify("Mdn: Attempting to access an invalid buffer", vim.log.levels.ERROR)
         end
     else
-        vim.notify("Mdn: No more buffers to go forward to.", vim.log.levels.WARN)
+        vim.notify("Mdn: No more buffers to go forward to", vim.log.levels.WARN)
     end
 end
 

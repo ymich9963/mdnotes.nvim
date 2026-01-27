@@ -23,13 +23,10 @@ local function get_wikilink()
     local wikilink_pattern = require('mdnotes.patterns').wikilink
     local uri_no_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
     local fragment_pattern = require('mdnotes.patterns').fragment
-    local col_start = 0
-    local col_end = 0
 
-    local wikilink, wikilink_no_fragment, fragment = "", "", ""
-    wikilink, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern_under_cursor(wikilink_pattern)
-    wikilink_no_fragment = wikilink:match(uri_no_fragment_pattern) or ""
-    fragment = wikilink:match(fragment_pattern) or ""
+    local wikilink, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern_under_cursor(wikilink_pattern)
+    local wikilink_no_fragment = wikilink:match(uri_no_fragment_pattern) or ""
+    local fragment = wikilink:match(fragment_pattern) or ""
 
     return wikilink, wikilink_no_fragment, fragment, col_start, col_end
 end
@@ -50,7 +47,7 @@ function M.follow()
 
         if vim.tbl_isempty(vim.fn.getqflist()) then
             vim.cmd.redraw()
-            vim.notify("Mdn: No locations found from LSP server. Continuing with Mdnotes implementation.", vim.log.levels.WARN)
+            vim.notify("Mdn: No locations found from LSP server. Continuing with Mdnotes implementation", vim.log.levels.WARN)
         else
             vim.fn.setqflist({}, ' ')
             vim.notify("", vim.log.levels.INFO)
@@ -62,7 +59,7 @@ function M.follow()
     local _, wikilink, fragment, _, _ = get_wikilink()
 
     if wikilink == "" and fragment == "" then
-        vim.notify(("Mdn: No WikiLink under the cursor was detected."), vim.log.levels.ERROR)
+        vim.notify("Mdn: No WikiLink under the cursor was detected", vim.log.levels.ERROR)
     end
 
     if wikilink ~= "" then
@@ -96,7 +93,7 @@ function M.show_references()
 
     vim.cmd.vimgrep({args = {'/\\[\\[' .. wikilink .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
     if #vim.fn.getqflist() == 1 or vim.tbl_isempty(vim.fn.getqflist()) then
-        vim.notify(("Mdn: No references found for '" .. wikilink .. "'"), vim.log.levels.ERROR)
+        vim.notify("Mdn: No references found for '" .. wikilink .. "'", vim.log.levels.ERROR)
         return
     end
     vim.cmd.copen()
@@ -109,12 +106,12 @@ local new_name = ""
 ---Undo the most recent rename
 function M.undo_rename()
     if check_md_lsp() then
-        vim.notify("Mdn: undo_rename is only available when your config has prefer_lsp = false.", vim.log.levels.ERROR)
+        vim.notify("Mdn: 'undo_rename' is only available when your config has 'prefer_lsp = false'", vim.log.levels.ERROR)
         return
     end
 
     if new_name == "" or old_name == "" then
-        vim.notify(("Mdn: Detected no recent rename."):format(old_name, new_name), vim.log.levels.ERROR)
+        vim.notify("Mdn: Detected no recent rename", vim.log.levels.ERROR)
         return
     end
 
@@ -124,11 +121,11 @@ function M.undo_rename()
     vim.cmd.cdo({args = {('s/%s/%s/'):format(new_name, old_name)}, mods = {emsg_silent = true}})
 
     if not uv.fs_rename(new_name .. ".md", old_name .. ".md") then
-        vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
+        vim.notify(("Mdn: File rename failed"), vim.log.levels.ERROR)
         return
     end
 
-    vim.notify(("Mdn: Undo renaming '%s' to '%s'."):format(old_name, new_name), vim.log.levels.INFO)
+    vim.notify(("Mdn: Undo renaming '%s' to '%s'"):format(old_name, new_name), vim.log.levels.INFO)
     vim.api.nvim_win_set_buf(0, cur_buf_num)
 end
 
@@ -182,7 +179,7 @@ function M.rename_references()
     end
 
     if not uv.fs_stat(file .. ".md") then
-        vim.notify(("Mdn: This link does not seem to link to a valid file."), vim.log.levels.ERROR)
+        vim.notify("Mdn: This link does not seem to link to a valid file", vim.log.levels.ERROR)
         return
     end
 
@@ -192,18 +189,18 @@ function M.rename_references()
     end)
 
     if renamed == "" or renamed == nil then
-        vim.notify(("Mdn: Please insert a valid name."), vim.log.levels.ERROR)
+        vim.notify("Mdn: Please insert a valid name", vim.log.levels.ERROR)
         return
     else
         vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '\\]\\]/', '*'}, mods = {emsg_silent = true}})
         vim.cmd.cdo({args = {('s/%s/%s/'):format(file, renamed)}, mods = {emsg_silent = true}})
         if not uv.fs_rename(file .. ".md", renamed .. ".md") then
-            vim.notify(("Mdn: File rename failed."), vim.log.levels.ERROR)
+            vim.notify("Mdn: File rename failed", vim.log.levels.ERROR)
             return
         end
     end
 
-    vim.notify((("Mdn: Succesfully renamed '%s' links to '%s'."):format(file, renamed)), vim.log.levels.INFO)
+    vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(file, renamed), vim.log.levels.INFO)
 
     vim.api.nvim_win_set_buf(0, cur_buf_num)
 

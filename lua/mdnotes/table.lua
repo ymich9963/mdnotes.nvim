@@ -97,7 +97,7 @@ end
 ---@param c integer Columns
 function M.create(r, c)
     if r == nil or c == nil then
-        vim.notify(("Mdn: Please specify both row and column dimensions"), vim.log.levels.ERROR)
+        vim.notify("Mdn: Please specify both row and column dimensions", vim.log.levels.ERROR)
         return
     end
 
@@ -159,7 +159,7 @@ function M.get_table(silent)
     local table_valid, startl, endl = M.check_valid_table()
     if table_valid == false or startl == nil or endl == nil then
         if silent == false then
-            vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
+            vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
         end
 
         return nil, nil, nil
@@ -168,7 +168,7 @@ function M.get_table(silent)
     local table_lines = M.parse_table(startl, endl)
     if vim.tbl_isempty(table_lines) then
         if silent == false then
-            vim.notify(("Mdn: Error parsing table."), vim.log.levels.ERROR)
+            vim.notify("Mdn: Error parsing table", vim.log.levels.ERROR)
         end
 
         return nil, nil, nil
@@ -183,7 +183,7 @@ function M.get_column_locations()
     -- Fence post problem, all tables will have n+1 | characters with n being the text    
     local table_valid, startl, endl = M.check_valid_table()
     if table_valid == false or startl == nil or endl == nil then
-        vim.notify(("Mdn: No valid table detected."), vim.log.levels.ERROR)
+        vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
         return nil
     end
 
@@ -322,7 +322,7 @@ local function move_column(direction)
     end
 
     if new_col < 1 or new_col > #table_lines[1] then
-        vim.notify(("Mdn: Column move exceeds table dimensions."), vim.log.levels.ERROR)
+        vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
         return
     end
 
@@ -506,7 +506,7 @@ function M.column_alignment_toggle()
     elseif delimiter_row:match("^:[-]+:$") then
         new_delimiter_row = delimiter_row:gsub(":", "-")
     else
-        vim.notify(("Mdn: Check that the table delimeter row is in the correct format."), vim.log.levels.ERROR)
+        vim.notify("Mdn: Check that the table delimeter row is in the correct format", vim.log.levels.ERROR)
         return
     end
 
