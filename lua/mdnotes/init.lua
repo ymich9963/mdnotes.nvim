@@ -12,7 +12,7 @@ M.open_cmd = nil
 ---@field index_file string? Index file name or path
 ---@field journal_file string? Journal file name or path
 ---@field assets_path string? Path to assets folder
----@field insert_file_behaviour '"copy"'|'"move"'? Behaviour when inserting assets from clipboard
+---@field asset_insert_behaviour '"copy"'|'"move"'? Behaviour when inserting assets from clipboard
 ---@field asset_overwrite_behaviour '"overwrite"'|'"error"'? Behaviour when the asset being inserted already exists
 ---@field open_behaviour '"buffer"'|'"tab"'|'"split"'|'"vsplit"'? Behaviour when opening buffers
 ---@field strong_format '"**"'|'"__"'? Strong format indicator
@@ -30,7 +30,7 @@ local default_config = {
     index_file = "",
     journal_file = "",
     assets_path = "",
-    insert_file_behaviour = "copy",
+    asset_insert_behaviour = "copy",
     asset_overwrite_behaviour = "error",
     open_behaviour = "buffer",
     strong_format = "**",
@@ -55,7 +55,7 @@ local function validate_config(user_config)
     vim.validate("index_file", config.index_file, "string")
     vim.validate("journal_file", config.journal_file, "string")
     vim.validate("assets_path", config.assets_path, "string")
-    vim.validate("insert_file_behaviour", config.insert_file_behaviour, "string", false, "'copy' or 'move'")
+    vim.validate("asset_insert_behaviour", config.asset_insert_behaviour, "string", false, "'copy' or 'move'")
     vim.validate("asset_overwrite_behaviour", config.asset_overwrite_behaviour, "string", false, "'overwrite' or 'error'")
     vim.validate("open_behaviour", config.open_behaviour, "string", false, "'buffer', 'tab', 'split', or 'vsplit'")
     vim.validate("strong_format", config.strong_format, "string", false, "'**' or '__'")

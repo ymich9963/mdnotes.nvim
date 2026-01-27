@@ -106,7 +106,7 @@ The default config for `mdnotes` is shown below,
 	index_file = "",
 	journal_file = "",
 	assets_path = "",
-	insert_file_behaviour = "copy",
+	asset_insert_behaviour = "copy",
 	overwrite_behaviour = "error",
 	open_behaviour = "buffer",
 	strong_format = "**",
@@ -137,7 +137,7 @@ assets_path = `"path"`					*mdnotes-assets_path*
     by using |:Mdn-assets-insert_image| or |:Mdn-assets-insert_file| is copied or
     moved to.
 
-insert_file_behaviour = `"string"`			*mdnotes-insert_file_behaviour*
+asset_insert_behaviour = `"string"`			*mdnotes-asset_insert_behaviour*
 
     Can take the values of `"copy"` or `"move"` which copies or moves inserted
     assets respectively.
@@ -314,7 +314,7 @@ subcommands are listed below.
 :Mdn assets insert_image				*:Mdn-assets-insert_image*
 
     Insert the image in the clipboard under the cursor and depending on
-    |mdnotes-insert_file_behaviour| place it in your |mdnotes-assets_path|. (e.g
+    |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|. (e.g
     `![image](path/to/assets/image.png)`). Overwriting depends on
     |mdnotes-overwrite_behaviour|.
 
@@ -524,7 +524,7 @@ setup({opts})                                          	*mdnotes.setup()*
 		path to journal file.
               • {assets_path} (`string?`, default `""`)
 		path to assets directory.
-              • {insert_file_behaviour} (`string?`, default `"copy"`)
+              • {asset_insert_behaviour} (`string?`, default `"copy"`)
 		`mdnotes` behaviour when inserting files.
               • {overwrite_behaviour} (`string?`, default `"copy"`)
 		`mdnotes` behaviour when inserting files and the file 
@@ -551,6 +551,8 @@ setup({opts})                                          	*mdnotes.setup()*
 		|mdnotes-auto_table_best_fit|.
               • {default_keymaps} (`false|true`, default `false`)
 		use the default keymaps.
+              • {autocmds} (`false|true`, default `true`)
+		use the plugin's autocmds.
               • {table_best_fit_padding} (`integer?`, default `0`)
 		how much padding to add when executing 
 		|Mdn-table-best_fit|.
@@ -665,7 +667,7 @@ assets.check_assets_path() 				*mdnotes.assets.check_assets_path()*
 assets.insert_image()					*mdnotes.assets.insert_image()*
 
     Insert the image in the clipboard under the cursor and depending on
-    |mdnotes-insert_file_behaviour| place it in your |mdnotes-assets_path|. (e.g
+    |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|. (e.g
     `![image](path/to/assets/image.png)`). Overwriting depends on
     |mdnotes-overwrite_behaviour|.
 
