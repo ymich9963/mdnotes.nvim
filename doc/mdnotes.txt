@@ -388,7 +388,7 @@ subcommands are listed below.
     Validate any inline link without opening it to ensure it has a valid
     destination.
 
-:Mdn inline_link convert_fragment_to_gfm			*:Mdn-inline_link-convert_fragment_to_gfm*
+:Mdn inline_link convert_fragment_to_gfm		*:Mdn-inline_link-convert_fragment_to_gfm*
 
     Convert an inline link with a fragment to a GFM-style fragment. Useful when
     using LSP auto-completion and you want to create valid Markdown links on
@@ -706,7 +706,7 @@ history.buf_history					*mdnotes.history.buf_history*
     previously in, the buffer history removes everything past the buffer they
     went back to, and appends the buffer they've moved forward to.
 
-history.current_index						*mdnotes.history.current_index*
+history.current_index					*mdnotes.history.current_index*
 
     Current index being pointed to in the |mdnotes.buf_history| table. 
 
