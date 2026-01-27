@@ -130,7 +130,7 @@ local get_commands = function() return {
         rename = require("mdnotes.inline_link").rename,
         relink = require("mdnotes.inline_link").relink,
         normalize = require("mdnotes.inline_link").normalize,
-        validate = require("mdnotes.inline_link").get_il_data,
+        validate = require("mdnotes.inline_link").validate,
         convert_fragment_to_gfm = require("mdnotes.inline_link").convert_fragment_to_gfm,
     },
     toc = {

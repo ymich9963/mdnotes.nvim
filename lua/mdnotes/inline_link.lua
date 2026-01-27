@@ -9,13 +9,15 @@ M.uri_website_tbl = {"https", "http"}
 ---Get the inline link data such as the image designator, link text, link URI/destination, and the start and end columns
 ---@param inline_link string? Inline link to extract data from
 ---@param img_char boolean? Inline link to extract data from
+---@param keep_pointy_brackets boolean? Keep the < and > around the URI
 ---@return boolean|string|nil img  Is inline link an image
 ---@return string|nil text Inline link text
 ---@return string|nil uri Inline link URI ir destination
 ---@return integer|nil col_start Column number where the inline link starts
 ---@return integer|nil col_end Column number where inline link ends
-function M.get_il_data(inline_link, img_char)
+function M.get_il_data(inline_link, img_char, keep_pointy_brackets)
     if img_char == nil then img_char = false end
+    if keep_pointy_brackets == nil then keep_pointy_brackets = true end
     local inline_link_pattern = require("mdnotes.patterns").inline_link
     local check_md_format_under_cursor = require('mdnotes.formatting').check_md_format_under_cursor
     local il, col_start, col_end = "", 0, 0
@@ -32,7 +34,9 @@ function M.get_il_data(inline_link, img_char)
     local text, uri = il:match(require("mdnotes.patterns").text_uri)
 
     -- Remove any < or > from uri
-    uri = uri:gsub("[<>]?", "")
+    if keep_pointy_brackets == false then
+        uri = uri:gsub("[<>]?", "")
+    end
 
     return M.is_img(il, img_char), text, uri, col_start, col_end
 end
@@ -68,10 +72,13 @@ end
 ---Check and get fragment from the URI
 ---@param uri string URI to check
 ---@param check_valid boolean? Whether to check if the path is to a valid file or not
+---@param move_cursor boolean? Whether to move the cursor to where the fragment was found
 ---@return string|nil fragment
-function M.get_fragment_from_uri(uri, check_valid)
+function M.get_fragment_from_uri(uri, check_valid, move_cursor)
     if check_valid == nil then check_valid = true end
+    if move_cursor == nil then move_cursor = true end
     local fragment = uri:match(require("mdnotes.patterns").fragment) or ""
+    local cur_pos = vim.fn.getpos('.')
 
     if M.is_url(uri) == true then
         fragment = ""
@@ -104,6 +111,10 @@ function M.get_fragment_from_uri(uri, check_valid)
                 return nil
             end
         end
+    end
+
+    if move_cursor == false then
+        vim.fn.setpos('.', cur_pos)
     end
 
     return fragment
@@ -317,15 +328,30 @@ function M.convert_fragment_to_gfm()
 end
 
 function M.validate()
-    local il_data_tbl = {M.get_il_data()}
+    local il_data_tbl = {M.get_il_data(nil, false, true)}
     if vim.tbl_contains(il_data_tbl, nil) then
         vim.notify("Mdn: No valid inline link detected", vim.log.level.WARN)
         return nil
     end
 
     local uri = il_data_tbl[3]
+
     if uri:match(" ") and not uri:match("<.+>") then
         vim.notify("Mdn: Destinations with spaces must be enclosed with < and >. Execute ':Mdn inline_link normalize' for a quick fix", vim.log.levels.ERROR)
+        return nil
+    end
+
+    uri = uri:gsub("[<>]?", "")
+
+    local path = M.get_path_from_uri(uri)
+    if path == nil then
+        vim.notify("Mdn: Inline link does not seem to point to a valid path", vim.log.level.WARN)
+        return nil
+    end
+
+    local fragment = M.get_fragment_from_uri(uri, true, false)
+    if fragment == nil then
+        vim.notify("Mdn: Inline link does not seem to point to a valid fragment", vim.log.level.WARN)
         return nil
     end
 
