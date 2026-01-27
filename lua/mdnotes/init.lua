@@ -23,6 +23,7 @@ M.open_cmd = nil
 ---@field auto_list_renumber boolean? Automatic renumbering of ordered lists
 ---@field auto_table_best_fit boolean? Automatic table best fit
 ---@field default_keymaps boolean?
+---@field autocmds boolean?
 ---@field table_best_fit_padding integer? Add padding around cell contents when using tables_best_fit
 ---@field toc_depth integer? Depth shown in the ToC
 local default_config = {
@@ -40,6 +41,7 @@ local default_config = {
     auto_list_renumber = true,
     auto_table_best_fit = true,
     default_keymaps = false,
+    autocmds = true,
     table_best_fit_padding = 0,
     toc_depth = 4
 }
@@ -64,6 +66,7 @@ local function validate_config(user_config)
     vim.validate("auto_list_renumber", config.auto_list_renumber, "boolean")
     vim.validate("auto_table_best_fit", config.auto_table_best_fit, "boolean")
     vim.validate("default_keymaps", config.default_keymaps, "boolean")
+    vim.validate("autocmds", config.autocmds, "boolean")
     vim.validate("table_best_fit_padding", config.table_best_fit_padding, "number")
     vim.validate("toc_depth", config.toc_depth, "number")
 
@@ -86,6 +89,10 @@ function M.setup(user_config)
         M.open_cmd = 'split '
     elseif M.config.open_behaviour == "vsplit" then
         M.open_cmd = 'vsplit '
+    end
+
+    if M.config.autocmds == false then
+        vim.api.nvim_del_augroup_by_name("Mdnotes")
     end
 end
 

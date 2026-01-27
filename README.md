@@ -114,6 +114,7 @@ and specify your config using `opts = {}` or with a `setup({})` function,
     auto_list_renumber = true,      -- automatic renumbering of ordered lists
 	auto_table_best_fit = true,     -- automatic table best fit
     default_keymaps = false,
+    autocmds = true,                -- enable or disable plugin autocmds
 	table_best_fit_padding = 0,     -- add padding around cell contents when using tables_best_fit
     toc_depth = 4                   -- depth shown in the ToC
 }

@@ -117,6 +117,7 @@ The default config for `mdnotes` is shown below,
 	auto_list_renumber = true,
 	auto_table_best_fit = true,
 	default_keymaps = false,
+	autocmds = true,
 	table_best_fit_padding = 0,
 	toc_depth = 4
     }
@@ -196,6 +197,11 @@ auto_table_best_fit = `false|true`			*mdnotes-auto_table_best_fit*
 default_keymaps = `false|true`				*mdnotes-default_keymaps*
 
     Enable or disable the default keymaps listed in |mdnotes-keymaps|.
+
+autocmds = `false|true`					*mdnotes-autocmds*
+
+    Enable or disable the plugin's autocmds in the `Mdnotes` augroup set in
+    `plugin/mdnotes.lua`.
 
 table_best_fit_padding = `integer`			*mdnotes-table_best_fit_padding*
 
