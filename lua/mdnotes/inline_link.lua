@@ -15,7 +15,7 @@ M.uri_website_tbl = {"https", "http"}
 ---@return string|nil uri Inline link URI ir destination
 ---@return integer|nil col_start Column number where the inline link starts
 ---@return integer|nil col_end Column number where inline link ends
-function M.get_il_data(inline_link, img_char, keep_pointy_brackets)
+function M.get_inline_link_data(inline_link, img_char, keep_pointy_brackets)
     if img_char == nil then img_char = false end
     if keep_pointy_brackets == nil then keep_pointy_brackets = true end
     local inline_link_pattern = require("mdnotes.patterns").inline_link
@@ -123,7 +123,7 @@ end
 ---Open inline links
 ---@return integer|vim.SystemObj|nil
 function M.open()
-    local _, _, uri, _, _ = M.get_il_data()
+    local _, _, uri, _, _ = M.get_inline_link_data()
     if uri == nil then return end
 
     local path = M.get_path_from_uri(uri)
@@ -218,7 +218,7 @@ end
 
 --Delete Markdown inline link and leave the text
 function M.delete()
-    local _, text, uri, col_start, col_end = require('mdnotes.inline_link').get_il_data()
+    local _, text, uri, col_start, col_end = require('mdnotes.inline_link').get_inline_link_data()
     local lnum = vim.fn.line('.')
 
     if text == nil or uri == nil then return end
@@ -241,7 +241,7 @@ end
 ---@param mode '"rename"'|'"relink"'
 ---@param new_text string?
 local function rename_relink(mode, new_text)
-    local img_char, link_text, uri, col_start, col_end = require('mdnotes.inline_link').get_il_data(nil, true)
+    local img_char, link_text, uri, col_start, col_end = require('mdnotes.inline_link').get_inline_link_data(nil, true)
     local user_input = ""
     local lnum = vim.fn.line('.')
     local args = {}
@@ -290,7 +290,7 @@ end
 
 ---Normalize inline link
 function M.normalize()
-    local img_char, text, uri, col_start, col_end = require('mdnotes.inline_link').get_il_data(nil, true)
+    local img_char, text, uri, col_start, col_end = require('mdnotes.inline_link').get_inline_link_data(nil, true)
     local new_uri = ""
     local lnum = vim.fn.line('.')
 
@@ -307,7 +307,7 @@ end
 
 ---Convert the fragment of the inline link under the cursor to GFM-style fragment
 function M.convert_fragment_to_gfm()
-    local img_char, text, uri, col_start, col_end = require('mdnotes.inline_link').get_il_data(nil, true)
+    local img_char, text, uri, col_start, col_end = require('mdnotes.inline_link').get_inline_link_data(nil, true)
     local new_fragment = ""
     local lnum = vim.fn.line('.')
     local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
@@ -328,7 +328,7 @@ function M.convert_fragment_to_gfm()
 end
 
 function M.validate()
-    local il_data_tbl = {M.get_il_data(nil, false, true)}
+    local il_data_tbl = {M.get_inline_link_data(nil, false, true)}
     if vim.tbl_contains(il_data_tbl, nil) then
         vim.notify("Mdn: No valid inline link detected", vim.log.level.WARN)
         return nil

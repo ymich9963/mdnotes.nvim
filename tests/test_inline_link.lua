@@ -23,7 +23,7 @@ local T = new_set({
     },
 })
 
-T['get_il_data()'] = function()
+T['get_inline_link_data()'] = function()
     -- Setup test buffer
     local lines = {
         "[file1](tests/test-data/files/file1.md) [file2](tests/test-data/files/file2.md)",
@@ -41,7 +41,7 @@ T['get_il_data()'] = function()
 
     -- File inline links
     child.fn.cursor(1,2)
-    local ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    local ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         false,
         "file1",
@@ -51,7 +51,7 @@ T['get_il_data()'] = function()
     })
 
     child.fn.cursor(1,42)
-    ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         false,
         "file2",
@@ -62,7 +62,7 @@ T['get_il_data()'] = function()
 
     -- File inline links with sections
     child.fn.cursor(2,2)
-    ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         false,
         "file1",
@@ -72,7 +72,7 @@ T['get_il_data()'] = function()
     })
 
     child.fn.cursor(2,60)
-    ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         false,
         "file2",
@@ -83,7 +83,7 @@ T['get_il_data()'] = function()
 
     -- Inline images
     child.fn.cursor(3,2)
-    ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         true,
         "image1",
@@ -93,7 +93,7 @@ T['get_il_data()'] = function()
     })
 
     child.fn.cursor(3,60)
-    ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         true,
         "image2",
@@ -104,7 +104,7 @@ T['get_il_data()'] = function()
 
     -- Inline images
     child.fn.cursor(4,2)
-    ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         false,
         "url1",
@@ -114,7 +114,7 @@ T['get_il_data()'] = function()
     })
 
     child.fn.cursor(4,60)
-    ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         false,
         "url2",
@@ -125,7 +125,7 @@ T['get_il_data()'] = function()
 
     -- Same file section
     child.fn.cursor(5,2)
-    ret = child.lua([[ return {require('mdnotes.inline_link').get_il_data()} ]])
+    ret = child.lua([[ return {require('mdnotes.inline_link').get_inline_link_data()} ]])
     eq(ret, {
         false,
         "section",

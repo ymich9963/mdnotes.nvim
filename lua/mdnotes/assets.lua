@@ -257,7 +257,7 @@ end
 function M.download_website_html()
     local uri_website_tbl = require('mdnotes.inline_link').uri_website_tbl or {}
     local mdnotes_config = require('mdnotes').config
-    local _, _, uri, _, _, _, _ = require('mdnotes.inline_link').get_il_data(nil, true)
+    local _, _, uri, _, _, _, _ = require('mdnotes.inline_link').get_inline_link_data(nil, true)
     local filename = ""
     local filepath = ""
     local res = nil
