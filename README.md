@@ -124,7 +124,8 @@ and specify your config using `opts = {}` or with a `setup({})` function,
 }
 ```
 ### 📂 Directory Setup
-Sample directory structure for `mdnotes` is shown below. This plugin was made with this type of directory structure in mind because this is how I use it. If this directory configuration doesn't suit you please make an issue and hopefully I'll be able to accomodate anyone's needs,
+Sample directory structure for `mdnotes` is shown below. See [RATIONALE.md](RATIONALE.md) for reasons regarding the accepted file structure.
+
 ```
 notes/
 ├───assets/
@@ -134,6 +135,7 @@ notes/
 ├───electronics.md
 etc.
 ```
+This plugin was made with this type of directory structure in mind because this is how I use it. If this directory configuration doesn't suit you please make an issue and hopefully I'll be able to accomodate anyone's needs.
 
 ## 💋 Recommendations
 I've specified below some recommended plugins, keymaps, and optional settings for a great experience with `mdnotes`.
