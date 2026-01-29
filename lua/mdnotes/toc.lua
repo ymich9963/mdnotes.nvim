@@ -146,11 +146,9 @@ function M.generate(write_to_buf)
     end
 
     if write_to_buf == true then
-        vim.print("true")
         vim.api.nvim_put(toc, "l", false, false)
         return nil
     elseif write_to_buf == false then
-        vim.print("false")
         return toc
     end
 end

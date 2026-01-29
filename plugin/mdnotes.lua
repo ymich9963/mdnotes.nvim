@@ -7,6 +7,15 @@ vim.g.loaded_mdnotes = true
 
 local mdnotes_group = vim.api.nvim_create_augroup('Mdnotes', { clear = true })
 
+-- To save the current working directory
+vim.api.nvim_create_autocmd("BufEnter", {
+    pattern = "*.md",
+    group = mdnotes_group,
+    callback = function()
+        require('mdnotes').set_cwd()
+    end,
+})
+
 -- To record buffer history
 vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*.md",
@@ -91,7 +100,7 @@ local get_commands = function() return {
         create = require("mdnotes.wikilink").create,
         delete = require("mdnotes.wikilink").delete,
         normalize = require("mdnotes.wikilink").normalize,
-        show_orphans = require("mdnotes.wikilink").show_orphans,
+        show_orphans = require("mdnotes.wikilink").find_orphans,
     },
     table = {
         create = require("mdnotes.table").create,

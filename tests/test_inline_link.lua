@@ -138,11 +138,17 @@ end
 T['get_path_from_uri()'] = function()
     local ret = child.lua([[return require('mdnotes.inline_link').get_path_from_uri("path/with/fragment#fragment", false)]])
     eq(ret, "path/with/fragment")
+
+    ret = child.lua([[return require('mdnotes.inline_link').get_path_from_uri("tests/test-data/files/file1.md#section-2", true)]])
+    eq(ret, "tests/test-data/files/file1.md")
 end
 
 T['get_fragment_from_uri()'] = function()
     local ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("path/with/fragment#fragment", false)]])
     eq(ret, "fragment")
+
+    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("tests/test-data/files/file1.md#section-2", true)]])
+    eq(ret, "section-2")
 end
 
 T['open()'] = function()
@@ -156,9 +162,26 @@ T['open()'] = function()
         "# Test Section"
     }
     local buf = create_md_buffer(child, lines)
+    local ret = nil
 
+    child.fn.cursor(1,1)
+    ret = child.lua([[return require('mdnotes.inline_link').open()]])
+    eq(child.fs.normalize(child.api.nvim_buf_get_name(ret)), vim.fs.normalize(vim.fs.find("file1.md")[1]))
+    lines = child.api.nvim_buf_get_lines(ret, 0, -1, false)
+    eq(lines, {
+        "# File 1",
+        "this is file1",
+        "",
+        "## Section 2",
+        "text"
+    })
+    eq(child.fn.getcurpos()[2], 1)
+
+    child.cmd("buffer " .. buf)
+    child.lua([[return require('mdnotes').set_cwd()]]) -- Autocmd does not get triggered so call manually
     child.fn.cursor(2,1)
-    local ret = child.lua([[return require('mdnotes.inline_link').open()]])
+    ret = child.lua([[return require('mdnotes.inline_link').open()]])
+    eq(child.fs.normalize(child.api.nvim_buf_get_name(ret)), vim.fs.normalize(vim.fs.find("file1.md")[1]))
     lines = child.api.nvim_buf_get_lines(ret, 0, -1, false)
     eq(lines, {
         "# File 1",

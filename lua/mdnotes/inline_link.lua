@@ -50,13 +50,14 @@ function M.get_path_from_uri(uri, check_valid)
     local path = uri:match(require("mdnotes.patterns").uri_no_fragment) or ""
     if check_valid == true then
         if path ~= "" then
+            path = vim.fs.joinpath(require('mdnotes').cwd, path)
             if uv.fs_stat(path .. ".md") then
                 path = path .. ".md"
             end
 
             if not uv.fs_stat(path) then
                 if not vim.tbl_contains(M.uri_website_tbl, path:match("%w+")) then
-                    vim.notify("Mdn: Linked file not found", vim.log.levels.ERROR)
+                    vim.notify("Mdn: Linked file at '" .. path .. "' not found", vim.log.levels.ERROR)
                     return nil
                 end
             end
@@ -66,7 +67,7 @@ function M.get_path_from_uri(uri, check_valid)
         end
     end
 
-    return path
+    return vim.fs.normalize(path)
 end
 
 ---Check and get fragment from the URI
@@ -94,16 +95,17 @@ function M.get_fragment_from_uri(uri, check_valid, move_cursor)
             if path ~= "" then
                 buf = vim.fn.bufadd(path)
             else
+                -- Handle [link](#fragment)
                 buf = vim.api.nvim_get_current_buf()
             end
             vim.fn.bufload(buf)
 
             require('mdnotes.toc').populate_buf_fragments(buf)
-            fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
+            local new_fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
 
             local search_ret = 0
             vim.api.nvim_buf_call(buf, function()
-                search_ret = vim.fn.search("# " .. fragment)
+                search_ret = vim.fn.search("# " .. new_fragment)
             end)
 
             if search_ret == 0 then
@@ -121,22 +123,23 @@ function M.get_fragment_from_uri(uri, check_valid, move_cursor)
 end
 
 ---Open inline links
+---@param uri string? URI to open
 ---@return integer|vim.SystemObj|nil
-function M.open()
-    local _, _, uri, _, _ = M.get_inline_link_data()
-    if uri == nil then return end
+function M.open(uri)
+    if uri == nil then
+        _, _, uri, _, _ = M.get_inline_link_data()
+    end
+    if uri == nil then return -1 end
 
     local path = M.get_path_from_uri(uri)
-    if path == nil then return end
+    if path == nil then return -2 end
 
     local fragment = M.get_fragment_from_uri(uri)
-    if fragment == nil then return end
-
-    local open_cmd = require('mdnotes').open_cmd
+    if fragment == nil then return -3 end
 
     -- Check if the file exists and is a Markdown file
     if uv.fs_stat(path) and path:sub(-3) == ".md" then
-        vim.cmd(open_cmd .. path)
+        require('mdnotes').open_buf(path)
         if fragment ~= "" then
             -- Navigate to fragment
             fragment = require('mdnotes.toc').get_fragment_from_gfm(fragment)
@@ -329,7 +332,7 @@ end
 
 function M.validate()
     local il_data_tbl = {M.get_inline_link_data(nil, false, true)}
-    if vim.tbl_contains(il_data_tbl, nil) then
+    if vim.tbl_isempty(il_data_tbl) then
         vim.notify("Mdn: No valid inline link detected", vim.log.level.WARN)
         return nil
     end

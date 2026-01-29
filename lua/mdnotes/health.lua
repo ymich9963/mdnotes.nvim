@@ -2,7 +2,8 @@
 local M = {}
 
 M.check = function()
-    local config = require('mdnotes').config
+    local mdnotes = require('mdnotes')
+    local config = mdnotes.config
     local config_str = vim.inspect(config)
     local config_ok = true
 
@@ -31,6 +32,10 @@ M.check = function()
     if not vim.tbl_contains({"*", "_"}, config.emphasis_format) then
         vim.health.error(("'emphasis_format' character '%s' is invalid. Can only use '*' or '_'. Defaulting to '*'."):format(M.config.emphasis_format))
         config_ok = false
+    end
+
+    if mdnotes.cwd == nil then
+        vim.health.error("Could not retrieve the current working directory")
     end
 
     local detected_md_lsps = vim.iter(vim.lsp.get_clients())

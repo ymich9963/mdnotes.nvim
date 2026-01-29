@@ -59,7 +59,6 @@ function M.check_valid_table()
     end
 
     if table_endl == 0 then
-        vim.print("here")
         return false, nil, nil
     end
 

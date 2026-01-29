@@ -7,6 +7,9 @@ M.config = {}
 ---@type string|nil Open command for opening buffers
 M.open_cmd = nil
 
+---@type string|nil Current working directory
+M.cwd = nil
+
 ---Mdnotes Config Class
 ---@class MdnotesConfig
 ---@field index_file string? Index file name or path
@@ -94,6 +97,26 @@ function M.setup(user_config)
     if M.config.autocmds == false then
         vim.api.nvim_del_augroup_by_name("Mdnotes")
     end
+
+    M.set_cwd()
+end
+
+---Set the current working directory
+function M.set_cwd()
+    M.cwd = vim.fs.normalize(vim.fs.dirname(vim.api.nvim_buf_get_name(0)))
+end
+
+---Open the buffer using the cwd
+---@param buf integer|string
+function M.open_buf(buf)
+    local edit_cmd = ""
+    if type(buf) == "number" then
+        edit_cmd = M.open_cmd .. buf
+    elseif type(buf) == "string" then
+        vim.cmd.cd({ args = {M.cwd}, mods = {silent = true}})
+        edit_cmd = M.open_cmd .. buf
+    end
+    vim.cmd(edit_cmd)
 end
 
 ---Get the list item's indent level and indicator. Also increment when using ordered lists
@@ -175,7 +198,7 @@ function M.go_to_index_file()
         return
     end
 
-    vim.cmd(M.open_cmd .. M.config.index_file)
+    M.open_buf(M.config.index_file)
 end
 
 ---Go to journal file
@@ -185,7 +208,7 @@ function M.go_to_journal_file()
         return
     end
 
-    vim.cmd(M.open_cmd .. M.config.journal_file)
+    M.open_buf(M.config.journal_file)
 end
 
 ---Insert an entry to the journal file

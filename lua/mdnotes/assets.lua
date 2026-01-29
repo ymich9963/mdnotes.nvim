@@ -88,7 +88,6 @@ local function insert_file(is_image)
     if mdnotes_config.asset_insert_behaviour == "copy" then
         if not uv.fs_copyfile(file_path, vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
             vim.notify(("Mdn: File copy failed"), vim.log.levels.ERROR)
-            vim.print(file_path, file_name)
             return
         else
             vim.notify(('Mdn: Copied "%s" to your assets folder at "%s"'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
