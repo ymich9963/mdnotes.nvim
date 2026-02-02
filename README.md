@@ -31,29 +31,6 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Validate an inline link without opening it by executing `:Mdn inline_link validate`. This ensures that your inline link has a valid destination.
 - Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
 
-### 🧭 General Navigation
-- Set your index and journal files and go there with `:Mdn index` and `:Mdn journal`.
-- Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
-- Use `:Mdn heading next/previous` to easily navigate headings. 
-
-### 💁 Formatting
-- Toggle the appropriate formatting with `:Mdn formatting strong/emphasis/inline_code/strikethrough/autolink_toggle`.
-- Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
-- Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
-- Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn formatting task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
-- Unformat your line(s) with `:Mdn formatting unformat_lines`. 
- 
-### 🫦 Tables
-- See the [Editing Tables](#-editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
-- Create a `ROW` by `COLS` table with `:Mdn table create ROW COLS`.
-- Automatting setting of the best fit of your columns so that all your cells line up (opt-out). Can also be done manually with `:Mdn table best_fit` and can also add padding around your cells (`table_best_fit_padding` in config).
-- Insert columns to the left or right of your current column with `:Mdn table column_insert_left/right`.
-- Move columns to the left or right of your current column with `:Mdn table column_move_left/right`.
-- Delete current column with `:Mdn table column_delete`.
-- Duplicate current column with `:Mdn table column_duplicate`.
-- Toggle column alignment with `:Mdn table column_alignment_toggle`.
-- Insert empty rows to the above or below of your current line with `:Mdn table row_insert_above/below`.
-
 ### 🖇️ WikiLinks
 - Create a WikiLink by highlighting or hovering over a word and executing `:Mdn wikilink create`.
 - Open WikiLinks with `:Mdn wikilink follow`.
@@ -71,6 +48,29 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Open your assets folder using `:Mdn assets open_containing_folder`. 
 - Download website HTML to your assets folder with `:Mdn assets download_website_html`.
 
+### 🫦 Tables
+- See the [Editing Tables](#-editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.
+- Create a `ROW` by `COLS` table with `:Mdn table create ROW COLS`.
+- Automatting setting of the best fit of your columns so that all your cells line up (opt-out). Can also be done manually with `:Mdn table best_fit` and can also add padding around your cells (`table_best_fit_padding` in config).
+- Insert columns to the left or right of your current column with `:Mdn table column_insert_left/right`.
+- Move columns to the left or right of your current column with `:Mdn table column_move_left/right`.
+- Delete current column with `:Mdn table column_delete`.
+- Duplicate current column with `:Mdn table column_duplicate`.
+- Toggle column alignment with `:Mdn table column_alignment_toggle`.
+- Insert empty rows to the above or below of your current line with `:Mdn table row_insert_above/below`.
+
+### 🧭 General Navigation
+- Set your index and journal files and go there with `:Mdn index` and `:Mdn journal`.
+- Can go backwards and forwards in notes history by using `:Mdn history go_back` and  `:Mdn history go_forward`.
+- Use `:Mdn heading next/previous` to easily navigate headings. 
+
+### 💁 Formatting
+- Toggle the appropriate formatting with `:Mdn formatting strong/emphasis/inline_code/strikethrough/autolink_toggle`.
+- Automatically continue your ordered/unordered/task lists. Works with `<CR>`, `o`, and `O` and can be disabled.
+- Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
+- Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn formatting task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
+- Unformat your line(s) with `:Mdn formatting unformat_lines`. 
+ 
 ### 🧍‍♂️ Uncategorised
 - Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC by changing the `toc_depth = 4`.
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling. Can also use outliner-like indentation with `:Mdn outliner indent/unindent`.
@@ -188,20 +188,6 @@ vim.keymap.set("i", "<C-x><C-f>", "<cmd>set isfname-=[,]<CR><C-x><C-f><cmd>set i
 })
 ```
 
-## 🙊  Using LSPs
-The main reason I started this project was dissatisfaction with Markdown LSPs at the time, and I really wanted to use Neovim as my notes editor. Therefore, `mdnotes` is designed to work with Markdown LSPs by trying to fill the gaps and to also complement their current functionality. Unfortunately, I don't think the Markdown LSPs are there yet, so the default behaviour of the plugin is to have `prefer_lsp = false`. Please see the table below for how `mdnotes` tries to work with LSPs and Neovim itself.
-
-|Feature                         |mdnotes                              |LSP                                                        |Neovim                                                                 |
-|--------------------------------|-------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------|
-|Showing references              |Y (`:Mdn wikilink show_references`)           |Y (`:h vim.lsp.buf.references()` or `grr`)                 |N                                                                      |
-|Rename links to current buffer  |Y (`:Mdn wikilink rename_references`)         |Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only)|N                                                                      |
-|Rename links to hovered WikiLink|Y (`:Mdn wikilink rename_references`)         |? (`:h vim.lsp.buf.rename()`, should work but it does not) |N                                                                      |
-|Buffer History                  |Y (Sequential `:Mdn history go_back/forward`)|N                                                          |Y (Not Sequential `:h bp`/`:h bn`                                      |
-|Path Completion                 |N                                    |Y (`:h lsp-completion`)                                    |Y (`:h i_CTRL-X_CTRL-F`)                                               |
-|Opening WikiLinks               |Y (`:Mdn wikilink follow`)             |Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)              |Y (`:h gf`, needs .md extension in link, requires settings for Windows)|
- 
- **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
-
 ## 🦠 Editing Tables
 `mdnotes` tries to complement Neovim functionality to make editing tables as easy as possible. See the table below for what functions Neovim does and what functions are done by `mdnotes`.
 
@@ -271,8 +257,22 @@ The GFM table specification is supported.
 |3r1c|3r2c|3r3c|
 ```
 
+## 🙊  Using LSPs
+The main reason I started this project was dissatisfaction with Markdown LSPs at the time, and I really wanted to use Neovim as my notes editor. Therefore, `mdnotes` is designed to work with Markdown LSPs by trying to fill the gaps and to also complement their current functionality. Unfortunately, I don't think the Markdown LSPs are there yet, so the default behaviour of the plugin is to have `prefer_lsp = false`. Please see the table below for how `mdnotes` tries to work with LSPs and Neovim itself.
+
+|Feature                         |mdnotes                              |LSP                                                        |Neovim                                                                 |
+|--------------------------------|-------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------|
+|Showing references              |Y (`:Mdn wikilink show_references`)           |Y (`:h vim.lsp.buf.references()` or `grr`)                 |N                                                                      |
+|Rename links to current buffer  |Y (`:Mdn wikilink rename_references`)         |Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only)|N                                                                      |
+|Rename links to hovered WikiLink|Y (`:Mdn wikilink rename_references`)         |? (`:h vim.lsp.buf.rename()`, should work but it does not) |N                                                                      |
+|Buffer History                  |Y (Sequential `:Mdn history go_back/forward`)|N                                                          |Y (Not Sequential `:h bp`/`:h bn`                                      |
+|Path Completion                 |N                                    |Y (`:h lsp-completion`)                                    |Y (`:h i_CTRL-X_CTRL-F`)                                               |
+|Opening WikiLinks               |Y (`:Mdn wikilink follow`)             |Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)              |Y (`:h gf`, needs .md extension in link, requires settings for Windows)|
+ 
+ **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
+
 ## 🫂 Motivation
-I wanted to make a more Neovim-centric Markdown notes plugin that tries to work the available Markdown LSPs, is command/subcommand focused, concise, adheres to the [CommonMark](https://spec.commonmark.org/) and [GFM](https://github.github.com/gfm/) specs, while also providing the more widespread [WikiLink](https://github.com/Python-Markdown/markdown/blob/master/docs/extensions/wikilinks.md) support other note-taking apps provide. I hope I did in fact accomplish this for you as well as for me and if I have not then please create an issue! Thanks for reading this :).
+I wanted to make a more Neovim-centric Markdown notes plugin that tries to work the available Markdown LSPs, is command/subcommand focused, concise, adheres to the [CommonMark](https://spec.commonmark.org/) and [GFM](https://github.github.com/gfm/) specs, while also providing the more widespread [WikiLink](https://github.com/Python-Markdown/markdown/blob/master/docs/extensions/wikilinks.md) support other note-taking apps provide. I hope I did in fact accomplish this (and more) for you as well as for me, and if I have not then please create an issue or contribute! Thanks for reading this :).
 
 ## 🫰 Other Cool Markdown-related Plugins
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
