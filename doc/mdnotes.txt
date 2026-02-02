@@ -307,7 +307,7 @@ subcommands are listed below.
 
     Normalize WikiLink path under cursor.
 
-:Mdn wikilink show_orphans				*:Mdn-wikilink-show_orphans*
+:Mdn wikilink find_orphans				*:Mdn-wikilink-find_orphans*
 
     Show orphan pages (pages with no references) in current directory.
 
@@ -639,7 +639,7 @@ wikilink.normalize()					*mdnotes.wikilink.normalize()*
 
     Normalize WikiLink path under cursor.
 
-wikilink.show_orphans()					*mdnotes.wikilink.show_orphans()*
+wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
 
     Show orphan pages (pages with no references) in current directory.
 

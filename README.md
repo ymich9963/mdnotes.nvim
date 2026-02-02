@@ -62,7 +62,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Undo the most recent reference rename with `:Mdn wikilink undo_rename`. **Only** available when `prefer_lsp = false`.
 - Delete the WikiLink under the cursor with `:Mdn wikilink delete`. 
 - Normalize your WikiLink path with `:Mdn wikilink normalize`. 
-- Show orphan pages (pages with no references) in current directory with `:Mdn wikilink show_orphans`. 
+- Find orphan pages (pages with no references) in current directory with `:Mdn wikilink find_orphans`. 
 
 ### 👩‍💼 Asset Management
 - Use `:Mdn assets delete_unused` to easily cleanup assets that you no longer use.

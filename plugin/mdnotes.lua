@@ -100,7 +100,7 @@ local get_commands = function() return {
         create = require("mdnotes.wikilink").create,
         delete = require("mdnotes.wikilink").delete,
         normalize = require("mdnotes.wikilink").normalize,
-        show_orphans = require("mdnotes.wikilink").find_orphans,
+        find_orphans = require("mdnotes.wikilink").find_orphans,
     },
     table = {
         create = require("mdnotes.table").create,
