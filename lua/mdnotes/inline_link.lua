@@ -47,7 +47,11 @@ end
 ---@return string|nil path
 function M.get_path_from_uri(uri, check_valid)
     if check_valid == nil then check_valid = true end
+
+    if M.is_url(uri) == true then return "" end
+
     local path = uri:match(require("mdnotes.patterns").uri_no_fragment) or ""
+
     if check_valid == true then
         if path ~= "" then
             path = vim.fs.joinpath(require('mdnotes').cwd, path)
@@ -81,9 +85,7 @@ function M.get_fragment_from_uri(uri, check_valid, move_cursor)
     local fragment = uri:match(require("mdnotes.patterns").fragment) or ""
     local cur_pos = vim.fn.getpos('.')
 
-    if M.is_url(uri) == true then
-        fragment = ""
-    end
+    if M.is_url(uri) == true then fragment = "" end
 
     -- Need path to open file to parse sections
     local path = M.get_path_from_uri(uri)
