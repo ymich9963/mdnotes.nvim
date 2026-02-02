@@ -61,7 +61,8 @@ function M.follow()
 
     if wikilink ~= "" then
         local path = vim.fs.joinpath(mdnotes.cwd, wikilink)
-        if uv.fs_stat(path .. ".md") then
+
+        if path:sub(-3) ~= ".md" then
             path = path .. ".md"
         end
 
