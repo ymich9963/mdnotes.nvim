@@ -10,6 +10,9 @@ M.open_cmd = nil
 ---@type string|nil Current working directory
 M.cwd = nil
 
+---@type string|nil Plugin install directory
+M.plugin_install_dir = nil
+
 ---Mdnotes Config Class
 ---@class MdnotesConfig
 ---@field index_file string? Index file name or path
@@ -99,6 +102,14 @@ function M.setup(user_config)
     end
 
     M.set_cwd()
+
+    -- Get plugin install dir
+    for _, dir in ipairs(vim.api.nvim_list_runtime_paths()) do
+        if dir:match(".*mdnotes.nvim$") then
+            M.plugin_install_dir = vim.fs.normalize(dir)
+            break
+        end
+    end
 end
 
 ---Set the current working directory

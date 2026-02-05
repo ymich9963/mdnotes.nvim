@@ -1,4 +1,5 @@
 ---@module 'mdnotes.assets'
+
 local M = {}
 
 local uv = vim.loop or vim.uv
@@ -28,18 +29,15 @@ function M.open_containing_folder()
     vim.ui.open(require('mdnotes').config.assets_path)
 end
 
----Insert a file or image as an inline link
----@param is_image boolean? File type to insert
-local function insert_file(is_image)
-    if not M.check_assets_path() then return end
-
-    if is_image == nil then is_image = false end
-
-    -- Get the file paths as a table
+local function get_file_paths_from_cmd()
     local cmd_stdout = ""
     local file_paths = {}
+    local scripts_path = vim.fs.joinpath(require('mdnotes').plugin_install_dir, "scripts")
+    local windows_script = vim.fs.joinpath(scripts_path, "get_file_path_from_clipboard.ps1")
+    local macos_script = vim.fs.joinpath(scripts_path, "get_file_path_from_clipboard.scpt")
+
     if vim.fn.has("win32") == 1 then
-        cmd_stdout = vim.system({'cmd.exe', '/c', 'powershell', '-command' ,'& {Get-Clipboard -Format FileDropList -Raw}'}, { text = true }):wait().stdout
+        cmd_stdout = vim.system({'cmd.exe', '/c', 'powershell.exe', '-ExecutionPolicy', 'Bypass', '-File', windows_script}, { text = true }):wait().stdout
     elseif vim.fn.has("linux") == 1 then
         local display_server = os.getenv "XDG_SESSION_TYPE"
         if display_server == "x11" or display_server == "tty" then
@@ -48,18 +46,33 @@ local function insert_file(is_image)
             cmd_stdout = vim.system({"wl-paste", "--type", "text/uri-list", "|", "sed", "'s|file://||'"}, { text = true }):wait().stdout
         end
     elseif vim.fn.has("mac") == 1 then
-        cmd_stdout = vim.system({"osascript", "-e", "set f to the clipboard as alias", "-e", "POSIX path of f"}, { text = true }):wait().stdout
+        cmd_stdout = vim.system({"osascript", macos_script}, { text = true }):wait().stdout
     end
 
     if cmd_stdout ~= "" then
         file_paths = vim.split( cmd_stdout, '\n')
-    else
-        vim.notify("Mdn: Error when trying to read clipboard. Output of command: '" .. cmd_stdout .. '"', vim.log.levels.WARN)
-        return
     end
+
+    return file_paths, cmd_stdout
+end
+
+---Insert a file or image as an inline link
+---@param is_image boolean? File type to insert
+local function insert_file(is_image)
+    if not M.check_assets_path() then return end
+
+    if is_image == nil then is_image = false end
+
+    -- Get the file paths as a table
+    local file_paths, cmd_stdout = get_file_paths_from_cmd()
 
     -- Remove last entry since it will always be '\n'
     table.remove(file_paths)
+
+    if vim.tbl_isempty(file_paths) then
+        vim.notify("Mdn: Error when trying to read clipboard. Output of command: '" .. cmd_stdout .. '"', vim.log.levels.WARN)
+        return
+    end
 
     if #file_paths > 1 then
         vim.notify('Mdn: Too many files paths detected - please select only one file', vim.log.levels.WARN)
@@ -106,10 +119,10 @@ local function insert_file(is_image)
     local text = ""
 
     if asset_path:match("%s") then
-        text = ("[%s](<%s>)"):format(file_name, asset_path)
-    else
-        text = ("[%s](%s)"):format(file_name, asset_path)
+        asset_path = "<" .. asset_path .. ">"
     end
+
+    text = ("[%s](%s)"):format(file_name, asset_path)
 
     if is_image == true then
         text = "!" .. text
