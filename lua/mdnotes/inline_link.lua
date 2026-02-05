@@ -129,7 +129,7 @@ end
 ---@return integer|vim.SystemObj|nil
 function M.open(uri)
     if uri == nil then
-        _, _, uri, _, _ = M.get_inline_link_data()
+        _, _, uri, _, _ = M.get_inline_link_data(nil, nil, false)
     end
     if uri == nil then return -1 end
 
