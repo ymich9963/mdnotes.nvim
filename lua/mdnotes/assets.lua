@@ -6,14 +6,14 @@ local uv = vim.loop or vim.uv
 
 ---Check if assets path is available and if it exists
 function M.check_assets_path()
-    local mdnotes_config_assets_path = require('mdnotes').config.assets_path
-    if mdnotes_config_assets_path == "" or mdnotes_config_assets_path == nil then
+    local mdnotes_assets_path = require('mdnotes').config.assets_path
+    if mdnotes_assets_path == "" or mdnotes_assets_path == nil then
         vim.notify(("Mdn: Please specify assets path to use this feature"), vim.log.levels.ERROR)
         return false
     end
 
-    if vim.fn.isdirectory(mdnotes_config_assets_path) == 0 then
-        vim.notify(("Mdn: Assets path %s doesn't exist - change path or create it"):format(mdnotes_config_assets_path), vim.log.levels.ERROR)
+    if vim.fn.isdirectory(mdnotes_assets_path) == 0 then
+        vim.notify(("Mdn: Assets path '%s' doesn't exist - change path or create it"):format(mdnotes_assets_path), vim.log.levels.ERROR)
         return false
     end
 
@@ -22,11 +22,9 @@ end
 
 ---Open assets folder
 function M.open_containing_folder()
-    if not M.check_assets_path() then return end
-
-    -- There might be issues with code below, see issue
-    -- https://github.com/neovim/neovim/issues/36293
-    vim.ui.open(require('mdnotes').config.assets_path)
+    if M.check_assets_path() == false then return end
+    local mdnotes = require('mdnotes')
+    vim.ui.open(vim.fs.joinpath(mdnotes.cwd, mdnotes.config.assets_path))
 end
 
 local function get_file_paths_from_cmd()
@@ -59,7 +57,7 @@ end
 ---Insert a file or image as an inline link
 ---@param is_image boolean? File type to insert
 local function insert_file(is_image)
-    if not M.check_assets_path() then return end
+    if M.check_assets_path() == false then return end
 
     if is_image == nil then is_image = false end
 
@@ -189,7 +187,7 @@ end
 ---Move or delete assets
 ---@param move_or_delete '"move"'|'"delete"' Select to move or delete the assets
 local function move_delete(move_or_delete)
-    if not M.check_assets_path() then return end
+    if M.check_assets_path() == false then return end
 
     local used_assets = get_used_assets(true)
     local mdnotes_config = require('mdnotes').config

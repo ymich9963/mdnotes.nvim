@@ -152,13 +152,7 @@ function M.open(uri)
         return vim.api.nvim_get_current_buf()
     end
 
-    -- If nothing has happened so far then just open it
-    -- This if-statement should be removed in Neovim 0.12
-    if vim.fn.has("win32") == 1 then
-        return vim.system({'cmd.exe', '/c', 'start', '', uri})
-    else
-        return vim.ui.open(uri)
-    end
+    return vim.ui.open(uri)
 end
 
 ---Check if inline link is an image
