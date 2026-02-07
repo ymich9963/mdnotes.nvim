@@ -106,7 +106,7 @@ function M.get_asset_inline_link(is_image, file_path, process_file)
 
         -- Remove blank entries
         for i, v in ipairs(file_paths) do
-            if v:match("^[%s]$") then
+            if not v:match("%S") then
                 table.remove(file_paths, i)
             end
         end
