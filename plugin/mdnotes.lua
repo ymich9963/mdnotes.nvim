@@ -121,8 +121,8 @@ local get_commands = function() return {
         clear = require("mdnotes.history").clear,
     },
     assets = {
-        insert_image = require("mdnotes.assets").insert_image,
         insert_file = require("mdnotes.assets").insert_file,
+        insert_image = require("mdnotes.assets").insert_image,
         delete_unused = require("mdnotes.assets").delete_unused,
         move_unused = require("mdnotes.assets").move_unused,
         open_containing_folder = require("mdnotes.assets").open_containing_folder,

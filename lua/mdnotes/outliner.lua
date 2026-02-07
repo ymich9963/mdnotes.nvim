@@ -31,7 +31,7 @@ function  M.toggle()
             desc = "Mdnotes <CR> remap for auto-lists",
             buffer = true
         })
-        vim.api.nvim_put({"-  "}, "V", false, false)
+        vim.api.nvim_put({"-  "}, "l", false, false)
         vim.api.nvim_win_set_cursor(0, {vim.fn.line('.') ,3})
         vim.cmd.startinsert()
     end
