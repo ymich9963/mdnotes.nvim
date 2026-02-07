@@ -178,6 +178,7 @@ T['find_orphans()'] = function()
         "file3.md",
         "file4.md",
         "file6.md",
+        "file7.md",
     })
 end
 

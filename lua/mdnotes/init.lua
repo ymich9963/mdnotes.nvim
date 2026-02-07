@@ -235,7 +235,7 @@ function M.journal_insert_entry()
     }
 
     vim.fn.cursor({1 ,0})
-    vim.api.nvim_put(journal_entry_template, "V", false, false)
+    vim.api.nvim_put(journal_entry_template, "l", false, false)
     vim.fn.cursor({3 ,0})
 end
 
