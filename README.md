@@ -11,11 +11,11 @@
 
 Mdnotes aims to be a lightweight plugin that improves the Markdown note-taking experience in Neovim, with minimal configuration required. It also exposes most of the functions used internally, so that the user can create a hyper-extensible note-taking experience similar to Neovim's philosophy.
 
-It provides the typical Markdown features like inserting/editing inline links, ordered/unordered/task lists, generating ToC, table helpers, and formatting. The highlights are that it provides better WikiLink support, inserting/deleting assets, sequential Markdown buffer history, asset management, and link referencing/renaming. Please see the [Features](#-features) below for a descriptive list of features and their commands! 
+It provides the typical Markdown features like inserting/editing inline links, ordered/unordered/task lists, generating ToC, table helpers, and formatting. The highlights are that it provides better WikiLink support, managing/inserting/deleting assets, sequential Markdown buffer history, link referencing/renaming, and outliner-style indentation. Please see the [Features](#-features) below for a descriptive list of features and their commands! 
 
 In the [Recommendations](#-recommendations) section I've written some notes on my recommended `mdnotes` setup, and please see the [Supported Markdown Format](#-supported-markdown-formatting) section to see how `mdnotes` aims to format your notes.
 
-If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you, and I've also written some useful tips in [TIPS.md](TIPS.md) for when writing notes in OOTB Neovim. Lastly, a disclaimer I must unfortunately say, is if you are executing any mass data-altering commands, ensure you have a notes backup!
+If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you, and I've also written some useful tips in [TIPS.md](TIPS.md) for when writing notes in out-of-the-box Neovim. Lastly, a disclaimer I must unfortunately say, is if you are executing any mass data-altering commands, ensure you have a notes backup!
 
 All documentation is available with `:h mdnotes.txt`. Execute `:checkhealth mdnotes` to ensure there are no problems with your plugin config.
 
@@ -29,7 +29,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Re-link the inline link with `:Mdn inline_link relink`. 
 - Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
 - Validate an inline link without opening it by executing `:Mdn inline_link validate`. This ensures that your inline link has a valid destination.
-- Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510). Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
+- Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510) with `Mdn inline_link convert_fragment_to_gfm`. Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
 
 ### 🖇️ WikiLinks
 - Create a WikiLink by highlighting or hovering over a word and executing `:Mdn wikilink create`.
@@ -79,6 +79,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Tips for repeating last command, find/replace words, finding tags, and finding files, can be found in [TIPS.md](TIPS.md).
 - Opt-in use of existing Markdown LSP functions by setting `prefer_lsp = true`.
 - Supports Windows eccentricities.
+- Exposes most internal functions to provide an API as to allow a hyper-extensible note-taking experience. See `:h mdnotes-api`.
 
 ## 👽 Setup
 Using the lazy.nvim package manager,
@@ -210,11 +211,12 @@ Here is the supported Markdown formatting for `mdnotes.nvim`. The plugin tries t
 ### Links
 Opened with `:Mdn inline_link open`. Inserted with the `:Mdn assets insert_file/image` and `:Mdn inline_link toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
 ```
-    [link](www.neovim.io)
+    [link](https://neovim.io)
     [link](path/to/file#fragment)
+    [link](path/to/file#GFM Style Fragment Wth Spaces)
     [link](path/to/file#gfm-style-fragment-wth-spaces)
     [link](<path/to/file with spaces.md#fragment>)
-    [link](#Original Section)
+    [link](#Original Fragment)
     [link](#original-fragment)
     [link](path/to/file.extension)
     ![image](path/to/image.extension)
