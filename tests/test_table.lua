@@ -49,7 +49,7 @@ T['check_valid_table()'] = function()
     eq(ret[3], nil)
 end
 
-T['write_table()'] = function()
+T['write_table_lines()'] = function()
     local lines = {
         "",
     }
@@ -63,7 +63,7 @@ T['write_table()'] = function()
         {"3r1c","3r2c","3r3c"},
     }
 
-    require('mdnotes.table').write_table(table_content, 1, #table_content)
+    require('mdnotes.table').write_table_lines(table_content, 1, #table_content)
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
@@ -109,7 +109,7 @@ T['parse_table()'] = function()
     })
 end
 
-T['get_table()'] = function()
+T['get_table_lines()'] = function()
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -118,7 +118,7 @@ T['get_table()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua_get([[{require('mdnotes.table').get_table()}]])
+    local ret = child.lua_get([[{require('mdnotes.table').get_table_lines()}]])
     eq(ret[1], {
         {"1r1c","1r2c","1r3c"},
         {"----","----","----"},
@@ -127,6 +127,29 @@ T['get_table()'] = function()
     })
     eq(ret[2], 1)
     eq(ret[3], 4)
+
+    -- Check how duplicates are handled
+    lines = {
+        "|1r1c|1r2c|1r3c|",
+        "|----|----|----|",
+        "|2r1c|2r2c|2r3c|",
+        "|2r1c|2r2c|2r3c|",
+        "|2r1c|2r2c|2r3c|",
+        "|3r1c|3r2c|3r3c|",
+    }
+    create_md_buffer(child, lines)
+
+    ret = child.lua_get([[{require('mdnotes.table').get_table_lines()}]])
+    eq(ret[1], {
+        {"1r1c","1r2c","1r3c"},
+        {"----","----","----"},
+        {"2r1c","2r2c","2r3c"},
+        {"2r1c","2r2c","2r3c"},
+        {"2r1c","2r2c","2r3c"},
+        {"3r1c","3r2c","3r3c"},
+    })
+    eq(ret[2], 1)
+    eq(ret[3], 6)
 end
 
 T['get_column_locations()'] = function()
@@ -147,7 +170,7 @@ T['get_column_locations()'] = function()
     })
 end
 
-T['get_table_complex()'] = function()
+T['get_table_lines_complex()'] = function()
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -240,13 +263,13 @@ T['get_table_complex()'] = function()
         }
     }
 
-    local ret = child.lua_get([[{require('mdnotes.table').get_table_complex()}]])
+    local ret = child.lua_get([[{require('mdnotes.table').get_table_lines_complex()}]])
     eq(ret[1], expected_table_complex)
     eq(ret[2], 1)
     eq(ret[3], 4)
 end
 
-T['get_cur_column()'] = function()
+T['get_cur_column_num()'] = function()
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -255,7 +278,7 @@ T['get_cur_column()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua_get([[require('mdnotes.table').get_cur_column()]])
+    local ret = child.lua_get([[require('mdnotes.table').get_cur_column_num()]])
     eq(ret, 1)
 end
 
@@ -458,6 +481,59 @@ T['column_duplicate()'] = function()
         "|----|----|----|----|",
         "|2r1c|2r1c|2r2c|2r3c|",
         "|3r1c|3r1c|3r2c|3r3c|",
+    })
+end
+
+T['get_table_columns()'] = function()
+    local lines = {
+        "|1r1c|1r2c|1r3c|",
+        "|----|----|----|",
+        "|2r1c|2r2c|2r3c|",
+        "|3r1c|3r2c|3r3c|",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[return require('mdnotes.table').get_table_columns()]])
+    eq(ret, {
+        {"1r1c", "----", "2r1c", "3r1c"},
+        {"1r2c", "----", "2r2c", "3r2c"},
+        {"1r3c", "----", "2r3c", "3r3c"},
+    })
+end
+
+T['column_sort()'] = function()
+    local lines = {
+        "|1r1c|1r2c|1r3c|",
+        "|----|----|----|",
+        "|4r1c|3r2c|3r3c|",
+        "|2r1c|2r2c|2r3c|",
+        "|2r1c|2r2c|2r3c|",
+        "|3r1c|3r2c|3r3c|",
+    }
+    local buf = create_md_buffer(child, lines)
+
+    -- Ascending
+    child.lua([[require('mdnotes.table').column_sort(function(a, b) return a < b end)]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines, {
+        "|1r1c|1r2c|1r3c|",
+        "|----|----|----|",
+        "|2r1c|2r2c|2r3c|",
+        "|2r1c|2r2c|2r3c|",
+        "|3r1c|3r2c|3r3c|",
+        "|4r1c|3r2c|3r3c|",
+    })
+
+    -- Ascending
+    child.lua([[require('mdnotes.table').column_sort(function(a, b) return a > b end)]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines, {
+        "|1r1c|1r2c|1r3c|",
+        "|----|----|----|",
+        "|4r1c|3r2c|3r3c|",
+        "|3r1c|3r2c|3r3c|",
+        "|2r1c|2r2c|2r3c|",
+        "|2r1c|2r2c|2r3c|",
     })
 end
 

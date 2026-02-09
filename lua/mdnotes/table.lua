@@ -69,18 +69,21 @@ end
 ---@param contents MdnotesTableContents
 ---@param startl integer?
 ---@param endl integer?
-function M.write_table(contents, startl, endl)
+function M.write_table_lines(contents, startl, endl)
     if startl == nil then startl = vim.fn.line('.') end
     if endl == nil then endl = vim.fn.line('.') end
     local table_formatted = {}
 
+    -- Copy so that it's not passed by reference
+    local table_contents = vim.deepcopy(contents, true)
+
     -- Append a blank entry to have a | at the end
-    for _, v in ipairs(contents) do
+    for _, v in ipairs(table_contents) do
         table.insert(v, "")
     end
 
     -- Concatinate with |
-    for _, v in ipairs(contents) do
+    for _, v in ipairs(table_contents) do
         table.insert(table_formatted, "|" .. table.concat(v, "|"))
     end
 
@@ -120,7 +123,7 @@ function M.create(rows, columns)
     end
     table.insert(new_table, 2, header_row)
 
-    M.write_table(new_table)
+    M.write_table_lines(new_table)
 end
 
 ---Parse the table in the specified line numbers
@@ -150,10 +153,10 @@ function M.parse_table(table_startl, table_endl)
     return table_parsed
 end
 
----Get the table contents and start and end lines
+---Get the table contents as lines using start and end lines
 ---@param silent boolean? Output errors
 ---@return MdnotesTableContents|nil, integer|nil, integer|nil
-function M.get_table(silent)
+function M.get_table_lines(silent)
     if silent == nil then silent = false end
 
     local table_valid, startl, endl = M.check_valid_table()
@@ -204,8 +207,8 @@ end
 
 ---Get the table contents along with some more information (which is why it's called complex)
 ---@return MdnotesTableComplex|nil, integer|nil, integer|nil
-function M.get_table_complex()
-    local table_lines, startl, endl = M.get_table()
+function M.get_table_lines_complex()
+    local table_lines, startl, endl = M.get_table_lines()
 
     if table_lines == nil then
         -- Errors would already be outputted
@@ -234,8 +237,8 @@ end
 
 ---Get the current column based on cursor location
 ---@return integer|nil
-function M.get_cur_column()
-    local table_lines_complex, _, _ = M.get_table_complex()
+function M.get_cur_column_num()
+    local table_lines_complex, _, _ = M.get_table_lines_complex()
 
     if table_lines_complex == nil then
         -- Errors would already be outputted
@@ -259,13 +262,13 @@ end
 ---Insert a column to the table either left or right
 ---@param direction '"left"'|'"right"' Column insertion direction
 local function insert_column(direction)
-    local cur_col = M.get_cur_column()
+    local cur_col = M.get_cur_column_num()
 
     if cur_col == nil then
         return
     end
 
-    local table_lines, startl, endl = M.get_table()
+    local table_lines, startl, endl = M.get_table_lines()
 
     if table_lines == nil or startl == nil or endl == nil then
         -- Errors would already be outputted
@@ -285,7 +288,7 @@ local function insert_column(direction)
         end
     end
 
-    M.write_table(table_lines, startl, endl)
+    M.write_table_lines(table_lines, startl, endl)
 end
 
 ---Insert column to the left of the current column
@@ -301,7 +304,7 @@ end
 ---Move a column either left or right
 ---@param direction '"left"'|'"right"' Column move direction
 local function move_column(direction)
-    local cur_col = M.get_cur_column()
+    local cur_col = M.get_cur_column_num()
 
     if cur_col == nil then
         return
@@ -314,7 +317,7 @@ local function move_column(direction)
         new_col = cur_col + 1
     end
 
-    local table_lines, startl, endl = M.get_table()
+    local table_lines, startl, endl = M.get_table_lines()
 
     if table_lines == nil or startl == nil or endl == nil then
         -- Errors would already be outputted
@@ -333,7 +336,7 @@ local function move_column(direction)
         table.insert(v, new_col, temp_col_val)
     end
 
-    M.write_table(table_lines, startl, endl)
+    M.write_table_lines(table_lines, startl, endl)
 end
 
 ---Move current column to the left
@@ -349,7 +352,7 @@ end
 ---Insert an empty row either above or below
 ---@param direction '"above"'|'"below"' Row insertion direction
 local function insert_row(direction)
-    local table_lines , startl, endl = M.get_table()
+    local table_lines , startl, endl = M.get_table_lines()
 
     if table_lines == nil or startl == nil or endl == nil then
         -- Errors would already be outputted
@@ -376,7 +379,7 @@ local function insert_row(direction)
         table.insert(table_lines, cur_table_line_num + 1, new_table_line)
     end
 
-    M.write_table(table_lines, startl, endl)
+    M.write_table_lines(table_lines, startl, endl)
 end
 
 ---Insert a row above the current row
@@ -389,10 +392,12 @@ function M.row_insert_below()
     insert_row("below")
 end
 
+---Add the appropriate amount of spaces for each column
+---@param silent boolean? Output errors
 function M.best_fit(silent)
-    local table_lines, startl, endl = M.get_table(silent)
+    local table_lines, startl, endl = M.get_table_lines(silent)
 
-    if table_lines == nil then
+    if table_lines == nil or startl == nil or endl == nil then
         -- Errors would already be outputted
         return
     end
@@ -449,18 +454,18 @@ function M.best_fit(silent)
         table_lines[2][c] = new_delimiter_row
     end
 
-    M.write_table(table_lines, startl, endl)
+    M.write_table_lines(table_lines, startl, endl)
 end
 
 ---Delete current column. Can also use visual block mode
 function M.column_delete()
-    local cur_col = M.get_cur_column()
+    local cur_col = M.get_cur_column_num()
 
     if cur_col == nil then
         return
     end
 
-    local table_lines, startl, endl = M.get_table()
+    local table_lines, startl, endl = M.get_table_lines()
 
     if table_lines == nil then
         -- Errors would already be outputted
@@ -471,18 +476,18 @@ function M.column_delete()
         table.remove(v, cur_col)
     end
 
-    M.write_table(table_lines, startl, endl)
+    M.write_table_lines(table_lines, startl, endl)
 end
 
 ---Toggle alignment of the current column
 function M.column_alignment_toggle()
-    local cur_col = M.get_cur_column()
+    local cur_col = M.get_cur_column_num()
 
     if cur_col == nil then
         return
     end
 
-    local table_lines, startl, endl = M.get_table()
+    local table_lines, startl, endl = M.get_table_lines()
 
     if table_lines == nil then
         -- Errors would already be outputted
@@ -512,18 +517,18 @@ function M.column_alignment_toggle()
 
     table_lines[2][cur_col] = new_delimiter_row
 
-    M.write_table(table_lines, startl, endl)
+    M.write_table_lines(table_lines, startl, endl)
 end
 
 ---Duplicate the current column. Inserts it to the right
 function M.column_duplicate()
-    local cur_col = M.get_cur_column()
+    local cur_col = M.get_cur_column_num()
 
     if cur_col == nil then
         return
     end
 
-    local table_lines, startl, endl = M.get_table()
+    local table_lines, startl, endl = M.get_table_lines()
 
     if table_lines == nil then
         -- Errors would already be outputted
@@ -539,7 +544,111 @@ function M.column_duplicate()
         end
     end
 
-    M.write_table(table_lines, startl, endl)
+    M.write_table_lines(table_lines, startl, endl)
+end
+
+---Get table as columns
+---@param silent boolean? Output errors
+---@return MdnotesTableContents|nil contents 
+function M.get_table_columns(silent)
+    if silent == nil then silent = false end
+
+    local table_lines = M.get_table_lines(silent)
+
+    if table_lines == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    local table_columns = {}
+    local column = {}
+    for c = 1, #table_lines[1] do
+        column = {}
+        for _, r in ipairs(table_lines) do
+            table.insert(column, r[c])
+        end
+        table.insert(table_columns, column)
+    end
+
+    return table_columns
+end
+
+---Sort table based on current column
+---@param comp fun(a, b): boolean
+---@param write boolean? Write to buffer
+function M.column_sort(comp, write)
+    if write == nil then write = true end
+    local cur_col = M.get_cur_column_num()
+
+    if cur_col == nil then
+        return
+    end
+
+    local table_columns = M.get_table_columns()
+
+    if table_columns == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    local cur_column = vim.deepcopy(table_columns[cur_col], true)
+
+    -- Remove heading and separator
+    table.remove(cur_column, 1)
+    table.remove(cur_column, 1)
+
+    local sorted_column = vim.deepcopy(cur_column, true)
+    table.sort(sorted_column, comp)
+
+    local index_tbl = {}
+    for old_index, v in ipairs(cur_column) do
+        for new_index, vv in ipairs(sorted_column) do
+            if v == vv then
+                -- Add two to account for the heading and separator
+                table.insert(index_tbl, {old_index = old_index + 2, new_index = new_index + 2})
+            end
+        end
+    end
+
+    local table_lines, startl, endl = M.get_table_lines()
+
+    if table_lines == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    local new_table_lines = {}
+    table.insert(new_table_lines, table_lines[1])
+    table.insert(new_table_lines, table_lines[2])
+    for _, v in ipairs(index_tbl) do
+        new_table_lines[v.new_index] = table_lines[v.old_index]
+    end
+
+    if write == true then
+        M.write_table_lines(new_table_lines, startl, endl)
+    end
+
+    return new_table_lines, startl, endl
+end
+
+function M.column_sort_ascending()
+    local table_lines, startl, endl = M.column_sort(function(a, b) return a < b end, false)
+    if table_lines == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    M.write_table_lines(table_lines, startl, endl)
+end
+
+function M.column_sort_descending()
+    local table_lines, startl, endl = M.column_sort(function(a, b) return a > b end, false)
+    if table_lines == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    M.write_table_lines(table_lines, startl, endl)
 end
 
 return M

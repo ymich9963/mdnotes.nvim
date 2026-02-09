@@ -57,6 +57,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Delete current column with `:Mdn table column_delete`.
 - Duplicate current column with `:Mdn table column_duplicate`.
 - Toggle column alignment with `:Mdn table column_alignment_toggle`.
+- Sort the table by the current column ascending or descending with `:Mdn table column_sort_ascending/descending`. Can also use the API to create custom sorting.
 - Insert empty rows to the above or below of your current line with `:Mdn table row_insert_above/below`.
 
 ### 🧭 General Navigation

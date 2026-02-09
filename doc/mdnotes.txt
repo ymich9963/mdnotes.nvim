@@ -498,6 +498,14 @@ subcommands are listed below.
 
    Insert a row to below the current row.
 
+:Mdn table column_sort_ascending			*Mdn-table-column_sort_ascending*
+
+   Sort table in ascending order by the current column.
+
+:Mdn table column_sort_descending			*Mdn-table-column_sort_descending*
+
+   Sort table in descending order by the current column.
+
 :Mdn heading previous					*Mdn-header-previous*
 
    Go to the previous Markdown heading. Wraps around.
@@ -887,6 +895,19 @@ table.row_insert_above()				*mdnotes.table.row_insert_above()*
 table.row_insert_below()				*mdnotes.table.row_insert_below()*
 
    Insert a row to below the current row.
+
+table.column_sort_ascending()				*mdnotes.table.column_sort_ascending()*
+
+   Sort table in ascending order by the current column.
+
+table.column_sort_descending()				*mdnotes.table.column_sort_descending()*
+
+   Sort table in descending order by the current column.
+
+table.column_sort({comp})				*mdnotes.table.column_sort_descending()*
+
+   Sort table by the current column based on the {comp}. See
+   |table.sort()| for the type of function expected.
 
 heading.goto_previous()					*mdnotes.heading.goto_previous()*
 
