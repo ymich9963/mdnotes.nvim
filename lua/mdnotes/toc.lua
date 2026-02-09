@@ -54,7 +54,7 @@ function M.get_fragments_from_buf(bufnr)
 
     for lnum, line in ipairs(buf_lines) do
         local hash, text = line:match(heading_format_pattern)
-        if text and hash and #hash <= require('mdnotes').config.toc_depth then
+        if text and hash then
             table.insert(fragments, {hash = hash, text = text, lnum = lnum})
         end
     end
@@ -111,10 +111,13 @@ function M.parse_fragments_to_gfm_style(fragments)
 end
 
 ---Generate Table of Contents (ToC)
----@param write_to_buf boolean? Whether to insert the resulting text or not
+---@param write boolean? Write to buffer
+---@param depth integer? ToC depth
 ---@return table<string>|nil toc
-function M.generate(write_to_buf)
-    if write_to_buf == nil then write_to_buf = true end
+function M.generate(write, depth)
+    if depth == nil then depth = require('mdnotes').config.toc_depth end
+    if write == nil then write = true end
+
     if vim.bo.filetype ~= "markdown" then
         vim.notify("Mdn: Cannot generate a ToC for a non-Markdown file", vim.log.levels.ERROR)
         return
@@ -141,16 +144,17 @@ function M.generate(write_to_buf)
 
     for i = 1, #fragments do
         local _, hash_count = fragments[i].hash:gsub("#", "")
-        local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
-        table.insert(toc, ("%s- [%s](#%s)"):format(spaces, fragments[i].text, gfm_fragments[i]))
+        if hash_count <= tonumber(depth) then
+            local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
+            table.insert(toc, ("%s- [%s](#%s)"):format(spaces, fragments[i].text, gfm_fragments[i]))
+        end
     end
 
-    if write_to_buf == true then
+    if write == true then
         vim.api.nvim_put(toc, "l", false, false)
-        return nil
-    elseif write_to_buf == false then
-        return toc
     end
+
+    return toc
 end
 
 return M

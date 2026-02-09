@@ -168,10 +168,13 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func = command[1]
     end
 
-    if func == commands["formatting"]["task_list_toggle"] or func == commands["formatting"]["unformat_lines"] then
+    if func == commands["formatting"]["task_list_toggle"]
+        or func == commands["formatting"]["unformat_lines"] then
         func(opts.line1, opts.line2)
     elseif func == commands["table"]["create"] then
         func(args[3], args[4])
+    elseif func == commands["toc"]["generate"] then
+        func(true, args[3])
     elseif func then
         func()
     else

@@ -243,9 +243,17 @@ T['generate()'] = function()
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     require('mdnotes.toc').populate_buf_fragments(cur_buf)
+    return require('mdnotes.toc').generate(false, 1)
+    ]])
+    eq(ret, {"- [Heading 1](#heading-1)"})
+
+    ret = child.lua([[
+    local cur_buf = vim.api.nvim_get_current_buf()
+    require('mdnotes.toc').populate_buf_fragments(cur_buf)
     return require('mdnotes.toc').generate(false)
     ]])
     eq(ret, {"- [Heading 1](#heading-1)", "    - [Heading 2](#heading-2)"})
+
 
     child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()

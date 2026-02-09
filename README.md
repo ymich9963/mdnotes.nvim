@@ -72,7 +72,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Unformat your line(s) with `:Mdn formatting unformat_lines`. 
  
 ### 🧍‍♂️ Uncategorised
-- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC by changing the `toc_depth = 4`.
+- Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC by changing the `toc_depth = 4` or by specifying the depth in the command e.g. `:Mdn toc generate 2`.
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling. Can also use outliner-like indentation with `:Mdn outliner indent/unindent`.
 - Insert a journal entry automatically by doing `:Mdn journal insert_entry`. 
 - Open your folder containing the index file with `:Mdn index open_containing_folder`. 

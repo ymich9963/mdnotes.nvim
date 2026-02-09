@@ -439,10 +439,11 @@ subcommands are listed below.
     Insert at the top of the file the current date and time along with a separator.
     Useful when using a journal.
 
-:Mdn toc generate					*:Mdn-toc-generate*
+:Mdn toc generate {depth}				*:Mdn-toc-generate*
 
     Generate and insert a Table Of Contents of the current file at the cursor 
-    position.
+    position. Optionally specify the {depth} of the ToC in the command or
+    specify the default size with |mdnotes-toc_depth|.
 
 :Mdn table create {rows} {cols}				*Mdn-table-create*
 
