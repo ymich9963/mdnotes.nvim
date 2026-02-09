@@ -537,4 +537,25 @@ T['column_sort()'] = function()
     })
 end
 
+T['parse_columns_to_lines()'] = function()
+    local lines = {
+        "|1r1c|1r2c|1r3c|",
+        "|----|----|----|",
+        "|2r1c|2r2c|2r3c|",
+        "|3r1c|3r2c|3r3c|",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[
+    local table = require('mdnotes.table').get_table_columns()
+    return require('mdnotes.table').parse_columns_to_lines(table)
+    ]])
+    eq(ret, {
+        {"1r1c","1r2c","1r3c"},
+        {"----","----","----"},
+        {"2r1c","2r2c","2r3c"},
+        {"3r1c","3r2c","3r3c"},
+    })
+end
+
 return T

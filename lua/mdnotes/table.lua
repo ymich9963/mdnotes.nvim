@@ -651,4 +651,21 @@ function M.column_sort_descending()
     M.write_table_lines(table_lines, startl, endl)
 end
 
+---Get table as columns
+---@param contents MdnotesTableContents
+---@return MdnotesTableContents|nil contents 
+function M.parse_columns_to_lines(contents)
+    local table_lines = {}
+    local row = {}
+    for c = 1, #contents[1] do
+        row = {}
+        for _, r in ipairs(contents) do
+            table.insert(row, r[c])
+        end
+        table.insert(table_lines, row)
+    end
+
+    return table_lines
+end
+
 return M
