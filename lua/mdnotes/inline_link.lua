@@ -54,11 +54,18 @@ function M.get_path_from_uri(uri, check_valid)
 
     if check_valid == true then
         if path ~= "" then
-            path = vim.fs.joinpath(require('mdnotes').cwd, path)
+            -- Check if absolute path first
+            -- If it doesn't exist then create a relative path
+            if not uv.fs_stat(path) then
+                path = vim.fs.joinpath(require('mdnotes').cwd, path)
+            end
+
+            -- If a Markdown file exists then it is a Markdown file
             if uv.fs_stat(path .. ".md") then
                 path = path .. ".md"
             end
 
+            -- If the path is still not found, check if it's a URL
             if not uv.fs_stat(path) then
                 if not vim.tbl_contains(M.uri_website_tbl, path:match("%w+")) then
                     vim.notify("Mdn: Linked file at '" .. path .. "' not found", vim.log.levels.ERROR)
