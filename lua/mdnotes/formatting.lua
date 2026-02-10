@@ -231,7 +231,7 @@ end
 ---@param line2 integer Last line of selection
 function M.task_list_toggle(line1, line2)
     if line1 == nil then line1 = vim.fn.line('.') end
-    if line2 == nil then line2 = vim.fn.line('.') end
+    if line2 == nil then line2 = line1 end
 
     local mdnotes_patterns = require('mdnotes.patterns')
     local lines = {}
@@ -244,6 +244,7 @@ function M.task_list_toggle(line1, line2)
         lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
     end
 
+    local cur_col = vim.fn.col('.')
     for i, line in ipairs(lines) do
         local _, marker, separator, text = M.resolve_list_content(line)
 
@@ -258,16 +259,24 @@ function M.task_list_toggle(line1, line2)
             local task_marker, _ = text:match(mdnotes_patterns.task)
             if task_marker == "[x]" then
                 new_text, _ = line:gsub(mdnotes_patterns.task, " ", 1)
+                cur_col = cur_col - 4
             elseif task_marker == "[ ]" then
                 new_text, _ = line:gsub(mdnotes_patterns.task, " [x] ", 1)
             elseif task_marker == nil then
                 new_text = line:gsub(marker, marker .. " [ ]", 1)
+                cur_col = cur_col + 4
             end
             table.insert(new_lines, new_text)
         else
             vim.notify(("Mdn: Unable to detect a task list marker at line ".. tostring(line1 - 1 + i)), vim.log.levels.ERROR)
             break
         end
+    end
+
+    if cur_col < 1 then cur_col = 1 end
+
+    if #lines == 1 then
+        vim.fn.cursor(line1, cur_col)
     end
 
     vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
