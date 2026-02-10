@@ -155,14 +155,14 @@ end
 ---Insert a file as an inline link
 function M.insert_file()
     if M.check_assets_path() == false then return end
-    local inline_link = M.get_asset_inline_link()
+    local inline_link = M.get_asset_inline_link(false, nil, true)
     vim.api.nvim_put({inline_link}, "c", false, false)
 end
 
 ---Insert an image as an inline link
 function M.insert_image()
     if M.check_assets_path() == false then return end
-    local inline_link = M.get_asset_inline_link(true)
+    local inline_link = M.get_asset_inline_link(true, nil, true)
     vim.api.nvim_put({inline_link}, "c", false, false)
 end
 
