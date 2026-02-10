@@ -16,8 +16,9 @@ local M = {}
 M.buf_fragments = {}
 
 ---Parse the fragments in the buffer number
----@param bufnr integer Buffer number to parse the fragments
+---@param bufnr integer? Buffer number to parse the fragments
 function M.populate_buf_fragments(bufnr)
+    if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
     local buf_exists = false
     local fragments = M.get_fragments_from_buf(bufnr)
     for _,v in ipairs(M.buf_fragments) do

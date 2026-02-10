@@ -152,6 +152,7 @@ local get_commands = function() return {
     },
     miscellaneous = {
         open_containing_folder = require("mdnotes").open_containing_folder,
+        populate_buf_fragments = require("mdnotes.toc").populate_buf_fragments,
     }
 }
 end
