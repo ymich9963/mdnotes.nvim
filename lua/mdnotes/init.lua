@@ -239,17 +239,9 @@ function M.journal_insert_entry()
     vim.fn.cursor({3 ,0})
 end
 
----Open containing folder of index file
+---Open containing folder of current file
 function M.open_containing_folder()
-    local index_file = M.config.index_file
-    if not index_file or index_file == "" then
-        vim.notify("Mdn: Please specify an index file to use this feature", vim.log.levels.ERROR)
-        return
-    end
-
-    -- There might be issues with code below, see issue
-    -- https://github.com/neovim/neovim/issues/36293
-    vim.ui.open(vim.fs.dirname(index_file))
+    vim.ui.open(M.cwd)
 end
 
 return M

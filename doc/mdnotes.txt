@@ -514,6 +514,10 @@ subcommands are listed below.
 
    Go to the next Markdown heading. Wraps around.
 
+:Mdn miscellaneous open_containing_folder		*Mdn-miscellaneous-open_containing_folder*
+
+   Open the current file's containing folder.
+
 ==============================================================================
 API                                     		*mdnotes-api*
 

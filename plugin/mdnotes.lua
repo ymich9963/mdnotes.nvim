@@ -76,7 +76,6 @@ local commands = nil
 local get_commands = function() return {
     index = {
         require("mdnotes").go_to_index_file,
-        open_containing_folder = require("mdnotes").open_containing_folder,
     },
     journal = {
         require("mdnotes").go_to_journal_file,
@@ -151,6 +150,9 @@ local get_commands = function() return {
         next = require("mdnotes.heading").goto_next,
         previous = require("mdnotes.heading").goto_previous,
     },
+    miscellaneous = {
+        open_containing_folder = require("mdnotes").open_containing_folder,
+    }
 }
 end
 
