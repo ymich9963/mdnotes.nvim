@@ -113,9 +113,7 @@ The default config for `mdnotes` is shown below,
 	emphasis_format = "*",
 	date_format = "%a %d %b %Y",
 	prefer_lsp = false,
-	auto_list = true,
-	auto_list_renumber = true,
-	auto_table_best_fit = true,
+	auto_list_continuation = true,
 	default_keymaps = false,
 	autocmds = true,
 	table_best_fit_padding = 0,
@@ -177,31 +175,39 @@ prefer_lsp = `false|true`				*mdnotes-prefer_lsp*
     Choose whether to prefer to use the LSP functions instead of the `mdnotes`
     functions, when an LSP server is detected in the current Markdown buffer.
 
-auto_list = `false|true`				*mdnotes-auto_list*
+auto_list_continuation = `false|true`			*mdnotes-auto_list_continuation*
 
     Choose whether to allow automatic continuation of your unordered/ordered/
     task list. Works by remapping |<CR>|, |o|, and |O| but only in Markdown
     buffers by specifying it in the plugin's `after/ftplugin/markdown.lua`
     directory.
 
-auto_list_renumber = `false|true` 			*mdnotes-auto_list_renumber*
-
-    Choose whether to renumber ordered lists automatically. Can also be done
-    with the |Mdn-ordered_list_renumber|.
-
-auto_table_best_fit = `false|true`			*mdnotes-auto_table_best_fit*
-
-    Choose whether to get the best fit of the table columns automatically.
-    Can also be done with the |Mdn-table_best_fit|.
-
 default_keymaps = `false|true`				*mdnotes-default_keymaps*
 
     Enable or disable the default keymaps listed in |mdnotes-keymaps|.
 
-autocmds = `false|true`					*mdnotes-autocmds*
+autocmds = `false|true` or `table`			*mdnotes-autocmds*
 
-    Enable or disable the plugin's autocmds in the `Mdnotes` augroup set in
-    `plugin/mdnotes.lua`.
+    Enable or disable the plugin's autocmds set in `plugin/mdnotes.lua`.
+    Can be a boolean true/false for enabling or disabling all of them.
+    If wanting to specify individual autocmds, use a table and specify
+    as shown below,
+
+    Parameters: ~
+    • {opts}  `(table?)` Optional parameters:
+              • {set_cwd} (`false|true`, default `true`)
+		autocmd for path resolution
+              • {record_buf} (`false|true`, default `true`)
+		autocmd for buffer history
+              • {populate_buf_fragments} (`false|true`, default `true`)
+		autocmd for ToC fragments
+              • {ordered_list_renumber} (`false|true`, default `true`)
+		autocmd for ordered lists
+              • {table_best_fit} (`false|true`, default `true`)
+		autocmd for tables
+              • {outliner_state_notification} (`false|true`, default `true`)
+		autocmd for Outliner mode state notification. See
+		|mdnotes-outliner|.
 
 table_best_fit_padding = `integer`			*mdnotes-table_best_fit_padding*
 
@@ -558,20 +564,14 @@ setup({opts})                                          	*mdnotes.setup()*
               • {date_format} (`string?`, default `"%a %d %b %Y"`)
 		defines the date format used when inserting a journal entry.
 		See |strftime|.
-              • {prefer_Lsp} (`false|true`, default `false`)
+              • {prefer_lsp} (`false|true`, default `false`)
 		prefer using the installed Markdown LSP functions instead of
 		the `mdnotes` implementations.
-              • {auto_list} (`false|true`, default `true`)
-		auto-continue Markdown lists. See |mdnotes-auto_list|.
-              • {auto_list_renumber} (`false|true`, default `true`)
-		auto-renumber Markdown ordered lists. See
-		|mdnotes-auto_list_renumber|.
-              • {auto_table_best_fit} (`false|true`, default `true`)
-		auto-resize Markdown table columns. See
-		|mdnotes-auto_table_best_fit|.
+              • {auto_list_continuation} (`false|true`, default `true`)
+		auto-continue Markdown lists. See |mdnotes-auto_list_continuation|.
               • {default_keymaps} (`false|true`, default `false`)
 		use the default keymaps.
-              • {autocmds} (`false|true`, default `true`)
+              • {autocmds} (`false|true` or `table`, default `true`)
 		use the plugin's autocmds.
               • {table_best_fit_padding} (`integer?`, default `0`)
 		how much padding to add when executing 
@@ -986,9 +986,9 @@ each Parent would be indented individually.
 
 When using Outliner mode with |:Mdn-outliner-toggle| the indenting commands
 are mapped to the widely used `<TAB>` and `<S-TAB>` for indenting and
-unindenting respectively. The |mdnotes-auto_list| state is also saved, and when
-entering the Outliner mode it is changed to true and reverted back to the
-config entry when exiting Outliner mode by re-toggling.
+unindenting respectively. The |mdnotes-auto_list_continuation| state is also
+saved, and when entering the Outliner mode it is changed to true and
+reverted back to the config entry when exiting Outliner mode by re-toggling.
 
 A state message with the text `-- MDN OUTLINER --` is also shown at every
 |CursorMoved| event, to remind the user they are in Outliner mode.

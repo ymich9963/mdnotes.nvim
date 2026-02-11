@@ -5,71 +5,76 @@ if vim.g.loaded_mdnotes then
 end
 vim.g.loaded_mdnotes = true
 
-local mdnotes_group = vim.api.nvim_create_augroup('Mdnotes', { clear = true })
+local mdnotes_cwd_group = vim.api.nvim_create_augroup('mdn.cwd', { clear = true })
+local mdnotes_record_group = vim.api.nvim_create_augroup('mdn.record', { clear = true })
+local mdnotes_pop_group = vim.api.nvim_create_augroup('mdn.pop', { clear = true })
+local mdnotes_renumber_group = vim.api.nvim_create_augroup('mdn.renumber', { clear = true })
+local mdnotes_best_fit_group = vim.api.nvim_create_augroup('mdn.best_fit', { clear = true })
+local mdnotes_outliner_group = vim.api.nvim_create_augroup('mdn.outliner', { clear = true })
 
 -- To save the current working directory
 vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*.md",
-    group = mdnotes_group,
+    group = mdnotes_cwd_group,
     callback = function()
         require('mdnotes').set_cwd()
     end,
+    desc = "Mdnotes automatic setting of cwd autocmd"
 })
 
 -- To record buffer history
 vim.api.nvim_create_autocmd("BufEnter", {
     pattern = "*.md",
-    group = mdnotes_group,
+    group = mdnotes_record_group,
     callback = function(args)
         require('mdnotes.history').record_buf(args.buf)
     end,
+    desc = "Mdnotes record buffer autocmd for buffer history"
 })
 
 -- Parsing fragments for :Mdn generate_toc and :Mdn inline_link open
 vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
-    group = mdnotes_group,
+    group = mdnotes_pop_group,
     callback = function(args)
         require('mdnotes.toc').populate_buf_fragments(args.buf)
     end,
+    desc = "Mdnotes populating buffer fragments table autocmd"
 })
 
 -- Automatic ordered list renumbering
 vim.api.nvim_create_autocmd({"TextChangedI"}, {
     pattern = "*.md",
-    group = mdnotes_group,
+    group = mdnotes_renumber_group,
     callback = function()
-        if require('mdnotes').config.auto_list_renumber == true then
-            if not require("mdnotes.formatting").ordered_list_renumber(true) then
-                return
-            end
-        end
-    end
+        require("mdnotes.formatting").ordered_list_renumber(true)
+    end,
+    desc = "Mdnotes automatic ordered list renumber autocmd"
 })
 
 -- Automatic table best fit
 vim.api.nvim_create_autocmd({"ModeChanged"}, {
-    pattern = {"i:n", "*.md"},
-    group = mdnotes_group,
+    pattern = "i:n",
+    group = mdnotes_best_fit_group,
     callback = function()
-        if require('mdnotes').config.auto_table_best_fit == true then
-            if not require("mdnotes.table").best_fit(true) then
-                return
-            end
+        if vim.bo.filetype == "markdown" then
+            require("mdnotes.table").best_fit(true)
         end
-    end
+    end,
+    desc = "Mdnotes automatic table best fit autocmd"
 })
 
 -- Outliner State Message
 vim.api.nvim_create_autocmd({"CursorMoved"}, {
-    pattern = {"*.md"},
-    group = mdnotes_group,
+    pattern = "*.md",
+    group = mdnotes_outliner_group,
     callback = function()
         if require("mdnotes.outliner").outliner_state == true then
             vim.notify("-- MDN OUTLINER --", vim.log.levels.INFO)
             return
         end
-    end
+    end,
+    desc = "Mdnotes outliner state autocmd"
 })
 
 local commands = nil

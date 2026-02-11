@@ -4,7 +4,7 @@ local M = {}
 ---@type boolean
 M.outliner_state = false
 
-local config_autolist = require('mdnotes').config.auto_list
+local config_autolist = require('mdnotes').config.auto_list_continuation
 
 ---Toggling the Outliner mode
 function  M.toggle()
@@ -12,14 +12,14 @@ function  M.toggle()
 
     if M.outliner_state == true then
         M.outliner_state = false
-        mdnotes.config.auto_list = config_autolist
+        mdnotes.config.auto_list_continuation = config_autolist
 
         vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
         vim.api.nvim_buf_del_keymap(0 ,'i', '<S-TAB>')
         vim.notify("Mdn: Exited Mdnotes Outliner Mode", vim.log.levels.INFO)
     elseif M.outliner_state == false then
         M.outliner_state = true
-        mdnotes.config.auto_list = true
+        mdnotes.config.auto_list_continuation = true
 
         vim.keymap.set('i', '<TAB>', '<cmd>Mdn outliner indent<CR>', { buffer = true })
         vim.keymap.set('i', '<S-TAB>', '<cmd>Mdn outliner unindent<CR>', { buffer = true })

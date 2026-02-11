@@ -3,7 +3,7 @@
 local mdnotes = function() return require("mdnotes") end
 
 ---Auto-list keymaps
-if mdnotes().config.auto_list then
+if mdnotes().config.auto_list_continuation then
     vim.keymap.set("i", "<CR>", function ()
         return mdnotes().new_line_remap("<CR>", true)
     end,

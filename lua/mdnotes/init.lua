@@ -25,11 +25,11 @@ M.plugin_install_dir = nil
 ---@field emphasis_format '"*"'|'"_"'? Emphasis format indicator
 ---@field date_format string? Date format when using insert_journal_entry(), see :h strftime()
 ---@field prefer_lsp boolean? To prefer Markdown LSP functions rather than the mdnotes functions
----@field auto_list boolean? Automatic list continuation
+---@field auto_list_continuation boolean? Automatic list continuation
 ---@field auto_list_renumber boolean? Automatic renumbering of ordered lists
 ---@field auto_table_best_fit boolean? Automatic table best fit
 ---@field default_keymaps boolean?
----@field autocmds boolean?
+---@field autocmds boolean|MdnotesAutocmdsConfig?
 ---@field table_best_fit_padding integer? Add padding around cell contents when using tables_best_fit
 ---@field toc_depth integer? Depth shown in the ToC
 local default_config = {
@@ -43,13 +43,28 @@ local default_config = {
     emphasis_format = "*",
     date_format = "%a %d %b %Y",
     prefer_lsp = false,
-    auto_list = true,
-    auto_list_renumber = true,
-    auto_table_best_fit = true,
+    auto_list_continuation = true,
     default_keymaps = false,
     autocmds = true,
     table_best_fit_padding = 0,
     toc_depth = 4
+}
+
+---Mdnotes Config for autocmds
+---@class MdnotesAutocmdsConfig
+---@field set_cwd boolean set_cwd() autocmd for path resolution
+---@field record_buf boolean record_buf() autocmd for buffer history
+---@field populate_buf_fragments boolean populate_buf_fragments() autocmd for ToC fragments
+---@field ordered_list_renumber boolean ordered_list_renumber() autocmd for ordered lists
+---@field table_best_fit boolean best_fit() autocmd for tables
+---@field outliner_state boolean autocmd for Outliner mode state notification
+local default_autocmd_config = {
+    set_cwd = true,
+    record_buf = true,
+    populate_buf_fragments = true,
+    ordered_list_renumber = true,
+    table_best_fit = true,
+    outliner_state_notification = true
 }
 
 ---Validate user config
@@ -68,15 +83,48 @@ local function validate_config(user_config)
     vim.validate("emphasis_format", config.emphasis_format, "string", false, "'*' or '_'")
     vim.validate("date_format", config.date_format, "string")
     vim.validate("prefer_lsp", config.prefer_lsp, "boolean")
-    vim.validate("auto_list", config.auto_list, "boolean")
-    vim.validate("auto_list_renumber", config.auto_list_renumber, "boolean")
-    vim.validate("auto_table_best_fit", config.auto_table_best_fit, "boolean")
+    vim.validate("auto_list_continuation", config.auto_list_continuation, "boolean")
     vim.validate("default_keymaps", config.default_keymaps, "boolean")
-    vim.validate("autocmds", config.autocmds, "boolean")
+    vim.validate("autocmds", config.autocmds, {"boolean", "table"})
     vim.validate("table_best_fit_padding", config.table_best_fit_padding, "number")
     vim.validate("toc_depth", config.toc_depth, "number")
 
     return config
+end
+
+---Resolve the autocmd config options
+local function resolve_autocmd_config()
+    if type(M.config.autocmds) == "table" then
+        M.config.autocmds = vim.tbl_deep_extend("force", vim.deepcopy(default_autocmd_config), M.config.autocmds)
+    end
+
+    if M.config.autocmds == false then
+        M.config.autocmds = vim.tbl_map(function() return false end, default_autocmd_config)
+    end
+
+    if M.config.autocmds == true or M.config.autocmds == nil then
+        M.config.autocmds = vim.deepcopy(default_autocmd_config)
+    end
+
+    -- Delete if false
+    if M.config.autocmds.set_cwd == false then
+        vim.api.nvim_del_augroup_by_name('mdn.cwd')
+    end
+    if M.config.autocmds.record_buf == false then
+        vim.api.nvim_del_augroup_by_name('mdn.record')
+    end
+    if M.config.autocmds.populate_buf_fragments == false then
+        vim.api.nvim_del_augroup_by_name('mdn.pop')
+    end
+    if M.config.autocmds.ordered_list_renumber == false then
+        vim.api.nvim_del_augroup_by_name('mdn.renumber')
+    end
+    if M.config.autocmds.table_best_fit == false then
+        vim.api.nvim_del_augroup_by_name('mdn.best_fit')
+    end
+    if M.config.autocmds.outliner_state_notification == false then
+        vim.api.nvim_del_augroup_by_name('mdn.outliner')
+    end
 end
 
 ---Setup function
@@ -97,9 +145,7 @@ function M.setup(user_config)
         M.open_cmd = 'vsplit '
     end
 
-    if M.config.autocmds == false then
-        vim.api.nvim_del_augroup_by_name("Mdnotes")
-    end
+    resolve_autocmd_config()
 
     M.set_cwd()
 
