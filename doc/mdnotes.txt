@@ -520,16 +520,25 @@ subcommands are listed below.
 
    Go to the next Markdown heading. Wraps around.
 
-:Mdn miscellaneous open_containing_folder		*Mdn-miscellaneous-open_containing_folder*
+:Mdn miscellaneous set_cwd				*Mdn-miscellaneous-set_cwd*
 
-   Open the current file's containing folder.
+   Set the Mdnotes cwd variable to the current working directory. Happens
+   automatically if its option in |mdnotes-autocmds| is set.
+
+:Mdn miscellaneous record_buf				*Mdn-miscellaneous-record_buf*
+
+   Record current buffer number to the buffer history. Happens automatically
+   if its option in |mdnotes-autocmds| is set.
 
 :Mdn miscellaneous populate_buf_fragments		*Mdn-miscellaneous-populate_buf_fragments*
 
    Update or populate the `toc.buf_fragments` table containing the fragments
-   for the current buffer. Used internally in an autocmd when entering a
-   Markdown buffer. If autocmds are disabled then this must be called manually
-   for ToC commands to work.
+   for the current buffer. Happens automatically if its option in
+   |mdnotes-autocmds is set.
+
+:Mdn miscellaneous open_containing_folder		*Mdn-miscellaneous-open_containing_folder*
+
+   Open the current file's containing folder.
 
 ==============================================================================
 API                                     		*mdnotes-api*

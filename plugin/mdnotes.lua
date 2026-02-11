@@ -156,8 +156,10 @@ local get_commands = function() return {
         previous = require("mdnotes.heading").goto_previous,
     },
     miscellaneous = {
-        open_containing_folder = require("mdnotes").open_containing_folder,
+        set_cwd = require("mdnotes").set_cwd,
+        record_buf = require("mdnotes.history").record_buf,
         populate_buf_fragments = require("mdnotes.toc").populate_buf_fragments,
+        open_containing_folder = require("mdnotes").open_containing_folder,
     }
 }
 end
