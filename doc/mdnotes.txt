@@ -329,7 +329,7 @@ subcommands are listed below.
     Exactly the same as |Mdn-assets-insert_image| but it inserts a inline link to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
-:Mdn assets delete_unused				*:Mdn-assets-delete_unused*
+:Mdn assets unused_delete				*:Mdn-assets-unused_delete*
 
     Cleanup unused assets in your |mdnotes-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
@@ -337,7 +337,7 @@ subcommands are listed below.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-:Mdn assets move_unused					*:Mdn-assets-move_unused*
+:Mdn assets unused_move					*:Mdn-assets-unused_move*
 
     Move unused assets in your |mdnotes-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
@@ -706,7 +706,7 @@ assets.insert_file()					*mdnotes.assets.insert_file()*
     Exactly the same as |mdnotes.insert_image()| but it inserts a inline link to the
     file (e.g. `[file](path/to/assets/file.txt)`).
 
-assets.delete_unused()					*mdnotes.assets.delete_unused()*
+assets.unused_delete()					*mdnotes.assets.unused_delete()*
 
     Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
     will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
@@ -714,7 +714,7 @@ assets.delete_unused()					*mdnotes.assets.delete_unused()*
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
 
-assets.move_unused()					*mdnotes.assets.move_unused()*
+assets.unused_move()					*mdnotes.assets.unused_move()*
 
     Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 

@@ -295,14 +295,14 @@ end
 
 ---Delete unused assets
 ---@param skip_input boolean? Skip the user input prompt
-function M.delete_unused(skip_input)
+function M.unused_delete(skip_input)
     if skip_input == nil then skip_input = false end
     process_unused_assets("delete", skip_input)
 end
 
 ---Move unused assets to a new folder
 ---@param skip_input boolean? Skip the user input prompt
-function M.move_unused(skip_input)
+function M.unused_move(skip_input)
     if skip_input == nil then skip_input = false end
     process_unused_assets("move", skip_input)
 end

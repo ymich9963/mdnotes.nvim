@@ -42,8 +42,8 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Find orphan pages (pages with no references) in current directory with `:Mdn wikilink find_orphans`. 
 
 ### 👩‍💼 Asset Management
-- Use `:Mdn assets delete_unused` to easily cleanup assets that you no longer use.
-- Use `:Mdn assets move_unused` to move unused assets to a separate folder.
+- Use `:Mdn assets unused_delete` to easily cleanup assets that you no longer use.
+- Use `:Mdn assets unused_move` to move unused assets to a separate folder.
 - Insert an image or file from clipboard using `:Mdn assets insert_image` or `:Mdn assets insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 - Open your assets folder using `:Mdn assets open_containing_folder`. 
 - Download website HTML to your assets folder with `:Mdn assets download_website_html`.
