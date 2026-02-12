@@ -47,6 +47,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Insert an image or file from clipboard using `:Mdn assets insert_image` or `:Mdn assets insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 - Open your assets folder using `:Mdn assets open_containing_folder`. 
 - Download website HTML to your assets folder with `:Mdn assets download_website_html`.
+- Delete the asset in the inline link under the cursor with `:Mdn assets delete`.
 
 ### 🫦 Tables
 - See the [Editing Tables](#-editing-tables) section for how `mdnotes` integrates with Neovim to edit tables.

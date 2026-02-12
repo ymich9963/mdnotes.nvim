@@ -55,7 +55,7 @@ end
 ---Process the asset file in clipboard based on config options
 ---@param file_path string File path of asset file
 ---@return string|nil file_name Return file name on success
-function M.process_asset_file(file_path)
+function M.process_inserted_asset_file(file_path)
     local mdnotes_config = require('mdnotes').config
     local file_name = vim.fs.basename(file_path)
 
@@ -65,10 +65,11 @@ function M.process_asset_file(file_path)
             vim.notify(("Mdn: File you are trying to place into your assets already exists"), vim.log.levels.ERROR)
             return nil
         elseif mdnotes_config.asset_overwrite_behaviour == "overwrite" then
-            -- do nothing on overwrite
+            -- Do nothing on overwrite
         end
     end
 
+    -- Check insert behaviour
     if mdnotes_config.asset_insert_behaviour == "copy" then
         if not uv.fs_copyfile(file_path, vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
             vim.notify(("Mdn: File copy failed"), vim.log.levels.ERROR)
@@ -88,7 +89,7 @@ function M.process_asset_file(file_path)
     return file_name
 end
 
----Insert a file or image as an inline link
+---Create the asset inline link
 ---@param is_image boolean? If inserted file is an image
 ---@param file_path string? Path of file to insert
 ---@param process_file boolean? If file should be processed or not
@@ -131,7 +132,7 @@ function M.get_asset_inline_link(is_image, file_path, process_file)
 
     -- Copy/move the asset file to the assets directory
     if process_file == true then
-        file_name = M.process_asset_file(file_path)
+        file_name = M.process_inserted_asset_file(file_path)
         if file_name == nil then return end
     elseif process_file == false then
         file_name = vim.fs.basename(file_path)
@@ -354,6 +355,78 @@ function M.download_website_html(uri)
     else
         vim.notify("Mdn: Error with request response", vim.log.levels.ERROR)
     end
+end
+
+function M.delete(uri, skip_input)
+    if skip_input == nil then skip_input = false end
+    local _, text, uri_il, col_start, col_end
+    if uri == nil then
+        _, text, uri_il, col_start, col_end = require('mdnotes.inline_link').get_inline_link_data(nil, true, false)
+        uri = uri_il
+    end
+
+    local asset_path = require('mdnotes.inline_link').get_path_from_uri(uri)
+    if asset_path == nil then return -2 end
+
+    local mdnotes = require('mdnotes')
+    local behaviour = mdnotes.config.asset_delete_behaviour
+    local garbage_path = vim.fs.normalize(vim.fs.joinpath(mdnotes.cwd, mdnotes.config.assets_path, "../garbage"))
+    local asset_name = vim.fs.basename(asset_path)
+    local prompt = "Type y/n/a(ll) to %s file(s) or 'c' to cancel (default 'n'): "
+    local user_input = ""
+    local text1 = ""
+    local lnum = vim.fn.line('.')
+    local cur_col = vim.fn.col('.')
+    local deleted = false
+
+    if behaviour == "delete" then
+        prompt = "Delete file at '" .. asset_path .. "'. " .. prompt
+        text1 = "Deleted"
+    elseif behaviour == "garbage" then
+        prompt = "Move file at '" .. asset_path .. "' to garbage folder. " .. prompt
+        text1 = "Moved"
+
+        -- Create directory if it does not exist
+        if vim.fn.isdirectory(garbage_path) == 0 then
+            uv.fs_mkdir(garbage_path, tonumber('777', 8))
+        end
+    else
+        return
+    end
+
+    if skip_input == false then
+        vim.ui.input( { prompt = prompt, }, function(input)
+            user_input = input
+        end)
+        vim.cmd.redraw()
+    elseif skip_input == true then
+        user_input = 'y'
+    end
+
+    if user_input == 'y' then
+        if behaviour == "remove" then
+            vim.fs.rm(asset_path)
+        elseif behaviour == "garbage" then
+            uv.fs_rename(asset_path, vim.fs.joinpath(garbage_path, asset_name))
+        end
+        vim.notify(("Mdn: %s '%s'"):format(text1, asset_path), vim.log.levels.WARN)
+        deleted = true
+    elseif user_input == 'n' or '' then
+        vim.notify(("Mdn: Skipped '%s'"):format(asset_path), vim.log.levels.WARN)
+    else
+        vim.notify(("Mdn: Unknown input '%s'"):format(user_input), vim.log.levels.ERROR)
+    end
+
+    if uri_il ~= nil and deleted == true then
+        local new_col = cur_col - 2
+        if new_col < 1 then new_col = 1 end
+
+        -- Set the line and cursor position
+        vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {text})
+        vim.fn.cursor({lnum, new_col})
+    end
+
+    return deleted, asset_path
 end
 
 return M

@@ -133,6 +133,7 @@ local get_commands = function() return {
         unused_move = require("mdnotes.assets").unused_move,
         open_containing_folder = require("mdnotes.assets").open_containing_folder,
         download_website_html  = require("mdnotes.assets").download_website_html,
+        delete  = require("mdnotes.assets").delete,
     },
     outliner= {
         toggle = require("mdnotes.outliner").toggle,

@@ -107,7 +107,7 @@ The default config for `mdnotes` is shown below,
 	journal_file = "",
 	assets_path = "",
 	asset_insert_behaviour = "copy",
-	overwrite_behaviour = "error",
+	asset_overwrite_behaviour = "error",
 	open_behaviour = "buffer",
 	strong_format = "**",
 	emphasis_format = "*",
@@ -140,12 +140,18 @@ asset_insert_behaviour = `"string"`			*mdnotes-asset_insert_behaviour*
     Can take the values of `"copy"` or `"move"` which copies or moves inserted
     assets respectively.
 
-overwrite_behaviour = `"string"`			*mdnotes-overwrite_behaviour*
+asset_overwrite_behaviour = `"string"`			*mdnotes-asset_overwrite_behaviour*
 
     Can take the values of `"error"` or `"overwrite"` which defines how the plugin 
     should handle existing assets. With `"error"` it throws an error and prevents
     the user from inserting the asset. With `"overwrite"` it will overwrite the
     conflicting file.
+
+asset_delete_behaviour = `"string"`			*mdnotes-asset_delete_behaviour*
+
+    Can take the values of `"remove"` or `"garbage"` which defines how the plugin 
+    deletes the asset. With `"remove"` it completely deletes the file. With
+    `"garbage"` it will move the file to a folder named `garbage`.
 
 open_behaviour = `"string"`				*mdnotes-open_behaviour*
 
@@ -322,7 +328,7 @@ subcommands are listed below.
     Insert the image in the clipboard under the cursor and depending on
     |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|. (e.g
     `![image](path/to/assets/image.png)`). Overwriting depends on
-    |mdnotes-overwrite_behaviour|.
+    |mdnotes-asset_overwrite_behaviour|.
 
 :Mdn assets insert_file					*:Mdn-assets-insert_file*
 
@@ -351,6 +357,11 @@ subcommands are listed below.
 
     Download the HTML of the website in the inline link, and place it in the
     assets folder. 
+
+:Mdn assets delete					*:Mdn-assets-delete*
+
+    Delete the asset in the inline link under the cursor. Behaviour depends on
+    |mdnotes-asset_delete_behaviour|.
 
 :Mdn history go_back					*:Mdn-history-go_back*
 
@@ -561,7 +572,7 @@ setup({opts})                                          	*mdnotes.setup()*
 		path to assets directory.
               • {asset_insert_behaviour} (`string?`, default `"copy"`)
 		`mdnotes` behaviour when inserting files.
-              • {overwrite_behaviour} (`string?`, default `"copy"`)
+              • {asset_overwrite_behaviour} (`string?`, default `"copy"`)
 		`mdnotes` behaviour when inserting files and the file 
 		already exists.
               • {open_behaviour} (`string?`, default `"buffer"`)
@@ -698,7 +709,7 @@ assets.insert_image()					*mdnotes.assets.insert_image()*
     Insert the image in the clipboard under the cursor and depending on
     |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|. (e.g
     `![image](path/to/assets/image.png)`). Overwriting depends on
-    |mdnotes-overwrite_behaviour|.
+    |mdnotes-asset_overwrite_behaviour|.
 
 
 assets.insert_file()					*mdnotes.assets.insert_file()*

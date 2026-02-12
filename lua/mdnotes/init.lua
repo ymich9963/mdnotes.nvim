@@ -20,6 +20,7 @@ M.plugin_install_dir = nil
 ---@field assets_path string? Path to assets folder
 ---@field asset_insert_behaviour '"copy"'|'"move"'? Behaviour when inserting assets from clipboard
 ---@field asset_overwrite_behaviour '"overwrite"'|'"error"'? Behaviour when the asset being inserted already exists
+---@field asset_delete_behaviour '"remove"'|'"garbage"'? Behaviour when the deleting an asset
 ---@field open_behaviour '"buffer"'|'"tab"'|'"split"'|'"vsplit"'? Behaviour when opening buffers
 ---@field strong_format '"**"'|'"__"'? Strong format indicator
 ---@field emphasis_format '"*"'|'"_"'? Emphasis format indicator
@@ -38,6 +39,7 @@ local default_config = {
     assets_path = "",
     asset_insert_behaviour = "copy",
     asset_overwrite_behaviour = "error",
+    asset_delete_behaviour = "garbage",
     open_behaviour = "buffer",
     strong_format = "**",
     emphasis_format = "*",
@@ -78,6 +80,7 @@ local function validate_config(user_config)
     vim.validate("assets_path", config.assets_path, "string")
     vim.validate("asset_insert_behaviour", config.asset_insert_behaviour, "string", false, "'copy' or 'move'")
     vim.validate("asset_overwrite_behaviour", config.asset_overwrite_behaviour, "string", false, "'overwrite' or 'error'")
+    vim.validate("asset_delete_behaviour", config.asset_delete_behaviour, "string", false, "'remove' or 'garbage'")
     vim.validate("open_behaviour", config.open_behaviour, "string", false, "'buffer', 'tab', 'split', or 'vsplit'")
     vim.validate("strong_format", config.strong_format, "string", false, "'**' or '__'")
     vim.validate("emphasis_format", config.emphasis_format, "string", false, "'*' or '_'")

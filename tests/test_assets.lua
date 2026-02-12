@@ -112,4 +112,22 @@ T['download_website_html()'] = function()
     vim.fs.rm('./tests/test-data/files/assets/https_neovim_io_.html')
 end
 
+T['delete()'] = function()
+    child.cmd([[
+    edit tests/test-data/files/assets/asset4.txt
+    write
+    edit tests/test-data/files/file7.md
+    ]])
+    local ret = child.lua([[
+    require('mdnotes').set_cwd()
+    return require('mdnotes.assets').delete("assets/asset4.txt", true)
+    ]])
+    eq(ret , true)
+    eq(
+       vim.fs.basename(vim.fs.find("asset4.txt", { path = './tests/test-data/files/garbage' })[1]),
+        "asset4.txt"
+    )
+    vim.fs.rm('./tests/test-data/files/garbage', {recursive = true})
+end
+
 return T

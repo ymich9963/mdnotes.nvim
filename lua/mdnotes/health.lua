@@ -19,6 +19,11 @@ M.check = function()
         config_ok = false
     end
 
+    if not vim.tbl_contains({"remove", "garbage"}, config.asset_delete_behaviour) then
+        vim.health.error(("Mdn: 'asset_delete_behaviour' value '%s' is invalid. Can only use 'remove' or 'garbage'. Defaulting to 'garbage'."):format(M.config.asset_overwrite_behaviour))
+        config_ok = false
+    end
+
     if not vim.tbl_contains({"buffer", "tab", "split", "vsplit"}, config.open_behaviour) then
         vim.health.error(("'open_behaviour' value '%s' is invalid. Can only use 'buffer', 'tab', 'split', or 'vsplit'. Defaulting to 'buffer'."):format(M.config.open_behaviour))
         config_ok = false
