@@ -336,18 +336,16 @@ function M.find_orphans(print)
     local tempqf_list = vim.fn.getqflist()
     local count = 0
     local cwd = require('mdnotes').cwd
+    local files_cwd = require('mdnotes').get_files_in_cwd(".md", false, "file")
 
     vim.notify("Mdn: Searching notes for orphans...", vim.log.levels.INFO)
-    for file, type in vim.fs.dir(cwd) do
-        -- Only check .md files that are not hidden
-        if file:sub(-3) == ".md" and file:sub(1,1) ~= "." and type == "file" then
-            file = file:gsub(".md", "")
-            vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '.*\\]\\]/', vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
-            if vim.tbl_isempty(vim.fn.getqflist()) then
-                count = count + 1
-                vim.notify("Mdn: Found " .. tostring(count) .. " orphan pages so far..." , vim.log.levels.INFO)
-                table.insert(orphans, file .. ".md")
-            end
+    for _, file in pairs(files_cwd) do
+        file = file:gsub(".md", "")
+        vim.cmd.vimgrep({args = {'/\\[\\[' .. file .. '.*\\]\\]/', vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
+        if vim.tbl_isempty(vim.fn.getqflist()) then
+            count = count + 1
+            vim.notify("Mdn: Found " .. tostring(count) .. " orphan pages so far..." , vim.log.levels.INFO)
+            table.insert(orphans, file .. ".md")
         end
     end
 

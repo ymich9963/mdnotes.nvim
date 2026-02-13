@@ -296,5 +296,56 @@ function M.open_containing_folder()
     vim.ui.open(M.cwd)
 end
 
-return M
+---Get the files in the cwd
+---@param extension string? Specify extension e.g. ".md". Use ".*" for all file extensions
+---@param hidden boolean? Get hidden files
+---@param fs_type '"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"' Specify type from vim.fs.dir() return
+---@param pattern string? Lua pattern for names containing pattern
+---@return table<string> files Table with file names
+function M.get_files_in_cwd(extension, hidden, fs_type, pattern)
+    local cwd = require('mdnotes').cwd
+    local files = {}
+    local add = false
+    for name, type in vim.fs.dir(cwd) do
+        if extension ~= nil then
+            if name:match("^.*(%..*)") == extension or extension == ".*" then
+                add = true
+            else
+                add = false
+            end
+        end
 
+        if hidden ~= nil then
+            if name:sub(1,1) == "." and hidden == true then
+                add = true
+            else
+                add = false
+            end
+        end
+
+        if fs_type ~= nil then
+            if type == fs_type or type == "all" then
+                add = true
+            else
+                add = false
+            end
+        end
+
+        if pattern ~= nil then
+            if name:match(pattern) then
+                add = true
+            else
+                add = false
+            end
+        end
+
+        if add == true then
+            table.insert(files, name)
+            add = false
+        end
+    end
+
+    return files
+end
+
+return M
