@@ -118,6 +118,7 @@ The default config for `mdnotes` is shown below,
 	autocmds = true,
 	table_best_fit_padding = 0,
 	toc_depth = 4
+	user_commands = {}
     }
 <
 index_file = `"path"`					*mdnotes-index_file*
@@ -230,6 +231,15 @@ toc_depth = `integer`		 			*mdnotes-toc_depth*
     ## Heading 2
    
     ### Heading 3
+
+user_commands = `table`		 			*mdnotes-user_commands*
+
+    Custom user commands organised within the Mdn namespace unser the
+    `:Mdn user` command. Example below,
+>lua
+     user_commands = {
+        example = function() vim.notify("Mdn: This is an example command in the Mdnotes namespace") end
+    }
 
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*
@@ -550,6 +560,10 @@ subcommands are listed below.
 :Mdn miscellaneous open_containing_folder		*Mdn-miscellaneous-open_containing_folder*
 
    Open the current file's containing folder.
+
+:Mdn user						*Mdn-user*
+
+   Access the user defined commands. See |mdnotes-user_commands|.
 
 ==============================================================================
 API                                     		*mdnotes-api*

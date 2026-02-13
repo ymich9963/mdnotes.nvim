@@ -161,7 +161,8 @@ local get_commands = function() return {
         record_buf = require("mdnotes.history").record_buf,
         populate_buf_fragments = require("mdnotes.toc").populate_buf_fragments,
         open_containing_folder = require("mdnotes").open_containing_folder,
-    }
+    },
+    user = vim.deepcopy(require('mdnotes').config.user_commands, true)
 }
 end
 
@@ -181,17 +182,19 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func = command[1]
     end
 
-    if func == commands["formatting"]["task_list_toggle"]
-        or func == commands["formatting"]["unformat_lines"] then
+    if func == commands.formatting.task_list_toggle
+        or func == commands.formatting.unformat_lines then
         func(opts.line1, opts.line2)
-    elseif func == commands["table"]["create"] then
+    elseif func == commands.table.create then
         func(args[3], args[4])
-    elseif func == commands["toc"]["generate"] then
+    elseif func == commands.toc.generate then
         func(true, args[3])
+    elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
+        vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif func then
         func()
     else
-        vim.notify("Unknown command: '" .. cmd_arg .. " " .. subcmd_arg .. "'", vim.log.levels.ERROR)
+        vim.notify("Mdn: Unknown command: '" .. cmd_arg .. " " .. subcmd_arg .. "'", vim.log.levels.ERROR)
     end
 end,
 {

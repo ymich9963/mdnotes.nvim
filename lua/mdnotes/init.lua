@@ -33,6 +33,7 @@ M.plugin_install_dir = nil
 ---@field autocmds boolean|MdnotesAutocmdsConfig?
 ---@field table_best_fit_padding integer? Add padding around cell contents when using tables_best_fit
 ---@field toc_depth integer? Depth shown in the ToC
+---@field user_commands table? User commands in the Mdn namespace
 local default_config = {
     index_file = "",
     journal_file = "",
@@ -49,7 +50,8 @@ local default_config = {
     default_keymaps = false,
     autocmds = true,
     table_best_fit_padding = 0,
-    toc_depth = 4
+    toc_depth = 4,
+    user_commands = {}
 }
 
 ---Mdnotes Config for autocmds
@@ -91,6 +93,7 @@ local function validate_config(user_config)
     vim.validate("autocmds", config.autocmds, {"boolean", "table"})
     vim.validate("table_best_fit_padding", config.table_best_fit_padding, "number")
     vim.validate("toc_depth", config.toc_depth, "number")
+    vim.validate("user_commands", config.user_commands, "table")
 
     return config
 end

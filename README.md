@@ -81,6 +81,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Tips for repeating last command, find/replace words, finding tags, and finding files, can be found in [TIPS.md](TIPS.md).
 - Opt-in use of existing Markdown LSP functions by setting `prefer_lsp = true`.
 - Supports Windows eccentricities.
+- Create user commands within the `:Mdn user` namespace for better organisation.
 - Exposes most internal functions to provide an API as to allow a hyper-extensible note-taking experience. See `:h mdnotes-api`.
 
 ## 👽 Setup
