@@ -121,40 +121,47 @@ The default config for `mdnotes` is shown below,
 	user_commands = {}
     }
 <
-index_file = `"path"`					*mdnotes-index_file*
+index_file = `string`					*mdnotes-index_file*
 
     Can be any path to your index file which is then accessed by
     |:Mdn-index|.
 
-journal_file = `"path"`					*mdnotes-journal_file*
+journal_file = `string|fun():string`			*mdnotes-journal_file*
 
-    Can be any path to your journal file which is then accessed by |:Mdn-journal|.
-
-assets_path = `"path"`					*mdnotes-assets_path*
+    Can be any path to your journal file which is then accessed by
+    |:Mdn-journal|. It can also be a function to dynamically create a new
+    journal files, e.g. for daily journalling. Example function below returns
+    a string of `JOURNAL-ddmmyyyy.md`,
+>lua
+    local function daily_journal()
+	return "JOURNAL-" .. vim.fn.strftime("%d%m%y") .. ".md"
+    end
+<
+assets_path = `string`					*mdnotes-assets_path*
 
     Can be any path to your assets folder. This is where any asset you insert
     by using |:Mdn-assets-insert_image| or |:Mdn-assets-insert_file| is copied or
     moved to.
 
-asset_insert_behaviour = `"string"`			*mdnotes-asset_insert_behaviour*
+asset_insert_behaviour = `string`			*mdnotes-asset_insert_behaviour*
 
     Can take the values of `"copy"` or `"move"` which copies or moves inserted
     assets respectively.
 
-asset_overwrite_behaviour = `"string"`			*mdnotes-asset_overwrite_behaviour*
+asset_overwrite_behaviour = `string`			*mdnotes-asset_overwrite_behaviour*
 
     Can take the values of `"error"` or `"overwrite"` which defines how the plugin 
     should handle existing assets. With `"error"` it throws an error and prevents
     the user from inserting the asset. With `"overwrite"` it will overwrite the
     conflicting file.
 
-asset_delete_behaviour = `"string"`			*mdnotes-asset_delete_behaviour*
+asset_delete_behaviour = `string`			*mdnotes-asset_delete_behaviour*
 
     Can take the values of `"remove"` or `"garbage"` which defines how the plugin 
     deletes the asset. With `"remove"` it completely deletes the file. With
     `"garbage"` it will move the file to a folder named `garbage`.
 
-open_behaviour = `"string"`				*mdnotes-open_behaviour*
+open_behaviour = `string`				*mdnotes-open_behaviour*
 
     Can take the values of `"buffer"`, `"tab"`, `"split"`, or `"vsplit"` which 
     defines how buffers are opened using |:Mdn-index|, |:Mdn-journal|, 
@@ -162,17 +169,17 @@ open_behaviour = `"string"`				*mdnotes-open_behaviour*
     buffer, `"tab"` it opens them in a new tab, `"split"` opens them in a
     horizontal split, and `"vsplit"` in a vertical tab.
 
-strong_format = `"string"`				*mdnotes-strong_format*
+strong_format = `string`				*mdnotes-strong_format*
 
     Can take the valid values of `"**"` or `"__"` which defines how the
     Markdown `**strong**` or `__strong__` formatting is executed.
 
-emphasis_format = `"string"`				*mdnotes-emphasis_format*
+emphasis_format = `string`				*mdnotes-emphasis_format*
 
     Can take the valid values of `"*"` or `"_"` which defines how the
     Markdown `*emphasis*` or `_emphasis_` formatting is executed.
 
-date_format = `"string"`				*mdnotes-date_format*
+date_format = `string`	 				*mdnotes-date_format*
 
     Format of the outputed date using |Mdn-journal_insert_entry|. See |strftime()| for
     acceptable formats.
@@ -215,6 +222,9 @@ autocmds = `false|true` or `table`			*mdnotes-autocmds*
               • {outliner_state_notification} (`false|true`, default `true`)
 		autocmd for Outliner mode state notification. See
 		|mdnotes-outliner|.
+              • {journal_insert_entry} (`false|true`, default `true`)
+		autocmd for inserting a journal entry automatically on
+		entering the journal file in |mdnotes-journal_file|.
 
 table_best_fit_padding = `integer`			*mdnotes-table_best_fit_padding*
 
@@ -464,7 +474,8 @@ subcommands are listed below.
 :Mdn journal insert_entry				*:Mdn-journal-insert_entry*
 
     Insert at the top of the file the current date and time along with a separator.
-    Useful when using a journal.
+    Useful when using a journal. Gets called automatically when using its
+    corresponding autocmd (|mdnotes-autocmds|).
 
 :Mdn toc generate {depth}				*:Mdn-toc-generate*
 
@@ -580,8 +591,8 @@ setup({opts})                                          	*mdnotes.setup()*
     • {opts}  `(table?)` Optional parameters:
               • {index_file} (`string?`, default `""`)
 		path to index file.
-              • {journal_file} (`string?`, default `""`)
-		path to journal file.
+              • {journal_file} (`(string|fun():string)?`, default `""`)
+		path to journal file or function returning a string value.
               • {assets_path} (`string?`, default `""`)
 		path to assets directory.
               • {asset_insert_behaviour} (`string?`, default `"copy"`)

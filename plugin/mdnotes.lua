@@ -11,6 +11,7 @@ local mdnotes_pop_group = vim.api.nvim_create_augroup('mdn.pop', { clear = true 
 local mdnotes_renumber_group = vim.api.nvim_create_augroup('mdn.renumber', { clear = true })
 local mdnotes_best_fit_group = vim.api.nvim_create_augroup('mdn.best_fit', { clear = true })
 local mdnotes_outliner_group = vim.api.nvim_create_augroup('mdn.outliner', { clear = true })
+local mdnotes_journal_group = vim.api.nvim_create_augroup('mdn.journal', { clear = true })
 
 -- To save the current working directory
 vim.api.nvim_create_autocmd("BufEnter", {
@@ -73,6 +74,16 @@ vim.api.nvim_create_autocmd({"CursorMoved"}, {
             vim.notify("-- MDN OUTLINER --", vim.log.levels.INFO)
             return
         end
+    end,
+    desc = "Mdnotes outliner state autocmd"
+})
+
+-- Automatic journal entry
+vim.api.nvim_create_autocmd({"BufEnter"}, {
+    pattern = "*.md",
+    group = mdnotes_journal_group,
+    callback = function()
+        require("mdnotes").journal_insert_entry(true, true)
     end,
     desc = "Mdnotes outliner state autocmd"
 })

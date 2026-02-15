@@ -13,10 +13,13 @@ M.cwd = nil
 ---@type string|nil Plugin install directory
 M.plugin_install_dir = nil
 
+---@type string Internal journal file path
+local _journal_file = nil
+
 ---Mdnotes Config Class
 ---@class MdnotesConfig
 ---@field index_file string? Index file name or path
----@field journal_file string? Journal file name or path
+---@field journal_file (string|fun(): string)? Journal file name or path
 ---@field assets_path string? Path to assets folder
 ---@field asset_insert_behaviour '"copy"'|'"move"'? Behaviour when inserting assets from clipboard
 ---@field asset_overwrite_behaviour '"overwrite"'|'"error"'? Behaviour when the asset being inserted already exists
@@ -24,7 +27,7 @@ M.plugin_install_dir = nil
 ---@field open_behaviour '"buffer"'|'"tab"'|'"split"'|'"vsplit"'? Behaviour when opening buffers
 ---@field strong_format '"**"'|'"__"'? Strong format indicator
 ---@field emphasis_format '"*"'|'"_"'? Emphasis format indicator
----@field date_format string? Date format when using insert_journal_entry(), see :h strftime()
+---@field date_format string? Date format when using journal_insert_entry(), see :h strftime()
 ---@field prefer_lsp boolean? To prefer Markdown LSP functions rather than the mdnotes functions
 ---@field auto_list_continuation boolean? Automatic list continuation
 ---@field auto_list_renumber boolean? Automatic renumbering of ordered lists
@@ -62,13 +65,15 @@ local default_config = {
 ---@field ordered_list_renumber boolean ordered_list_renumber() autocmd for ordered lists
 ---@field table_best_fit boolean best_fit() autocmd for tables
 ---@field outliner_state boolean autocmd for Outliner mode state notification
+---@field journal_insert_entry boolean autocmd for inserting a journal entry on opening the journal file
 local default_autocmd_config = {
     set_cwd = true,
     record_buf = true,
     populate_buf_fragments = true,
     ordered_list_renumber = true,
     table_best_fit = true,
-    outliner_state_notification = true
+    outliner_state_notification = true,
+    journal_insert_entry = true
 }
 
 ---Validate user config
@@ -78,7 +83,7 @@ local function validate_config(user_config)
     local config = vim.tbl_deep_extend("force", default_config, user_config or {})
 
     vim.validate("index_file", config.index_file, "string")
-    vim.validate("journal_file", config.journal_file, "string")
+    vim.validate("journal_file", config.journal_file, {"string", "function"})
     vim.validate("assets_path", config.assets_path, "string")
     vim.validate("asset_insert_behaviour", config.asset_insert_behaviour, "string", false, "'copy' or 'move'")
     vim.validate("asset_overwrite_behaviour", config.asset_overwrite_behaviour, "string", false, "'overwrite' or 'error'")
@@ -131,6 +136,21 @@ local function resolve_autocmd_config()
     if M.config.autocmds.outliner_state_notification == false then
         vim.api.nvim_del_augroup_by_name('mdn.outliner')
     end
+    if M.config.autocmds.journal_insert_entry == false then
+        vim.api.nvim_del_augroup_by_name('mdn.journal')
+    end
+end
+
+local function resolve_journal_config()
+    local config_journal_file = M.config.journal_file
+
+    if type(config_journal_file) == "function" then
+        _journal_file = config_journal_file()
+    elseif type(config_journal_file) == "string" then
+        _journal_file = config_journal_file
+    end
+
+    _journal_file = vim.fs.normalize(_journal_file)
 end
 
 ---Setup function
@@ -138,7 +158,6 @@ end
 function M.setup(user_config)
     M.config = validate_config(user_config)
     M.config.index_file = vim.fs.normalize(M.config.index_file)
-    M.config.journal_file = vim.fs.normalize(M.config.journal_file)
     M.config.assets_path = vim.fs.normalize(M.config.assets_path)
 
     if M.config.open_behaviour == "buffer" then
@@ -152,6 +171,7 @@ function M.setup(user_config)
     end
 
     resolve_autocmd_config()
+    resolve_journal_config()
 
     M.set_cwd()
 
@@ -266,29 +286,63 @@ end
 
 ---Go to journal file
 function M.go_to_journal_file()
-    if M.config.journal_file == "" then
+    if _journal_file == "" then
         vim.notify("Mdn: Please specify a journal file to use this feature", vim.log.levels.ERROR)
         return
     end
 
-    M.open_buf(M.config.journal_file)
+    M.open_buf(_journal_file)
 end
 
 ---Insert an entry to the journal file
-function M.journal_insert_entry()
-    local strftime = vim.fn.strftime(M.config.date_format):match("([^\n\r\t]+)")
-    local journal_entry_template = {
-        "## " .. strftime,
-        "",
-        "",
-        "",
-        "---",
-        "",
-    }
+function M.journal_insert_entry(silent, check_file)
+    if silent == nil then silent = false end
+    if check_file == nil then check_file = false end
 
-    vim.fn.cursor({1 ,0})
-    vim.api.nvim_put(journal_entry_template, "l", false, false)
-    vim.fn.cursor({3 ,0})
+    if check_file == true then
+        local bufname = vim.fs.normalize(vim.api.nvim_buf_get_name(0))
+        if not bufname:find(_journal_file, 1, true) then
+            if silent == false then
+                vim.notify("Mdn: Journal file is not currently open", vim.log.levels.ERROR)
+            end
+
+            return
+        end
+    end
+
+    local strftime = vim.fn.strftime(M.config.date_format):match("([^\n\r\t]+)")
+    local lines = vim.api.nvim_buf_get_lines(vim.api.nvim_get_current_buf(), 0, -1, false)
+    local match = false
+
+    for i = 1, #lines do
+        if lines[i]:match(strftime) then
+            match = true
+            break
+        end
+
+        -- Limit search to x lines
+        if i > 100 then
+            break
+        end
+    end
+
+    if match == false then
+        local journal_entry_template = {
+            "## " .. strftime,
+            "",
+            "",
+            "",
+            "---",
+        }
+
+        vim.fn.cursor({1 ,0})
+        vim.api.nvim_put(journal_entry_template, "l", false, false)
+        vim.fn.cursor({3 ,0})
+    else
+        if silent == false then
+            vim.notify("Mdn: Journal entry already exists", vim.log.levels.WARN)
+        end
+    end
 end
 
 ---Open containing folder of current file
