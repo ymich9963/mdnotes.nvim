@@ -14,7 +14,7 @@ M.cwd = nil
 M.plugin_install_dir = nil
 
 ---@type string Internal journal file path
-local _journal_file = nil
+M._journal_file = nil
 
 ---Mdnotes Config Class
 ---@class MdnotesConfig
@@ -145,12 +145,12 @@ local function resolve_journal_config()
     local config_journal_file = M.config.journal_file
 
     if type(config_journal_file) == "function" then
-        _journal_file = config_journal_file()
+        M._journal_file = config_journal_file()
     elseif type(config_journal_file) == "string" then
-        _journal_file = config_journal_file
+        M._journal_file = config_journal_file
     end
 
-    _journal_file = vim.fs.normalize(_journal_file)
+    M._journal_file = vim.fs.normalize(M._journal_file)
 end
 
 ---Setup function
@@ -286,12 +286,12 @@ end
 
 ---Go to journal file
 function M.go_to_journal_file()
-    if _journal_file == "" then
+    if M._journal_file == "" then
         vim.notify("Mdn: Please specify a journal file to use this feature", vim.log.levels.ERROR)
         return
     end
 
-    M.open_buf(_journal_file)
+    M.open_buf(M._journal_file)
 end
 
 ---Insert an entry to the journal file
@@ -299,9 +299,17 @@ function M.journal_insert_entry(silent, check_file)
     if silent == nil then silent = false end
     if check_file == nil then check_file = false end
 
+    if M._journal_file == "" then
+        if silent == false then
+            vim.notify("Mdn: Please specify a journal file to use this feature", vim.log.levels.ERROR)
+        end
+
+        return
+    end
+
     if check_file == true then
         local bufname = vim.fs.normalize(vim.api.nvim_buf_get_name(0))
-        if not bufname:find(_journal_file, 1, true) then
+        if not bufname:find(M._journal_file, 1, true) then
             if silent == false then
                 vim.notify("Mdn: Journal file is not currently open", vim.log.levels.ERROR)
             end

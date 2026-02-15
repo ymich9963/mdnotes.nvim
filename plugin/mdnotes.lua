@@ -85,7 +85,7 @@ vim.api.nvim_create_autocmd({"BufEnter"}, {
     callback = function()
         require("mdnotes").journal_insert_entry(true, true)
     end,
-    desc = "Mdnotes outliner state autocmd"
+    desc = "Mdnotes automatic journal entry autocmd"
 })
 
 local commands = nil
