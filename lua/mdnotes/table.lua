@@ -21,6 +21,11 @@ function M.check_valid_table()
     local table_endl = 0
     local table_valid = true
 
+    -- A table needs at least 3 lines to be valid
+    if max_line_num < 3 then
+        return false, nil, nil
+    end
+
     for i = cur_line_num, min_line_num, -1 do
         local line = vim.fn.getline(i)
         local _, count = line:gsub("|", "")
