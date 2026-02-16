@@ -4,10 +4,25 @@ local M = {}
 
 local uv = vim.loop or vim.uv
 
+---Resolve the assets path from the config
+---@return string path Assets path
+function M.get_assets_folder_name()
+    local config_assets_path = require('mdnotes').config.assets_path
+    local ret = ""
+
+    if type(config_assets_path) == "function" then
+        ret = config_assets_path()
+    elseif type(config_assets_path) == "string" then
+        ret = config_assets_path
+    end
+
+    return vim.fs.normalize(ret)
+end
+
 ---Check if assets path is available and if it exists
 function M.check_assets_path()
     local mdnotes = require('mdnotes')
-    local mdnotes_assets_path = mdnotes.config.assets_path
+    local mdnotes_assets_path = M.get_assets_folder_name()
     local mdnotes_cwd = mdnotes.cwd
     if mdnotes_assets_path == "" then
         vim.notify("Mdn: Please specify assets path to use this feature", vim.log.levels.ERROR)
@@ -26,7 +41,7 @@ end
 function M.open_containing_folder()
     if M.check_assets_path() == false then return end
     local mdnotes = require('mdnotes')
-    vim.ui.open(vim.fs.joinpath(mdnotes.cwd, mdnotes.config.assets_path))
+    vim.ui.open(vim.fs.joinpath(mdnotes.cwd, M.get_assets_folder_name()))
 end
 
 local function get_file_paths_from_cmd()
@@ -56,11 +71,12 @@ end
 ---@param file_path string File path of asset file
 ---@return string|nil file_name Return file name on success
 function M.process_inserted_asset_file(file_path)
+    local mdnotes_assets_path = M.get_assets_folder_name()
     local mdnotes_config = require('mdnotes').config
     local file_name = vim.fs.basename(file_path)
 
     -- Check overwrite behaviour
-    if uv.fs_stat(vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
+    if uv.fs_stat(vim.fs.joinpath(mdnotes_assets_path, file_name)) then
         if mdnotes_config.asset_overwrite_behaviour == "error" then
             vim.notify(("Mdn: File you are trying to place into your assets already exists"), vim.log.levels.ERROR)
             return nil
@@ -71,19 +87,19 @@ function M.process_inserted_asset_file(file_path)
 
     -- Check insert behaviour
     if mdnotes_config.asset_insert_behaviour == "copy" then
-        if not uv.fs_copyfile(file_path, vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
+        if not uv.fs_copyfile(file_path, vim.fs.joinpath(mdnotes_assets_path, file_name)) then
             vim.notify(("Mdn: File copy failed"), vim.log.levels.ERROR)
             return nil
         end
 
-        vim.notify(('Mdn: Copied "%s" to your assets folder at "%s"'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
+        vim.notify(('Mdn: Copied "%s" to your assets folder at "%s"'):format(file_path, mdnotes_assets_path), vim.log.levels.INFO)
     elseif mdnotes_config.asset_insert_behaviour == "move" then
-        if not uv.fs_rename(file_path, vim.fs.joinpath(mdnotes_config.assets_path, file_name)) then
+        if not uv.fs_rename(file_path, vim.fs.joinpath(mdnotes_assets_path, file_name)) then
             vim.notify(("Mdn: File move failed."), vim.log.levels.ERROR)
             return nil
         end
 
-        vim.notify(('Mdn: Moved "%s" to your assets folder at "%s"'):format(file_path, mdnotes_config.assets_path), vim.log.levels.INFO)
+        vim.notify(('Mdn: Moved "%s" to your assets folder at "%s"'):format(file_path, mdnotes_assets_path), vim.log.levels.INFO)
     end
 
     return file_name
@@ -137,7 +153,7 @@ function M.get_asset_inline_link(is_image, file_path, process_file)
     elseif process_file == false then
         file_name = vim.fs.basename(file_path)
     end
-    asset_path = vim.fs.joinpath(require('mdnotes').config.assets_path, file_name)
+    asset_path = vim.fs.joinpath(M.get_assets_folder_name(), file_name)
 
     -- Create the new assets path
     if asset_path:match("%s") then
@@ -173,14 +189,13 @@ end
 function M.get_used_assets(silent)
     if silent == nil then silent = false end
     local mdnotes = require('mdnotes')
-    local mdnotes_config = mdnotes.config
     local cwd = mdnotes.cwd
     local uri = ""
     local used_assets = {}
     local temp_qflist = vim.fn.getqflist()
 
     -- Vimgrep inline links with asset paths with no spaces
-    vim.cmd.vimgrep({args = {"/](<\\?" .. mdnotes_config.assets_path .. "\\//", vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
+    vim.cmd.vimgrep({args = {"/](<\\?" .. M.get_assets_folder_name() .. "\\//", vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
     local assets_list = vim.fn.getqflist()
 
     for _, v in ipairs(assets_list) do
@@ -207,7 +222,7 @@ end
 function M.get_unused_assets(silent)
     if silent == nil then silent = false end
     local mdnotes = require('mdnotes')
-    local assets_path = vim.fs.joinpath(mdnotes.cwd, mdnotes.config.assets_path)
+    local assets_path = vim.fs.joinpath(mdnotes.cwd, M.get_assets_folder_name())
     local unused_assets = {}
     for name, _ in vim.fs.dir(assets_path) do
         if vim.tbl_contains(M.get_used_assets(true), name) == false then
@@ -230,9 +245,8 @@ local function process_unused_assets(action, skip_input)
     if skip_input == nil then skip_input = false end
 
     local mdnotes = require('mdnotes')
-    local mdnotes_config = mdnotes.config
     local mdnotes_cwd = mdnotes.cwd
-    local unused_assets_path = vim.fs.normalize(vim.fs.joinpath(mdnotes_cwd, mdnotes_config.assets_path, "../unused_assets"))
+    local unused_assets_path = vim.fs.normalize(vim.fs.joinpath(mdnotes_cwd, M.get_assets_folder_name(), "../unused_assets"))
     local all, cancel = false, false
     local user_input = ""
     local text1, text2 = "", ""
@@ -261,7 +275,7 @@ local function process_unused_assets(action, skip_input)
     vim.notify(("Mdn: Starting the %s assets process..."):format(text1), vim.log.levels.INFO)
 
     for _, name in ipairs(M.get_unused_assets()) do
-        local file_assets_path = vim.fs.joinpath(mdnotes.cwd, mdnotes_config.assets_path, name)
+        local file_assets_path = vim.fs.joinpath(mdnotes.cwd, M.get_assets_folder_name(), name)
         local file_unused_assets_path = vim.fs.joinpath(unused_assets_path, name)
         if cancel == true then break end
         if all == false and skip_input == false then
@@ -332,7 +346,7 @@ function M.download_website_html(uri)
 
     -- Create a filename of max 72 characters
     filename = uri:gsub("[:/#?.()%[%]]+", "_") .. ".html"
-    filepath = vim.fs.joinpath(mdnotes.cwd, mdnotes.config.assets_path, filename)
+    filepath = vim.fs.joinpath(mdnotes.cwd, M.get_assets_folder_name(), filename)
 
     if vim.fn.executable('curl') ~= 1 then
         vim.notify("Mdn: The 'curl' utility was not detected", vim.log.levels.ERROR)
@@ -370,7 +384,7 @@ function M.delete(uri, skip_input)
 
     local mdnotes = require('mdnotes')
     local behaviour = mdnotes.config.asset_delete_behaviour
-    local garbage_path = vim.fs.normalize(vim.fs.joinpath(mdnotes.cwd, mdnotes.config.assets_path, "../garbage"))
+    local garbage_path = vim.fs.normalize(vim.fs.joinpath(mdnotes.cwd, M.get_assets_folder_name(), "../garbage"))
     local asset_name = vim.fs.basename(asset_path)
     local prompt = "Type y/n/a(ll) to %s file(s) or 'c' to cancel (default 'n'): "
     local user_input = ""

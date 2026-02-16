@@ -137,11 +137,21 @@ journal_file = `string|fun():string`			*mdnotes-journal_file*
 	return "JOURNAL-" .. vim.fn.strftime("%d%m%y") .. ".md"
     end
 <
-assets_path = `string`					*mdnotes-assets_path*
+assets_path = `string|fun():string`			*mdnotes-assets_path*
 
     Can be any path to your assets folder. This is where any asset you insert
     by using |:Mdn-assets-insert_image| or |:Mdn-assets-insert_file| is copied or
-    moved to.
+    moved to. It can also be a function to determine the asset path
+    dynamically. Example function below would return an assets path for the
+    current directory, based on the containing folder. This would be useful
+    for nested or multiple notes directories,
+>lua
+    local function dynamic_asset_folder()
+	local cwd = require('mdnotes').cwd
+	local folder = vim.fs.basename(cwd)
+
+	return "assets-" .. foler
+    end
 
 asset_insert_behaviour = `string`			*mdnotes-asset_insert_behaviour*
 

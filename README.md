@@ -111,9 +111,9 @@ and specify your config using `opts = {}` or with a `setup({})` function,
 ```lua
 {
     index_file = "",
-    journal_file = "",
-    assets_path = "",
-    asset_insert_behaviour = "copy", -- "copy" or "move" files when inserting from clipboard
+    journal_file = "",              -- path or function returning string for dynamic journal file
+    assets_path = "",               -- path or function returning string for dynamic asset path
+    asset_insert_behaviour = "copy",-- "copy" or "move" files when inserting from clipboard
     overwrite_behaviour = "error",  -- "overwrite" or "error" when finding assset file conflicts
     open_behaviour = "buffer",      -- "buffer", "tab", "split", or "vsplit" to open when following links
     date_format = "%a %d %b %Y"     -- date format based on :h strftime()

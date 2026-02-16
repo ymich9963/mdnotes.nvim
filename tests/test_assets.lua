@@ -22,6 +22,15 @@ local T = new_set({
     },
 })
 
+T['get_assets_folder_name()'] = function()
+    child.cmd([[edit tests/test-data/files/file7.md]])
+    local ret = child.lua([[
+    require('mdnotes').set_cwd()
+    return require('mdnotes.assets').get_assets_folder_name()
+    ]])
+    eq(ret, "assets")
+end
+
 T['check_assets_path()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[

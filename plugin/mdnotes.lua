@@ -83,7 +83,7 @@ vim.api.nvim_create_autocmd({"BufEnter"}, {
     pattern = "*.md",
     group = mdnotes_journal_group,
     callback = function()
-        require("mdnotes").journal_insert_entry(true, true)
+        require("mdnotes.journal").insert_entry(true, true)
     end,
     desc = "Mdnotes automatic journal entry autocmd"
 })
@@ -94,8 +94,8 @@ local get_commands = function() return {
         require("mdnotes").go_to_index_file,
     },
     journal = {
-        require("mdnotes").go_to_journal_file,
-        insert_entry = require("mdnotes").journal_insert_entry,
+        require("mdnotes.journal").go_to,
+        insert_entry = require("mdnotes.journal").insert_entry,
     },
     formatting = {
         strong_toggle = require("mdnotes.formatting").strong_toggle,

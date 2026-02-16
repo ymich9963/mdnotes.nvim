@@ -13,14 +13,11 @@ M.cwd = nil
 ---@type string|nil Plugin install directory
 M.plugin_install_dir = nil
 
----@type string Internal journal file path
-M._journal_file = nil
-
 ---Mdnotes Config Class
 ---@class MdnotesConfig
 ---@field index_file string? Index file name or path
 ---@field journal_file (string|fun(): string)? Journal file name or path
----@field assets_path string? Path to assets folder
+---@field assets_path (string|fun(): string)? Path to assets folder
 ---@field asset_insert_behaviour '"copy"'|'"move"'? Behaviour when inserting assets from clipboard
 ---@field asset_overwrite_behaviour '"overwrite"'|'"error"'? Behaviour when the asset being inserted already exists
 ---@field asset_delete_behaviour '"remove"'|'"garbage"'? Behaviour when the deleting an asset
@@ -84,7 +81,7 @@ local function validate_config(user_config)
 
     vim.validate("index_file", config.index_file, "string")
     vim.validate("journal_file", config.journal_file, {"string", "function"})
-    vim.validate("assets_path", config.assets_path, "string")
+    vim.validate("assets_path", config.assets_path, {"string", "function"})
     vim.validate("asset_insert_behaviour", config.asset_insert_behaviour, "string", false, "'copy' or 'move'")
     vim.validate("asset_overwrite_behaviour", config.asset_overwrite_behaviour, "string", false, "'overwrite' or 'error'")
     vim.validate("asset_delete_behaviour", config.asset_delete_behaviour, "string", false, "'remove' or 'garbage'")
@@ -141,24 +138,11 @@ local function resolve_autocmd_config()
     end
 end
 
-local function resolve_journal_config()
-    local config_journal_file = M.config.journal_file
-
-    if type(config_journal_file) == "function" then
-        M._journal_file = config_journal_file()
-    elseif type(config_journal_file) == "string" then
-        M._journal_file = config_journal_file
-    end
-
-    M._journal_file = vim.fs.normalize(M._journal_file)
-end
-
 ---Setup function
 ---@param user_config MdnotesConfig
 function M.setup(user_config)
     M.config = validate_config(user_config)
     M.config.index_file = vim.fs.normalize(M.config.index_file)
-    M.config.assets_path = vim.fs.normalize(M.config.assets_path)
 
     if M.config.open_behaviour == "buffer" then
         M.open_cmd = 'edit '
@@ -171,7 +155,6 @@ function M.setup(user_config)
     end
 
     resolve_autocmd_config()
-    resolve_journal_config()
 
     M.set_cwd()
 
@@ -282,75 +265,6 @@ function M.go_to_index_file()
     end
 
     M.open_buf(M.config.index_file)
-end
-
----Go to journal file
-function M.go_to_journal_file()
-    if M._journal_file == "" then
-        vim.notify("Mdn: Please specify a journal file to use this feature", vim.log.levels.ERROR)
-        return
-    end
-
-    M.open_buf(M._journal_file)
-end
-
----Insert an entry to the journal file
-function M.journal_insert_entry(silent, check_file)
-    if silent == nil then silent = false end
-    if check_file == nil then check_file = false end
-
-    if M._journal_file == "" then
-        if silent == false then
-            vim.notify("Mdn: Please specify a journal file to use this feature", vim.log.levels.ERROR)
-        end
-
-        return
-    end
-
-    if check_file == true then
-        local bufname = vim.fs.normalize(vim.api.nvim_buf_get_name(0))
-        if not bufname:find(M._journal_file, 1, true) then
-            if silent == false then
-                vim.notify("Mdn: Journal file is not currently open", vim.log.levels.ERROR)
-            end
-
-            return
-        end
-    end
-
-    local strftime = vim.fn.strftime(M.config.date_format):match("([^\n\r\t]+)")
-    local lines = vim.api.nvim_buf_get_lines(vim.api.nvim_get_current_buf(), 0, -1, false)
-    local match = false
-
-    for i = 1, #lines do
-        if lines[i]:match(strftime) then
-            match = true
-            break
-        end
-
-        -- Limit search to x lines
-        if i > 100 then
-            break
-        end
-    end
-
-    if match == false then
-        local journal_entry_template = {
-            "## " .. strftime,
-            "",
-            "",
-            "",
-            "---",
-        }
-
-        vim.fn.cursor({1 ,0})
-        vim.api.nvim_put(journal_entry_template, "l", false, false)
-        vim.fn.cursor({3 ,0})
-    else
-        if silent == false then
-            vim.notify("Mdn: Journal entry already exists", vim.log.levels.WARN)
-        end
-    end
 end
 
 ---Open containing folder of current file
