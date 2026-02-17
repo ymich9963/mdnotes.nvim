@@ -151,7 +151,7 @@ For the best Neovim Markdown note-taking experience, I've listed some other proj
 - Live Previewer for Markdown files in browser,
     - [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim) - Older, more widely used, has dependencies.
     - [live-preview.nvim](https://github.com/brianhuster/live-preview.nvim) - Newer, no dependencies.
-- LSP - Please see the [Using LSPs Section](#--using-lsps) for more information regarding LSPs, but I recommend,
+- LSP - Please see the [Using LSPs Section](RATIONALE.md#using-lsps) for more information regarding LSPs, but I recommend,
     - [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) or
     - [marksman](https://github.com/artempyanykh/marksman)
 
@@ -259,20 +259,6 @@ The GFM table specification is supported.
 |2r1c|2r2c|2r3c|
 |3r1c|3r2c|3r3c|
 ```
-
-## 🙊  Using LSPs
-The main reason I started this project was dissatisfaction with Markdown LSPs at the time, and I really wanted to use Neovim as my notes editor. Therefore, `mdnotes` is designed to work with Markdown LSPs by trying to fill the gaps and to also complement their current functionality. Unfortunately, I don't think the Markdown LSPs are there yet, so the default behaviour of the plugin is to have `prefer_lsp = false`. Please see the table below for how `mdnotes` tries to work with LSPs and Neovim itself.
-
-|Feature                         |mdnotes                              |LSP                                                        |Neovim                                                                 |
-|--------------------------------|-------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------|
-|Showing references              |Y (`:Mdn wikilink show_references`)           |Y (`:h vim.lsp.buf.references()` or `grr`)                 |N                                                                      |
-|Rename links to current buffer  |Y (`:Mdn wikilink rename_references`)         |Y (`:h vim.lsp.buf.rename()` or `grn`, markdown-oxide only)|N                                                                      |
-|Rename links to hovered WikiLink|Y (`:Mdn wikilink rename_references`)         |? (`:h vim.lsp.buf.rename()`, should work but it does not) |N                                                                      |
-|Buffer History                  |Y (Sequential `:Mdn history go_back/forward`)|N                                                          |Y (Not Sequential `:h bp`/`:h bn`                                      |
-|Path Completion                 |N                                    |Y (`:h lsp-completion`)                                    |Y (`:h i_CTRL-X_CTRL-F`)                                               |
-|Opening WikiLinks               |Y (`:Mdn wikilink follow`)             |Y (`:h vim.lsp.buf.definition()` or `CTRL-]`)              |Y (`:h gf`, needs .md extension in link, requires settings for Windows)|
- 
- **Note:** Not all of the features of `mdnotes` are listed in this table, just the ones that are relevant to this section. Some LSPs provide more than just LSP features and their documentation should also be referenced along with this table.
 
 ## 🫂 Motivation
 I wanted to make a more Neovim-centric Markdown notes plugin that tries to work the available Markdown LSPs, is command/subcommand focused, concise, adheres to the [CommonMark](https://spec.commonmark.org/) and [GFM](https://github.github.com/gfm/) specs, while also providing the more widespread [WikiLink](https://github.com/Python-Markdown/markdown/blob/master/docs/extensions/wikilinks.md) support other note-taking apps provide. I hope I did in fact accomplish this (and more) for you as well as for me, and if I have not then please create an issue or contribute! Thanks for reading this :).
