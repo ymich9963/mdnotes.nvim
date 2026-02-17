@@ -61,6 +61,7 @@ function M.get_path_from_uri(uri, check_valid)
             end
 
             -- If a Markdown file exists then it is a Markdown file
+            -- GitHub does not like it when there is no .md in the inline link
             if uv.fs_stat(path .. ".md") then
                 path = path .. ".md"
             end
