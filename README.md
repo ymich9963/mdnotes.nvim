@@ -231,7 +231,7 @@ Opened with `:Mdn wikilink follow`. Can only be filenames, so `link` can also be
     [[link#fragment-with-spaces]]
 ```
 ### Formatting
-Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the strong and emphasis formats needs to be specified in the `strong_format` and `emphasis_format` config options. 
+Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the strong and emphasis formats needs to be specified in the `strong_format` and `emphasis_format` config options. The `strong emphasis` format can be done by first applying `emphasis` and then `strong`.
 ```
     **strong**
     __strong__

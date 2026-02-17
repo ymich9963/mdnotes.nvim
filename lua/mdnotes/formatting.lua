@@ -77,7 +77,7 @@ function M.get_selected_text()
 
         -- Search for the word in the line and check if it's under the cursor
         for i = 1, #line do
-            local start_pos, end_pos = line:find(selected_text, i)
+            local start_pos, end_pos = line:find(selected_text, i, true)
             if start_pos and end_pos then
                 if start_pos <= current_col and end_pos >= current_col then
                     col_start = start_pos
