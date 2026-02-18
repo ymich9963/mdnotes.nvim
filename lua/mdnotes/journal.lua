@@ -30,11 +30,14 @@ function M.go_to()
 end
 
 ---Insert an entry to the journal file
----@param silent boolean? Show notifications
----@param check_file boolean? Check if currently in journal file
-function M.insert_entry(silent, check_file)
-    if silent == nil then silent = false end
-    if check_file == nil then check_file = false end
+---@param opts {silent: boolean?, check_file: boolean}? opts.silent: Silence notifications, opts. check_file: Check if currently in journal file
+function M.insert_entry(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+    local check_file = opts.check_file or false
+
+    vim.validate("silent", silent, "boolean")
+    vim.validate("check_file", check_file, "boolean")
 
     local journal_file = M.get_journal_file()
 

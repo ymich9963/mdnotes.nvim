@@ -25,17 +25,17 @@ T['get_files_in_cwd()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes').get_files_in_cwd(".md")
+    return require('mdnotes').get_files_in_cwd({ extension = ".md" })
     ]])
     eq(ret, {"file1.md", "file2.md", "file3.md", "file4.md", "file5.md", "file6.md", "file7.md"})
 
     ret = child.lua([[
-    return require('mdnotes').get_files_in_cwd(nil, false, "directory")
+    return require('mdnotes').get_files_in_cwd({ hidden = false, fs_type = "directory"})
     ]])
     eq(ret, {"assets"})
 
     ret = child.lua([[
-    return require('mdnotes').get_files_in_cwd(".md", false, "file", "^.*7.*")
+    return require('mdnotes').get_files_in_cwd({ extension = ".md", hidden = false, fs_type = "file", pattern = "^.*7.*"})
     ]])
     eq(ret, {"file7.md"})
 end

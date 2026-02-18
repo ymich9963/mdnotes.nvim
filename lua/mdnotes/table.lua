@@ -159,10 +159,12 @@ function M.parse_table(table_startl, table_endl)
 end
 
 ---Get the table contents as lines using start and end lines
----@param silent boolean? Output errors
+---@param opts {silent: boolean?}? opts.silent: Silence notifications
 ---@return MdnotesTableContents|nil, integer|nil, integer|nil
-function M.get_table_lines(silent)
-    if silent == nil then silent = false end
+function M.get_table_lines(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
 
     local table_valid, startl, endl = M.check_valid_table()
     if table_valid == false or startl == nil or endl == nil then
@@ -398,9 +400,13 @@ function M.row_insert_below()
 end
 
 ---Add the appropriate amount of spaces for each column
----@param silent boolean? Output errors
-function M.best_fit(silent)
-    local table_lines, startl, endl = M.get_table_lines(silent)
+---@param opts {silent: boolean?}? opts.silent: Silence notifications
+function M.best_fit(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
+
+    local table_lines, startl, endl = M.get_table_lines({ silent = silent })
 
     if table_lines == nil or startl == nil or endl == nil then
         -- Errors would already be outputted
@@ -553,12 +559,14 @@ function M.column_duplicate()
 end
 
 ---Get table as columns
----@param silent boolean? Output errors
+---@param opts {silent: boolean?}? opts.silent: Silence notifications
 ---@return MdnotesTableContents|nil contents 
-function M.get_table_columns(silent)
-    if silent == nil then silent = false end
+function M.get_table_columns(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
 
-    local table_lines = M.get_table_lines(silent)
+    local table_lines = M.get_table_lines({ silent = silent })
 
     if table_lines == nil then
         -- Errors would already be outputted

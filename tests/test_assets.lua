@@ -41,10 +41,18 @@ T['check_assets_path()'] = function()
 end
 
 T['get_asset_inline_link()'] = function()
-    local ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link(false, "path/test", false)]])
+    local ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link({
+        is_image = false,
+        file_path = "path/test",
+        process_file = false
+    })]])
     eq(ret, "[test](assets/test)")
 
-    ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link(true, "path/test", false)]])
+    ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link({
+        is_image = true,
+        file_path = "path/test",
+        process_file = false
+    })]])
     eq(ret, "![test](assets/test)")
 end
 
@@ -52,7 +60,7 @@ T['get_used_assets()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes.assets').get_used_assets(true)
+    return require('mdnotes.assets').get_used_assets({ silent = true})
     ]])
     eq(ret, {"asset1.txt", "asset2 spaces.txt"})
 end
@@ -61,7 +69,7 @@ T['get_unused_assets()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes.assets').get_unused_assets(true)
+    return require('mdnotes.assets').get_unused_assets({silent = true})
     ]])
     eq(ret, {"asset3.txt"})
 end
@@ -74,7 +82,7 @@ T['unused_delete()'] = function()
     )
     child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes.assets').unused_delete(true)
+    return require('mdnotes.assets').unused_delete({ skip_input = true })
     ]])
     eq(
        vim.fs.basename(vim.fs.find("asset3.txt", { path = './tests/test-data/files/assets' })[1]),
@@ -94,7 +102,7 @@ T['unused_move()'] = function()
     )
     child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes.assets').unused_move(true)
+    return require('mdnotes.assets').unused_move({ skip_input = true })
     ]])
     eq(
        vim.fs.basename(vim.fs.find("asset3.txt", { path = './tests/test-data/files/unused_assets' })[1]),
@@ -111,7 +119,7 @@ T['download_website_html()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes.assets').download_website_html("https://neovim.io/")
+    return require('mdnotes.assets').download_website_html({ uri = "https://neovim.io/" })
     ]])
     eq(
        vim.fs.basename(vim.fs.find("https_neovim_io_.html", { path = './tests/test-data/files/assets' })[1]),
@@ -128,8 +136,10 @@ T['delete()'] = function()
     ]])
     local ret = child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes.assets').delete("assets/asset4.txt", true)
-    ]])
+    return require('mdnotes.assets').delete({
+        uri = "assets/asset4.txt",
+        skip_input = true
+    })]])
     eq(ret , true)
     eq(
        vim.fs.basename(vim.fs.find("asset4.txt", { path = './tests/test-data/files/garbage' })[1]),

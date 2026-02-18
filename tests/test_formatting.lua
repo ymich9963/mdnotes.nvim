@@ -223,7 +223,7 @@ T['ordered_list'] = function()
         child.api.nvim_input("<ESC>")
 
         child.fn.cursor(2,0)
-        child.lua([[require('mdnotes.formatting').ordered_list_renumber()]])
+        child.lua([[require('mdnotes.formatting').ordered_list_renumber({ silent = true })]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " ",
@@ -257,7 +257,7 @@ T['task_list'] = function()
         })
 
         child.lua([[require('mdnotes.formatting').task_list_toggle()]])
-        child.lua([[require('mdnotes').new_line_remap('o')]])
+        child.lua([[require('mdnotes').new_line_remap('o', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             ul_indicator .. " [ ] item",
@@ -290,7 +290,7 @@ T['task_list'] = function()
         })
 
         child.lua([[require('mdnotes.formatting').task_list_toggle()]])
-        child.lua([[require('mdnotes').new_line_remap('o')]])
+        child.lua([[require('mdnotes').new_line_remap('o', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " [ ] item",

@@ -48,7 +48,7 @@ vim.api.nvim_create_autocmd({"TextChangedI"}, {
     pattern = "*.md",
     group = mdnotes_renumber_group,
     callback = function()
-        require("mdnotes.formatting").ordered_list_renumber(true)
+        require("mdnotes.formatting").ordered_list_renumber({ silent = true })
     end,
     desc = "Mdnotes automatic ordered list renumber autocmd"
 })
@@ -59,7 +59,7 @@ vim.api.nvim_create_autocmd({"ModeChanged"}, {
     group = mdnotes_best_fit_group,
     callback = function()
         if vim.bo.filetype == "markdown" then
-            require("mdnotes.table").best_fit(true)
+            require("mdnotes.table").best_fit({ silent = true })
         end
     end,
     desc = "Mdnotes automatic table best fit autocmd"
@@ -83,7 +83,7 @@ vim.api.nvim_create_autocmd({"BufEnter"}, {
     pattern = "*.md",
     group = mdnotes_journal_group,
     callback = function()
-        require("mdnotes.journal").insert_entry(true, true)
+        require("mdnotes.journal").insert_entry({ silent = true, check_file = true })
     end,
     desc = "Mdnotes automatic journal entry autocmd"
 })

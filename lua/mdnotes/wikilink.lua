@@ -127,8 +127,8 @@ end
 
 ---Rename references of the WikiLink under the cursor
 ---If there is no WikiLink under the cursor, prompt to rename the current buffer
----@param rename string? New name of WikiLink and file
----@param cur_buf boolean? Rename current buffer and not the WikiLink under cursor
+---@param rename string New name of WikiLink and file
+---@param cur_buf boolean Rename current buffer and not the WikiLink under cursor
 ---@return string|nil old_name, string|nil new_name 
 function M.rename_references(rename, cur_buf)
     if check_md_lsp() then
@@ -336,7 +336,7 @@ function M.find_orphans(print)
     local tempqf_list = vim.fn.getqflist()
     local count = 0
     local cwd = require('mdnotes').cwd
-    local files_cwd = require('mdnotes').get_files_in_cwd(".md", false, "file")
+    local files_cwd = require('mdnotes').get_files_in_cwd({ extension = ".md", hidden = false, fs_type = "file" })
 
     vim.notify("Mdn: Searching notes for orphans...", vim.log.levels.INFO)
     for _, file in pairs(files_cwd) do

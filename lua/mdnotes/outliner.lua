@@ -38,7 +38,7 @@ function  M.toggle()
 end
 
 ---Get the indent level of the current line
----@param line string?
+---@param line string? Optional line string
 ---@return integer
 function M.get_indent(line)
     if line == nil then line = vim.api.nvim_get_current_line() end

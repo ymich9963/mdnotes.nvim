@@ -46,11 +46,11 @@ T['insert_entry()'] = function()
         ""
     }
 
-    child.lua([[ return require('mdnotes.journal').insert_entry(true, false) ]])
+    child.lua([[ return require('mdnotes.journal').insert_entry({ silent = true, check_file = false }) ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, journal_entry)
 
-    child.lua([[ return require('mdnotes.journal').insert_entry(true, false) ]])
+    child.lua([[ return require('mdnotes.journal').insert_entry({ silent = true, check_file = false }) ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, journal_entry)
 end

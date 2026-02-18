@@ -71,6 +71,8 @@ end
 ---@param file_path string File path of asset file
 ---@return string|nil file_name Return file name on success
 function M.process_inserted_asset_file(file_path)
+    vim.validate("file_path", file_path, "string")
+
     local mdnotes_assets_path = M.get_assets_folder_name()
     local mdnotes_config = require('mdnotes').config
     local file_name = vim.fs.basename(file_path)
@@ -105,19 +107,29 @@ function M.process_inserted_asset_file(file_path)
     return file_name
 end
 
+---@class MdnAssetsGetAssetInlineLink
+---@field is_image boolean? If inserted file is an image
+---@field file_path string? Path of file to insert
+---@field process_file boolean? If file should be processed or not
+
 ---Create the asset inline link
----@param is_image boolean? If inserted file is an image
----@param file_path string? Path of file to insert
----@param process_file boolean? If file should be processed or not
+---@param opts MdnAssetsGetAssetInlineLink?
 ---@return string|nil text
-function M.get_asset_inline_link(is_image, file_path, process_file)
-    if is_image == nil then is_image = false end
-    if process_file == nil then process_file = false end
+function M.get_asset_inline_link(opts)
+    opts = opts or {}
+
+    local is_image = opts.is_image or false
+    local process_file = opts.process_file or false
+    local file_path = opts.file_path or ""
+
+    vim.validate("is_image", is_image, "boolean")
+    vim.validate("process_file", process_file, "boolean")
+    vim.validate("file_path", file_path, "string")
 
     local asset_path = ""
     local file_name = nil
 
-    if file_path == nil then
+    if file_path == "" then
         -- Get the file paths as a table
         local file_paths, cmd_stdout = get_file_paths_from_cmd()
 
@@ -172,22 +184,33 @@ end
 ---Insert a file as an inline link
 function M.insert_file()
     if M.check_assets_path() == false then return end
-    local inline_link = M.get_asset_inline_link(false, nil, true)
+    local inline_link = M.get_asset_inline_link({
+        is_image = false,
+        file_path = "path/test",
+        process_file = true
+    })
     vim.api.nvim_put({inline_link}, "c", false, false)
 end
 
 ---Insert an image as an inline link
 function M.insert_image()
     if M.check_assets_path() == false then return end
-    local inline_link = M.get_asset_inline_link(true, nil, true)
+    local inline_link = M.get_asset_inline_link({
+        is_image = true,
+        file_path = "path/test",
+        process_file = true
+    })
     vim.api.nvim_put({inline_link}, "c", false, false)
 end
 
 ---Get the assets that are already used in the notes
----@param silent boolean? Silent output to cmdline
+---@param opts {silent: boolean?}? opts.silent: Silence notifications
 ---@return table<string>
-function M.get_used_assets(silent)
-    if silent == nil then silent = false end
+function M.get_used_assets(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
+
     local mdnotes = require('mdnotes')
     local cwd = mdnotes.cwd
     local uri = ""
@@ -217,15 +240,18 @@ function M.get_used_assets(silent)
     return used_assets
 end
 
----@param silent boolean? Silent output to cmdline
+---@param opts {silent: boolean?}? opts.silent: Silence notifications
 ---@return table<string>
-function M.get_unused_assets(silent)
-    if silent == nil then silent = false end
+function M.get_unused_assets(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
+
     local mdnotes = require('mdnotes')
     local assets_path = vim.fs.joinpath(mdnotes.cwd, M.get_assets_folder_name())
     local unused_assets = {}
     for name, _ in vim.fs.dir(assets_path) do
-        if vim.tbl_contains(M.get_used_assets(true), name) == false then
+        if vim.tbl_contains(M.get_used_assets({silent = true}), name) == false then
             table.insert(unused_assets, name)
         end
     end
@@ -309,25 +335,36 @@ local function process_unused_assets(action, skip_input)
 end
 
 ---Delete unused assets
----@param skip_input boolean? Skip the user input prompt
-function M.unused_delete(skip_input)
-    if skip_input == nil then skip_input = false end
+---@param opts {skip_input: boolean?}? opts.skip_input: Skip the user input prompt
+function M.unused_delete(opts)
+    opts = opts or {}
+    local skip_input = opts.skip_input or false
+    vim.validate("skip_input", skip_input, "boolean")
+
     process_unused_assets("delete", skip_input)
 end
 
 ---Move unused assets to a new folder
----@param skip_input boolean? Skip the user input prompt
-function M.unused_move(skip_input)
-    if skip_input == nil then skip_input = false end
+---@param opts {skip_input: boolean?}? opts.skip_input: Skip the user input prompt
+function M.unused_move(opts)
+    opts = opts or {}
+    local skip_input = opts.skip_input or false
+    vim.validate("skip_input", skip_input, "boolean")
+
     process_unused_assets("move", skip_input)
 end
 
 ---Download the the HTML of the inline link URL and place it in assets folder
----@param uri string? URI with a valid URL to download the HTML from
-function M.download_website_html(uri)
+---@param opts {uri: string?}? opts.uri: URI with a valid URL to download the HTML from
+function M.download_website_html(opts)
+    opts = opts or {}
+    local uri = opts.uri
+
     if uri == nil then
         _, _, uri, _, _, _, _ = require('mdnotes.inline_link').get_inline_link_data(nil, true)
     end
+
+    vim.validate("uri", uri, "string")
 
     local uri_website_tbl = require('mdnotes.inline_link').uri_website_tbl or {}
     local mdnotes = require('mdnotes')
@@ -371,13 +408,21 @@ function M.download_website_html(uri)
     end
 end
 
-function M.delete(uri, skip_input)
-    if skip_input == nil then skip_input = false end
+---Delete the asset under the cursor
+---@param opts {uri: string?, skip_input: boolean?}?
+function M.delete(opts)
+    opts = opts or {}
+    local uri = opts.uri
+    local skip_input = opts.skip_input or false
+    vim.validate("skip_input", skip_input, "boolean")
+
     local _, text, uri_il, col_start, col_end
     if uri == nil then
-        _, text, uri_il, col_start, col_end = require('mdnotes.inline_link').get_inline_link_data(nil, true, false)
-        uri = uri_il
+        _, text, uri, col_start, col_end = require('mdnotes.inline_link').get_inline_link_data(nil, true, false)
+        if uri == nil then return end
     end
+
+    vim.validate("uri", uri, "string")
 
     local asset_path = require('mdnotes.inline_link').get_path_from_uri(uri)
     if asset_path == nil then return -2 end

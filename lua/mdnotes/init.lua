@@ -175,6 +175,8 @@ end
 ---Open the buffer using the cwd
 ---@param buf integer|string
 function M.open_buf(buf)
+    vim.validate("buf", buf, {"number", "string"})
+
     local edit_cmd = ""
     if type(buf) == "number" then
         edit_cmd = M.open_cmd .. buf
@@ -182,6 +184,7 @@ function M.open_buf(buf)
         vim.cmd.cd({ args = {M.cwd}, mods = {silent = true}})
         edit_cmd = M.open_cmd .. buf
     end
+
     vim.cmd(edit_cmd)
 end
 
@@ -223,10 +226,12 @@ end
 
 ---New line remaps
 ---@param key '"o"'|'"O"'|'"<CR>"'
----@param expr_set boolean? If remap is used when opts.expr is true
+---@param expr_set boolean If remap is used when opts.expr is true
 ---@return string|nil
 function M.new_line_remap(key, expr_set)
-    if expr_set == nil then expr_set = false end
+    vim.validate("key", key, "string")
+    vim.validate("expr_set", expr_set, "boolean")
+
     local lnum = vim.fn.line('.')
     local indent, list_remap = "", ""
 
@@ -272,13 +277,28 @@ function M.open_containing_folder()
     vim.ui.open(M.cwd)
 end
 
+---@class MdnotesGetFilesInCwd
+---@field extension string? Specify extension e.g. ".md". Use ".*" for all file extensions
+---@field hidden boolean? Get hidden files
+---@field fs_type '"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"' Specify type from vim.fs.dir() return
+---@field pattern string? Lua pattern for names containing pattern
+
 ---Get the files in the cwd
----@param extension string? Specify extension e.g. ".md". Use ".*" for all file extensions
----@param hidden boolean? Get hidden files
----@param fs_type '"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"' Specify type from vim.fs.dir() return
----@param pattern string? Lua pattern for names containing pattern
+---@param opts MdnotesGetFilesInCwd?
 ---@return table<string> files Table with file names
-function M.get_files_in_cwd(extension, hidden, fs_type, pattern)
+function M.get_files_in_cwd(opts)
+    opts = opts or {}
+
+    local extension = opts.extension
+    local hidden = opts.hidden
+    local fs_type = opts.fs_type
+    local pattern = opts.pattern
+
+    vim.validate("extension", extension, {"string", "nil"})
+    vim.validate("hidden", hidden, {"boolean", "nil"})
+    vim.validate("fs_type", fs_type, {"string", "nil"})
+    vim.validate("pattern", pattern, {"string", "nil"})
+
     local cwd = require('mdnotes').cwd
     local files = {}
     local add = false

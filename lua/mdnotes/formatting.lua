@@ -49,6 +49,8 @@ local md_format = {
 ---@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
 ---@return boolean|nil
 function M.check_md_format_under_cursor(pattern)
+    vim.validate("pattern", pattern, "string")
+
     local line = vim.api.nvim_get_current_line()
     local cur_col = vim.fn.col('.')
 
@@ -95,6 +97,8 @@ end
 ---@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
 ---@return string found_text, integer col_start, integer col_end
 function M.get_text_in_pattern_under_cursor(pattern)
+    vim.validate("pattern", pattern, "string")
+
     local current_col = vim.fn.col('.')
     local line = vim.api.nvim_get_current_line()
     local col_start = 0
@@ -117,21 +121,25 @@ end
 
 ---Insert a Markdown format
 ---@param format_char MdnotesFormatIndicators
----@param split boolean? Should the inputted format indicator be separated
-local function insert_format(format_char, split)
+---@param opts {split: boolean?}? opts.split: Should the inputted format indicator be separated
+function M.insert_format(format_char, opts)
+    opts = opts or {}
+    local split = opts.split or false
+
+    vim.validate("split", split, "boolean")
+    vim.validate("format_char", format_char, "string")
+
     if split == nil then split = false end
     local lnum = vim.fn.line('.')
     local selected_text, col_start, col_end = M.get_selected_text()
-    local fi1 = format_char
-    local fi2 = format_char
+    local fi1, fi2 = "", ""
 
     if split == true then
-        fi1 = format_char:sub(1,1)
-        fi2 = format_char:sub(2,2)
-    end
-
-    if fi2 == "" then
-        fi2 = fi1
+        fi1 = format_char:sub(1,#format_char / 2)
+        fi2 = format_char:sub(-(#format_char / 2))
+    else
+        fi1 = format_char
+        fi2 = format_char
     end
 
     -- Set the line and cursor position
@@ -141,7 +149,9 @@ end
 
 ---Check current line position for text in a Markdown format
 ---@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
-local function delete_format(pattern)
+function M.delete_format(pattern)
+    vim.validate("pattern", pattern, "string")
+
     local line = vim.api.nvim_get_current_line()
     local lnum = vim.fn.line('.')
     local found_text, col_start, col_end = M.get_text_in_pattern_under_cursor(pattern)
@@ -163,9 +173,9 @@ end
 function M.emphasis_toggle()
     local ret = M.check_md_format_under_cursor(md_format.emphasis.pattern())
     if ret == true then
-        delete_format(md_format.emphasis.pattern())
+        M.delete_format(md_format.emphasis.pattern())
     elseif ret == false then
-        insert_format(md_format.emphasis.indicator())
+        M.insert_format(md_format.emphasis.indicator())
     end
 end
 
@@ -173,9 +183,9 @@ end
 function M.strong_toggle()
     local ret = M.check_md_format_under_cursor(md_format.strong.pattern())
     if ret == true then
-        delete_format(md_format.strong.pattern())
+        M.delete_format(md_format.strong.pattern())
     elseif ret == false then
-        insert_format(md_format.strong.indicator())
+        M.insert_format(md_format.strong.indicator())
     end
 end
 
@@ -183,9 +193,9 @@ end
 function M.strikethrough_toggle()
     local ret = M.check_md_format_under_cursor(md_format.strikethrough.pattern())
     if ret == true then
-        delete_format(md_format.strikethrough.pattern())
+        M.delete_format(md_format.strikethrough.pattern())
     elseif ret == false then
-        insert_format(md_format.strikethrough.indicator())
+        M.insert_format(md_format.strikethrough.indicator())
     end
 end
 
@@ -193,9 +203,9 @@ end
 function M.inline_code_toggle()
     local ret = M.check_md_format_under_cursor(md_format.inline_code.pattern())
     if ret == true then
-        delete_format(md_format.inline_code.pattern())
+        M.delete_format(md_format.inline_code.pattern())
     elseif ret == false then
-        insert_format(md_format.inline_code.indicator())
+        M.insert_format(md_format.inline_code.indicator())
     end
 end
 
@@ -203,9 +213,9 @@ end
 function M.autolink_toggle()
     local ret = M.check_md_format_under_cursor(md_format.autolink.pattern())
     if ret == true then
-        delete_format(md_format.autolink.pattern())
+        M.delete_format(md_format.autolink.pattern())
     elseif ret == false then
-        insert_format(md_format.autolink.indicator(), true)
+        M.insert_format(md_format.autolink.indicator(), { split = true })
     end
 end
 
@@ -213,6 +223,8 @@ end
 ---@param line string Line containing list item
 ---@return string indent, string marker, string separator, string text List item contents that have been deemed important by me
 function M.resolve_list_content(line)
+    vim.validate("line", line, "string")
+
     local mdnotes_patterns = require('mdnotes.patterns')
 
     local ul_indent, ul_marker, ul_text = line:match(mdnotes_patterns.unordered_list)
@@ -232,6 +244,9 @@ end
 function M.task_list_toggle(line1, line2)
     if line1 == nil then line1 = vim.fn.line('.') end
     if line2 == nil then line2 = line1 end
+
+    vim.validate("line1", line1, "number")
+    vim.validate("line2", line2, "number")
 
     local mdnotes_patterns = require('mdnotes.patterns')
     local lines = {}
@@ -283,9 +298,12 @@ function M.task_list_toggle(line1, line2)
 end
 
 ---Renumber the ordered list
----@param silent boolean? Output error message or not
-function M.ordered_list_renumber(silent)
-    if silent == nil then silent = false end
+---@param opts {silent: boolean?}? opts.silent: Silence notifications
+function M.ordered_list_renumber(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
+
     local cur_line = vim.api.nvim_get_current_line()
     local cur_lnum = vim.fn.line('.')
     local ordered_list_pattern = require('mdnotes.patterns').ordered_list
@@ -348,6 +366,9 @@ end
 function M.unformat_lines(line1, line2)
     if line1 == nil then line1 = vim.fn.line('.') end
     if line2 == nil then line2 = vim.fn.line('.') end
+
+    vim.validate("line1", line1, "number")
+    vim.validate("line2", line2, "number")
 
     local mdnotes_patterns = require('mdnotes.patterns')
     local lines = {}
