@@ -1,4 +1,5 @@
 ---@module 'mdnotes.wikilink'
+
 local M = {}
 
 local uv = vim.loop or vim.uv
@@ -19,14 +20,17 @@ local function check_md_lsp()
     end
 end
 
+---@class MdnWikiLinkData
+---@field wikilink string Whole of the WikiLink
+---@field wikilink_no_fragment string WikiLink without the fragment
+---@field fragment string The fragment in the WikiLink
+---@field col_start integer The start position of the WikiLink in the current line
+---@field col_end integer The end position of the WikiLink in the current line
+
 ---Get the current WikiLink under the cursor if it exists
 ---@param wikilink string? Input WikiLink
----@return string wikilink Whole of the WikiLink
----@return string wikilink_no_fragment WikiLink without the fragment
----@return string fragment The fragment in the WikiLink
----@return integer col_start The start position of the WikiLink in the current line
----@return integer col_end The end position of the WikiLink in the current line
-function M.get_wikilink_data(wikilink)
+---@return MdnWikiLinkData
+function M.parse(wikilink)
     local wikilink_pattern = require('mdnotes.patterns').wikilink
     local uri_no_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
     local fragment_pattern = require('mdnotes.patterns').fragment
@@ -41,7 +45,13 @@ function M.get_wikilink_data(wikilink)
     local wikilink_no_fragment = wikilink:match(uri_no_fragment_pattern) or ""
     local fragment = wikilink:match(fragment_pattern) or ""
 
-    return wikilink, wikilink_no_fragment, fragment, col_start, col_end
+    return {
+        wikilink = wikilink,
+        wikilink_no_fragment = wikilink_no_fragment,
+        fragment = fragment,
+        col_start = col_start,
+        col_end = col_end
+    }
 end
 
 ---Follow the WikiLink under the cursor
@@ -51,16 +61,16 @@ function M.follow()
         return
     end
 
-    local _, wikilink, fragment, _, _ = M.get_wikilink_data()
+    local wldata = M.parse()
 
-    if wikilink == "" and fragment == "" then
+    if wldata.wikilink_no_fragment == "" and wldata.fragment == "" then
         vim.notify("Mdn: No WikiLink under the cursor was detected", vim.log.levels.ERROR)
     end
 
     local mdnotes = require('mdnotes')
 
-    if wikilink ~= "" then
-        local path = vim.fs.joinpath(mdnotes.cwd, wikilink)
+    if wldata.wikilink_no_fragment ~= "" then
+        local path = vim.fs.joinpath(mdnotes.cwd, wldata.wikilink_no_fragment)
 
         if path:sub(-3) ~= ".md" then
             path = path .. ".md"
@@ -69,8 +79,8 @@ function M.follow()
         mdnotes.open_buf(path)
     end
 
-    if fragment ~= "" then
-        vim.fn.cursor(vim.fn.search(fragment), 1)
+    if wldata.fragment ~= "" then
+        vim.fn.cursor(vim.fn.search(wldata.fragment), 1)
         vim.api.nvim_input('zz')
     end
 end
@@ -83,22 +93,22 @@ function M.show_references()
         return
     end
 
-    local wikilink, _, _, _, _ = M.get_wikilink_data()
+    local wldata = M.parse()
 
-    if wikilink == "" then
+    if wldata.wikilink_no_fragment == "" then
         -- If wikilink pattern isn't detected use current file name
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
-        wikilink = cur_file_basename:gsub(".md$","")
+        wldata.wikilink_no_fragment = cur_file_basename:gsub(".md$","")
     end
 
     local cur_pos = vim.fn.getpos('.')
     local cur_buf = vim.api.nvim_get_current_buf()
     local cwd = require('mdnotes').cwd
 
-    vim.cmd.vimgrep({args = {'/\\[\\[' .. wikilink .. '.*\\]\\]/', vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
+    vim.cmd.vimgrep({args = {'/\\[\\[' .. wldata.wikilink_no_fragment .. '.*\\]\\]/', vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
     local qflist = vim.fn.getqflist()
     if vim.tbl_isempty(qflist) then
-        vim.notify("Mdn: No references found for '" .. wikilink .. "'", vim.log.levels.ERROR)
+        vim.notify("Mdn: No references found for '" .. wldata.wikilink_no_fragment .. "'", vim.log.levels.ERROR)
         return qflist
     end
     vim.cmd("buffer " .. cur_buf)
@@ -140,29 +150,29 @@ function M.rename_references(rename, cur_buf)
 
     if cur_buf == nil then cur_buf = false end
 
-    local _, wikilink, _, _, _ = M.get_wikilink_data()
+    local wldata = M.parse()
     local prompt = "Rename WikiLink and file: "
     local temp_qflist = vim.fn.getqflist()
     local cwd = require('mdnotes').cwd
 
-    if wikilink == "" or cur_buf == true then
+    if wldata.wikilink_no_fragment == "" or cur_buf == true then
         cur_buf = true
-        wikilink = vim.fs.basename(vim.api.nvim_buf_get_name(0)):match("(.+)%.[^%.]+$")
+        wldata.wikilink_no_fragment = vim.fs.basename(vim.api.nvim_buf_get_name(0)):match("(.+)%.[^%.]+$")
         prompt = "Rename current buffer: "
     end
 
     -- Remove the file extension for this function
-    if wikilink:sub(-3) == ".md" then
-        wikilink = wikilink:sub(1,-4)
+    if wldata.wikilink_no_fragment:sub(-3) == ".md" then
+        wldata.wikilink_no_fragment = wldata.wikilink_no_fragment:sub(1,-4)
     end
 
-    if not uv.fs_stat(vim.fs.joinpath(cwd, wikilink .. ".md")) then
+    if not uv.fs_stat(vim.fs.joinpath(cwd, wldata.wikilink_no_fragment .. ".md")) then
         vim.notify("Mdn: WikiLink does not seem to link to a valid Markdown file", vim.log.levels.ERROR)
-        return wikilink, "invalid file"
+        return wldata.wikilink_no_fragment, "invalid file"
     end
 
     if rename == nil then
-        vim.ui.input({ prompt = prompt, default = wikilink },
+        vim.ui.input({ prompt = prompt, default = wldata.wikilink_no_fragment },
         function(input)
             rename = input
         end)
@@ -170,24 +180,24 @@ function M.rename_references(rename, cur_buf)
 
     if rename == "" or rename == nil then
         vim.notify("Mdn: Please insert a valid name", vim.log.levels.ERROR)
-        return wikilink, "invalid name"
+        return wldata.wikilink_no_fragment, "invalid name"
     end
 
     local ret, err = uv.fs_rename(
-        vim.fs.joinpath(cwd, wikilink .. ".md"),
+        vim.fs.joinpath(cwd, wldata.wikilink_no_fragment .. ".md"),
         vim.fs.joinpath(cwd, rename .. ".md")
     )
     if not ret then
         vim.notify("Mdn: File rename failed", vim.log.levels.ERROR)
-        return wikilink, err
+        return wldata.wikilink_no_fragment, err
     end
 
     vim.cmd.wall({bang = true, mods = {silent = true}})
-    vim.cmd.vimgrep({args = {'/\\[\\[' .. wikilink .. '.*\\]\\]/', vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
-    vim.cmd.cdo({args = {('s/%s/%s/'):format(wikilink, rename)}, mods = {emsg_silent = true}})
+    vim.cmd.vimgrep({args = {'/\\[\\[' .. wldata.wikilink_no_fragment .. '.*\\]\\]/', vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
+    vim.cmd.cdo({args = {('s/%s/%s/'):format(wldata.wikilink_no_fragment, rename)}, mods = {emsg_silent = true}})
     vim.cmd.wall({bang = true, mods = {silent = true}})
 
-    local bufnum = get_bufnum_from_name(wikilink .. ".md")
+    local bufnum = get_bufnum_from_name(wldata.wikilink_no_fragment .. ".md")
 
     if cur_buf == false and bufnum ~= 0 then
         vim.api.nvim_buf_delete(bufnum, {force = false})
@@ -195,15 +205,15 @@ function M.rename_references(rename, cur_buf)
         vim.api.nvim_buf_set_name(0, rename .. ".md")
     end
 
-    M.old_filename = wikilink
+    M.old_filename = wldata.wikilink_no_fragment
     M.new_filename = rename
 
     -- Set the qf list to what it was before the operation
     vim.fn.setqflist(temp_qflist)
 
-    vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wikilink, rename), vim.log.levels.INFO)
+    vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.wikilink_no_fragment, rename), vim.log.levels.INFO)
 
-    return wikilink, rename
+    return wldata.wikilink_no_fragment, rename
 end
 
 ---Undo the most recent rename
@@ -268,16 +278,16 @@ end
 function M.delete(skip_input)
     if skip_input == nil then skip_input = false end
     local found_file = ""
-    local _, wikilink, _, col_start, col_end = M.get_wikilink_data()
+    local wldata = M.parse()
     local lnum = vim.fn.line('.')
     local cur_col = vim.fn.col('.')
     local deleted = false
 
     -- Append .md to guarantee a file name
-    if wikilink:sub(-3) ~= ".md" then
-        found_file = wikilink .. ".md"
+    if wldata.wikilink_no_fragment:sub(-3) ~= ".md" then
+        found_file = wldata.wikilink_no_fragment .. ".md"
     else
-        found_file = wikilink
+        found_file = wldata.wikilink_no_fragment
     end
 
     local cwd = require('mdnotes').cwd
@@ -285,7 +295,7 @@ function M.delete(skip_input)
 
     if uv.fs_stat(path) then
         if skip_input == false then
-            vim.ui.input( { prompt = ("Mdn: Delete '%s' WikiLink and file? Type y/n (default 'n'): "):format(wikilink), }, function(input)
+            vim.ui.input( { prompt = ("Mdn: Delete '%s' WikiLink and file? Type y/n (default 'n'): "):format(wldata.wikilink_no_fragment), }, function(input)
                 vim.cmd.redraw()
                 if input == 'y' then
                     vim.fs.rm(path)
@@ -308,29 +318,28 @@ function M.delete(skip_input)
     if new_col < 1 then new_col = 1 end
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {wikilink})
+    vim.api.nvim_buf_set_text(0, lnum - 1, wldata.col_start - 1, lnum - 1, wldata.col_end - 1, {wldata.wikilink_no_fragment})
     vim.fn.cursor({lnum, new_col})
 
-    return deleted, wikilink
+    return deleted, wldata.wikilink_no_fragment
 end
 
 ---Normalize the WikiLink under the cursor
 function M.normalize()
     local lnum = vim.fn.line('.')
     local new_wikilink = ""
-    local wikilink, _, _, col_start, col_end = M.get_wikilink_data()
+    local wldata = M.parse()
 
-    new_wikilink = vim.fs.normalize(wikilink)
+    new_wikilink = vim.fs.normalize(wldata.wikilink)
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {'[[' .. new_wikilink .. ']]'})
+    vim.api.nvim_buf_set_text(0, lnum - 1, wldata.col_start - 1, lnum - 1, wldata.col_end - 1, {'[[' .. new_wikilink .. ']]'})
     vim.fn.cursor({lnum, vim.fn.col('.')})
 end
 
----Find any orphan pages in the cwd
----@param print boolean? Whether to print to cmdline or not
+---Get any orphan pages in the cwd
 ---@return table<string> orphans Table of orphan pages
-function M.find_orphans(print)
+function M.get_orphans()
     if print == nil then print = true end
     local orphans = {}
     local tempqf_list = vim.fn.getqflist()
@@ -350,15 +359,23 @@ function M.find_orphans(print)
     end
 
     vim.fn.setqflist(tempqf_list)
-    if print == true then
-        if vim.tbl_isempty(orphans) then
-            vim.notify("Mdn: No orphan pages detected", vim.log.levels.INFO)
-        else
-            vim.print(orphans)
-        end
-    end
 
     return orphans
+end
+
+---Show orphans on cmdline
+function M.find_orphans()
+    local orphans = M.get_orphans()
+    if vim.tbl_isempty(orphans) then
+        vim.notify("Mdn: No orphan pages found", vim.log.levels.WARN)
+    else
+        local orphans_txt = ""
+        for _, v in pairs(orphans) do
+            orphans_txt = orphans_txt .. v .. ", "
+        end
+        orphans_txt = orphans_txt(1,#orphans_txt - 2)
+        vim.notify("Mdn: Found the following orphan pages: " .. orphans_txt, vim.log.levels.WARN)
+    end
 end
 
 return M

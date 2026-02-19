@@ -1,4 +1,5 @@
----Mdnotes :checkhealth mdnotes
+---Mdn :checkhealth mdnotes
+
 local M = {}
 
 M.check = function()
@@ -7,7 +8,7 @@ M.check = function()
     local config_str = vim.inspect(config)
     local config_ok = true
 
-    vim.health.start("Mdnotes report")
+    vim.health.start("Mdnotes Report")
 
     if not vim.tbl_contains({"copy", "move"}, config.asset_insert_behaviour) then
         vim.health.error(("'asset_insert_behaviour' value '%s' is invalid. Can only use 'copy' or 'move'. Defaulting to 'copy'."):format(M.config.asset_insert_behaviour))

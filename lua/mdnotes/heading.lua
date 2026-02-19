@@ -1,9 +1,10 @@
 ---@module 'mdnotes.heading'
+
 local M = {}
 
 ---Get the header that the current text is under
 ---@return integer|nil index Index of current heading in the parsed fragments
----@return MdnotesFragment|table fragment
+---@return MdnFragment|table fragment
 ---@return integer total_fragments Total fragments in the parsed buffer
 function M.get_current_heading()
     local buf_fragments = require('mdnotes.toc').buf_fragments

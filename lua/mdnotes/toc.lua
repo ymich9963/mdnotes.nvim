@@ -1,18 +1,19 @@
 ---@module 'mdnotes.toc'
+
 local M = {}
 
----@class MdnotesFragment
+---@class MdnFragment
 ---@field  hash string The '#' present in the heading
 ---@field  text string Original fragment text from the file headings
 ---@field  lnum integer Line number of the heading
 
----@alias MdnotesFragmentGfm table<string> Parsed GFM-style fragment text
+---@alias MdnFragmentGfm table<string> Parsed GFM-style fragment text
 
----@class MdnotesBufFragments
+---@class MdnBufFragments
 ---@field buf_num integer Buffer number
----@field parsed table<table<MdnotesFragment>, MdnotesFragmentGfm> 
+---@field parsed table<table<MdnFragment>, MdnFragmentGfm> 
 
----@type table<table<MdnotesBufFragments>>
+---@type table<table<MdnBufFragments>>
 M.buf_fragments = {}
 
 ---Parse the fragments in the buffer number
@@ -46,7 +47,7 @@ end
 
 ---Get fragments from the Markdown buffer headings
 ---@param bufnr integer?
----@return table<MdnotesFragment>
+---@return table<MdnFragment>
 function M.get_fragments_from_buf(bufnr)
     if bufnr == nil then bufnr = 0 end
     local fragments = {}
@@ -100,8 +101,8 @@ function M.convert_text_to_gfm(text)
 end
 
 ---Get the GFM-style fragments from the fragment fragments
----@param fragments MdnotesFragment
----@return MdnotesFragmentGfm
+---@param fragments MdnFragment
+---@return MdnFragmentGfm
 function M.parse_fragments_to_gfm_style(fragments)
     local gfm_fragments = {}
     for _, fragment in ipairs(fragments) do

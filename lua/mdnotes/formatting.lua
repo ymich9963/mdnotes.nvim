@@ -1,14 +1,15 @@
 ---@module 'mdnotes.formatting'
+
 local M = {}
 
----@alias MdnotesFormats
+---@alias MdnFormats
 ---| '"emphasis"'
 ---| '"strong"'
 ---| '"strikethrough"'
 ---| '"inline_code"'
 ---| '"autolink"'
 
----@alias MdnotesFormatIndicators
+---@alias MdnFormatIndicators
 ---| '"**"'
 ---| '"__"'
 ---| '"*"'
@@ -17,11 +18,11 @@ local M = {}
 ---| '"`"'
 ---| '"<>"'
 
----@class MdnotesFormatData
----@field indicator fun(): MdnotesFormatIndicators Function returning a string for the format indicator
----@field pattern fun(): MdnotesPattern Function returning the pattern for the specified Markdown format
+---@class MdnFormatData
+---@field indicator fun(): MdnFormatIndicators Function returning a string for the format indicator
+---@field pattern fun(): MdnPattern Function returning the pattern for the specified Markdown format
 
----@type table<MdnotesFormats, MdnotesFormatData>
+---@type table<MdnFormats, MdnFormatData>
 local md_format = {
     emphasis = {
         indicator = function() return require('mdnotes').config.emphasis_format end,
@@ -46,7 +47,7 @@ local md_format = {
 }
 
 ---Check current line position for text in a Markdown format
----@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
+---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
 ---@return boolean|nil
 function M.check_md_format_under_cursor(pattern)
     vim.validate("pattern", pattern, "string")
@@ -94,7 +95,7 @@ function M.get_selected_text()
 end
 
 ---Get the text inside a pattern as well as the start and end columns under the cursor
----@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
+---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
 ---@return string found_text, integer col_start, integer col_end
 function M.get_text_in_pattern_under_cursor(pattern)
     vim.validate("pattern", pattern, "string")
@@ -120,7 +121,7 @@ function M.get_text_in_pattern_under_cursor(pattern)
 end
 
 ---Insert a Markdown format
----@param format_char MdnotesFormatIndicators
+---@param format_char MdnFormatIndicators
 ---@param opts {split: boolean?}? opts.split: Should the inputted format indicator be separated
 function M.insert_format(format_char, opts)
     opts = opts or {}
@@ -148,7 +149,7 @@ function M.insert_format(format_char, opts)
 end
 
 ---Check current line position for text in a Markdown format
----@param pattern MdnotesPattern Pattern that returns the start and end columns, as well as the text
+---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
 function M.delete_format(pattern)
     vim.validate("pattern", pattern, "string")
 

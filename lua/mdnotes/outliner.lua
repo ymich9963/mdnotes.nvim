@@ -1,4 +1,5 @@
 ---@module 'mdnotes.outliner'
+
 local M = {}
 
 ---@type boolean

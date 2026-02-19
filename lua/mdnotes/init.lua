@@ -1,7 +1,8 @@
 ---@module 'mdnotes'
+
 local M = {}
 
----@type MdnotesConfig
+---@type MdnConfig
 M.config = {}
 
 ---@type string|nil Open command for opening buffers
@@ -14,7 +15,7 @@ M.cwd = nil
 M.plugin_install_dir = nil
 
 ---Mdnotes Config Class
----@class MdnotesConfig
+---@class MdnConfig
 ---@field index_file string? Index file name or path
 ---@field journal_file (string|fun(): string)? Journal file name or path
 ---@field assets_path (string|fun(): string)? Path to assets folder
@@ -30,7 +31,7 @@ M.plugin_install_dir = nil
 ---@field auto_list_renumber boolean? Automatic renumbering of ordered lists
 ---@field auto_table_best_fit boolean? Automatic table best fit
 ---@field default_keymaps boolean?
----@field autocmds boolean|MdnotesAutocmdsConfig?
+---@field autocmds boolean|MdnAutocmdsConfig?
 ---@field table_best_fit_padding integer? Add padding around cell contents when using tables_best_fit
 ---@field toc_depth integer? Depth shown in the ToC
 ---@field user_commands table? User commands in the Mdn namespace
@@ -55,7 +56,7 @@ local default_config = {
 }
 
 ---Mdnotes Config for autocmds
----@class MdnotesAutocmdsConfig
+---@class MdnAutocmdsConfig
 ---@field set_cwd boolean set_cwd() autocmd for path resolution
 ---@field record_buf boolean record_buf() autocmd for buffer history
 ---@field populate_buf_fragments boolean populate_buf_fragments() autocmd for ToC fragments
@@ -74,8 +75,8 @@ local default_autocmd_config = {
 }
 
 ---Validate user config
----@param user_config MdnotesConfig
----@return MdnotesConfig
+---@param user_config MdnConfig
+---@return MdnConfig
 local function validate_config(user_config)
     local config = vim.tbl_deep_extend("force", default_config, user_config or {})
 
@@ -139,7 +140,7 @@ local function resolve_autocmd_config()
 end
 
 ---Setup function
----@param user_config MdnotesConfig
+---@param user_config MdnConfig
 function M.setup(user_config)
     M.config = validate_config(user_config)
     M.config.index_file = vim.fs.normalize(M.config.index_file)
@@ -277,14 +278,14 @@ function M.open_containing_folder()
     vim.ui.open(M.cwd)
 end
 
----@class MdnotesGetFilesInCwd
+---@class MdnGetFilesInCwd
 ---@field extension string? Specify extension e.g. ".md". Use ".*" for all file extensions
 ---@field hidden boolean? Get hidden files
 ---@field fs_type '"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"' Specify type from vim.fs.dir() return
 ---@field pattern string? Lua pattern for names containing pattern
 
 ---Get the files in the cwd
----@param opts MdnotesGetFilesInCwd?
+---@param opts MdnGetFilesInCwd?
 ---@return table<string> files Table with file names
 function M.get_files_in_cwd(opts)
     opts = opts or {}

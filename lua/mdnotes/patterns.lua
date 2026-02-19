@@ -1,23 +1,24 @@
 ---@module 'mdnotes.patterns'
+
 local M = {}
 
----@alias MdnotesPattern string Pattern that returns the start and end columns, as well as the text
+---@alias MdnPattern string Pattern that returns the start and end columns, as well as the text
 
----@class MdnotesPatterns
----@field wikilink MdnotesPattern WikiLink pattern
----@field uri_no_fragment MdnotesPattern URI only pattern
----@field fragment MdnotesPattern Fragment only pattern
----@field inline_link MdnotesPattern Inline link pattern
----@field text_uri MdnotesPattern Text and URI from inline link pattern
----@field strong MdnotesPattern Strong format indicator pattern
----@field emphasis MdnotesPattern Emphasis format indicator pattern
----@field strikethrough MdnotesPattern Strikethrough format indicator pattern
----@field inline_code MdnotesPattern Inline code format indicator pattern
----@field autolink MdnotesPattern Autolink format indicator pattern
----@field unordered_list MdnotesPattern Unordered list pattern
----@field ordered_list MdnotesPattern Ordered list pattern
----@field task MdnotesPattern Task item pattern
----@field heading MdnotesPattern Heading pattern
+---@class MdnPatterns
+---@field wikilink MdnPattern WikiLink pattern
+---@field uri_no_fragment MdnPattern URI only pattern
+---@field fragment MdnPattern Fragment only pattern
+---@field inline_link MdnPattern Inline link pattern
+---@field text_uri MdnPattern Text and URI from inline link pattern
+---@field strong MdnPattern Strong format indicator pattern
+---@field emphasis MdnPattern Emphasis format indicator pattern
+---@field strikethrough MdnPattern Strikethrough format indicator pattern
+---@field inline_code MdnPattern Inline code format indicator pattern
+---@field autolink MdnPattern Autolink format indicator pattern
+---@field unordered_list MdnPattern Unordered list pattern
+---@field ordered_list MdnPattern Ordered list pattern
+---@field task MdnPattern Task item pattern
+---@field heading MdnPattern Heading pattern
 M = {
     wikilink = "()%[%[(.-)%]%]()",
     uri_no_fragment = "^([^#]+).*",

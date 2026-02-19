@@ -1,15 +1,16 @@
 ---@module 'mdnotes.table'
+
 local M = {}
 
----@class MdnotesTableComplexData
+---@class MdnTableComplexData
 ---@field content string Cell content
 ---@field start_pos integer Cell start position
 ---@field end_pos integer Cell end position
 ---@field line integer Line in the table
 
----@alias MdnotesTableContents table<table<string>> Contents of a table
----@alias MdnotesTableColLoc table<table<integer>> Table column locations
----@alias MdnotesTableComplex table<table<MdnotesTableComplexData>> Complex table data which is just more information about the table
+---@alias MdnTableContents table<table<string>> Contents of a table
+---@alias MdnTableColLoc table<table<integer>> Table column locations
+---@alias MdnTableComplex table<table<MdnTableComplexData>> Complex table data which is just more information about the table
 
 ---Check if there is a table under the cursor
 ---@return boolean table_valid, integer|nil table_startl, integer|nil table_endl
@@ -71,7 +72,7 @@ function M.check_valid_table()
 end
 
 ---Write the table to the buffer
----@param contents MdnotesTableContents
+---@param contents MdnTableContents
 ---@param startl integer?
 ---@param endl integer?
 function M.write_table_lines(contents, startl, endl)
@@ -134,7 +135,7 @@ end
 ---Parse the table in the specified line numbers
 ---@param table_startl integer
 ---@param table_endl integer
----@return MdnotesTableContents
+---@return MdnTableContents
 function M.parse_table(table_startl, table_endl)
     local table_parsed = {}
 
@@ -160,7 +161,7 @@ end
 
 ---Get the table contents as lines using start and end lines
 ---@param opts {silent: boolean?}? opts.silent: Silence notifications
----@return MdnotesTableContents|nil, integer|nil, integer|nil
+---@return MdnTableContents|nil, integer|nil, integer|nil
 function M.get_table_lines(opts)
     opts = opts or {}
     local silent = opts.silent or false
@@ -188,7 +189,7 @@ function M.get_table_lines(opts)
 end
 
 ---Get the table column locations
----@return MdnotesTableColLoc|nil
+---@return MdnTableColLoc|nil
 function M.get_column_locations()
     -- Fence post problem, all tables will have n+1 | characters with n being the text    
     local table_valid, startl, endl = M.check_valid_table()
@@ -213,7 +214,7 @@ function M.get_column_locations()
 end
 
 ---Get the table contents along with some more information (which is why it's called complex)
----@return MdnotesTableComplex|nil, integer|nil, integer|nil
+---@return MdnTableComplex|nil, integer|nil, integer|nil
 function M.get_table_lines_complex()
     local table_lines, startl, endl = M.get_table_lines()
 
@@ -560,7 +561,7 @@ end
 
 ---Get table as columns
 ---@param opts {silent: boolean?}? opts.silent: Silence notifications
----@return MdnotesTableContents|nil contents 
+---@return MdnTableContents|nil contents 
 function M.get_table_columns(opts)
     opts = opts or {}
     local silent = opts.silent or false
@@ -665,8 +666,8 @@ function M.column_sort_descending()
 end
 
 ---Get table as columns
----@param contents MdnotesTableContents
----@return MdnotesTableContents|nil contents 
+---@param contents MdnTableContents
+---@return MdnTableContents|nil contents 
 function M.parse_columns_to_lines(contents)
     local table_lines = {}
     local row = {}

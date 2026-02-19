@@ -1,4 +1,5 @@
 ---@module 'mdnotes.history'
+
 local M = {}
 
 ---@type table<integer> Table containing visited buffer numbers

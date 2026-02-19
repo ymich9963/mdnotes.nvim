@@ -23,13 +23,14 @@ local T = new_set({
     },
 })
 
-T['get_wikilink_data()'] = function()
-    local ret = child.lua("return {require('mdnotes.wikilink').get_wikilink_data('[[test#fragment]]')}")
+T['parse()'] = function()
+    local ret = child.lua("return require('mdnotes.wikilink').parse('[[test#fragment]]')")
     eq(ret, {
-        "test#fragment",
-        "test",
-        "fragment",
-        0, 0
+        wikilink = "test#fragment",
+        wikilink_no_fragment = "test",
+        fragment = "fragment",
+        col_start = 0,
+        col_end = 0
     })
 end
 
@@ -169,10 +170,10 @@ T['normalize()'] = function()
     eq(lines[1], "[[tests/test-data/files/file6]]")
 end
 
-T['find_orphans()'] = function()
+T['get_orphans()'] = function()
     -- Move to directory to search
     child.cmd([[edit tests/test-data/files/file1.md]])
-    local ret = child.lua([[return require('mdnotes.wikilink').find_orphans()]])
+    local ret = child.lua([[return require('mdnotes.wikilink').get_orphans()]])
     eq(ret, {
         "file1.md",
         "file3.md",
