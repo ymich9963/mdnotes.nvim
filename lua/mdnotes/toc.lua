@@ -3,9 +3,9 @@
 local M = {}
 
 ---@class MdnFragment
----@field  hash string The '#' present in the heading
----@field  text string Original fragment text from the file headings
----@field  lnum integer Line number of the heading
+---@field hash string The '#' present in the heading
+---@field text string Original fragment text from the file headings
+---@field lnum integer Line number of the heading
 
 ---@alias MdnFragmentGfm table<string> Parsed GFM-style fragment text
 

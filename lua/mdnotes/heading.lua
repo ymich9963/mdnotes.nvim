@@ -4,7 +4,7 @@ local M = {}
 
 ---Get the header that the current text is under
 ---@return integer|nil index Index of current heading in the parsed fragments
----@return MdnFragment|table fragment
+---@return MdnFragment fragment
 ---@return integer total_fragments Total fragments in the parsed buffer
 function M.get_current_heading()
     local buf_fragments = require('mdnotes.toc').buf_fragments
@@ -23,7 +23,7 @@ function M.get_current_heading()
 
     if parsed == nil then
         vim.notify("Mdn: Buffer not parsed", vim.log.levels.ERROR)
-        return nil, {}, 0
+        return nil, fragment, 0
     end
 
     local total_fragments = #parsed.fragments
