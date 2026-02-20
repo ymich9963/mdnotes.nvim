@@ -359,7 +359,7 @@ function M.download_website_html(opts)
     local uri = opts.uri
 
     if uri == nil then
-        _, _, uri, _, _, _, _ = require('mdnotes.inline_link').parse(nil, true)
+        uri = (require('mdnotes.inline_link').parse(nil, true)).uri
     end
 
     vim.validate("uri", uri, "string")
@@ -416,7 +416,8 @@ function M.delete(opts)
 
     local _, text, uri_il, col_start, col_end
     if uri == nil then
-        _, text, uri, col_start, col_end = require('mdnotes.inline_link').parse()
+        local ildata = require('mdnotes.inline_link').parse()
+        text, uri, col_start, col_end = ildata.text, ildata.uri, ildata.col_start, ildata.col_end
         if uri == nil then return end
     end
 
