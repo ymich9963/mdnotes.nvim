@@ -186,7 +186,6 @@ function M.insert_file()
     if M.check_assets_path() == false then return end
     local inline_link = M.get_asset_inline_link({
         is_image = false,
-        file_path = "path/test",
         process_file = true
     })
     vim.api.nvim_put({inline_link}, "c", false, false)
@@ -197,7 +196,6 @@ function M.insert_image()
     if M.check_assets_path() == false then return end
     local inline_link = M.get_asset_inline_link({
         is_image = true,
-        file_path = "path/test",
         process_file = true
     })
     vim.api.nvim_put({inline_link}, "c", false, false)
