@@ -21,24 +21,22 @@ M.uri_website_tbl = {"https", "http"}
 function M.parse(inline_link, keep_pointy_brackets)
     if keep_pointy_brackets == nil then keep_pointy_brackets = true end
 
-    local inline_link_pattern = require("mdnotes.patterns").inline_link
-    local check_md_format_under_cursor = require('mdnotes.formatting').check_md_format_under_cursor
+    local il_pattern = require("mdnotes.patterns").inline_link
+    local check_md_format = require('mdnotes.formatting').check_md_format
     local il, img_char, col_start, col_end = "", "", 0, 0
+    local il_nil = { img_char = nil, text = nil, uri = nil, col_start = nil, col_end = nil }
 
     if inline_link == nil then
-        if not check_md_format_under_cursor(require("mdnotes.patterns").inline_link) then
-            return {
-                img_char = nil,
-                text = nil,
-                uri = nil,
-                col_start = nil,
-                col_end = nil
-            }
+        if not check_md_format(il_pattern) then
+            return il_nil
         end
-        il, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern_under_cursor(inline_link_pattern)
+        local txtdata = require('mdnotes.formatting').get_text_in_pattern(il_pattern)
+        il, col_start, col_end = txtdata.text, txtdata.col_start, txtdata.col_end
     else
         il = inline_link
     end
+
+    if il == nil then return il_nil end
 
     local text, uri = il:match(require("mdnotes.patterns").text_uri)
 
@@ -180,11 +178,16 @@ end
 
 ---Check if inline link is an image
 ---@param inline_link string?
----@return boolean|string
+---@return boolean
 function M.is_image(inline_link)
     local inline_link_pattern = require("mdnotes.patterns").inline_link
     if inline_link == nil then
-        inline_link = require('mdnotes.formatting').get_text_in_pattern_under_cursor(inline_link_pattern)
+        local txtdata = require('mdnotes.formatting').get_text_in_pattern(inline_link_pattern)
+        inline_link = txtdata.text
+    end
+
+    if inline_link == nil then
+        return false
     end
 
     if inline_link:sub(1,1) == "!" then
@@ -200,8 +203,8 @@ end
 function M.is_url(uri)
     local inline_link_pattern = require("mdnotes.patterns").inline_link
     if uri == nil then
-        local inline_link = require('mdnotes.formatting').get_text_in_pattern_under_cursor(inline_link_pattern)
-        _, uri = inline_link:match(require("mdnotes.patterns").text_uri)
+        local txtdata = require('mdnotes.formatting').get_text_in_pattern(inline_link_pattern)
+        _, uri = txtdata.text:match(require("mdnotes.patterns").text_uri)
     end
 
     if vim.tbl_contains(M.uri_website_tbl, uri:match("%w+")) then
@@ -222,12 +225,13 @@ function M.insert(uri)
     end
 
     local cur_col = vim.fn.col('.')
-    local selected_text, col_start, col_end = require('mdnotes.formatting').get_selected_text()
-    local lnum = vim.fn.line('.')
+    local txtdata = require('mdnotes.formatting').get_text()
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end, {'[' .. selected_text .. '](' .. uri .. ')'})
-    vim.fn.cursor({lnum, cur_col + 1})
+    vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. uri .. ')'})
+
+    -- TODO: Add move cursor check
+    vim.fn.cursor({txtdata.lnum, cur_col + 1})
 end
 
 --Delete Markdown inline link and leave the text
@@ -243,8 +247,8 @@ end
 
 ---Toggle inserting and deleting inline links
 function M.toggle()
-    local check_md_format_under_cursor = require('mdnotes.formatting').check_md_format_under_cursor
-    if check_md_format_under_cursor(require("mdnotes.patterns").inline_link) then
+    local check_md_format = require('mdnotes.formatting').check_md_format
+    if check_md_format(require("mdnotes.patterns").inline_link) then
         M.delete()
     else
         M.insert()

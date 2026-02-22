@@ -37,7 +37,8 @@ function M.parse(wikilink)
     local col_start, col_end = 0, 0
 
     if wikilink == nil then
-        wikilink, col_start, col_end = require('mdnotes.formatting').get_text_in_pattern_under_cursor(wikilink_pattern)
+        local txtdata = require('mdnotes.formatting').get_text_in_pattern(wikilink_pattern)
+        wikilink, col_start, col_end = txtdata.text, txtdata.col_start, txtdata.col_end
     else
         _, wikilink, _ = wikilink:match(wikilink_pattern)
     end
@@ -263,13 +264,11 @@ end
 
 ---Create a WikiLink from the word under the cursor
 function M.create()
-    local selected_text, col_start, col_end = require('mdnotes.formatting').get_selected_text()
-    local lnum = vim.fn.line('.')
-    local cur_col = vim.fn.col('.')
+    local txtdata = require('mdnotes.formatting').get_text()
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end, {'[[' .. selected_text .. ']]'})
-    vim.fn.cursor({lnum, cur_col + 2})
+    vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[[' .. txtdata.text .. ']]'})
+    vim.fn.cursor({txtdata.lnum, txtdata.cur_col + 2})
 end
 
 ---Delete the current WikiLink and the associated file
