@@ -143,16 +143,20 @@ function M.get_text_in_pattern(pattern, opts)
     vim.validate("pattern", pattern, "string")
 
     local locopts = opts.location or {}
-    local bufnum = vim.api.nvim_get_current_buf() or locopts.buffer
-    local linenum = vim.fn.line('.') or locopts.lnum
-    local col_start = 1 or locopts.col_start
+    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
+    local linenum = locopts.lnum or vim.fn.line('.')
+    local col_start = -1 or locopts.col_start
     local col_end = -1 or locopts.col_end
-    local cur_col = vim.fn.col('.') or locopts.cur_col
-    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
-    local text = line:sub(col_start, col_end)
-    local found_text = ""
+    local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
 
-    for start_pos, search_text, end_pos in text:gmatch(pattern) do
+    if cur_col == -1 then
+        cur_col = vim.fn.col('.')
+    end
+
+    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
+
+    local found_text = ""
+    for start_pos, search_text, end_pos in line:gmatch(pattern) do
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
         if start_pos <= cur_col and end_pos > cur_col then
@@ -197,6 +201,13 @@ function M.insert_format(format_char, opts)
         fi2 = format_char
     end
 
+    -- Limit the end column value
+    -- Visual mode and vimgrep can give end_col values after the line ending
+    local line_len = #(vim.api.nvim_buf_get_lines(txtdata.buffer, txtdata.lnum - 1, txtdata.lnum, false)[1])
+    if txtdata.col_end > line_len then
+        txtdata.col_end = line_len
+    end
+
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {fi1 .. txtdata.text .. fi2})
 
@@ -222,7 +233,7 @@ function M.delete_format(pattern, opts)
     -- since only those characters change its position
     local new_line = line:sub(1, txtdata.col_start - 1) .. txtdata.text .. line:sub(txtdata.col_end)
     local char_count_change_bef_cursor = (#line - #new_line) / 2
-    local new_col_pos = vim.fn.getcurpos()[3] - char_count_change_bef_cursor
+    local new_col_pos = math.floor(vim.fn.getcurpos()[3] - char_count_change_bef_cursor)
 
     if new_col_pos < 0 then new_col_pos = 0 end
 
@@ -239,7 +250,7 @@ end
 ---@param opts MdnFormattingOpts?
 function M.emphasis_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.emphasis.pattern())
+    local ret = M.check_md_format(md_format.emphasis.pattern(), { location = opts.location })
     if ret == true then
         M.delete_format(md_format.emphasis.pattern(), { location = opts.location, move_cursor = opts.move_cursor })
     elseif ret == false then
@@ -250,7 +261,7 @@ end
 ---Toggle the strong Markdown formatting
 function M.strong_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.strong.pattern())
+    local ret = M.check_md_format(md_format.strong.pattern(), { location = opts.location })
     if ret == true then
         M.delete_format(md_format.strong.pattern(), {location = opts.location})
     elseif ret == false then
@@ -261,7 +272,7 @@ end
 ---Toggle the strikethrough Markdown formatting
 function M.strikethrough_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.strikethrough.pattern())
+    local ret = M.check_md_format(md_format.strikethrough.pattern(), { location = opts.location })
     if ret == true then
         M.delete_format(md_format.strikethrough.pattern(), {location = opts.location})
     elseif ret == false then
@@ -272,7 +283,7 @@ end
 ---Toggle the inline code Markdown formatting
 function M.inline_code_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.inline_code.pattern())
+    local ret = M.check_md_format(md_format.inline_code.pattern(), { location = opts.location })
     if ret == true then
         M.delete_format(md_format.inline_code.pattern(), {location = opts.location})
     elseif ret == false then
@@ -283,7 +294,7 @@ end
 ---Toggle the autolink Markdown formatting
 function M.autolink_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.autolink.pattern())
+    local ret = M.check_md_format(md_format.autolink.pattern(), { location = opts.location })
     if ret == true then
         M.delete_format(md_format.autolink.pattern(), {location = opts.location})
     elseif ret == false then
