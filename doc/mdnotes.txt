@@ -589,8 +589,9 @@ subcommands are listed below.
 ==============================================================================
 API                                     		*mdnotes-api*
 
-`mdnotes` most of the commands is just calling their corresponding functions.
+In `mdnotes` most of the commands are just calling their corresponding functions.
 Some of the descriptions here are copied from the |mdnotes-commands| section.
+See |mdnotes-api-examples| for examples using the API.
 
 setup({opts})                                          	*mdnotes.setup()*
 
@@ -990,6 +991,29 @@ patterns						*mdnotes.patterns*
     and end cursor positions (e.g. `"()~~(.-)~~()"`). 
     See |mdnotes.check_md_format()|
 
+==============================================================================
+API EXAMPLES                                  		*mdnotes-api-examples*
+
+Some examples are listed below for using the API in different scenarios. If
+you want to use these as functions within the `Mdn` namespace then you would
+add them as a `{command = function}` table in |mdn-user_commands|.
+
+Toggling `emphasis` on all occurences of the word `balls` in a document.
+>lua
+    local function emphasis_toggle_balls()
+	vim.cmd.vimgrep({ args = {"/balls/", "%"}})
+	local qflist = vim.fn.getqflist()
+	local emphasis_toggle = require('mdnotes.formatting').emphasis_toggle
+	for _, v in pairs(qflist) do
+	    emphasis_toggle({ location = {
+		lnum = v.lnum,
+		col_start = v.col,
+		col_end = v.end_col,
+	    }
+	})
+	end
+    end
+<
 
 ==============================================================================
 OUTLINER                                     		*mdnotes-outliner*
