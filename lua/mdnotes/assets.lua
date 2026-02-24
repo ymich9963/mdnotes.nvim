@@ -359,7 +359,7 @@ function M.download_website_html(opts)
     local uri = opts.uri
 
     if uri == nil then
-        uri = (require('mdnotes.inline_link').parse(nil, true)).uri
+        uri = (require('mdnotes.inline_link').parse()).uri
     end
 
     vim.validate("uri", uri, "string")

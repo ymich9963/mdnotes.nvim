@@ -43,8 +43,11 @@ T['parse()'] = function()
         img_char = "",
         text = "file1",
         uri = "tests/test-data/files/file1.md",
+        buffer = 2,
+        lnum = 1,
         col_start = 1,
         col_end = 40,
+        cur_col = 2
     })
 
     child.fn.cursor(1,42)
@@ -53,8 +56,11 @@ T['parse()'] = function()
         img_char = "",
         text = "file2",
         uri = "tests/test-data/files/file2.md",
+        buffer = 2,
+        lnum = 1,
         col_start = 41,
         col_end = 80,
+        cur_col = 42
     })
 
     -- File inline links with sections
@@ -64,8 +70,11 @@ T['parse()'] = function()
         img_char = "",
         text = "file1",
         uri = "tests/test-data/files/file1.md#section-2",
+        buffer = 2,
+        lnum = 2,
         col_start = 1,
         col_end = 50,
+        cur_col = 2
     })
 
     child.fn.cursor(2,60)
@@ -74,8 +83,11 @@ T['parse()'] = function()
         img_char = "",
         text = "file2",
         uri = "tests/test-data/files/file2.md#file-2",
+        buffer = 2,
+        lnum = 2,
         col_start = 51,
         col_end = 97,
+        cur_col = 60
     })
 
     -- Inline images
@@ -85,8 +97,11 @@ T['parse()'] = function()
         img_char = "!",
         text = "image1",
         uri = "tests/test-data/images/neovim-mark-flat.svg",
+        buffer = 2,
+        lnum = 3,
         col_start = 1,
         col_end = 55,
+        cur_col = 2
     })
 
     child.fn.cursor(3,60)
@@ -95,19 +110,24 @@ T['parse()'] = function()
         img_char = "!",
         text = "image2",
         uri = "tests/test-data/images/neovim-mark.svg",
+        buffer = 2,
+        lnum = 3,
         col_start = 56,
         col_end = 105,
+        cur_col = 60
     })
 
-    -- Inline images
     child.fn.cursor(4,2)
     ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
     eq(ret, {
         img_char = "",
         text = "url1",
         uri = "https://neovim.io/",
+        buffer = 2,
+        lnum = 4,
         col_start = 1,
         col_end = 27,
+        cur_col = 2
     })
 
     child.fn.cursor(4,60)
@@ -116,8 +136,11 @@ T['parse()'] = function()
         img_char = "",
         text = "url2",
         uri = "https://neovim.io/doc/user/#Q_ct",
+        buffer = 2,
+        lnum = 4,
         col_start = 28,
         col_end = 68,
+        cur_col = 60
     })
 
     -- Same file section
@@ -127,8 +150,11 @@ T['parse()'] = function()
         img_char = "",
         text = "section",
         uri = "#test-section",
+        buffer = 2,
+        lnum = 5,
         col_start = 1,
         col_end = 25,
+        cur_col = 2
     })
 end
 
@@ -136,15 +162,27 @@ T['get_path_from_uri()'] = function()
     local ret = child.lua([[return require('mdnotes.inline_link').get_path_from_uri("path/with/fragment#fragment", false)]])
     eq(ret, "path/with/fragment")
 
+    child.cmd([[edit tests/test-data/files/file1.md]])
+    local cwd = child.lua([[return require('mdnotes').cwd]])
+
     ret = child.lua([[return require('mdnotes.inline_link').get_path_from_uri("tests/test-data/files/file1.md#section-2", true)]])
-    eq(ret, "tests/test-data/files/file1.md")
+    eq(ret, cwd .. "/file1.md")
+    ret = child.lua([[return require('mdnotes.inline_link').get_path_from_uri("#section-2", true)]])
+    eq(ret, "file1.md")
 end
 
 T['get_fragment_from_uri()'] = function()
-    local ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("path/with/fragment#fragment", false, true)]])
+    local ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("path/with/fragment#fragment", false)]])
     eq(ret, "fragment")
 
-    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("tests/test-data/files/file1.md#section-2", true, true)]])
+    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("tests/test-data/files/file1.md#section-2", true)]])
+    eq(ret, "Section 2")
+
+    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("tests/test-data/files/file1.md#Section 2", true)]])
+    eq(ret, "Section 2")
+
+    child.cmd([[edit tests/test-data/files/file1.md]])
+    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("#section-2", true)]])
     eq(ret, "section-2")
 end
 
@@ -191,7 +229,7 @@ T['open()'] = function()
 
     child.cmd("buffer " .. buf)
     child.fn.cursor(5,1)
-    child.lua([[require('mdnotes.inline_link').open()]])
+    child.lua([[ require('mdnotes.inline_link').open() ]])
     eq(child.fn.getcurpos()[2], 7)
 end
 

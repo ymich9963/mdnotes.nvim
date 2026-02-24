@@ -2,20 +2,24 @@
 
 local M = {}
 
----Get the header that the current text is under
+---Get the Markdown heading that the specified line is under
+---Defaults to current buffer and current line
+---@param opts {bufnum: integer?, lnum: integer?}?
 ---@return integer|nil index Index of current heading in the parsed fragments
 ---@return MdnFragment fragment
 ---@return integer total_fragments Total fragments in the parsed buffer
-function M.get_current_heading()
+function M.get_current_heading(opts)
+    opts = opts or {}
+
     local buf_fragments = require('mdnotes.toc').buf_fragments
-    local cur_lnum = vim.fn.line(".")
+    local lnum = opts.lnum or vim.fn.line(".")
+    local bufnum = opts.bufnum or vim.api.nvim_get_current_buf()
     local fragment = {hash = "", text = "", lnum = 0}
     local index = 0
-    local cur_buf_num = vim.api.nvim_get_current_buf()
     local parsed = nil
 
     for _, v in ipairs(buf_fragments) do
-        if v.buf_num == cur_buf_num then
+        if v.buf_num == bufnum then
             parsed = v.parsed
             break
         end
@@ -31,7 +35,7 @@ function M.get_current_heading()
     for j, vv in ipairs(parsed.fragments) do
         -- Once the header entry's lnum is more than the current
         -- it means we have to subtract 1 to get the current heading
-        if vv.lnum > cur_lnum then
+        if vv.lnum > lnum then
             fragment = parsed.fragments[j - 1]
             index = j - 1
             break

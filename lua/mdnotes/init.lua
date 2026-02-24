@@ -2,6 +2,16 @@
 
 local M = {}
 
+---@class MdnLocation
+---@field buffer integer? Buffer number
+---@field lnum integer? Line number
+---@field col_start integer? Start column of text
+---@field col_end integer? End column of text
+---@field cur_col integer? Set the current cursor position on the line
+
+---@class MdnText: MdnLocation
+---@field text string? Text in the corresponding location
+
 ---@type MdnConfig
 M.config = {}
 

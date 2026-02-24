@@ -34,15 +34,19 @@ function M.populate_buf_fragments(bufnr)
         end
     end
 
+    local entry = {
+        buf_num = bufnr,
+        parsed = {
+            fragments = fragments,
+            gfm = M.parse_fragments_to_gfm_style(fragments)
+        }
+    }
+
     if buf_exists == false then
-        table.insert(M.buf_fragments, {
-            buf_num = bufnr,
-            parsed = {
-                fragments = fragments,
-                gfm = M.parse_fragments_to_gfm_style(fragments)
-            }
-        })
+        table.insert(M.buf_fragments, entry)
     end
+
+    return entry
 end
 
 ---Get fragments from the Markdown buffer headings
@@ -64,19 +68,39 @@ function M.get_fragments_from_buf(bufnr)
     return fragments
 end
 
----Get fragment from GFM-style fragment
+---Get the fragment value from the buf_fragments table of the specified buffer
 ---@param fragment string GFM-style fragment
----@return string
-function M.get_fragment_from_gfm(fragment)
+---@return string|nil
+function M.get_fragment_from_buf_fragments(fragment, buffer)
+    local parsed_fragments
     for _, v in ipairs(M.buf_fragments) do
-        for i, vv in ipairs(v.parsed.gfm) do
-            if vv == fragment then
-                return v.parsed.fragments[i].text
-            end
+        if v.buf_num == buffer then
+            parsed_fragments = v.parsed
+            break
         end
     end
 
-    return fragment
+    if parsed_fragments == nil then return nil end
+
+    local text
+
+    -- Check if it is a GFM style fragment
+    for i, v in ipairs(parsed_fragments.gfm) do
+        if v == fragment then
+            text = parsed_fragments.fragments[i].text
+            break
+        end
+    end
+
+    -- Check if it is an as-is fragment
+    for _, v in ipairs(parsed_fragments.fragments) do
+        if v.text == fragment then
+            text = v.text
+            break
+        end
+    end
+
+    return text
 end
 
 ---Convert the inputted text to GFM-style text based on 

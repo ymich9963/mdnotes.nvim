@@ -182,7 +182,7 @@ T['get_fragments_from_buf()'] = function()
     })
 end
 
-T['get_fragment_from_gfm()'] = function()
+T['get_fragment_from_buf_fragments()'] = function()
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -196,7 +196,7 @@ T['get_fragment_from_gfm()'] = function()
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     require('mdnotes.toc').populate_buf_fragments(cur_buf)
-    return require('mdnotes.toc').get_fragment_from_gfm("heading-1")
+    return require('mdnotes.toc').get_fragment_from_buf_fragments("heading-1", cur_buf)
     ]])
     eq(ret, "Heading 1")
 end
