@@ -177,15 +177,20 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
     return fragment, nil
 end
 
---TODO: Add location opts
 ---Open inline links
----@param uri string? URI to open
-function M.open(uri)
+---@param opts {uri: string?, location: MdnLocation?}?
+---@return integer|vim.SystemObj|string|nil
+function M.open(opts)
+    opts = opts or {}
+    local uri = opts.uri
+
     if uri == nil then
-        local ildata = M.parse({ keep_pointy_brackets = false }) or {}
+        local ildata = M.parse({ keep_pointy_brackets = false, location = opts.location }) or {}
         uri = ildata.uri
     end
     if uri == nil then return "URI error" end
+
+    vim.validate("uri", uri, "string")
 
     local path, perror = M.get_path_from_uri(uri, true)
     if perror ~= nil and perror ~= -1 then return path .. ", " .. perror end

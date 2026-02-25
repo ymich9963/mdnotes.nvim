@@ -196,7 +196,7 @@ T['get_fragment_from_buf_fragments()'] = function()
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     require('mdnotes.toc').populate_buf_fragments(cur_buf)
-    return require('mdnotes.toc').get_fragment_from_buf_fragments("heading-1", cur_buf)
+    return require('mdnotes.toc').get_fragment_from_buf_fragments(cur_buf, "heading-1")
     ]])
     eq(ret, "Heading 1")
 end
