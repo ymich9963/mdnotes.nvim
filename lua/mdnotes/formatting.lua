@@ -57,6 +57,7 @@ local check_markdown_syntax = function(...) return require('mdnotes').check_mark
 ---@field marker string List item marker
 ---@field separator string List item separator, only in ordered lists
 ---@field text string List item text
+---@field type '"ordered"'|'"unordered"'
 
 ---@class MdnLineRange
 ---@field buffer integer?
@@ -211,11 +212,19 @@ function M.resolve_list_content(line)
     local separator = ol_separator or ""
     local text = (ul_text or ol_text) or ""
 
+    local type = ""
+    if ol_separator == nil then
+        type = "unordered"
+    else
+        type = "ordered"
+    end
+
     return {
         indent = indent,
         marker = marker,
         separator = separator,
-        text = text
+        text = text,
+        type = type
     }
 end
 
@@ -290,8 +299,8 @@ function M.check_list_valid(opts)
     local upper_limit_lnum = opts.upper_limit_lnum or vim.fn.line('0')
     local lower_limit_lnum = opts.lower_limit_lnum or vim.fn.line('$')
 
-    local line = vim.api.nvim_buf_get_lines(buffer, origin_lnum - 1, origin_lnum, false)[1]
-    local lcontent = M.resolve_list_content(line)
+    local origin_line = vim.api.nvim_buf_get_lines(buffer, origin_lnum - 1, origin_lnum, false)[1]
+    local lcontent = M.resolve_list_content(origin_line)
     local detected_separator = lcontent.separator
 
     local cur_line = ""
@@ -333,14 +342,10 @@ function M.ordered_list_renumber(opts)
     opts = opts or {}
     local silent = opts.silent or false
     local search_opts = opts.search or {}
+    local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
     local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
 
     vim.validate("silent", silent, "boolean")
-
-    local cur_line = vim.api.nvim_get_current_line()
-    local ol_pattern = require('mdnotes.patterns').ordered_list
-    local spaces, num, separator, text = cur_line:match(ol_pattern)
-    local new_list_lines = {}
 
     local list_valid, list_startl, list_endl = M.check_list_valid(search_opts)
     if list_valid == false then
@@ -350,9 +355,22 @@ function M.ordered_list_renumber(opts)
         return
     end
 
+    local ol_pattern = require('mdnotes.patterns').ordered_list
+    local line = vim.api.nvim_buf_get_lines(buffer, origin_lnum - 1, origin_lnum, false)[1]
+    local spaces, num, separator, text = line:match(ol_pattern)
+
+    -- Only case where text is nil is when it detects an unordered list
+    if text == nil then
+        if silent == false then
+            vim.notify("Mdn: Cannot reorder an unordered list", vim.log.levels.ERROR)
+        end
+        return
+    end
+
     -- Get list
     local list_lines = vim.api.nvim_buf_get_lines(buffer, list_startl, list_endl, false)
 
+    local new_list_lines = {}
     for i, v in ipairs(list_lines) do
         spaces, num, separator, text = v:match(ol_pattern)
         if tonumber(num) ~= i then
