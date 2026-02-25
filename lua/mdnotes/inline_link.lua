@@ -33,13 +33,13 @@ function M.parse(opts)
     vim.validate("inline_link", inline_link, { "string", "nil" })
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
 
-    local check_md_format = require('mdnotes.formatting').check_md_format
+    local check_markdown_syntax = require('mdnotes').check_markdown_syntax
     local il_pattern = require("mdnotes.patterns").inline_link
     local txtdata
 
     if inline_link == nil then
-        if not check_md_format(il_pattern, {location = locopts}) then return nil end
-        txtdata = require('mdnotes.formatting').get_text_in_pattern(il_pattern, {location = locopts })
+        if not check_markdown_syntax(il_pattern, {location = locopts}) then return nil end
+        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, {location = locopts })
         inline_link = txtdata.text or ""
     end
 
@@ -152,9 +152,10 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
                 buf = vim.api.nvim_get_current_buf()
             end
 
-            require('mdnotes.toc').populate_buf_fragments(buf)
+            local mdn_toc = require('mdnotes.toc')
+            mdn_toc.populate_buf_fragments(buf)
 
-            local new_fragment = require('mdnotes.toc').get_fragment_from_buf_fragments(fragment, buf)
+            local new_fragment = mdn_toc.get_fragment_from_buf_fragments(buf, fragment)
             if new_fragment == nil then
                 return fragment, -3
             end
@@ -176,6 +177,7 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
     return fragment, nil
 end
 
+--TODO: Add location opts
 ---Open inline links
 ---@param uri string? URI to open
 function M.open(uri)
@@ -206,35 +208,34 @@ function M.open(uri)
     return vim.ui.open(uri)
 end
 
+--TODO: Add location opts
 ---Check if inline link is an image
 ---@param inline_link string?
 ---@return boolean
 function M.is_image(inline_link)
     local inline_link_pattern = require("mdnotes.patterns").inline_link
     if inline_link == nil then
-        local txtdata = require('mdnotes.formatting').get_text_in_pattern(inline_link_pattern)
+        local txtdata = require('mdnotes').get_text_in_pattern(inline_link_pattern)
         inline_link = txtdata.text
     end
 
-    if inline_link == nil then
+    if inline_link == nil or inline_link:sub(1,1) ~= "!" then
         return false
-    end
-
-    if inline_link:sub(1,1) == "!" then
-        return true
     else
-        return false
+        return true
     end
 end
 
+--TODO: Add location opts
 ---Check if inline link is an image
 ---@param uri string?
 ---@return boolean is_url Text to use when checking for an inline link
 function M.is_url(uri)
-    local inline_link_pattern = require("mdnotes.patterns").inline_link
+    local mdn_patterns = require("mdnotes.patterns")
+    local inline_link_pattern = mdn_patterns.inline_link
     if uri == nil then
-        local txtdata = require('mdnotes.formatting').get_text_in_pattern(inline_link_pattern)
-        _, uri = txtdata.text:match(require("mdnotes.patterns").text_uri)
+        local txtdata = require('mdnotes').get_text_in_pattern(inline_link_pattern)
+        _, uri = txtdata.text:match(mdn_patterns.text_uri)
     end
 
     if vim.tbl_contains(M.uri_website_tbl, uri:match("%w+")) then
@@ -244,10 +245,12 @@ function M.is_url(uri)
     end
 end
 
+--TODO: Add location opts
 ---Insert Markdown inline link with the text in the clipboard
 ---@param uri string? Text to use in URI
-function M.insert(uri)
+function M.insert(uri, move_cursor)
     if uri == nil then uri = vim.fn.getreg('+') end
+    if move_cursor == nil then move_cursor = true end
 
     if uri == '' then
         vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
@@ -255,15 +258,18 @@ function M.insert(uri)
     end
 
     local cur_col = vim.fn.col('.')
-    local txtdata = require('mdnotes.formatting').get_text()
+    local txtdata = require('mdnotes').get_text()
 
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. uri .. ')'})
 
-    -- TODO: Add move cursor check
-    vim.fn.cursor({txtdata.lnum, cur_col + 1})
+    if move_cursor == true then
+        vim.cmd.buffer(txtdata.buffer)
+        vim.fn.cursor({txtdata.lnum, cur_col + 1})
+    end
 end
 
+--TODO: Add location opts
 --Delete Markdown inline link and leave the text
 function M.delete()
     local ildata = M.parse()
@@ -275,10 +281,11 @@ function M.delete()
     vim.fn.cursor({vim.fn.line('.'), ildata.col_start - 1})
 end
 
+--TODO: Add location opts
 ---Toggle inserting and deleting inline links
 function M.toggle()
-    local check_md_format = require('mdnotes.formatting').check_md_format
-    if check_md_format(require("mdnotes.patterns").inline_link) then
+    local check_markdown_syntax = require('mdnotes').check_markdown_syntax
+    if check_markdown_syntax(require("mdnotes.patterns").inline_link) then
         M.delete()
     else
         M.insert()
@@ -323,18 +330,21 @@ local function rename_relink(mode, new_text)
     vim.fn.cursor({ildata.lnum, ildata.col_start})
 end
 
+--TODO: Add location opts and move parsing to outside rename_relink
 ---Relink inline link
 ---@param new_text string?
 function M.relink(new_text)
     rename_relink("relink", new_text)
 end
 
+--TODO: Add location opts and move parsing to outside rename_relink
 ---Rename inline link
 ---@param new_text string?
 function M.rename(new_text)
     rename_relink("rename", new_text)
 end
 
+--TODO: Add location opts
 ---Normalize inline link
 function M.normalize()
     local ildata = M.parse()
@@ -352,6 +362,7 @@ function M.normalize()
     vim.fn.cursor({lnum, ildata.col_start})
 end
 
+--TODO: Add location opts
 ---Convert the fragment of the inline link under the cursor to GFM-style fragment
 function M.convert_fragment_to_gfm()
     local ildata = M.parse()
@@ -374,6 +385,8 @@ function M.convert_fragment_to_gfm()
     vim.fn.cursor({lnum, ildata.col_start})
 end
 
+--TODO: Add location opts
+---Validate that the inline link is correct
 function M.validate()
     local ildata = M.parse()
     if ildata == nil or ildata.text == nil or ildata.uri == nil then

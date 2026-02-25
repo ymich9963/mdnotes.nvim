@@ -10,9 +10,11 @@ M.old_filename = ""
 ---@type string
 M.new_filename = ""
 
+--TODO: Add location opts to EVERYTHING
+
 ---Check for Markdown LSPs
 ---@return boolean
-local function check_md_lsp()
+local function check_markdown_lsp()
     if not vim.tbl_isempty(vim.lsp.get_clients({bufnr = 0})) and vim.bo.filetype == "markdown" and require('mdnotes').config.prefer_lsp then
         return true
     else
@@ -31,13 +33,14 @@ end
 ---@param wikilink string? Input WikiLink
 ---@return MdnWikiLinkData
 function M.parse(wikilink)
-    local wikilink_pattern = require('mdnotes.patterns').wikilink
-    local uri_no_fragment_pattern = require('mdnotes.patterns').uri_no_fragment
-    local fragment_pattern = require('mdnotes.patterns').fragment
+    local mdn_patterns = require('mdnotes.patterns')
+    local wikilink_pattern = mdn_patterns.wikilink
+    local uri_no_fragment_pattern = mdn_patterns.uri_no_fragment
+    local fragment_pattern = mdn_patterns.fragment
     local col_start, col_end = 0, 0
 
     if wikilink == nil then
-        local txtdata = require('mdnotes.formatting').get_text_in_pattern(wikilink_pattern)
+        local txtdata = require('mdnotes').get_text_in_pattern(wikilink_pattern)
         wikilink, col_start, col_end = txtdata.text, txtdata.col_start, txtdata.col_end
     else
         _, wikilink, _ = wikilink:match(wikilink_pattern)
@@ -57,7 +60,7 @@ end
 
 ---Follow the WikiLink under the cursor
 function M.follow()
-    if check_md_lsp() then
+    if check_markdown_lsp() then
         vim.lsp.buf.definition()
         return
     end
@@ -68,16 +71,16 @@ function M.follow()
         vim.notify("Mdn: No WikiLink under the cursor was detected", vim.log.levels.ERROR)
     end
 
-    local mdnotes = require('mdnotes')
+    local cwd = require('mdnotes').cwd
 
     if wldata.wikilink_no_fragment ~= "" then
-        local path = vim.fs.joinpath(mdnotes.cwd, wldata.wikilink_no_fragment)
+        local path = vim.fs.joinpath(cwd, wldata.wikilink_no_fragment)
 
         if path:sub(-3) ~= ".md" then
             path = path .. ".md"
         end
 
-        mdnotes.open_buf(path)
+        require('mdnotes').open_buf(path)
     end
 
     if wldata.fragment ~= "" then
@@ -89,7 +92,7 @@ end
 ---Show the references to the current WikiLink under the cursor
 ---@return table|nil qflist Resulting quickfix list
 function M.show_references()
-    if check_md_lsp() then
+    if check_markdown_lsp() then
         vim.lsp.buf.references()
         return
     end
@@ -142,7 +145,7 @@ end
 ---@param cur_buf boolean Rename current buffer and not the WikiLink under cursor
 ---@return string|nil old_name, string|nil new_name 
 function M.rename_references(rename, cur_buf)
-    if check_md_lsp() then
+    if check_markdown_lsp() then
         -- I think this renames the current buffer and
         -- not the symbol under cursor
         vim.lsp.buf.rename()
@@ -220,7 +223,7 @@ end
 ---Undo the most recent rename
 ---@return string|nil old_name, string|nil new_name 
 function M.undo_rename()
-    if check_md_lsp() then
+    if check_markdown_lsp() then
         vim.notify("Mdn: 'undo_rename' is only available when your config has 'prefer_lsp = false'", vim.log.levels.ERROR)
         return
     end
@@ -264,7 +267,7 @@ end
 
 ---Create a WikiLink from the word under the cursor
 function M.create()
-    local txtdata = require('mdnotes.formatting').get_text()
+    local txtdata = require('mdnotes').get_text()
 
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[[' .. txtdata.text .. ']]'})

@@ -5,7 +5,7 @@ local M = {}
 ---@type boolean
 M.outliner_state = false
 
-local config_autolist = require('mdnotes').config.auto_list_continuation
+local config_autolist = function() return require('mdnotes').config.auto_list_continuation end
 
 ---Toggling the Outliner mode
 function  M.toggle()
@@ -13,7 +13,7 @@ function  M.toggle()
 
     if M.outliner_state == true then
         M.outliner_state = false
-        mdnotes.config.auto_list_continuation = config_autolist
+        mdnotes.config.auto_list_continuation = config_autolist()
 
         vim.api.nvim_buf_del_keymap(0 ,'i', '<TAB>')
         vim.api.nvim_buf_del_keymap(0 ,'i', '<S-TAB>')
@@ -44,13 +44,15 @@ end
 function M.get_indent(line)
     if line == nil then line = vim.api.nvim_get_current_line() end
 
-    local indent, _, _ = require('mdnotes.formatting').resolve_list_content(line)
+    local ilcontent = require('mdnotes.formatting').resolve_list_content(line)
 
-    local _, indent_lvl = indent:gsub("%s", "")
+    local _, indent_lvl = ilcontent.indent:gsub("%s", "")
 
     return indent_lvl or 0
 end
 
+--TODO: What's the difference between this and check_list_valid()
+--TODO: Add location opts
 ---Get the items of the list under the cursor
 function M.get_cur_list_items()
     local buf_lines = vim.api.nvim_buf_get_lines(0, vim.fn.line('.') - 1, -1, false)

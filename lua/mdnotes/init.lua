@@ -12,6 +12,12 @@ local M = {}
 ---@class MdnText: MdnLocation
 ---@field text string? Text in the corresponding location
 
+---@class MdnSearchOpts
+---@field buffer integer?
+---@field origin_lnum integer? Line number between the lower and upper limits
+---@field upper_limit_lnum integer? Higher limit of search
+---@field lower_limit_lnum integer? Lower limit of search
+
 ---@type MdnConfig
 M.config = {}
 
@@ -199,40 +205,157 @@ function M.open_buf(buf)
     vim.cmd(edit_cmd)
 end
 
+---Check text for valid Markdown syntax
+---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
+---@param opts {location: MdnLocation?}?
+---@return boolean|nil
+function M.check_markdown_syntax(pattern, opts)
+    opts = opts or {}
+    vim.validate("pattern", pattern, "string")
+
+    local locopts = opts.location or {}
+    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
+    local linenum = locopts.lnum or vim.fn.line('.')
+    local cur_col = locopts.cur_col or vim.fn.col('.')
+
+    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
+
+    for start_pos, _, end_pos in line:gmatch(pattern) do
+        if start_pos <= cur_col and end_pos > cur_col then
+            return true
+        end
+    end
+
+    return false
+end
+
+---Get the text that was either, selected using Visual mode, under cursor in Normal mode, or specified using the opts table
+---@param opts {location: MdnLocation?}?
+---@return MdnText
+function M.get_text(opts)
+    opts = opts or {}
+    local locopts = opts.location or {}
+
+    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
+    local linenum = locopts.lnum or vim.fn.line('.')
+    local col_start = locopts.col_start or vim.fn.getpos("'<")[3]
+    local col_end = locopts.col_end or vim.fn.getpos("'>")[3]
+    local cur_col = locopts.cur_col or vim.fn.col('.')
+
+    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
+    local text = line:sub(col_start, col_end)
+
+    -- This would happen by default when executing in Normal mode
+    if col_start == col_end then
+        -- Get the word under cursor and cursor position
+        text = vim.fn.expand("<cWORD>")
+
+        -- Search for the word in the line and check if it's under the cursor
+        for i = 1, #line do
+            local start_pos, end_pos = line:find(text, i, true)
+            if start_pos and end_pos then
+                if start_pos <= cur_col and end_pos >= cur_col then
+                    col_start = start_pos
+                    col_end = end_pos
+                    break
+                end
+            end
+        end
+    end
+
+    -- Reset markers
+    vim.fn.setpos("'<", {0,1,1,0})
+    vim.fn.setpos("'>", {0,1,1,0})
+
+    return {
+        buffer = bufnum,
+        lnum = linenum,
+        col_start = col_start,
+        col_end = col_end,
+        cur_col = cur_col,
+        text = text,
+    }
+end
+
+---Get the text inside a pattern as well as the start and end columns
+---Can use opts.location to specify location of search
+---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
+---@param opts {location: MdnLocation?}?
+---@return MdnText
+function M.get_text_in_pattern(pattern, opts)
+    opts = opts or {}
+
+    vim.validate("pattern", pattern, "string")
+
+    local locopts = opts.location or {}
+    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
+    local linenum = locopts.lnum or vim.fn.line('.')
+    local col_start = -1 or locopts.col_start
+    local col_end = -1 or locopts.col_end
+    local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
+
+    if cur_col == -1 then
+        cur_col = vim.fn.col('.')
+    end
+
+    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
+
+    local found_text = ""
+    for start_pos, search_text, end_pos in line:gmatch(pattern) do
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if start_pos <= cur_col and end_pos > cur_col then
+            found_text = search_text
+            col_start = start_pos
+            col_end = end_pos
+            break
+        end
+    end
+
+    return {
+        buffer = bufnum,
+        lnum = linenum,
+        col_start = col_start,
+        col_end = col_end,
+        cur_col = cur_col,
+        text = found_text,
+    }
+end
+
 ---Get the list item's indent level and indicator. Also increment when using ordered lists
 ---@param inc_val integer Value to increment the list item by
 ---@return string indent, string list_indicator Indent of the list item and the corresponding list indicator
 local function get_indent_indicator(inc_val)
     local mdnotes_patterns = require('mdnotes.patterns')
     local line = vim.api.nvim_get_current_line()
-    local indent, marker, separator, text = require('mdnotes.formatting').resolve_list_content(line)
+    local lcontent = require('mdnotes.formatting').resolve_list_content(line)
 
     local type = "unordered"
-    if separator ~= "" then
+    if lcontent.separator ~= "" then
         type = "ordered"
     end
 
-    local check_text = text:gsub(mdnotes_patterns.task, ""):gsub("[%s]", "")
+    local check_text = lcontent.text:gsub(mdnotes_patterns.task, ""):gsub("[%s]", "")
 
     if check_text and check_text ~= "" then
         if type == "unordered" then
-            if text:match(mdnotes_patterns.task) then
-                return indent, "\n" .. marker .. " " .. "[ ] "
+            if lcontent.text:match(mdnotes_patterns.task) then
+                return lcontent.indent, "\n" .. lcontent.marker .. " " .. "[ ] "
             else
-                return indent, "\n" .. marker .. " "
+                return lcontent.indent, "\n" .. lcontent.marker .. " "
             end
         end
 
         if type == "ordered" then
-            if text:match(mdnotes_patterns.task) then
-                return indent, "\n" .. tostring(tonumber(marker + inc_val)) .. separator .. " " .. "[ ] "
+            if lcontent.text:match(mdnotes_patterns.task) then
+                return lcontent.indent, "\n" .. tostring(tonumber(lcontent.marker + inc_val)) .. lcontent.separator .. " " .. "[ ] "
             else
-                return indent, "\n" .. tostring(tonumber(marker + inc_val)) .. separator .. " "
+                return lcontent.indent, "\n" .. tostring(tonumber(lcontent.marker + inc_val)) .. lcontent.separator .. " "
             end
         end
     end
 
-    return indent, "\n"
+    return lcontent.indent, "\n"
 end
 
 ---New line remaps

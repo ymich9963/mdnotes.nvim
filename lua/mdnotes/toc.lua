@@ -16,37 +16,37 @@ local M = {}
 ---@type table<table<MdnBufFragments>>
 M.buf_fragments = {}
 
----Parse the fragments in the buffer number
----@param bufnr integer? Buffer number to parse the fragments
-function M.populate_buf_fragments(bufnr)
-    if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
-    local buf_exists = false
-    local fragments = M.get_fragments_from_buf(bufnr)
-    for _,v in ipairs(M.buf_fragments) do
-        if v.buf_num == bufnr then
-            buf_exists = true
-            -- Check if the fragments have changed
-            if v.parsed.fragments ~= fragments then
-                v.parsed.fragments = fragments
-                v.parsed.gfm = M.parse_fragments_to_gfm_style(fragments)
-            end
-            break
-        end
+---Convert the inputted text to GFM-style text based on 
+---https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links
+---@param text string Text for conver
+---@return string
+function M.convert_text_to_gfm(text)
+    -- Lowercase
+    text =text:lower()
+
+    -- Trim start and end whitespace
+    text = vim.trim(text)
+
+    -- Remove any non-alphanumeric
+    -- characters but keep spaces
+    text = text:gsub("[^%w ]+", "")
+
+    -- Replaces spaces with dashes
+    text = text:gsub(" ", "-")
+
+    return text
+end
+
+---Convert the table with MdnFragment text to GFM style text and return as table
+---@param fragments MdnFragment
+---@return MdnFragmentGfm
+function M.convert_fragments_to_gfm_style(fragments)
+    local gfm_fragments = {}
+    for _, fragment in ipairs(fragments) do
+        table.insert(gfm_fragments, M.convert_text_to_gfm(fragment.text))
     end
 
-    local entry = {
-        buf_num = bufnr,
-        parsed = {
-            fragments = fragments,
-            gfm = M.parse_fragments_to_gfm_style(fragments)
-        }
-    }
-
-    if buf_exists == false then
-        table.insert(M.buf_fragments, entry)
-    end
-
-    return entry
+    return gfm_fragments
 end
 
 ---Get fragments from the Markdown buffer headings
@@ -68,13 +68,47 @@ function M.get_fragments_from_buf(bufnr)
     return fragments
 end
 
+---Parse the fragments in the specified buffer and update buf_fragments
+---@param bufnr integer? Buffer number to parse the fragments
+function M.populate_buf_fragments(bufnr)
+    if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
+    local buf_exists = false
+    local fragments = M.get_fragments_from_buf(bufnr)
+    for _,v in ipairs(M.buf_fragments) do
+        if v.buf_num == bufnr then
+            buf_exists = true
+            -- Check if the fragments have changed
+            if v.parsed.fragments ~= fragments then
+                v.parsed.fragments = fragments
+                v.parsed.gfm = M.convert_fragments_to_gfm_style(fragments)
+            end
+            break
+        end
+    end
+
+    local entry = {
+        buf_num = bufnr,
+        parsed = {
+            fragments = fragments,
+            gfm = M.convert_fragments_to_gfm_style(fragments)
+        }
+    }
+
+    if buf_exists == false then
+        table.insert(M.buf_fragments, entry)
+    end
+
+    return entry
+end
+
 ---Get the fragment value from the buf_fragments table of the specified buffer
+---@param bufnr integer Buffer number
 ---@param fragment string GFM-style fragment
 ---@return string|nil
-function M.get_fragment_from_buf_fragments(fragment, buffer)
+function M.get_fragment_from_buf_fragments(bufnr, fragment)
     local parsed_fragments
     for _, v in ipairs(M.buf_fragments) do
-        if v.buf_num == buffer then
+        if v.buf_num == bufnr then
             parsed_fragments = v.parsed
             break
         end
@@ -103,50 +137,31 @@ function M.get_fragment_from_buf_fragments(fragment, buffer)
     return text
 end
 
----Convert the inputted text to GFM-style text based on 
----https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links
----@param text string Text for conver
----@return string
-function M.convert_text_to_gfm(text)
-    -- Lowercase
-    text =text:lower()
+---@class MdnTocGenerateOpts
+---@field write boolean? Write to buffer
+---@field depth integer? ToC depth
+---@field silent boolean?
 
-    -- Trim start and end whitespace
-    text = vim.trim(text)
-
-    -- Remove any non-alphanumeric
-    -- characters but keep spaces
-    text = text:gsub("[^%w ]+", "")
-
-    -- Replaces spaces with dashes
-    text = text:gsub(" ", "-")
-
-    return text
-end
-
----Get the GFM-style fragments from the fragment fragments
----@param fragments MdnFragment
----@return MdnFragmentGfm
-function M.parse_fragments_to_gfm_style(fragments)
-    local gfm_fragments = {}
-    for _, fragment in ipairs(fragments) do
-        table.insert(gfm_fragments, M.convert_text_to_gfm(fragment.text))
-    end
-
-    return gfm_fragments
-end
-
+--TODO: Add location opts for generating in other files
 ---Generate Table of Contents (ToC)
----@param write boolean? Write to buffer
----@param depth integer? ToC depth
+---@param opts MdnTocGenerateOpts?
 ---@return table<string>|nil toc
-function M.generate(write, depth)
-    if depth == nil then depth = require('mdnotes').config.toc_depth end
-    if write == nil then write = true end
+function M.generate(opts)
+    opts = opts or {}
+    local depth = opts.depth or require('mdnotes').config.toc_depth
+    local write = opts.write ~= false
+    local silent = opts.silent or false
+
+    vim.validate("depth", depth, "number")
+    vim.validate("write", write, "boolean")
+    vim.validate("silent", silent, "boolean")
 
     if vim.bo.filetype ~= "markdown" then
-        vim.notify("Mdn: Cannot generate a ToC for a non-Markdown file", vim.log.levels.ERROR)
-        return
+        if silent == false then
+            vim.notify("Mdn: Cannot generate a ToC for a non-Markdown file", vim.log.levels.ERROR)
+        end
+
+        return nil
     end
 
     local toc = {}
@@ -164,8 +179,11 @@ function M.generate(write, depth)
     end
 
     if found == false then
-        vim.notify("Mdn: Parsed fragments for current buffer not found", vim.log.levels.ERROR)
-        return
+        if silent == false then
+            vim.notify("Mdn: Parsed fragments for current buffer not found", vim.log.levels.ERROR)
+        end
+
+        return nil
     end
 
     for i = 1, #fragments do

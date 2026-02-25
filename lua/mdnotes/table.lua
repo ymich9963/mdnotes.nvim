@@ -12,9 +12,12 @@ local M = {}
 ---@alias MdnTableColLoc table<table<integer>> Table column locations
 ---@alias MdnTableComplex table<table<MdnTableComplexData>> Complex table data which is just more information about the table
 
+
+--TODO: Add location opts to EVERYTHING
+
 ---Check if there is a table under the cursor
 ---@return boolean table_valid, integer|nil table_startl, integer|nil table_endl
-function M.check_valid_table()
+function M.check_table_valid()
     local cur_line_num = vim.fn.line('.')
     local max_line_num = vim.fn.line('$')
     local min_line_num = 0
@@ -167,7 +170,7 @@ function M.get_table_lines(opts)
     local silent = opts.silent or false
     vim.validate("silent", silent, "boolean")
 
-    local table_valid, startl, endl = M.check_valid_table()
+    local table_valid, startl, endl = M.check_table_valid()
     if table_valid == false or startl == nil or endl == nil then
         if silent == false then
             vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
@@ -192,7 +195,7 @@ end
 ---@return MdnTableColLoc|nil
 function M.get_column_locations()
     -- Fence post problem, all tables will have n+1 | characters with n being the text    
-    local table_valid, startl, endl = M.check_valid_table()
+    local table_valid, startl, endl = M.check_table_valid()
     if table_valid == false or startl == nil or endl == nil then
         vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
         return nil
@@ -416,8 +419,9 @@ function M.best_fit(opts)
 
     local max_char_count = {}
     local padding = ""
-    if require('mdnotes').config.table_best_fit_padding > 0 then
-        padding = (" "):rep(require('mdnotes').config.table_best_fit_padding)
+    local config_best_fit_padding = require('mdnotes').config.table_best_fit_padding
+    if config_best_fit_padding > 0 then
+        padding = (" "):rep(config_best_fit_padding)
     end
 
     -- Trim whitespace in each cell

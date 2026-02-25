@@ -211,7 +211,7 @@ T['convert_text_to_gfm'] = function()
     eq(ret, "text-123----")
 end
 
-T['parse_fragments_to_gfm_style()'] = function()
+T['convert_fragments_to_gfm_style()'] = function()
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -225,7 +225,7 @@ T['parse_fragments_to_gfm_style()'] = function()
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     local fragments = require('mdnotes.toc').get_fragments_from_buf(cur_buf)
-    return require('mdnotes.toc').parse_fragments_to_gfm_style(fragments)
+    return require('mdnotes.toc').convert_fragments_to_gfm_style(fragments)
     ]])
     eq(ret, {"heading-1", "heading-2"})
 end
@@ -243,14 +243,14 @@ T['generate()'] = function()
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     require('mdnotes.toc').populate_buf_fragments(cur_buf)
-    return require('mdnotes.toc').generate(false, 1)
+    return require('mdnotes.toc').generate({ write = false, depth = 1 })
     ]])
     eq(ret, {"- [Heading 1](#heading-1)"})
 
     ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     require('mdnotes.toc').populate_buf_fragments(cur_buf)
-    return require('mdnotes.toc').generate(false)
+    return require('mdnotes.toc').generate({ write = false })
     ]])
     eq(ret, {"- [Heading 1](#heading-1)", "    - [Heading 2](#heading-2)"})
 

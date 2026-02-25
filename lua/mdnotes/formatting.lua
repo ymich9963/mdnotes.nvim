@@ -50,126 +50,25 @@ local md_format = {
     },
 }
 
----Check text for a Markdown format
----@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
----@param opts {location: MdnLocation?}?
----@return boolean|nil
-function M.check_md_format(pattern, opts)
-    opts = opts or {}
-    vim.validate("pattern", pattern, "string")
+local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
 
-    local locopts = opts.location or {}
-    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
-    local linenum = locopts.lnum or vim.fn.line('.')
-    local cur_col = locopts.cur_col or vim.fn.col('.')
+---@class MdnListContent List item contents that have been deemed important by me
+---@field indent string Indent of list item
+---@field marker string List item marker
+---@field separator string List item separator, only in ordered lists
+---@field text string List item text
 
-    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
+---@class MdnLineRange
+---@field buffer integer?
+---@field range {lnum_start: integer?, lnum_end: integer?}
+---@field silent boolean?
 
-    for start_pos, _, end_pos in line:gmatch(pattern) do
-        if start_pos <= cur_col and end_pos > cur_col then
-            return true
-        end
-    end
-
-    return false
-end
-
----Get the text that was either, selected using Visual mode, under cursor in Normal mode, or specified using the opts table
----@param opts {location: MdnLocation?}?
----@return MdnText
-function M.get_text(opts)
-    opts = opts or {}
-    local locopts = opts.location or {}
-
-    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
-    local linenum = locopts.lnum or vim.fn.line('.')
-    local col_start = locopts.col_start or vim.fn.getpos("'<")[3]
-    local col_end = locopts.col_end or vim.fn.getpos("'>")[3]
-    local cur_col = locopts.cur_col or vim.fn.col('.')
-
-    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
-    local text = line:sub(col_start, col_end)
-
-    -- This would happen by default when executing in Normal mode
-    if col_start == col_end then
-        -- Get the word under cursor and cursor position
-        text = vim.fn.expand("<cWORD>")
-
-        -- Search for the word in the line and check if it's under the cursor
-        for i = 1, #line do
-            local start_pos, end_pos = line:find(text, i, true)
-            if start_pos and end_pos then
-                if start_pos <= cur_col and end_pos >= cur_col then
-                    col_start = start_pos
-                    col_end = end_pos
-                    break
-                end
-            end
-        end
-    end
-
-    -- Reset markers
-    vim.fn.setpos("'<", {0,1,1,0})
-    vim.fn.setpos("'>", {0,1,1,0})
-
-    return {
-        buffer = bufnum,
-        lnum = linenum,
-        col_start = col_start,
-        col_end = col_end,
-        cur_col = cur_col,
-        text = text,
-    }
-end
-
----Get the text inside a pattern as well as the start and end columns
----Can use opts.location to specify location of search
----@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
----@param opts {location: MdnLocation?}?
----@return MdnText
-function M.get_text_in_pattern(pattern, opts)
-    opts = opts or {}
-
-    vim.validate("pattern", pattern, "string")
-
-    local locopts = opts.location or {}
-    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
-    local linenum = locopts.lnum or vim.fn.line('.')
-    local col_start = -1 or locopts.col_start
-    local col_end = -1 or locopts.col_end
-    local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
-
-    if cur_col == -1 then
-        cur_col = vim.fn.col('.')
-    end
-
-    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
-
-    local found_text = ""
-    for start_pos, search_text, end_pos in line:gmatch(pattern) do
-        start_pos = vim.fn.str2nr(start_pos)
-        end_pos = vim.fn.str2nr(end_pos)
-        if start_pos <= cur_col and end_pos > cur_col then
-            found_text = search_text
-            col_start = start_pos
-            col_end = end_pos
-            break
-        end
-    end
-
-    return {
-        buffer = bufnum,
-        lnum = linenum,
-        col_start = col_start,
-        col_end = col_end,
-        cur_col = cur_col,
-        text = found_text,
-    }
-end
+---@class MdnInsertFormatOpts: MdnFormattingOpts
+---@field split_fi boolean? Split formatting indicator
 
 ---Insert a Markdown format
 ---@param format_char MdnFormatIndicators
----@param opts {split_fi: boolean?, location: MdnLocation?, move_cursor: boolean?}?
+---@param opts MdnInsertFormatOpts?
 function M.insert_format(format_char, opts)
     opts = opts or {}
     local split_fi = opts.split_fi or false
@@ -180,7 +79,7 @@ function M.insert_format(format_char, opts)
     vim.validate("move_cursor", move_cursor, "boolean")
 
     if split_fi == nil then split_fi = false end
-    local txtdata = M.get_text({ location = opts.location })
+    local txtdata = require('mdnotes').get_text({ location = opts.location })
     local fi1, fi2 = "", ""
 
     if split_fi == true then
@@ -216,7 +115,7 @@ function M.delete_format(pattern, opts)
     vim.validate("pattern", pattern, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
 
-    local txtdata = M.get_text_in_pattern(pattern, {location = opts.location})
+    local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = opts.location})
     local line = vim.api.nvim_buf_get_lines(txtdata.buffer, txtdata.lnum - 1, txtdata.lnum, false)[1]
 
     -- Find the character count change before the cursor
@@ -240,7 +139,7 @@ end
 ---@param opts MdnFormattingOpts?
 function M.emphasis_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.emphasis.pattern(), { location = opts.location })
+    local ret = check_markdown_syntax(md_format.emphasis.pattern(), { location = opts.location })
     if ret == true then
         M.delete_format(md_format.emphasis.pattern(), { location = opts.location, move_cursor = opts.move_cursor })
     elseif ret == false then
@@ -249,52 +148,56 @@ function M.emphasis_toggle(opts)
 end
 
 ---Toggle the strong Markdown formatting
+---@param opts MdnFormattingOpts?
 function M.strong_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.strong.pattern(), { location = opts.location })
+    local ret = check_markdown_syntax(md_format.strong.pattern(), { location = opts.location })
     if ret == true then
-        M.delete_format(md_format.strong.pattern(), {location = opts.location})
+        M.delete_format(md_format.strong.pattern(), { location = opts.location, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(md_format.strong.indicator(), { location = opts.location })
+        M.insert_format(md_format.strong.indicator(), { location = opts.location, move_cursor = opts.move_cursor })
     end
 end
 
 ---Toggle the strikethrough Markdown formatting
+---@param opts MdnFormattingOpts?
 function M.strikethrough_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.strikethrough.pattern(), { location = opts.location })
+    local ret = check_markdown_syntax(md_format.strikethrough.pattern(), { location = opts.location })
     if ret == true then
-        M.delete_format(md_format.strikethrough.pattern(), {location = opts.location})
+        M.delete_format(md_format.strikethrough.pattern(), { location = opts.location, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(md_format.strikethrough.indicator(), { location = opts.location })
+        M.insert_format(md_format.strikethrough.indicator(), { location = opts.location, move_cursor = opts.move_cursor })
     end
 end
 
 ---Toggle the inline code Markdown formatting
+---@param opts MdnFormattingOpts?
 function M.inline_code_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.inline_code.pattern(), { location = opts.location })
+    local ret = check_markdown_syntax(md_format.inline_code.pattern(), { location = opts.location })
     if ret == true then
-        M.delete_format(md_format.inline_code.pattern(), {location = opts.location})
+        M.delete_format(md_format.inline_code.pattern(), { location = opts.location, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(md_format.inline_code.indicator(), { location = opts.location })
+        M.insert_format(md_format.inline_code.indicator(), { location = opts.location, move_cursor = opts.move_cursor })
     end
 end
 
 ---Toggle the autolink Markdown formatting
+---@param opts MdnFormattingOpts?
 function M.autolink_toggle(opts)
     opts = opts or {}
-    local ret = M.check_md_format(md_format.autolink.pattern(), { location = opts.location })
+    local ret = check_markdown_syntax(md_format.autolink.pattern(), { location = opts.location })
     if ret == true then
-        M.delete_format(md_format.autolink.pattern(), {location = opts.location})
+        M.delete_format(md_format.autolink.pattern(), { location = opts.location, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(md_format.autolink.indicator(), { split_fi = true, location = opts.location})
+        M.insert_format(md_format.autolink.indicator(), { location = opts.location, move_cursor = opts.move_cursor, split_fi = true })
     end
 end
 
 ---Resolve the list content
 ---@param line string Line containing list item
----@return string indent, string marker, string separator, string text List item contents that have been deemed important by me
+---@return MdnListContent
 function M.resolve_list_content(line)
     vim.validate("line", line, "string")
 
@@ -308,28 +211,38 @@ function M.resolve_list_content(line)
     local separator = ol_separator or ""
     local text = (ul_text or ol_text) or ""
 
-    return indent, marker, separator, text
+    return {
+        indent = indent,
+        marker = marker,
+        separator = separator,
+        text = text
+    }
 end
 
---TODO: More location options
 ---Toggle task list state
----@param line1 integer First line of selection
----@param line2 integer Last line of selection
-function M.task_list_toggle(line1, line2)
-    if line1 == nil then line1 = vim.fn.line('.') end
-    if line2 == nil then line2 = line1 end
+---@param opts MdnLineRange?
+function M.task_list_toggle(opts)
+    opts = opts or {}
+    local buffer = opts.buffer or 0
+    local silent = opts.silent or false
+    local range = opts.range or {}
+    local lnum_start = range.lnum_start or vim.fn.line('.')
+    local lnum_end = range.lnum_end or vim.fn.line('.')
 
-    vim.validate("line1", line1, "number")
-    vim.validate("line2", line2, "number")
+    vim.validate("buffer", buffer, "number")
+    vim.validate("silent", silent, "boolean")
+    vim.validate("lnum_start", lnum_start, "number")
+    vim.validate("lnum_end", lnum_end, "number")
 
     local mdnotes_patterns = require('mdnotes.patterns')
     local new_lines = {}
     local new_text = ""
-    local lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
+    local lines = vim.api.nvim_buf_get_lines(buffer, lnum_start - 1, lnum_end, false)
 
     local cur_col = vim.fn.col('.')
     for i, line in ipairs(lines) do
-        local _, marker, separator, text = M.resolve_list_content(line)
+        local lcontent = M.resolve_list_content(line) or {}
+        local marker, separator, text = lcontent.marker, lcontent.separator, lcontent.text
 
         if marker then
             marker = marker .. separator
@@ -351,53 +264,49 @@ function M.task_list_toggle(line1, line2)
             end
             table.insert(new_lines, new_text)
         else
-            vim.notify(("Mdn: Unable to detect a task list marker at line ".. tostring(line1 - 1 + i)), vim.log.levels.ERROR)
-            break
+            if silent == false then
+                vim.notify(("Mdn: Unable to detect a task list marker at line ".. tostring(lnum_start - 1 + i)), vim.log.levels.ERROR)
+            end
+            return
         end
     end
 
     if cur_col < 1 then cur_col = 1 end
 
     if #lines == 1 then
-        vim.fn.cursor(line1, cur_col)
+        vim.fn.cursor(lnum_start, cur_col)
     end
 
-    vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
+    vim.api.nvim_buf_set_lines(buffer, lnum_start - 1, lnum_end, false, new_lines)
 end
 
---TODO: More location options
----Renumber the ordered list
----@param opts {silent: boolean?}? opts.silent: Silence notifications
-function M.ordered_list_renumber(opts)
+---Check if the list surrounding the origin line is valid and return its line numbers
+---@param opts MdnSearchOpts?
+---@return boolean list_valid , integer list_startl, integer list_endl 
+function M.check_list_valid(opts)
     opts = opts or {}
-    local silent = opts.silent or false
-    vim.validate("silent", silent, "boolean")
+    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+    local origin_lnum = opts.origin_lnum or vim.fn.line('.')
+    local upper_limit_lnum = opts.upper_limit_lnum or vim.fn.line('0')
+    local lower_limit_lnum = opts.lower_limit_lnum or vim.fn.line('$')
 
-    local cur_line = vim.api.nvim_get_current_line()
-    local cur_lnum = vim.fn.line('.')
-    local ordered_list_pattern = require('mdnotes.patterns').ordered_list
-    local spaces, num, separator, text = cur_line:match(ordered_list_pattern)
-    local detected_separator = separator
-    local new_list_lines = {}
-    local line = ""
+    local line = vim.api.nvim_buf_get_lines(buffer, origin_lnum - 1, origin_lnum, false)[1]
+    local lcontent = M.resolve_list_content(line)
+    local detected_separator = lcontent.separator
+
+    local cur_line = ""
     local list_startl = 0
     local list_endl = 0
 
-
-    if num == nil or separator == nil then
-        if silent == true then
-            return nil
-        else
-            vim.notify("Mdn: Unable to detect an ordered list", vim.log.levels.ERROR)
-            return
-        end
+    if lcontent.marker == nil or lcontent.separator == nil then
+        return false, 0, 0
     end
 
     -- Find where list starts
-    for i = cur_lnum, vim.fn.line('0'), -1 do
-        line = vim.fn.getline(i)
-        _, num, separator, _ = line:match(ordered_list_pattern)
-        if num and separator == detected_separator then
+    for i = origin_lnum, upper_limit_lnum, -1 do
+        cur_line = vim.fn.getline(i)
+        lcontent = M.resolve_list_content(cur_line)
+        if lcontent.marker and lcontent.separator == detected_separator then
             list_startl = i - 1
         else
             break
@@ -405,43 +314,72 @@ function M.ordered_list_renumber(opts)
     end
 
     -- Find where the list ends
-    for i = cur_lnum, vim.fn.line('$') do
-        line = vim.fn.getline(i)
-        _, num, separator, _ = line:match(ordered_list_pattern)
-        if num and separator == detected_separator then
+    for i = origin_lnum, lower_limit_lnum do
+        cur_line = vim.fn.getline(i)
+        lcontent = M.resolve_list_content(cur_line)
+        if lcontent.marker and lcontent.separator == detected_separator then
             list_endl = i
         else
             break
         end
     end
 
+    return true, list_startl, list_endl
+end
+
+---Renumber the ordered list
+---@param opts {silent: boolean?, search: MdnSearchOpts}? opts.silent: Silence notifications
+function M.ordered_list_renumber(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+    local search_opts = opts.search or {}
+    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+
+    vim.validate("silent", silent, "boolean")
+
+    local cur_line = vim.api.nvim_get_current_line()
+    local ol_pattern = require('mdnotes.patterns').ordered_list
+    local spaces, num, separator, text = cur_line:match(ol_pattern)
+    local new_list_lines = {}
+
+    local list_valid, list_startl, list_endl = M.check_list_valid(search_opts)
+    if list_valid == false then
+        if silent == false then
+            vim.notify("Mdn: Unable to detect an ordered list", vim.log.levels.ERROR)
+        end
+        return
+    end
+
     -- Get list
-    local list_lines = vim.api.nvim_buf_get_lines(0, list_startl, list_endl, false)
+    local list_lines = vim.api.nvim_buf_get_lines(buffer, list_startl, list_endl, false)
 
     for i, v in ipairs(list_lines) do
-        spaces, num, separator, text = v:match(ordered_list_pattern)
+        spaces, num, separator, text = v:match(ol_pattern)
         if tonumber(num) ~= i then
             num = tostring(i)
         end
         table.insert(new_list_lines, spaces .. num .. separator .. " " .. text)
     end
 
-    vim.api.nvim_buf_set_lines(0, list_startl, list_endl, false, new_list_lines)
+    vim.api.nvim_buf_set_lines(buffer, list_startl, list_endl, false, new_list_lines)
 end
 
---TODO: More location options
 ---Remove Markdown formatting from the selected lines
----@param line1 number First line of selection
----@param line2 number Last line of selection
-function M.unformat_lines(line1, line2)
-    if line1 == nil then line1 = vim.fn.line('.') end
-    if line2 == nil then line2 = vim.fn.line('.') end
+---@param opts MdnLineRange?
+function M.unformat_lines(opts)
+    opts = opts or {}
+    local buffer = opts.buffer or 0
+    local silent = opts.silent or false
+    local range = opts.range or {}
+    local lnum_start = range.lnum_start or vim.fn.line('.')
+    local lnum_end = range.lnum_end or vim.fn.line('.')
 
-    vim.validate("line1", line1, "number")
-    vim.validate("line2", line2, "number")
+    vim.validate("buffer", buffer, "number")
+    vim.validate("silent", silent, "boolean")
+    vim.validate("lnum_start", lnum_start, "number")
+    vim.validate("lnum_end", lnum_end, "number")
 
     local mdnotes_patterns = require('mdnotes.patterns')
-    local lines = {}
     local new_lines = {}
 
     local patterns = {
@@ -457,11 +395,7 @@ function M.unformat_lines(line1, line2)
         mdnotes_patterns.task,
     }
 
-    if line1 == line2 then
-        lines = {vim.api.nvim_get_current_line()}
-    else
-        lines = vim.api.nvim_buf_get_lines(0, line1 - 1, line2, false)
-    end
+    local lines = vim.api.nvim_buf_get_lines(buffer, lnum_start - 1, lnum_end, false)
 
     for _, line in ipairs(lines) do
         line = line:gsub("[^%d%a%p ]+", "")
@@ -491,7 +425,7 @@ function M.unformat_lines(line1, line2)
         table.insert(new_lines, line)
     end
 
-    vim.api.nvim_buf_set_lines(0, line1 - 1, line2, false, new_lines)
+    vim.api.nvim_buf_set_lines(buffer, lnum_start - 1, lnum_end, false, new_lines)
 end
 
 return M

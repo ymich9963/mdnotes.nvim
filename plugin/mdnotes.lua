@@ -195,11 +195,11 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
 
     if func == commands.formatting.task_list_toggle
         or func == commands.formatting.unformat_lines then
-        func(opts.line1, opts.line2)
+        func({ range = { lnum_start = opts.line1, lnum_end = opts.line2 } })
     elseif func == commands.table.create then
         func(args[3], args[4])
     elseif func == commands.toc.generate then
-        func(true, args[3])
+        func({ write = true, depth = args[3] })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif func then

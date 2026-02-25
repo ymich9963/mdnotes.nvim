@@ -23,7 +23,7 @@ local T = new_set({
     },
 })
 
-T['check_valid_table()'] = function()
+T['check_table_valid()'] = function()
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -32,7 +32,7 @@ T['check_valid_table()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = (child.lua_get([[{require('mdnotes.table').check_valid_table()}]]))
+    local ret = (child.lua_get([[{require('mdnotes.table').check_table_valid()}]]))
     eq(ret[1], true)
     eq(ret[2], 1)
     eq(ret[3], 4)
@@ -43,7 +43,7 @@ T['check_valid_table()'] = function()
     }
     create_md_buffer(child, lines)
 
-    ret = child.lua_get([[{require('mdnotes.table').check_valid_table()}]])
+    ret = child.lua_get([[{require('mdnotes.table').check_table_valid()}]])
     eq(ret[1], false)
     eq(ret[2], nil)
     eq(ret[3], nil)
