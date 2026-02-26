@@ -268,7 +268,7 @@ T['insert()'] = function()
     }
 
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.inline_link').insert("link")]])
+    child.lua([[require('mdnotes.inline_link').insert({ uri = "link" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](link)")
 end
@@ -307,10 +307,10 @@ T['relink()/rename()'] = function()
     }
 
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.inline_link').relink("link2")]])
+    child.lua([[require('mdnotes.inline_link').relink({ new_link = "link2" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](link2)")
-    child.lua([[require('mdnotes.inline_link').rename("test2")]])
+    child.lua([[require('mdnotes.inline_link').rename({ new_name = "test2" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test2](link2)")
 end

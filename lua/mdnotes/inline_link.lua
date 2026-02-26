@@ -49,7 +49,7 @@ function M.parse(opts)
     end
 
     local img_char = ""
-    if M.is_image(inline_link) == true then
+    if M.is_image({ inline_link = inline_link }) == true then
         img_char = "!"
     end
 
@@ -71,7 +71,7 @@ end
 ---@return string path, integer|nil error
 function M.get_path_from_uri(uri, check_valid, opts)
     local path = ""
-    if M.is_url(uri) == true then return path, -1 end
+    if M.is_url({ uri = uri }) == true then return path, -1 end
 
     opts = opts or {} -- unused
 
@@ -123,7 +123,7 @@ end
 ---@return string|nil fragment, number|nil error, string|nil error_text
 function M.get_fragment_from_uri(uri, check_valid, opts)
     local fragment = ""
-    if M.is_url(uri) == true then return fragment, -1 end
+    if M.is_url({ uri = uri }) == true then return fragment, -1 end
 
     opts = opts or {} -- unused
 
@@ -183,7 +183,7 @@ function M.open(opts)
 
     -- Overwrite if location is given
     local uri = opts.uri
-    if opts.location then
+    if opts.location or uri == nil then
         uri = (M.parse({ keep_pointy_brackets = false, location = opts.location }) or {}).uri
     end
 
@@ -219,7 +219,7 @@ function M.is_image(opts)
     opts = opts or {}
 
     local inline_link = opts.inline_link
-    if opts.location then
+    if opts.location or inline_link == nil then
         local inline_link_pattern = require("mdnotes.patterns").inline_link
         local txtdata = require('mdnotes').get_text_in_pattern(inline_link_pattern, { location = opts.location })
         inline_link = txtdata.text
@@ -241,7 +241,7 @@ function M.is_url(opts)
     opts = opts or {}
 
     local uri = opts.uri
-    if opts.location then
+    if opts.location or uri == nil then
         local mdn_patterns = require("mdnotes.patterns")
         local txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.inline_link, { location = opts.location })
         _, uri = txtdata.text:match(mdn_patterns.text_uri)
@@ -310,20 +310,20 @@ function M.toggle(opts)
 end
 
 ---Relink inline link
----@param opts {new_text: string?, location: MdnLocation?}?
+---@param opts {new_link: string?, location: MdnLocation?}?
 function M.relink(opts)
     opts = opts or {}
-    local new_text = opts.new_text
+    local new_link = opts.new_link
     local locopts = opts.location or {}
 
     local ildata = M.parse({ location = locopts })
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
     local user_input
-    if new_text == nil then
+    if new_link == nil then
         vim.ui.input({prompt = "Relink URI: ", default = ildata.uri }, function(input) user_input = input end)
     else
-        user_input = new_text
+        user_input = new_link
     end
 
     if user_input == "" or user_input == nil then
@@ -336,20 +336,20 @@ function M.relink(opts)
 end
 
 ---Rename inline link
----@param opts {new_text: string?, location: MdnLocation?}?
+---@param opts {new_name: string?, location: MdnLocation?}?
 function M.rename(opts)
     opts = opts or {}
-    local new_text = opts.new_text
+    local new_name = opts.new_name
     local locopts = opts.location or {}
 
     local ildata = M.parse({ location = locopts })
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
     local user_input
-    if new_text == nil then
+    if new_name == nil then
         vim.ui.input({prompt = "Rename link text: ", default = ildata.text }, function(input) user_input = input end)
     else
-        user_input = new_text
+        user_input = new_name
     end
 
     if user_input == "" or user_input == nil then
