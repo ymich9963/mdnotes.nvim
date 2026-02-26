@@ -196,7 +196,7 @@ function M.autolink_toggle(opts)
     end
 end
 
----Resolve the list content
+---Get a consistent table containing all data on a list item whether it is ordered or unordered
 ---@param line string Line containing list item
 ---@return MdnListContent
 function M.resolve_list_content(line)
@@ -289,48 +289,72 @@ function M.task_list_toggle(opts)
     vim.api.nvim_buf_set_lines(buffer, lnum_start - 1, lnum_end, false, new_lines)
 end
 
+--TODO: Tests for function
 ---Check if the list surrounding the origin line is valid and return its line numbers
----@param opts MdnSearchOpts?
+---@param opts {same_indent: boolean?, search: MdnSearchOpts?, outliner_list: boolean?}?
 ---@return boolean list_valid , integer list_startl, integer list_endl 
 function M.check_list_valid(opts)
     opts = opts or {}
-    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
-    local origin_lnum = opts.origin_lnum or vim.fn.line('.')
-    local upper_limit_lnum = opts.upper_limit_lnum or vim.fn.line('0')
-    local lower_limit_lnum = opts.lower_limit_lnum or vim.fn.line('$')
+
+    local outliner_list = opts.outliner_list or false
+    local same_indent = opts.same_indent or false
+    local search_opts = opts.search or {}
+    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
+    local upper_limit_lnum = search_opts.upper_limit_lnum or vim.fn.line('0')
+    local lower_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
 
     local origin_line = vim.api.nvim_buf_get_lines(buffer, origin_lnum - 1, origin_lnum, false)[1]
     local lcontent = M.resolve_list_content(origin_line)
-    local detected_separator = lcontent.separator
+    if lcontent.marker == nil or lcontent.separator == nil then
+        return false, 0, 0
+    end
 
     local cur_line = ""
     local list_startl = 0
     local list_endl = 0
+    local detected_separator = lcontent.separator
+    local detected_indent = lcontent.indent
 
-    if lcontent.marker == nil or lcontent.separator == nil then
-        return false, 0, 0
+    -- If the list should be treated as an outliner list
+    if outliner_list == true then
+        list_endl = origin_lnum
+        for i = origin_lnum, lower_limit_lnum do
+            cur_line = vim.fn.getline(i)
+            lcontent = M.resolve_list_content(cur_line)
+            if lcontent.indent == detected_indent and i > origin_lnum then break end
+            if lcontent.indent >= detected_indent then
+                list_endl = i
+            end
+        end
+
+        return true, origin_lnum, list_endl
     end
 
     -- Find where list starts
     for i = origin_lnum, upper_limit_lnum, -1 do
         cur_line = vim.fn.getline(i)
         lcontent = M.resolve_list_content(cur_line)
-        if lcontent.marker and lcontent.separator == detected_separator then
-            list_startl = i - 1
-        else
+        if not lcontent.marker and lcontent.separator ~= detected_separator then
             break
         end
+        if same_indent == true and lcontent.indent ~= detected_indent  then
+            break
+        end
+        list_startl = i - 1
     end
 
     -- Find where the list ends
     for i = origin_lnum, lower_limit_lnum do
         cur_line = vim.fn.getline(i)
         lcontent = M.resolve_list_content(cur_line)
-        if lcontent.marker and lcontent.separator == detected_separator then
-            list_endl = i
-        else
+        if not lcontent.marker and lcontent.separator ~= detected_separator and lcontent.indent ~= detected_indent then
             break
         end
+        if same_indent == true and lcontent.indent ~= detected_indent  then
+            break
+        end
+        list_endl = i
     end
 
     return true, list_startl, list_endl
