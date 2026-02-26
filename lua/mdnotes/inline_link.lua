@@ -19,12 +19,10 @@ M.uri_website_tbl = {"https", "http"}
 function M.parse(opts)
     opts = opts or {}
 
-    -- If location is provided ignore the inline_link string
-    local inline_link
+    -- Overwrite if location is given
+    local inline_link = opts.inline_link
     if opts.location then
         inline_link = nil
-    else
-        inline_link = opts.inline_link
     end
 
     local locopts = opts.location or {}
@@ -182,12 +180,13 @@ end
 ---@return integer|vim.SystemObj|string|nil
 function M.open(opts)
     opts = opts or {}
-    local uri = opts.uri
 
-    if uri == nil then
-        local ildata = M.parse({ keep_pointy_brackets = false, location = opts.location }) or {}
-        uri = ildata.uri
+    -- Overwrite if location is given
+    local uri = opts.uri
+    if opts.location then
+        uri = (M.parse({ keep_pointy_brackets = false, location = opts.location }) or {}).uri
     end
+
     if uri == nil then return "URI error" end
 
     vim.validate("uri", uri, "string")
@@ -213,16 +212,20 @@ function M.open(opts)
     return vim.ui.open(uri)
 end
 
---TODO: Add location opts
 ---Check if inline link is an image
----@param inline_link string?
+---@param opts {inline_link: string?, location: MdnLocation}?
 ---@return boolean
-function M.is_image(inline_link)
-    local inline_link_pattern = require("mdnotes.patterns").inline_link
-    if inline_link == nil then
-        local txtdata = require('mdnotes').get_text_in_pattern(inline_link_pattern)
+function M.is_image(opts)
+    opts = opts or {}
+
+    local inline_link = opts.inline_link
+    if opts.location then
+        local inline_link_pattern = require("mdnotes.patterns").inline_link
+        local txtdata = require('mdnotes').get_text_in_pattern(inline_link_pattern, { location = opts.location })
         inline_link = txtdata.text
     end
+
+    vim.validate("inline_link", inline_link, { "string", "nil" })
 
     if inline_link == nil or inline_link:sub(1,1) ~= "!" then
         return false
@@ -231,31 +234,35 @@ function M.is_image(inline_link)
     end
 end
 
---TODO: Add location opts
 ---Check if inline link is an image
----@param uri string?
+---@param opts {uri: string?, location: MdnLocation}?
 ---@return boolean is_url Text to use when checking for an inline link
-function M.is_url(uri)
-    local mdn_patterns = require("mdnotes.patterns")
-    local inline_link_pattern = mdn_patterns.inline_link
-    if uri == nil then
-        local txtdata = require('mdnotes').get_text_in_pattern(inline_link_pattern)
+function M.is_url(opts)
+    opts = opts or {}
+
+    local uri = opts.uri
+    if opts.location then
+        local mdn_patterns = require("mdnotes.patterns")
+        local txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.inline_link, { location = opts.location })
         _, uri = txtdata.text:match(mdn_patterns.text_uri)
     end
 
-    if vim.tbl_contains(M.uri_website_tbl, uri:match("%w+")) then
-        return true
-    else
+    vim.validate("uri", uri, { "string", "nil" })
+
+    if uri == nil or not vim.tbl_contains(M.uri_website_tbl, uri:match("%w+")) then
         return false
+    else
+        return true
     end
 end
 
---TODO: Add location opts
 ---Insert Markdown inline link with the text in the clipboard
----@param uri string? Text to use in URI
-function M.insert(uri, move_cursor)
-    if uri == nil then uri = vim.fn.getreg('+') end
-    if move_cursor == nil then move_cursor = true end
+---@param opts {uri: string?, move_cursor: boolean?, location: MdnLocation}?
+function M.insert(opts)
+    opts = opts or {}
+    local uri = opts.uri or vim.fn.getreg('+')
+    local move_cursor = opts.move_cursor ~= false
+    local locopts = opts.location or {}
 
     if uri == '' then
         vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
@@ -263,7 +270,7 @@ function M.insert(uri, move_cursor)
     end
 
     local cur_col = vim.fn.col('.')
-    local txtdata = require('mdnotes').get_text()
+    local txtdata = require('mdnotes').get_text({ location = locopts })
 
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. uri .. ')'})
@@ -274,49 +281,47 @@ function M.insert(uri, move_cursor)
     end
 end
 
---TODO: Add location opts
---Delete Markdown inline link and leave the text
-function M.delete()
-    local ildata = M.parse()
-    local lnum = vim.fn.line('.')
+---Delete Markdown inline link and leave the text
+---@param opts {location: MdnLocation?}?
+function M.delete(opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local ildata = M.parse({ location = locopts })
 
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
-    vim.api.nvim_buf_set_text(0, lnum - 1, ildata.col_start - 1, lnum - 1, ildata.col_end - 1, {ildata.text})
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.text})
     vim.fn.cursor({vim.fn.line('.'), ildata.col_start - 1})
 end
 
---TODO: Add location opts
 ---Toggle inserting and deleting inline links
-function M.toggle()
+---@param opts {location: MdnLocation?}?
+function M.toggle(opts)
+    opts = opts or {}
+    local locopts = opts.location or {}
+
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
-    if check_markdown_syntax(require("mdnotes.patterns").inline_link) then
-        M.delete()
+    if check_markdown_syntax(require("mdnotes.patterns").inline_link, { location = locopts }) then
+        M.delete({ location = locopts })
     else
-        M.insert()
+        M.insert({ location = locopts })
     end
 end
 
----Rename or relink an inline link
----@param mode '"rename"'|'"relink"'
----@param new_text string?
-local function rename_relink(mode, new_text)
-    local ildata = M.parse()
-    local user_input = ""
-    local args = {}
+---Relink inline link
+---@param opts {new_text: string?, location: MdnLocation?}?
+function M.relink(opts)
+    opts = opts or {}
+    local new_text = opts.new_text
+    local locopts = opts.location or {}
 
+    local ildata = M.parse({ location = locopts })
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
-    if mode == "rename" then
-        args.prompt = "Rename link text: "
-        args.default = ildata.text
-    elseif mode == "relink" then
-        args.prompt = "Relink URI: "
-        args.default = ildata.uri
-    end
-
+    local user_input
     if new_text == nil then
-        vim.ui.input(args, function(input) user_input = input end)
+        vim.ui.input({prompt = "Relink URI: ", default = ildata.uri }, function(input) user_input = input end)
     else
         user_input = new_text
     end
@@ -326,35 +331,43 @@ local function rename_relink(mode, new_text)
         return
     end
 
-    if mode == "rename" then
-        vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. user_input .. '](' .. ildata.uri .. ')'})
-    elseif mode == "relink" then
-        vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. user_input .. ')'})
-    end
-
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. user_input .. ')'})
     vim.fn.cursor({ildata.lnum, ildata.col_start})
 end
 
---TODO: Add location opts and move parsing to outside rename_relink
----Relink inline link
----@param new_text string?
-function M.relink(new_text)
-    rename_relink("relink", new_text)
-end
-
---TODO: Add location opts and move parsing to outside rename_relink
 ---Rename inline link
----@param new_text string?
-function M.rename(new_text)
-    rename_relink("rename", new_text)
+---@param opts {new_text: string?, location: MdnLocation?}?
+function M.rename(opts)
+    opts = opts or {}
+    local new_text = opts.new_text
+    local locopts = opts.location or {}
+
+    local ildata = M.parse({ location = locopts })
+    if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
+
+    local user_input
+    if new_text == nil then
+        vim.ui.input({prompt = "Rename link text: ", default = ildata.text }, function(input) user_input = input end)
+    else
+        user_input = new_text
+    end
+
+    if user_input == "" or user_input == nil then
+        vim.notify("Mdn: Please enter valid text", vim.log.levels.ERROR)
+        return
+    end
+
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. user_input .. '](' .. ildata.uri .. ')'})
+    vim.fn.cursor({ildata.lnum, ildata.col_start})
 end
 
---TODO: Add location opts
 ---Normalize inline link
-function M.normalize()
-    local ildata = M.parse()
+---@param opts {location: MdnLocation?}?
+function M.normalize(opts)
+    opts = opts or {}
+    local locopts = opts.location or {}
+    local ildata = M.parse({ location = locopts })
     local new_uri = ""
-    local lnum = vim.fn.line('.')
 
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
@@ -363,16 +376,17 @@ function M.normalize()
         new_uri = "<" .. new_uri .. ">"
     end
 
-    vim.api.nvim_buf_set_text(0, lnum - 1, ildata.col_start - 1, lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. new_uri .. ')'})
-    vim.fn.cursor({lnum, ildata.col_start})
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. new_uri .. ')'})
+    vim.fn.cursor({ildata.lnum, ildata.col_start})
 end
 
---TODO: Add location opts
 ---Convert the fragment of the inline link under the cursor to GFM-style fragment
-function M.convert_fragment_to_gfm()
-    local ildata = M.parse()
+---@param opts {location: MdnLocation?}?
+function M.convert_fragment_to_gfm(opts)
+    opts = opts or {}
+    local locopts = opts.location or {}
+    local ildata = M.parse({ location = locopts })
     local new_fragment = ""
-    local lnum = vim.fn.line('.')
     local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
 
     if ildata == nil or ildata.text == nil then return end
@@ -386,14 +400,16 @@ function M.convert_fragment_to_gfm()
     local hash_location = uri:find("#") or 1
     local new_uri = uri:sub(1, hash_location) .. new_fragment
 
-    vim.api.nvim_buf_set_text(0, lnum - 1, ildata.col_start - 1, lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. new_uri .. ')'})
-    vim.fn.cursor({lnum, ildata.col_start})
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. new_uri .. ')'})
+    vim.fn.cursor({ildata.lnum, ildata.col_start})
 end
 
---TODO: Add location opts
 ---Validate that the inline link is correct
-function M.validate()
-    local ildata = M.parse()
+---@param opts {location: MdnLocation?}?
+function M.validate(opts)
+    opts = opts or {}
+    local locopts = opts.location or {}
+    local ildata = M.parse({ location = locopts })
     if ildata == nil or ildata.text == nil or ildata.uri == nil then
         vim.notify("Mdn: No valid inline link detected", vim.log.level.WARN)
         return nil
