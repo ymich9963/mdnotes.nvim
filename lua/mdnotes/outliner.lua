@@ -38,6 +38,7 @@ function  M.toggle()
     end
 end
 
+--TODO: Add location opts
 ---Indent the current parent-child list
 function M.indent()
     local _, list_startl, list_endl = require('mdnotes.formatting').check_list_valid({ outliner_list = true })
@@ -54,6 +55,7 @@ function M.indent()
     vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), vim.fn.col('.') + vim.o.shiftwidth - 1})
 end
 
+--TODO: Add location opts
 ---Unindent the current parent-child list
 function M.unindent()
     local _, list_startl, list_endl = require('mdnotes.formatting').check_list_valid({ outliner_list = true })

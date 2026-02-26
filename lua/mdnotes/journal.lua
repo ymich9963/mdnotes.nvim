@@ -14,6 +14,9 @@ function M.get_journal_file()
         ret = config_journal_file
     end
 
+    -- Never nil
+    ret = ret or ""
+
     return vim.fs.normalize(ret)
 end
 
