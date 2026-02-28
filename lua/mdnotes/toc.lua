@@ -187,7 +187,7 @@ function M.generate(opts)
     end
 
     for i = 1, #fragments do
-        local _, hash_count = fragments[i].hash:gsub("#", "")
+        local hash_count = select(2, fragments[i].hash:gsub("#", ""))
         if hash_count <= tonumber(depth) then
             local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
             table.insert(toc, ("%s- [%s](#%s)"):format(spaces, fragments[i].text, gfm_fragments[i]))

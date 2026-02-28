@@ -7,14 +7,14 @@ local uv = vim.loop or vim.uv
 ---@type table<string> URIs that indicate websites
 M.uri_website_tbl = {"https", "http"}
 
----@class MdnInlineLinkData: MdnLocation
+---@class MdnInlineLinkData: MdnInLineLocation
 ---@field img_char '"!"'|'""' Inline link image character
 ---@field text string Inline link text
 ---@field uri string Inline link URI ir destination
 
 ---Get the inline link data such as the image designator, link text, link URI/destination,
 ---and the start and end columns
----@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnLocation}?
+---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation}?
 ---@return MdnInlineLinkData|nil
 function M.parse(opts)
     opts = opts or {}
@@ -176,7 +176,7 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
 end
 
 ---Open inline links
----@param opts {uri: string?, location: MdnLocation?}?
+---@param opts {uri: string?, location: MdnInLineLocation?}?
 ---@return integer|vim.SystemObj|string|nil
 function M.open(opts)
     opts = opts or {}
@@ -213,7 +213,7 @@ function M.open(opts)
 end
 
 ---Check if inline link is an image
----@param opts {inline_link: string?, location: MdnLocation}?
+---@param opts {inline_link: string?, location: MdnInLineLocation}?
 ---@return boolean
 function M.is_image(opts)
     opts = opts or {}
@@ -235,7 +235,7 @@ function M.is_image(opts)
 end
 
 ---Check if inline link is an image
----@param opts {uri: string?, location: MdnLocation}?
+---@param opts {uri: string?, location: MdnInLineLocation}?
 ---@return boolean is_url Text to use when checking for an inline link
 function M.is_url(opts)
     opts = opts or {}
@@ -257,7 +257,7 @@ function M.is_url(opts)
 end
 
 ---Insert Markdown inline link with the text in the clipboard
----@param opts {uri: string?, move_cursor: boolean?, location: MdnLocation}?
+---@param opts {uri: string?, move_cursor: boolean?, location: MdnInLineLocation}?
 function M.insert(opts)
     opts = opts or {}
     local uri = opts.uri or vim.fn.getreg('+')
@@ -282,7 +282,7 @@ function M.insert(opts)
 end
 
 ---Delete Markdown inline link and leave the text
----@param opts {location: MdnLocation?}?
+---@param opts {location: MdnInLineLocation?}?
 function M.delete(opts)
     opts = opts or {}
 
@@ -296,7 +296,7 @@ function M.delete(opts)
 end
 
 ---Toggle inserting and deleting inline links
----@param opts {location: MdnLocation?}?
+---@param opts {location: MdnInLineLocation?}?
 function M.toggle(opts)
     opts = opts or {}
     local locopts = opts.location or {}
@@ -310,7 +310,7 @@ function M.toggle(opts)
 end
 
 ---Relink inline link
----@param opts {new_link: string?, location: MdnLocation?}?
+---@param opts {new_link: string?, location: MdnInLineLocation?}?
 function M.relink(opts)
     opts = opts or {}
     local new_link = opts.new_link
@@ -336,7 +336,7 @@ function M.relink(opts)
 end
 
 ---Rename inline link
----@param opts {new_name: string?, location: MdnLocation?}?
+---@param opts {new_name: string?, location: MdnInLineLocation?}?
 function M.rename(opts)
     opts = opts or {}
     local new_name = opts.new_name
@@ -362,7 +362,7 @@ function M.rename(opts)
 end
 
 ---Normalize inline link
----@param opts {location: MdnLocation?}?
+---@param opts {location: MdnInLineLocation?}?
 function M.normalize(opts)
     opts = opts or {}
     local locopts = opts.location or {}
@@ -381,7 +381,7 @@ function M.normalize(opts)
 end
 
 ---Convert the fragment of the inline link under the cursor to GFM-style fragment
----@param opts {location: MdnLocation?}?
+---@param opts {location: MdnInLineLocation?}?
 function M.convert_fragment_to_gfm(opts)
     opts = opts or {}
     local locopts = opts.location or {}
@@ -405,7 +405,7 @@ function M.convert_fragment_to_gfm(opts)
 end
 
 ---Validate that the inline link is correct
----@param opts {location: MdnLocation?}?
+---@param opts {location: MdnInLineLocation?}?
 function M.validate(opts)
     opts = opts or {}
     local locopts = opts.location or {}

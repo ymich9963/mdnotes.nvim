@@ -41,8 +41,8 @@ end
 --TODO: Add location opts
 ---Indent the current parent-child list
 function M.indent()
-    local _, list_startl, list_endl = require('mdnotes.formatting').check_list_valid({ outliner_list = true })
-    local lines = vim.api.nvim_buf_get_lines(0, list_startl - 1, list_endl, false) or {}
+    local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true })
+    local lines = vim.api.nvim_buf_get_lines(0, lsearch.startl - 1, lsearch.endl, false) or {}
     local cur_lnum = vim.fn.line('.') - 1
     local new_lines = {}
 
@@ -58,8 +58,8 @@ end
 --TODO: Add location opts
 ---Unindent the current parent-child list
 function M.unindent()
-    local _, list_startl, list_endl = require('mdnotes.formatting').check_list_valid({ outliner_list = true })
-    local lines = vim.api.nvim_buf_get_lines(0, list_startl - 1, list_endl, false) or {}
+    local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true })
+    local lines = vim.api.nvim_buf_get_lines(0, lsearch.startl - 1, lsearch.endl, false) or {}
     local cur_lnum = vim.fn.line('.') - 1
     local new_lines = {}
 

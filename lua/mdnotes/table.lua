@@ -8,79 +8,87 @@ local M = {}
 ---@field end_pos integer Cell end position
 ---@field line integer Line in the table
 
+---@class MdnTable: MdnMultiLineLocation
+---@field contents MdnTableContents
+
 ---@alias MdnTableContents table<table<string>> Contents of a table
 ---@alias MdnTableColLoc table<table<integer>> Table column locations
 ---@alias MdnTableComplex table<table<MdnTableComplexData>> Complex table data which is just more information about the table
 
-
 --TODO: Add location opts to EVERYTHING
 
 ---Check if there is a table under the cursor
----@return boolean table_valid, integer|nil table_startl, integer|nil table_endl
-function M.check_table_valid()
-    local cur_line_num = vim.fn.line('.')
-    local max_line_num = vim.fn.line('$')
-    local min_line_num = 0
+---@param opts {search: MdnSearchOpts?}?
+---@return MdnSearchRet
+function M.check_table_valid(opts)
+    opts = opts or {}
+
+    local search_opts = opts.search or {}
+    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
+    local lower_limit_lnum = search_opts.upper_limit_lnum or 1
+    local upper_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
+
     local table_startl = 0
     local table_endl = 0
-    local table_valid = true
 
     -- A table needs at least 3 lines to be valid
-    if max_line_num < 3 then
-        return false, nil, nil
+    if upper_limit_lnum < 3 then
+        return { valid = false }
     end
 
-    for i = cur_line_num, min_line_num, -1 do
-        local line = vim.fn.getline(i)
-        local _, count = line:gsub("|", "")
+    for i = origin_lnum, lower_limit_lnum, -1 do
+        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        local count = select(2, cur_line:gsub("|", ""))
         if count < 2 then
-            if i == 1 then
-                table_startl = 1
-            else
-                table_startl = i + 1
-            end
             break
         end
+        table_startl = i
     end
 
     if table_startl == 0 then
-        return false, nil, nil
+        return { valid = false }
     end
 
-    local delimeter_row = vim.fn.getline(table_startl + 1)
+    local delimeter_row = vim.api.nvim_buf_get_lines(buffer, table_startl + 1 - 1, table_startl + 1, false)[1]
 
     -- If it find anything other than |, :, - in delemeter row table is not valid
     if delimeter_row:match("[^:%-|]+") then
-        return false, nil, nil
+        return { valid = false }
     end
 
-    for i = cur_line_num, max_line_num + 1 do
-        local line = vim.fn.getline(i)
-        local _, count = line:gsub("|", "")
+    for i = origin_lnum, upper_limit_lnum do
+        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        local count = select(2, cur_line:gsub("|", ""))
         if count < 2 then
-            if i == max_line_num then
-                table_endl = max_line_num
-            else
-                table_endl = i - 1
-            end
             break
         end
+        table_endl = i
     end
 
     if table_endl == 0 then
-        return false, nil, nil
+        return { valid = false }
     end
 
-    return table_valid, table_startl, table_endl
+    return {
+        valid = true,
+        startl = table_startl,
+        endl = table_endl,
+    }
 end
 
 ---Write the table to the buffer
+---Use startl == endl for inserting at current line
+---@param buffer integer
+---@param startl integer
+---@param endl integer
 ---@param contents MdnTableContents
----@param startl integer?
----@param endl integer?
-function M.write_table_lines(contents, startl, endl)
-    if startl == nil then startl = vim.fn.line('.') end
-    if endl == nil then endl = vim.fn.line('.') end
+function M.write_table_lines(buffer, startl, endl, contents)
+    vim.validate("buffer", buffer, "number")
+    vim.validate("startl", startl, "number")
+    vim.validate("endl", endl, "number")
+    vim.validate("contents", contents, "table")
+
     local table_formatted = {}
 
     -- Copy so that it's not passed by reference
@@ -96,11 +104,7 @@ function M.write_table_lines(contents, startl, endl)
         table.insert(table_formatted, "|" .. table.concat(v, "|"))
     end
 
-    if startl == endl  then
-        vim.api.nvim_put(table_formatted, "l", false, false)
-    else
-        vim.api.nvim_buf_set_lines(0, startl - 1, endl, false, table_formatted)
-    end
+    vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, table_formatted)
 end
 
 ---Create a table with r rows and c columns
@@ -132,98 +136,46 @@ function M.create(rows, columns)
     end
     table.insert(new_table, 2, header_row)
 
-    M.write_table_lines(new_table)
+    M.write_table_lines(0, vim.fn.line('.'), vim.fn.line('.'), new_table)
 end
 
----Parse the table in the specified line numbers
+---Get the table lines in the specified line numbers
 ---@param table_startl integer
 ---@param table_endl integer
 ---@return MdnTableContents
-function M.parse_table(table_startl, table_endl)
-    local table_parsed = {}
+function M.get_table_lines(table_startl, table_endl)
+    local table_lines = {}
 
-    local table_lines = vim.api.nvim_buf_get_lines(0, table_startl - 1, table_endl, false)
+    local lines = vim.api.nvim_buf_get_lines(0, table_startl - 1, table_endl, false)
 
     -- Trim whitespace
-    for r, v in ipairs(table_lines) do
-        table_lines[r] = vim.trim(v)
+    for r, v in ipairs(lines) do
+        lines[r] = vim.trim(v)
     end
 
     local table_temp = {}
 
-    for _, v in ipairs(table_lines) do
+    for _, v in ipairs(lines) do
         table_temp = {}
         for text in v:gmatch("[^|]+") do
             table.insert(table_temp, text)
         end
-        table.insert(table_parsed, table_temp)
+        table.insert(table_lines, table_temp)
     end
 
-    return table_parsed
+    return table_lines
 end
 
----Get the table contents as lines using start and end lines
----@param opts {silent: boolean?}? opts.silent: Silence notifications
----@return MdnTableContents|nil, integer|nil, integer|nil
-function M.get_table_lines(opts)
-    opts = opts or {}
-    local silent = opts.silent or false
-    vim.validate("silent", silent, "boolean")
-
-    local table_valid, startl, endl = M.check_table_valid()
-    if table_valid == false or startl == nil or endl == nil then
-        if silent == false then
-            vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
-        end
-
-        return nil, nil, nil
-    end
-
-    local table_lines = M.parse_table(startl, endl)
-    if vim.tbl_isempty(table_lines) then
-        if silent == false then
-            vim.notify("Mdn: Error parsing table", vim.log.levels.ERROR)
-        end
-
-        return nil, nil, nil
-    end
-
-    return table_lines, startl, endl
-end
-
----Get the table column locations
----@return MdnTableColLoc|nil
-function M.get_column_locations()
-    -- Fence post problem, all tables will have n+1 | characters with n being the text    
-    local table_valid, startl, endl = M.check_table_valid()
-    if table_valid == false or startl == nil or endl == nil then
-        vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
-        return nil
-    end
-
-    local table_lines = vim.api.nvim_buf_get_lines(0, startl - 1, endl, false)
-    local col_locations_table = {}
-    local col_locations_line = {}
-
-    for _, line in ipairs(table_lines) do
-        col_locations_line = {}
-        for i in line:gmatch("()|") do
-            table.insert(col_locations_line, i)
-        end
-        table.insert(col_locations_table, col_locations_line)
-    end
-
-    return col_locations_table
-end
-
----Get the table contents along with some more information (which is why it's called complex)
----@return MdnTableComplex|nil, integer|nil, integer|nil
-function M.get_table_lines_complex()
-    local table_lines, startl, endl = M.get_table_lines()
+---Get the table lines along with some more information (which is why it's called complex)
+---@param table_startl integer
+---@param table_endl integer
+---@return MdnTableComplex
+function M.get_table_lines_complex(table_startl, table_endl)
+    local table_lines = M.get_table_lines(table_startl, table_endl)
 
     if table_lines == nil then
         -- Errors would already be outputted
-        return
+        return {}
     end
 
     local col_locations = M.get_column_locations() or {{0}}
@@ -243,22 +195,93 @@ function M.get_table_lines_complex()
         table.insert(table_complex, table_complex_entry)
     end
 
-    return table_complex, startl, endl
+    return table_complex
+end
+
+---Parse the table
+---@param opts {silent: boolean?, search: MdnSearchOpts, complex: boolean?}? opts.silent: Silence notifications
+---@return MdnTable
+function M.parse(opts)
+    opts = opts or {}
+
+    local search_opts = opts.search or {}
+    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local silent = opts.silent or false
+    local complex = opts.complex or false
+
+    vim.validate("silent", silent, "boolean")
+    vim.validate("complex", complex, "boolean")
+
+    local tsearch = M.check_table_valid({ search = search_opts })
+    if tsearch.valid == false then
+        if silent == false then
+            vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
+        end
+
+        return {}
+    end
+
+    local table_lines = {}
+    if complex == false then
+        table_lines = M.get_table_lines(tsearch.startl, tsearch.endl) or {}
+    elseif complex == true then
+        table_lines = M.get_table_lines_complex(tsearch.startl, tsearch.endl) or {}
+    end
+
+    if vim.tbl_isempty(table_lines) then
+        if silent == false then
+            vim.notify("Mdn: Error parsing table", vim.log.levels.ERROR)
+        end
+
+        return {}
+    end
+
+    return {
+        contents = table_lines,
+        startl = tsearch.startl,
+        endl = tsearch.endl,
+        buffer = buffer
+    }
+end
+
+---Get the table column locations
+---@return MdnTableColLoc|nil
+function M.get_column_locations()
+    -- Fence post problem, all tables will have n+1 | characters with n being the text    
+    local tsearch = M.check_table_valid()
+    if tsearch.valid == false then
+        vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
+        return nil
+    end
+
+    local table_lines = vim.api.nvim_buf_get_lines(0, tsearch.startl - 1, tsearch.endl, false)
+    local col_locations_table = {}
+    local col_locations_line = {}
+
+    for _, line in ipairs(table_lines) do
+        col_locations_line = {}
+        for i in line:gmatch("()|") do
+            table.insert(col_locations_line, i)
+        end
+        table.insert(col_locations_table, col_locations_line)
+    end
+
+    return col_locations_table
 end
 
 ---Get the current column based on cursor location
 ---@return integer|nil
 function M.get_cur_column_num()
-    local table_lines_complex, _, _ = M.get_table_lines_complex()
+    local tdata = M.parse({ complex = true })
 
-    if table_lines_complex == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
     local cur_cursor_col_pos = vim.fn.getpos(".")[3]
 
-    for _, line in ipairs(table_lines_complex) do
+    for _, line in ipairs(tdata.contents) do
         for j, cell in ipairs(line) do
             -- Treats the left | as the start point of the column
             if cell.start_pos <= cur_cursor_col_pos and cell.end_pos > cur_cursor_col_pos then
@@ -279,9 +302,9 @@ local function insert_column(direction)
         return
     end
 
-    local table_lines, startl, endl = M.get_table_lines()
+    local tdata = M.parse()
 
-    if table_lines == nil or startl == nil or endl == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
@@ -291,7 +314,7 @@ local function insert_column(direction)
     elseif direction == "left" then
     end
 
-    for i, v in ipairs(table_lines) do
+    for i, v in ipairs(tdata.contents) do
         if i == 2 then
             table.insert(v, cur_col, "----")
         else
@@ -299,7 +322,7 @@ local function insert_column(direction)
         end
     end
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
 end
 
 ---Insert column to the left of the current column
@@ -328,26 +351,26 @@ local function move_column(direction)
         new_col = cur_col + 1
     end
 
-    local table_lines, startl, endl = M.get_table_lines()
+    local tdata = M.parse()
 
-    if table_lines == nil or startl == nil or endl == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
-    if new_col < 1 or new_col > #table_lines[1] then
+    if new_col < 1 or new_col > #tdata.contents[1] then
         vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
         return
     end
 
     local temp_col_val = ""
-    for _, v in ipairs(table_lines) do
+    for _, v in ipairs(tdata.contents) do
         temp_col_val = v[cur_col]
         table.remove(v, cur_col)
         table.insert(v, new_col, temp_col_val)
     end
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
 end
 
 ---Move current column to the left
@@ -363,20 +386,20 @@ end
 ---Insert an empty row either above or below
 ---@param direction '"above"'|'"below"' Row insertion direction
 local function insert_row(direction)
-    local table_lines , startl, endl = M.get_table_lines()
+    local tdata = M.parse()
 
-    if table_lines == nil or startl == nil or endl == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
     local cur_cursor_line = vim.fn.line('.')
-    local cur_table_line_num = cur_cursor_line - startl
+    local cur_table_line_num = cur_cursor_line - tdata.startl
 
     -- In case the table is at the very top
     if cur_table_line_num == 0 then cur_table_line_num = 1 end
 
-    local cur_table_line = table_lines[cur_table_line_num]
+    local cur_table_line = tdata.contents[cur_table_line_num]
     local new_table_line = {}
 
     for _, v in ipairs(cur_table_line) do
@@ -385,12 +408,12 @@ local function insert_row(direction)
     end
 
     if direction == "above" then
-        table.insert(table_lines, cur_table_line_num, new_table_line)
+        table.insert(tdata.contents, cur_table_line_num, new_table_line)
     elseif direction == "below" then
-        table.insert(table_lines, cur_table_line_num + 1, new_table_line)
+        table.insert(tdata.contents, cur_table_line_num + 1, new_table_line)
     end
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
 end
 
 ---Insert a row above the current row
@@ -410,9 +433,9 @@ function M.best_fit(opts)
     local silent = opts.silent or false
     vim.validate("silent", silent, "boolean")
 
-    local table_lines, startl, endl = M.get_table_lines({ silent = silent })
+    local tdata = M.parse({ silent = silent })
 
-    if table_lines == nil or startl == nil or endl == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
@@ -425,13 +448,13 @@ function M.best_fit(opts)
     end
 
     -- Trim whitespace in each cell
-    for r, v in ipairs(table_lines) do
+    for r, v in ipairs(tdata.contents) do
         for c, vv in ipairs(v) do
-            table_lines[r][c] = padding .. vim.trim(vv) .. padding
+            tdata.contents[r][c] = padding .. vim.trim(vv) .. padding
         end
     end
 
-    local cols_count = #table_lines[1]
+    local cols_count = #tdata.contents[1]
 
     -- Initialise the max char count
     for _ = 1, cols_count do
@@ -440,7 +463,7 @@ function M.best_fit(opts)
 
     -- Get max char count for each column
     for c = 1, cols_count do
-        for _, r in ipairs(table_lines) do
+        for _, r in ipairs(tdata.contents) do
             if #r[c] > max_char_count[c]  then
                 max_char_count[c] = #r[c]
             end
@@ -448,17 +471,17 @@ function M.best_fit(opts)
     end
 
     -- Add spaces to fill void in smaller cells
-    for r, v in ipairs(table_lines) do
+    for r, v in ipairs(tdata.contents) do
         for c, vv in ipairs(v) do
             if #vv < max_char_count[c] then
-                table_lines[r][c] = vv .. (" "):rep(max_char_count[c] - #vv)
+                tdata.contents[r][c] = vv .. (" "):rep(max_char_count[c] - #vv)
             end
         end
     end
 
     -- Add the dashes for the delimeter row
     local new_delimiter_row = ""
-    for c, v in ipairs(table_lines[2]) do
+    for c, v in ipairs(tdata.contents[2]) do
         local colon1, _, colon2 = v:match("([:]?)([-]+)([:]?)")
         new_delimiter_row = ("-"):rep(max_char_count[c])
         if colon1 == ":" then
@@ -467,10 +490,10 @@ function M.best_fit(opts)
         if colon2 == ":" then
             new_delimiter_row = new_delimiter_row:sub(1, -2) .. ":"
         end
-        table_lines[2][c] = new_delimiter_row
+        tdata.contents[2][c] = new_delimiter_row
     end
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
 end
 
 ---Delete current column. Can also use visual block mode
@@ -481,18 +504,18 @@ function M.column_delete()
         return
     end
 
-    local table_lines, startl, endl = M.get_table_lines()
+    local tdata = M.parse()
 
-    if table_lines == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
-    for _, v in ipairs(table_lines) do
+    for _, v in ipairs(tdata.contents) do
         table.remove(v, cur_col)
     end
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
 end
 
 ---Toggle alignment of the current column
@@ -503,14 +526,14 @@ function M.column_alignment_toggle()
         return
     end
 
-    local table_lines, startl, endl = M.get_table_lines()
+    local tdata = M.parse()
 
-    if table_lines == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
-    local delimiter_row = table_lines[2][cur_col]
+    local delimiter_row = tdata.contents[2][cur_col]
     local new_delimiter_row = ""
 
     -- if delimeter row is --- create :--
@@ -531,9 +554,9 @@ function M.column_alignment_toggle()
         return
     end
 
-    table_lines[2][cur_col] = new_delimiter_row
+    tdata.contents[2][cur_col] = new_delimiter_row
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
 end
 
 ---Duplicate the current column. Inserts it to the right
@@ -544,14 +567,14 @@ function M.column_duplicate()
         return
     end
 
-    local table_lines, startl, endl = M.get_table_lines()
+    local tdata = M.parse()
 
-    if table_lines == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
-    for _, r in ipairs(table_lines) do
+    for _, r in ipairs(tdata.contents) do
         for j, c in ipairs(r) do
             if j == cur_col then
                 table.insert(r, cur_col, c)
@@ -560,7 +583,7 @@ function M.column_duplicate()
         end
     end
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
 end
 
 ---Get table as columns
@@ -571,18 +594,18 @@ function M.get_table_columns(opts)
     local silent = opts.silent or false
     vim.validate("silent", silent, "boolean")
 
-    local table_lines = M.get_table_lines({ silent = silent })
+    local tdata = M.parse({ silent = silent })
 
-    if table_lines == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
     local table_columns = {}
     local column = {}
-    for c = 1, #table_lines[1] do
+    for c = 1, #tdata.contents[1] do
         column = {}
-        for _, r in ipairs(table_lines) do
+        for _, r in ipairs(tdata.contents) do
             table.insert(column, r[c])
         end
         table.insert(table_columns, column)
@@ -628,25 +651,25 @@ function M.column_sort(comp, write)
         end
     end
 
-    local table_lines, startl, endl = M.get_table_lines()
+    local tdata = M.parse()
 
-    if table_lines == nil then
+    if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
     local new_table_lines = {}
-    table.insert(new_table_lines, table_lines[1])
-    table.insert(new_table_lines, table_lines[2])
+    table.insert(new_table_lines, tdata.contents[1])
+    table.insert(new_table_lines, tdata.contents[2])
     for _, v in ipairs(index_tbl) do
-        new_table_lines[v.new_index] = table_lines[v.old_index]
+        new_table_lines[v.new_index] = tdata.contents[v.old_index]
     end
 
     if write == true then
-        M.write_table_lines(new_table_lines, startl, endl)
+        M.write_table_lines(0, tdata.startl, tdata.endl, new_table_lines)
     end
 
-    return new_table_lines, startl, endl
+    return new_table_lines, tdata.startl, tdata.endl
 end
 
 function M.column_sort_ascending()
@@ -656,7 +679,7 @@ function M.column_sort_ascending()
         return
     end
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, startl, endl, table_lines)
 end
 
 function M.column_sort_descending()
@@ -666,7 +689,7 @@ function M.column_sort_descending()
         return
     end
 
-    M.write_table_lines(table_lines, startl, endl)
+    M.write_table_lines(0, startl, endl, table_lines)
 end
 
 ---Get table as columns

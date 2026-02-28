@@ -2,21 +2,31 @@
 
 local M = {}
 
----@class MdnLocation
+---@class MdnInLineLocation
 ---@field buffer integer? Buffer number
 ---@field lnum integer? Line number
 ---@field col_start integer? Start column of text
 ---@field col_end integer? End column of text
 ---@field cur_col integer? Set the current cursor position on the line
 
----@class MdnText: MdnLocation
----@field text string? Text in the corresponding location
+---@class MdnMultiLineLocation
+---@field buffer integer? Buffer number
+---@field startl integer? Start line
+---@field endl integer? End line
 
 ---@class MdnSearchOpts
 ---@field buffer integer?
 ---@field origin_lnum integer? Line number between the lower and upper limits
 ---@field upper_limit_lnum integer? Higher limit of search
 ---@field lower_limit_lnum integer? Lower limit of search
+
+---@class MdnSearchRet
+---@field valid boolean Is the search item valid
+---@field startl integer|nil Start line of the item
+---@field endl integer|nil End line of the item
+
+---@class MdnText: MdnInLineLocation
+---@field text string? Text in the corresponding location
 
 ---@type MdnConfig
 M.config = {}
@@ -207,7 +217,7 @@ end
 
 ---Check text for valid Markdown syntax
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
----@param opts {location: MdnLocation?}?
+---@param opts {location: MdnInLineLocation?}?
 ---@return boolean|nil
 function M.check_markdown_syntax(pattern, opts)
     opts = opts or {}
@@ -230,7 +240,7 @@ function M.check_markdown_syntax(pattern, opts)
 end
 
 ---Get the text that was either, selected using Visual mode, under cursor in Normal mode, or specified using the opts table
----@param opts {location: MdnLocation?}?
+---@param opts {location: MdnInLineLocation?}?
 ---@return MdnText
 function M.get_text(opts)
     opts = opts or {}
@@ -280,7 +290,7 @@ end
 ---Get the text inside a pattern as well as the start and end columns
 ---Can use opts.location to specify location of search
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
----@param opts {location: MdnLocation?}?
+---@param opts {location: MdnInLineLocation?}?
 ---@return MdnText
 function M.get_text_in_pattern(pattern, opts)
     opts = opts or {}

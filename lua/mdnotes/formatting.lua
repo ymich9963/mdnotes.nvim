@@ -3,7 +3,7 @@
 local M = {}
 
 ---@class MdnFormattingOpts
----@field location MdnLocation?
+---@field location MdnInLineLocation?
 ---@field move_cursor boolean?
 
 ---@alias MdnFormats
@@ -59,6 +59,7 @@ local check_markdown_syntax = function(...) return require('mdnotes').check_mark
 ---@field text string List item text
 ---@field type '"ordered"'|'"unordered"'
 
+--TODO: Remove for MdnMultiLineLocation? Also silent shouldn't be there
 ---@class MdnLineRange
 ---@field buffer integer?
 ---@field range {lnum_start: integer?, lnum_end: integer?}
@@ -109,7 +110,7 @@ end
 
 ---Check current line position for text in a Markdown format
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
----@param opts {location: MdnLocation?, move_cursor: boolean?}?
+---@param opts {location: MdnInLineLocation?, move_cursor: boolean?}?
 function M.delete_format(pattern, opts)
     opts = opts or {}
     local move_cursor = opts.move_cursor ~= false
@@ -292,7 +293,7 @@ end
 --TODO: Tests for function
 ---Check if the list surrounding the origin line is valid and return its line numbers
 ---@param opts {same_indent: boolean?, search: MdnSearchOpts?, outliner_list: boolean?}?
----@return boolean list_valid , integer list_startl, integer list_endl 
+---@return MdnSearchRet
 function M.check_list_valid(opts)
     opts = opts or {}
 
@@ -301,26 +302,27 @@ function M.check_list_valid(opts)
     local search_opts = opts.search or {}
     local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
-    local upper_limit_lnum = search_opts.upper_limit_lnum or vim.fn.line('0')
-    local lower_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
+    local lower_limit_lnum = search_opts.upper_limit_lnum or 1
+    local upper_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
 
+    -- Get the origin line's list content
     local origin_line = vim.api.nvim_buf_get_lines(buffer, origin_lnum - 1, origin_lnum, false)[1]
     local lcontent = M.resolve_list_content(origin_line)
     if lcontent.marker == nil or lcontent.separator == nil then
-        return false, 0, 0
+        return { valid = false }
     end
 
-    local cur_line = ""
     local list_startl = 0
     local list_endl = 0
+    local detected_marker = lcontent.marker
     local detected_separator = lcontent.separator
     local detected_indent = lcontent.indent
 
     -- If the list should be treated as an outliner list
     if outliner_list == true then
         list_endl = origin_lnum
-        for i = origin_lnum, lower_limit_lnum do
-            cur_line = vim.fn.getline(i)
+        for i = origin_lnum, upper_limit_lnum do
+            local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
             lcontent = M.resolve_list_content(cur_line)
             if lcontent.indent == detected_indent and i > origin_lnum then break end
             if lcontent.indent >= detected_indent then
@@ -328,27 +330,32 @@ function M.check_list_valid(opts)
             end
         end
 
-        return true, origin_lnum, list_endl
+        return {
+            valid = true,
+            startl = origin_lnum,
+            endl = list_endl,
+        }
     end
 
     -- Find where list starts
-    for i = origin_lnum, upper_limit_lnum, -1 do
-        cur_line = vim.fn.getline(i)
+    for i = origin_lnum, lower_limit_lnum, -1 do
+        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        if not cur_line then vim.print(origin_lnum, i - 1, i) end
         lcontent = M.resolve_list_content(cur_line)
-        if not lcontent.marker and lcontent.separator ~= detected_separator then
+        if lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
             break
         end
         if same_indent == true and lcontent.indent ~= detected_indent  then
             break
         end
-        list_startl = i - 1
+        list_startl = i
     end
 
     -- Find where the list ends
-    for i = origin_lnum, lower_limit_lnum do
-        cur_line = vim.fn.getline(i)
+    for i = origin_lnum, upper_limit_lnum do
+        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
         lcontent = M.resolve_list_content(cur_line)
-        if not lcontent.marker and lcontent.separator ~= detected_separator and lcontent.indent ~= detected_indent then
+        if lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
             break
         end
         if same_indent == true and lcontent.indent ~= detected_indent  then
@@ -357,7 +364,11 @@ function M.check_list_valid(opts)
         list_endl = i
     end
 
-    return true, list_startl, list_endl
+    return {
+        valid = true,
+        startl = list_startl,
+        endl = list_endl,
+    }
 end
 
 ---Renumber the ordered list
@@ -371,8 +382,8 @@ function M.ordered_list_renumber(opts)
 
     vim.validate("silent", silent, "boolean")
 
-    local list_valid, list_startl, list_endl = M.check_list_valid(search_opts)
-    if list_valid == false then
+    local lsearch = M.check_list_valid({ search = search_opts })
+    if lsearch.valid == false then
         if silent == false then
             vim.notify("Mdn: Unable to detect an ordered list", vim.log.levels.ERROR)
         end
@@ -392,7 +403,8 @@ function M.ordered_list_renumber(opts)
     end
 
     -- Get list
-    local list_lines = vim.api.nvim_buf_get_lines(buffer, list_startl, list_endl, false)
+    local list_lines = vim.api.nvim_buf_get_lines(buffer, lsearch.startl - 1, lsearch.endl, false)
+    vim.print(list_lines)
 
     local new_list_lines = {}
     for i, v in ipairs(list_lines) do
@@ -403,7 +415,7 @@ function M.ordered_list_renumber(opts)
         table.insert(new_list_lines, spaces .. num .. separator .. " " .. text)
     end
 
-    vim.api.nvim_buf_set_lines(buffer, list_startl, list_endl, false, new_list_lines)
+    vim.api.nvim_buf_set_lines(buffer, lsearch.startl - 1, lsearch.endl, false, new_list_lines)
 end
 
 ---Remove Markdown formatting from the selected lines
