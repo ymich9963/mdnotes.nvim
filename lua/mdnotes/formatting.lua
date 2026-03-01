@@ -26,6 +26,16 @@ local M = {}
 ---@field indicator fun(): MdnFormatIndicators Function returning a string for the format indicator
 ---@field pattern fun(): MdnPattern Function returning the pattern for the specified Markdown format
 
+---@class MdnListContent List item contents that have been deemed important by me
+---@field indent string Indent of list item
+---@field marker string List item marker
+---@field separator string List item separator, only in ordered lists
+---@field text string List item text
+---@field type '"ordered"'|'"unordered"'
+
+---@class MdnInsertFormatOpts: MdnFormattingOpts
+---@field split_fi boolean? Split formatting indicator
+
 ---@type table<MdnFormats, MdnFormatData>
 local md_format = {
     emphasis = {
@@ -51,22 +61,6 @@ local md_format = {
 }
 
 local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
-
----@class MdnListContent List item contents that have been deemed important by me
----@field indent string Indent of list item
----@field marker string List item marker
----@field separator string List item separator, only in ordered lists
----@field text string List item text
----@field type '"ordered"'|'"unordered"'
-
---TODO: Remove for MdnMultiLineLocation? Also silent shouldn't be there
----@class MdnLineRange
----@field buffer integer?
----@field range {lnum_start: integer?, lnum_end: integer?}
----@field silent boolean?
-
----@class MdnInsertFormatOpts: MdnFormattingOpts
----@field split_fi boolean? Split formatting indicator
 
 ---Insert a Markdown format
 ---@param format_char MdnFormatIndicators
@@ -230,24 +224,25 @@ function M.resolve_list_content(line)
 end
 
 ---Toggle task list state
----@param opts MdnLineRange?
+---@param opts {location: MdnMultiLineLocation?, silent: boolean?}?
 function M.task_list_toggle(opts)
     opts = opts or {}
-    local buffer = opts.buffer or 0
+
+    local locopts = opts.location or {}
+    local buffer = locopts.buffer or 0
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
     local silent = opts.silent or false
-    local range = opts.range or {}
-    local lnum_start = range.lnum_start or vim.fn.line('.')
-    local lnum_end = range.lnum_end or vim.fn.line('.')
 
     vim.validate("buffer", buffer, "number")
     vim.validate("silent", silent, "boolean")
-    vim.validate("lnum_start", lnum_start, "number")
-    vim.validate("lnum_end", lnum_end, "number")
+    vim.validate("startl", startl, "number")
+    vim.validate("endl", endl, "number")
 
     local mdnotes_patterns = require('mdnotes.patterns')
     local new_lines = {}
     local new_text = ""
-    local lines = vim.api.nvim_buf_get_lines(buffer, lnum_start - 1, lnum_end, false)
+    local lines = vim.api.nvim_buf_get_lines(buffer, startl - 1, endl, false)
 
     local cur_col = vim.fn.col('.')
     for i, line in ipairs(lines) do
@@ -275,7 +270,7 @@ function M.task_list_toggle(opts)
             table.insert(new_lines, new_text)
         else
             if silent == false then
-                vim.notify(("Mdn: Unable to detect a task list marker at line ".. tostring(lnum_start - 1 + i)), vim.log.levels.ERROR)
+                vim.notify(("Mdn: Unable to detect a task list marker at line ".. tostring(startl - 1 + i)), vim.log.levels.ERROR)
             end
             return
         end
@@ -284,10 +279,10 @@ function M.task_list_toggle(opts)
     if cur_col < 1 then cur_col = 1 end
 
     if #lines == 1 then
-        vim.fn.cursor(lnum_start, cur_col)
+        vim.fn.cursor(startl, cur_col)
     end
 
-    vim.api.nvim_buf_set_lines(buffer, lnum_start - 1, lnum_end, false, new_lines)
+    vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, new_lines)
 end
 
 --TODO: Tests for function
@@ -419,19 +414,20 @@ function M.ordered_list_renumber(opts)
 end
 
 ---Remove Markdown formatting from the selected lines
----@param opts MdnLineRange?
+---@param opts {location: MdnMultiLineLocation?, silent: boolean?}?
 function M.unformat_lines(opts)
     opts = opts or {}
-    local buffer = opts.buffer or 0
+
+    local locopts = opts.location or {}
+    local buffer = locopts.buffer or 0
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
     local silent = opts.silent or false
-    local range = opts.range or {}
-    local lnum_start = range.lnum_start or vim.fn.line('.')
-    local lnum_end = range.lnum_end or vim.fn.line('.')
 
     vim.validate("buffer", buffer, "number")
     vim.validate("silent", silent, "boolean")
-    vim.validate("lnum_start", lnum_start, "number")
-    vim.validate("lnum_end", lnum_end, "number")
+    vim.validate("startl", startl, "number")
+    vim.validate("endl", endl, "number")
 
     local mdnotes_patterns = require('mdnotes.patterns')
     local new_lines = {}

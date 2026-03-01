@@ -195,7 +195,7 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
 
     if func == commands.formatting.task_list_toggle
         or func == commands.formatting.unformat_lines then
-        func({ range = { lnum_start = opts.line1, lnum_end = opts.line2 } })
+        func({ location = { startl = opts.line1, endl = opts.line2 } })
     elseif func == commands.table.create then
         func(args[3], args[4])
     elseif func == commands.toc.generate then
