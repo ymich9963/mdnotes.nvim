@@ -145,6 +145,8 @@ end
 ---@param table_endl integer
 ---@return MdnTableContents
 function M.get_table_lines(buffer, table_startl, table_endl)
+    buffer = buffer or vim.api.nvim_get_current_buf()
+
     vim.validate("buffer", buffer, "number")
     vim.validate("table_startl", table_startl, "number")
     vim.validate("table_endl", table_endl, "number")
@@ -176,6 +178,8 @@ end
 ---@param table_endl integer
 ---@return MdnTableComplex
 function M.get_table_lines_complex(buffer, table_startl, table_endl)
+    buffer = buffer or vim.api.nvim_get_current_buf()
+
     vim.validate("buffer", buffer, "number")
     vim.validate("table_startl", table_startl, "number")
     vim.validate("table_endl", table_endl, "number")

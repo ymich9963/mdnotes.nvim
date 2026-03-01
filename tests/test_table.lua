@@ -99,7 +99,7 @@ T['get_table_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.table').get_table_lines(1,4)]])
+    local ret = child.lua([[return require('mdnotes.table').get_table_lines(0,1,4)]])
     eq(ret, {
         {"1r1c","1r2c","1r3c"},
         {"----","----","----"},
@@ -262,7 +262,7 @@ T['get_table_lines_complex()'] = function()
         }
     }
 
-    local ret = child.lua([[return require('mdnotes.table').get_table_lines_complex(1, 4)]])
+    local ret = child.lua([[return require('mdnotes.table').get_table_lines_complex(0, 1, 4)]])
     eq(ret, expected_table_complex)
 end
 

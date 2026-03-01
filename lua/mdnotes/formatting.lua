@@ -445,7 +445,7 @@ function M.unformat_lines(opts)
         mdnotes_patterns.task,
     }
 
-    local lines = vim.api.nvim_buf_get_lines(buffer, lnum_start - 1, lnum_end, false)
+    local lines = vim.api.nvim_buf_get_lines(buffer, startl - 1, endl, false)
 
     for _, line in ipairs(lines) do
         line = line:gsub("[^%d%a%p ]+", "")
@@ -475,7 +475,7 @@ function M.unformat_lines(opts)
         table.insert(new_lines, line)
     end
 
-    vim.api.nvim_buf_set_lines(buffer, lnum_start - 1, lnum_end, false, new_lines)
+    vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, new_lines)
 end
 
 return M
