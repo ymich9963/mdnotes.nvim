@@ -140,13 +140,17 @@ function M.create(rows, columns)
 end
 
 ---Get the table lines in the specified line numbers
+---@param buffer integer
 ---@param table_startl integer
 ---@param table_endl integer
 ---@return MdnTableContents
-function M.get_table_lines(table_startl, table_endl)
-    local table_lines = {}
+function M.get_table_lines(buffer, table_startl, table_endl)
+    vim.validate("buffer", buffer, "number")
+    vim.validate("table_startl", table_startl, "number")
+    vim.validate("table_endl", table_endl, "number")
 
-    local lines = vim.api.nvim_buf_get_lines(0, table_startl - 1, table_endl, false)
+    local table_lines = {}
+    local lines = vim.api.nvim_buf_get_lines(buffer, table_startl - 1, table_endl, false)
 
     -- Trim whitespace
     for r, v in ipairs(lines) do
@@ -167,11 +171,16 @@ function M.get_table_lines(table_startl, table_endl)
 end
 
 ---Get the table lines along with some more information (which is why it's called complex)
+---@param buffer integer
 ---@param table_startl integer
 ---@param table_endl integer
 ---@return MdnTableComplex
-function M.get_table_lines_complex(table_startl, table_endl)
-    local table_lines = M.get_table_lines(table_startl, table_endl)
+function M.get_table_lines_complex(buffer, table_startl, table_endl)
+    vim.validate("buffer", buffer, "number")
+    vim.validate("table_startl", table_startl, "number")
+    vim.validate("table_endl", table_endl, "number")
+
+    local table_lines = M.get_table_lines(buffer, table_startl, table_endl)
 
     if table_lines == nil then
         -- Errors would already be outputted
@@ -223,9 +232,9 @@ function M.parse(opts)
 
     local table_lines = {}
     if complex == false then
-        table_lines = M.get_table_lines(tsearch.startl, tsearch.endl) or {}
+        table_lines = M.get_table_lines(search_opts.buffer, tsearch.startl, tsearch.endl) or {}
     elseif complex == true then
-        table_lines = M.get_table_lines_complex(tsearch.startl, tsearch.endl) or {}
+        table_lines = M.get_table_lines_complex(search_opts.buffer, tsearch.startl, tsearch.endl) or {}
     end
 
     if vim.tbl_isempty(table_lines) then
@@ -625,6 +634,7 @@ function M.column_sort(comp, write)
         return
     end
 
+    --TODO: locopts
     local table_columns = M.get_table_columns()
 
     if table_columns == nil then
@@ -673,23 +683,11 @@ function M.column_sort(comp, write)
 end
 
 function M.column_sort_ascending()
-    local table_lines, startl, endl = M.column_sort(function(a, b) return a < b end, false)
-    if table_lines == nil then
-        -- Errors would already be outputted
-        return
-    end
-
-    M.write_table_lines(0, startl, endl, table_lines)
+    M.column_sort(function(a, b) return a < b end)
 end
 
 function M.column_sort_descending()
-    local table_lines, startl, endl = M.column_sort(function(a, b) return a > b end, false)
-    if table_lines == nil then
-        -- Errors would already be outputted
-        return
-    end
-
-    M.write_table_lines(0, startl, endl, table_lines)
+    M.column_sort(function(a, b) return a > b end)
 end
 
 ---Get table as columns
