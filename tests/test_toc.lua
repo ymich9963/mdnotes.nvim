@@ -182,7 +182,7 @@ T['get_fragments_from_buf()'] = function()
     })
 end
 
-T['get_fragment_from_buf_fragments()'] = function()
+T['get_fragments_from_buf_fragments()'] = function()
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -196,7 +196,7 @@ T['get_fragment_from_buf_fragments()'] = function()
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     require('mdnotes.toc').populate_buf_fragments(cur_buf)
-    return require('mdnotes.toc').get_fragment_from_buf_fragments(cur_buf, "heading-1")
+    return require('mdnotes.toc').get_fragments_from_buf_fragments(cur_buf, "heading-1")
     ]])
     eq(ret, "Heading 1")
 end
@@ -264,7 +264,6 @@ T['generate()'] = function()
     eq(lines, {
         "- [Heading 1](#heading-1)",
         "    - [Heading 2](#heading-2)",
-        "# Heading 1",
         "Text here",
         "",
         "## Heading 2",

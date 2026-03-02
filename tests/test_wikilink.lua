@@ -24,13 +24,21 @@ local T = new_set({
 })
 
 T['parse()'] = function()
-    local ret = child.lua("return require('mdnotes.wikilink').parse('[[test#fragment]]')")
+    local lines = {
+        "[[test#fragment]]"
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua("return require('mdnotes.wikilink').parse()")
     eq(ret, {
-        wikilink = "test#fragment",
-        wikilink_no_fragment = "test",
+        buffer = 2,
+        col_end = 18,
+        col_start = 1,
+        cur_col = 1,
+        lnum = 1,
+        text = "test#fragment",
+        wikilink_nofrag = "test",
         fragment = "fragment",
-        col_start = 0,
-        col_end = 0
     })
 end
 
@@ -93,7 +101,7 @@ T['rename_references()'] = function()
     -- Rename file3 to file33
     child.cmd([[edit tests/test-data/files/file4.md]])
     child.fn.cursor(2,1)
-    local ret = child.lua([[return {require('mdnotes.wikilink').rename_references("file55")}]])
+    local ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file55" })}]])
     eq(ret, {"file5", "file55"})
     local lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)
     eq(lines[2], "[[file55]]")
@@ -108,14 +116,14 @@ T['rename_references()'] = function()
     -- Rename back to file3
     child.fn.cursor(2,1)
     child.cmd([[edit tests/test-data/files/file4.md]])
-    child.lua([[require('mdnotes.wikilink').rename_references("file5")]])
+    child.lua([[require('mdnotes.wikilink').rename_references({ new_name = "file5" })]])
 
     -- Self rename
     child.fn.cursor(1,1)
-    ret = child.lua([[return {require('mdnotes.wikilink').rename_references("file44")}]])
+    ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file44" })}]])
     eq(ret, {"file4", "file44"})
     eq(vim.fs.basename(child.api.nvim_buf_get_name(0)), "file44.md")
-    child.lua([[require('mdnotes.wikilink').rename_references("file4")]])
+    child.lua([[require('mdnotes.wikilink').rename_references({ new_name = "file4" })]])
     eq(vim.fs.basename(child.api.nvim_buf_get_name(0)), "file4.md")
 end
 
@@ -123,7 +131,7 @@ T['undo_rename()'] = function()
     -- Rename file3 to file33
     child.cmd([[edit tests/test-data/files/file4.md]])
     child.fn.cursor(2,1)
-    local ret = child.lua([[return {require('mdnotes.wikilink').rename_references("file55")}]])
+    local ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file55" })}]])
     eq(ret, {"file5", "file55"})
 
     ret = child.lua([[return {require('mdnotes.wikilink').undo_rename()}]])
@@ -152,7 +160,7 @@ T['delete()'] = function()
         vim.fs.basename(vim.fs.find("file6.md", { path = './tests/test-data/files' })[1]),
         "file6.md"
     )
-    child.lua([[require('mdnotes.wikilink').delete(true)]])
+    child.lua([[require('mdnotes.wikilink').delete({ skip_input = true })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "./tests/test-data/files/file6")
     eq(vim.fs.find("file6.md", { path = './tests/test-data/files' }), {})

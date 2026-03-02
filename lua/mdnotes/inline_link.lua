@@ -21,12 +21,12 @@ function M.parse(opts)
 
     -- Overwrite if location is given
     local inline_link = opts.inline_link
-    if opts.location then
-        inline_link = nil
-    end
+    local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
 
     local locopts = opts.location or {}
-    local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
+    if not vim.tbl_isempty(locopts) then
+        inline_link = nil
+    end
 
     vim.validate("inline_link", inline_link, { "string", "nil" })
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
@@ -37,8 +37,8 @@ function M.parse(opts)
 
     if inline_link == nil then
         if not check_markdown_syntax(il_pattern, {location = locopts}) then return nil end
-        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, {location = locopts })
-        inline_link = txtdata.text or ""
+        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = locopts })
+        inline_link = txtdata.text
     end
 
     local text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
@@ -153,7 +153,7 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
             local mdn_toc = require('mdnotes.toc')
             mdn_toc.populate_buf_fragments(buf)
 
-            local new_fragment = mdn_toc.get_fragment_from_buf_fragments(buf, fragment)
+            local new_fragment = mdn_toc.get_fragments_from_buf_fragments(buf, fragment)
             if new_fragment == nil then
                 return fragment, -3
             end

@@ -15,15 +15,15 @@ local M = {}
 ---@alias MdnTableColLoc table<table<integer>> Table column locations
 ---@alias MdnTableComplex table<table<MdnTableComplexData>> Complex table data which is just more information about the table
 
---TODO: Add location opts to EVERYTHING
-
----Check if there is a table under the cursor
+---Check if there is a table in the specified search range or under the cursor
 ---@param opts {search: MdnSearchOpts?}?
 ---@return MdnSearchRet
 function M.check_table_valid(opts)
     opts = opts or {}
 
     local search_opts = opts.search or {}
+    vim.validate("search_opts", search_opts, "table")
+
     local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
     local lower_limit_lnum = search_opts.upper_limit_lnum or 1
@@ -79,11 +79,15 @@ end
 
 ---Write the table to the buffer
 ---Use startl == endl for inserting at current line
----@param buffer integer
----@param startl integer
----@param endl integer
----@param contents MdnTableContents
-function M.write_table_lines(buffer, startl, endl, contents)
+---@param opts MdnTable
+function M.write_table_lines(opts)
+    opts = opts or {}
+
+    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+    local startl = opts.startl or vim.fn.line('.')
+    local endl = opts.endl or vim.fn.line('.')
+    local contents = opts.contents or {""}
+
     vim.validate("buffer", buffer, "number")
     vim.validate("startl", startl, "number")
     vim.validate("endl", endl, "number")
@@ -110,11 +114,16 @@ end
 ---Create a table with r rows and c columns
 ---@param rows integer Rows
 ---@param columns integer Columns
-function M.create(rows, columns)
+---@param opts {buffer: integer?, lnum: integer?}?
+function M.create(rows, columns, opts)
     if rows == nil or columns == nil then
         vim.notify("Mdn: Please specify both row and column dimensions", vim.log.levels.ERROR)
         return
     end
+
+    opts = opts or {}
+    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+    local lnum = opts.lnum or vim.fn.line('.')
 
     vim.validate("rows", rows, "number")
     vim.validate("columns", columns, "number")
@@ -136,7 +145,7 @@ function M.create(rows, columns)
     end
     table.insert(new_table, 2, header_row)
 
-    M.write_table_lines(0, vim.fn.line('.'), vim.fn.line('.'), new_table)
+    M.write_table_lines({ buffer = buffer, startl = lnum, endl = lnum, contents = new_table })
 end
 
 ---Get the table lines in the specified line numbers
@@ -212,12 +221,14 @@ function M.get_table_lines_complex(buffer, table_startl, table_endl)
 end
 
 ---Parse the table
----@param opts {silent: boolean?, search: MdnSearchOpts, complex: boolean?}? opts.silent: Silence notifications
+---@param opts {silent: boolean?, search: MdnSearchOpts?, complex: boolean?}? opts.silent: Silence notifications
 ---@return MdnTable
 function M.parse(opts)
     opts = opts or {}
 
     local search_opts = opts.search or {}
+    vim.validate("search_opts", search_opts, "table")
+
     local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
     local silent = opts.silent or false
     local complex = opts.complex or false
@@ -289,7 +300,7 @@ function M.get_cur_column_num()
 
     if tdata.contents == nil then
         -- Errors would already be outputted
-        return
+        return nil
     end
 
     local cur_cursor_col_pos = vim.fn.getpos(".")[3]
@@ -307,27 +318,10 @@ function M.get_cur_column_num()
 end
 
 ---Insert a column to the table either left or right
----@param direction '"left"'|'"right"' Column insertion direction
-local function insert_column(direction)
-    local cur_col = M.get_cur_column_num()
+---@param contents table tdata.contents
+local function insert_column(contents, cur_col)
 
-    if cur_col == nil then
-        return
-    end
-
-    local tdata = M.parse()
-
-    if tdata.contents == nil then
-        -- Errors would already be outputted
-        return
-    end
-
-    if direction == "right" then
-        cur_col = cur_col + 1
-    elseif direction == "left" then
-    end
-
-    for i, v in ipairs(tdata.contents) do
+    for i, v in ipairs(contents) do
         if i == 2 then
             table.insert(v, cur_col, "----")
         else
@@ -335,84 +329,137 @@ local function insert_column(direction)
         end
     end
 
-    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
+    return contents
 end
 
 ---Insert column to the left of the current column
-function M.column_insert_left()
-    insert_column("left")
-end
+---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+function M.column_insert_left(opts)
+    opts = opts or {}
+    local tdata = M.parse({ search = opts.search })
 
----Insert column to the right of the current column
-function M.column_insert_right()
-    insert_column("right")
-end
+    if tdata.contents == nil then
+        -- Errors would already be outputted
+        return
+    end
 
----Move a column either left or right
----@param direction '"left"'|'"right"' Column move direction
-local function move_column(direction)
-    local cur_col = M.get_cur_column_num()
+    local cur_col = opts.cur_col or M.get_cur_column_num()
 
     if cur_col == nil then
         return
     end
 
-    local new_col = 0
-    if direction == "left" then
-        new_col = cur_col - 1
-    elseif direction == "right" then
-        new_col = cur_col + 1
-    end
+    vim.validate("cur_col", cur_col, "number")
 
-    local tdata = M.parse()
+    tdata.contents = insert_column(tdata.contents, cur_col)
+
+    M.write_table_lines(tdata)
+end
+
+---Insert column to the right of the current column
+---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+function M.column_insert_right(opts)
+    opts = opts or {}
+    local tdata = M.parse({ search = opts.search })
 
     if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
-    if new_col < 1 or new_col > #tdata.contents[1] then
-        vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
+    local cur_col = opts.cur_col or M.get_cur_column_num()
+
+    if cur_col == nil then
         return
     end
 
+    vim.validate("cur_col", cur_col, "number")
+
+    tdata.contents = insert_column(tdata.contents, cur_col + 1)
+
+    M.write_table_lines(tdata)
+end
+
+---Move a column either left or right
+local function move_column(contents, new_col, cur_col)
+    if new_col < 1 or new_col > #contents[1] then
+        return nil
+    end
+
     local temp_col_val = ""
-    for _, v in ipairs(tdata.contents) do
+    for _, v in ipairs(contents) do
         temp_col_val = v[cur_col]
         table.remove(v, cur_col)
         table.insert(v, new_col, temp_col_val)
     end
 
-    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
+    return contents
 end
 
 ---Move current column to the left
-function M.column_move_left()
-    move_column("left")
-end
-
----Move current column to the right
-function M.column_move_right()
-    move_column("right")
-end
-
----Insert an empty row either above or below
----@param direction '"above"'|'"below"' Row insertion direction
-local function insert_row(direction)
-    local tdata = M.parse()
+---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+function M.column_move_left(opts)
+    opts = opts or {}
+    local tdata = M.parse({ search = opts.search })
 
     if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
 
-    local cur_cursor_line = vim.fn.line('.')
-    local cur_table_line_num = cur_cursor_line - tdata.startl
+    local cur_col = opts.cur_col or M.get_cur_column_num()
 
+    if cur_col == nil then
+        return
+    end
+
+    vim.validate("cur_col", cur_col, "number")
+
+    local contents = move_column(tdata.contents, cur_col - 1, cur_col)
+    if contents == nil then
+        vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
+        return
+    end
+    tdata.contents = contents
+
+    M.write_table_lines(tdata)
+end
+
+---Move current column to the right
+---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+function M.column_move_right(opts)
+    opts = opts or {}
+    local tdata = M.parse({ search = opts.search })
+
+    if tdata.contents == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    local cur_col = opts.cur_col or M.get_cur_column_num()
+
+    if cur_col == nil then
+        return
+    end
+
+    vim.validate("cur_col", cur_col, "number")
+
+    local contents = move_column(tdata.contents, cur_col + 1, cur_col)
+    if contents == nil then
+        vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
+        return
+    end
+    tdata.contents = contents
+
+    M.write_table_lines(tdata)
+end
+
+---Insert an empty row either above or below
+local function insert_row(contents, cur_table_line_num)
     -- In case the table is at the very top
     if cur_table_line_num == 0 then cur_table_line_num = 1 end
 
-    local cur_table_line = tdata.contents[cur_table_line_num]
+    local cur_table_line = contents[cur_table_line_num]
     local new_table_line = {}
 
     for _, v in ipairs(cur_table_line) do
@@ -420,33 +467,64 @@ local function insert_row(direction)
         table.insert(new_table_line, text)
     end
 
-    if direction == "above" then
-        table.insert(tdata.contents, cur_table_line_num, new_table_line)
-    elseif direction == "below" then
-        table.insert(tdata.contents, cur_table_line_num + 1, new_table_line)
-    end
-
-    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
+    return new_table_line
 end
 
 ---Insert a row above the current row
-function M.row_insert_above()
-    insert_row("above")
+---@param opts {search: MdnSearchOpts?, lnum: integer?}? opts.silent: Silence notifications
+function M.row_insert_above(opts)
+    opts = opts or {}
+    local search_opts = opts.search or {}
+    local lnum = opts.lnum or vim.fn.line('.')
+    vim.validate("search_opts", search_opts, "table")
+    vim.validate("lnum", lnum, "number")
+
+    local tdata = M.parse({ search = search_opts })
+
+    if tdata.contents == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    local cur_table_line = lnum - tdata.startl
+    local new_table_line = insert_row(tdata.contents, cur_table_line)
+    table.insert(tdata.contents, cur_table_line, new_table_line)
+
+    M.write_table_lines(tdata)
 end
 
 ---Insert a row below the current row
-function M.row_insert_below()
-    insert_row("below")
+---@param opts {search: MdnSearchOpts?, lnum: integer?}? opts.silent: Silence notifications
+function M.row_insert_below(opts)
+    opts = opts or {}
+    local search_opts = opts.search or {}
+    local lnum = opts.lnum or vim.fn.line('.')
+    vim.validate("search_opts", search_opts, "table")
+    vim.validate("lnum", lnum, "number")
+
+    local tdata = M.parse({ search = search_opts })
+
+    if tdata.contents == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    local cur_table_line = lnum - tdata.startl
+    local new_table_line = insert_row(tdata.contents, cur_table_line)
+    table.insert(tdata.contents, cur_table_line + 1, new_table_line)
+
+    M.write_table_lines(tdata)
 end
 
 ---Add the appropriate amount of spaces for each column
----@param opts {silent: boolean?}? opts.silent: Silence notifications
+---@param opts {silent: boolean?, search: MdnSearchOpts?}? opts.silent: Silence notifications
 function M.best_fit(opts)
     opts = opts or {}
     local silent = opts.silent or false
+    local search_opts = opts.search or {}
     vim.validate("silent", silent, "boolean")
 
-    local tdata = M.parse({ silent = silent })
+    local tdata = M.parse({ search = search_opts, silent = silent })
 
     if tdata.contents == nil then
         -- Errors would already be outputted
@@ -506,45 +584,53 @@ function M.best_fit(opts)
         tdata.contents[2][c] = new_delimiter_row
     end
 
-    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
+    M.write_table_lines(tdata)
 end
 
 ---Delete current column. Can also use visual block mode
-function M.column_delete()
-    local cur_col = M.get_cur_column_num()
-
-    if cur_col == nil then
-        return
-    end
-
-    local tdata = M.parse()
+---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+function M.column_delete(opts)
+    opts = opts or {}
+    local tdata = M.parse({ search = opts.search })
 
     if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
+
+    local cur_col = opts.cur_col or M.get_cur_column_num()
+
+    if cur_col == nil then
+        return
+    end
+
+    vim.validate("cur_col", cur_col, "number")
 
     for _, v in ipairs(tdata.contents) do
         table.remove(v, cur_col)
     end
 
-    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
+    M.write_table_lines(tdata)
 end
 
 ---Toggle alignment of the current column
-function M.column_alignment_toggle()
-    local cur_col = M.get_cur_column_num()
-
-    if cur_col == nil then
-        return
-    end
-
-    local tdata = M.parse()
+---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+function M.column_alignment_toggle(opts)
+    opts = opts or {}
+    local tdata = M.parse({ search = opts.search })
 
     if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
+
+    local cur_col = opts.cur_col or M.get_cur_column_num()
+
+    if cur_col == nil then
+        return
+    end
+
+    vim.validate("cur_col", cur_col, "number")
 
     local delimiter_row = tdata.contents[2][cur_col]
     local new_delimiter_row = ""
@@ -569,23 +655,27 @@ function M.column_alignment_toggle()
 
     tdata.contents[2][cur_col] = new_delimiter_row
 
-    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
+    M.write_table_lines(tdata)
 end
 
 ---Duplicate the current column. Inserts it to the right
-function M.column_duplicate()
-    local cur_col = M.get_cur_column_num()
-
-    if cur_col == nil then
-        return
-    end
-
-    local tdata = M.parse()
+---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+function M.column_duplicate(opts)
+    opts = opts or {}
+    local tdata = M.parse({ search = opts.search })
 
     if tdata.contents == nil then
         -- Errors would already be outputted
         return
     end
+
+    local cur_col = opts.cur_col or M.get_cur_column_num()
+
+    if cur_col == nil then
+        return
+    end
+
+    vim.validate("cur_col", cur_col, "number")
 
     for _, r in ipairs(tdata.contents) do
         for j, c in ipairs(r) do
@@ -596,18 +686,20 @@ function M.column_duplicate()
         end
     end
 
-    M.write_table_lines(0, tdata.startl, tdata.endl, tdata.contents)
+    M.write_table_lines(tdata)
 end
 
 ---Get table as columns
----@param opts {silent: boolean?}? opts.silent: Silence notifications
+---@param opts {silent: boolean?, search: MdnSearchOpts?}? opts.silent: Silence notifications
 ---@return MdnTableContents|nil contents 
 function M.get_table_columns(opts)
     opts = opts or {}
     local silent = opts.silent or false
+    local search_opts = opts.search or {}
     vim.validate("silent", silent, "boolean")
+    vim.validate("search_opts", search_opts, "table")
 
-    local tdata = M.parse({ silent = silent })
+    local tdata = M.parse({ search = search_opts, silent = silent })
 
     if tdata.contents == nil then
         -- Errors would already be outputted
@@ -629,17 +721,28 @@ end
 
 ---Sort table based on current column
 ---@param comp fun(a, b): boolean
----@param write boolean? Write to buffer
-function M.column_sort(comp, write)
-    if write == nil then write = true end
-    local cur_col = M.get_cur_column_num()
+---@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
+function M.column_sort(comp, opts)
+    opts = opts or {}
+
+    local write = opts.write ~= false
+
+    local tdata = M.parse({ search = opts.search })
+
+    if tdata.contents == nil then
+        -- Errors would already be outputted
+        return
+    end
+
+    local cur_col = opts.cur_col or M.get_cur_column_num()
 
     if cur_col == nil then
         return
     end
 
-    --TODO: locopts
-    local table_columns = M.get_table_columns()
+    vim.validate("cur_col", cur_col, "number")
+
+    local table_columns = M.get_table_columns({ search = opts.search })
 
     if table_columns == nil then
         -- Errors would already be outputted
@@ -665,13 +768,6 @@ function M.column_sort(comp, write)
         end
     end
 
-    local tdata = M.parse()
-
-    if tdata.contents == nil then
-        -- Errors would already be outputted
-        return
-    end
-
     local new_table_lines = {}
     table.insert(new_table_lines, tdata.contents[1])
     table.insert(new_table_lines, tdata.contents[2])
@@ -680,23 +776,26 @@ function M.column_sort(comp, write)
     end
 
     if write == true then
-        M.write_table_lines(0, tdata.startl, tdata.endl, new_table_lines)
+        tdata.contents = new_table_lines
+        M.write_table_lines(tdata)
     end
 
     return new_table_lines, tdata.startl, tdata.endl
 end
 
-function M.column_sort_ascending()
-    M.column_sort(function(a, b) return a < b end)
+---@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
+function M.column_sort_ascending(opts)
+    M.column_sort(function(a, b) return a < b end, opts or {})
 end
 
-function M.column_sort_descending()
-    M.column_sort(function(a, b) return a > b end)
+---@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
+function M.column_sort_descending(opts)
+    M.column_sort(function(a, b) return a > b end, opts or {})
 end
 
 ---Get table as columns
 ---@param contents MdnTableContents
----@return MdnTableContents|nil contents 
+---@return MdnTableContents contents 
 function M.parse_columns_to_lines(contents)
     local table_lines = {}
     local row = {}

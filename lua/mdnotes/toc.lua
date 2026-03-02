@@ -37,8 +37,8 @@ function M.convert_text_to_gfm(text)
     return text
 end
 
----Convert the table with MdnFragment text to GFM style text and return as table
----@param fragments MdnFragment
+---Convert MdnFragment table entries to GFM style and return as table
+---@param fragments table<MdnFragment>
 ---@return MdnFragmentGfm
 function M.convert_fragments_to_gfm_style(fragments)
     local gfm_fragments = {}
@@ -105,7 +105,7 @@ end
 ---@param bufnr integer Buffer number
 ---@param fragment string GFM-style fragment
 ---@return string|nil
-function M.get_fragment_from_buf_fragments(bufnr, fragment)
+function M.get_fragments_from_buf_fragments(bufnr, fragment)
     local parsed_fragments
     for _, v in ipairs(M.buf_fragments) do
         if v.buf_num == bufnr then
@@ -138,16 +138,19 @@ function M.get_fragment_from_buf_fragments(bufnr, fragment)
 end
 
 ---@class MdnTocGenerateOpts
+---@field buffer integer? Buffer number to write to
+---@field lnum integer? Line number to place ToC
 ---@field write boolean? Write to buffer
 ---@field depth integer? ToC depth
 ---@field silent boolean?
 
---TODO: Add location opts for generating in other files
 ---Generate Table of Contents (ToC)
 ---@param opts MdnTocGenerateOpts?
 ---@return table<string>|nil toc
 function M.generate(opts)
     opts = opts or {}
+    local buffer = opts.buffer or 0
+    local lnum = opts.lnum or vim.fn.line('.')
     local depth = opts.depth or require('mdnotes').config.toc_depth
     local write = opts.write ~= false
     local silent = opts.silent or false
@@ -195,7 +198,7 @@ function M.generate(opts)
     end
 
     if write == true then
-        vim.api.nvim_put(toc, "l", false, false)
+        vim.api.nvim_buf_set_lines(buffer, lnum - 1, lnum, false, toc)
     end
 
     return toc

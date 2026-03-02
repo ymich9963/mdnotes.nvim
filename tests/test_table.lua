@@ -63,7 +63,12 @@ T['write_table_lines()'] = function()
         {"3r1c","3r2c","3r3c"},
     }
 
-    require('mdnotes.table').write_table_lines(0, 1, #table_content, table_content)
+    require('mdnotes.table').write_table_lines({
+        buffer = 0,
+        startl = 1,
+        endl = #table_content,
+        contents = table_content
+    })
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
@@ -182,82 +187,82 @@ T['get_table_lines_complex()'] = function()
     {
         {
             {
-              content = "1r1c",
-              start_pos = 1,
-              end_pos = 6,
-              line = 1,
+                content = "1r1c",
+                start_pos = 1,
+                end_pos = 6,
+                line = 1,
             },
             {
-              content = "1r2c",
-              start_pos = 6,
-              end_pos = 11,
-              line = 1,
+                content = "1r2c",
+                start_pos = 6,
+                end_pos = 11,
+                line = 1,
             },
             {
-              content = "1r3c",
-              start_pos = 11,
-              end_pos = 16,
-              line = 1,
+                content = "1r3c",
+                start_pos = 11,
+                end_pos = 16,
+                line = 1,
             }
         },
         {
             {
-              content = "----",
-              start_pos = 1,
-              end_pos = 6,
-              line = 2,
+                content = "----",
+                start_pos = 1,
+                end_pos = 6,
+                line = 2,
             },
             {
-              content = "----",
-              start_pos = 6,
-              end_pos = 11,
-              line = 2,
+                content = "----",
+                start_pos = 6,
+                end_pos = 11,
+                line = 2,
             },
             {
-              content = "----",
-              start_pos = 11,
-              end_pos = 16,
-              line = 2,
+                content = "----",
+                start_pos = 11,
+                end_pos = 16,
+                line = 2,
             }
         },
         {
             {
-              content = "2r1c",
-              start_pos = 1,
-              end_pos = 6,
-              line = 3,
+                content = "2r1c",
+                start_pos = 1,
+                end_pos = 6,
+                line = 3,
             },
             {
-              content = "2r2c",
-              start_pos = 6,
-              end_pos = 11,
-              line = 3,
+                content = "2r2c",
+                start_pos = 6,
+                end_pos = 11,
+                line = 3,
             },
             {
-              content = "2r3c",
-              start_pos = 11,
-              end_pos = 16,
-              line = 3,
+                content = "2r3c",
+                start_pos = 11,
+                end_pos = 16,
+                line = 3,
             }
         },
         {
             {
-              content = "3r1c",
-              start_pos = 1,
-              end_pos = 6,
-              line = 4,
+                content = "3r1c",
+                start_pos = 1,
+                end_pos = 6,
+                line = 4,
             },
             {
-              content = "3r2c",
-              start_pos = 6,
-              end_pos = 11,
-              line = 4,
+                content = "3r2c",
+                start_pos = 6,
+                end_pos = 11,
+                line = 4,
             },
             {
-              content = "3r3c",
-              start_pos = 11,
-              end_pos = 16,
-              line = 4,
+                content = "3r3c",
+                start_pos = 11,
+                end_pos = 16,
+                line = 4,
             }
         }
     }
