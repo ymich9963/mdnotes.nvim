@@ -5,10 +5,8 @@ local M = {}
 ---Get the Markdown heading that the specified line is under
 ---Defaults to current buffer and current line
 ---@param opts {bufnum: integer?, lnum: integer?}?
----@return integer|nil index Index of current heading in the parsed fragments
----@return MdnFragment fragment
----@return integer total_fragments Total fragments in the parsed buffer
-function M.get_current_heading(opts)
+---@return integer|nil index, MdnFragment fragment, integer total_fragments
+function M.get_heading(opts)
     opts = opts or {}
 
     local buf_fragments = require('mdnotes.toc').buf_fragments
@@ -65,7 +63,7 @@ end
 function M.goto_next()
     local buf_fragments = require('mdnotes.toc').buf_fragments
     local cur_buf_num = vim.api.nvim_get_current_buf()
-    local index, _, total_fragments = M.get_current_heading()
+    local index, _, total_fragments = M.get_heading()
     if not index then return end
 
     for _, v in ipairs(buf_fragments) do
@@ -81,7 +79,7 @@ end
 function M.goto_previous()
     local buf_fragments = require('mdnotes.toc').buf_fragments
     local cur_buf_num = vim.api.nvim_get_current_buf()
-    local index, _, total_fragments = M.get_current_heading()
+    local index, _, total_fragments = M.get_heading()
     if not index then return end
 
     for _, v in ipairs(buf_fragments) do

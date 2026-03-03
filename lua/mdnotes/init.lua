@@ -14,7 +14,7 @@ local M = {}
 ---@field startl integer? Start line
 ---@field endl integer? End line
 
----@class MdnSearchOpts
+---@class MdnSearchOpts Options for searching for a valid multi-line Markdown element
 ---@field buffer integer?
 ---@field origin_lnum integer? Line number between the lower and upper limits
 ---@field upper_limit_lnum integer? Higher limit of search

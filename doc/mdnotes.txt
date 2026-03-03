@@ -912,57 +912,143 @@ formatting.delete_format({pattern}, {opts})		*mdnotes.formatting.insert_format()
               • {move_cursor} (`boolean?`, default `true`)
 		move the cursor to the position of the deleted text
 
-formatting.strong_toggle()				*mdnotes.formatting.strong_toggle()*
-
-    Toggle Markdown `**strong**` syntax. Select a word and execute the command
-    or hover over already strong text to remove.
-
-formatting.emphasis_toggle()				*mdnotes.formatting.emphasis_toggle()*
+formatting.emphasis_toggle({opts})			*mdnotes.formatting.emphasis_toggle()*
 
     Toggle Markdown `*emphasis*` syntax. Select a word and execute the command
     or hover over already strong text to remove.
 
-formatting.strikethrough_toggle()			*mdnotes.formatting.strikethrough_toggle()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`) TODO:
+		inline text location
+              • {split_fi} (`boolean?`, default `false`)
+		split format indicator string in half
+
+formatting.strong_toggle({opts})			*mdnotes.formatting.strong_toggle()*
+
+    Toggle Markdown `**strong**` syntax. Select a word and execute the command
+    or hover over already strong text to remove.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`) TODO:
+		inline text location
+              • {split_fi} (`boolean?`, default `false`)
+		split format indicator string in half
+
+formatting.strikethrough_toggle({opts})			*mdnotes.formatting.strikethrough_toggle()*
 
     Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
     command or hover over already strong text to remove.
 
-formatting.inline_code_toggle()				*mdnotes.formatting.inline_code_toggle()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`) TODO:
+		inline text location
+              • {split_fi} (`boolean?`, default `false`)
+		split format indicator string in half
+
+formatting.inline_code_toggle({opts})			*mdnotes.formatting.inline_code_toggle()*
 
     Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
     or hover over already strong text to remove.
 
-formatting.autolink_toggle()				*mdnotes.formatting.autolink_toggle()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`) TODO:
+		inline text location
+              • {split_fi} (`boolean?`, default `false`)
+		split format indicator string in half
+
+formatting.autolink_toggle({opts})			*mdnotes.formatting.autolink_toggle()*
 
     Toggle Markdown `<autolink>` (<>) syntax. Select a word and execute the command
     or hover over already strong text to remove.
 
-formatting.task_list_toggle({line1}, {line2})		*mdnotes.formatting.task_list_toggle()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`) TODO:
+		inline text location
+              • {split_fi} (`boolean?`, default `false`)
+		split format indicator string in half
+
+resolve_list_content({line})				*mdnotes.formatting.resolve_list_content()*
+
+    Get a consistent table containing all data on a list item whether it is
+    ordered or unordered.
+
+    Parameters: ~
+    • {line}  (`string?`) Line text
+
+    Return: ~
+      (`MdnListContent`) TODO:
+
+formatting.task_list_toggle({opts})			*mdnotes.formatting.task_list_toggle()*
 
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
     with |linewise-visual|.
 
     Parameters: ~
-    • {line1}  (`integer?`) Starting line number.
-    • {line2}  (`integer?`) Ending line number.
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnMultiLineLocation?`) TODO:
+		inline text location
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
-formatting.ordered_list_renumber({silent})		*mdnotes.formatting.ordered_list_renumber()*
+formatting.check_list_valid({opts}) 			*mdnotes.formatting.check_list_valid()*
+
+    Check if the list surrounding the origin line is valid and return its line numbers.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {same_indent} (`boolean?`, default `false`)
+		check for list only of the same indent level
+              • {search} (`MdnSearchOpts?`) TODO:
+              • {outliner_list} (`boolean?`, default `false`)
+		treat list as an outliner list
+
+    Return: ~
+      (`MdnSearchRet`) TODO:
+
+formatting.ordered_list_renumber({opts})		*mdnotes.formatting.ordered_list_renumber()*
 
     Renumber an ordered list starting from 1.
 
     Parameters: ~
-    • {silent}  (`boolean`) Enable or disable error notifications from this
-      function. Used in autocmd.
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+              • {search} (`MdnSearchOpts?`) TODO:
 
-formatting.unformat_lines({line1}, {line2})		*mdnotes.formatting.unformat_lines()*
+formatting.unformat_lines({opts})			*mdnotes.formatting.unformat_lines()*
 
     Unformat the current line or the selected lines. Removes format indicators
     for strong, emphasis, strikethrough, inline code, heading, inline link,
     ordered list, unordered list, and task.
 
     Parameters: ~
-    • {line1}  (`integer?`) Starting line number.
-    • {line2}  (`integer?`) Ending line number.
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnMultiLineLocation?`) TODO:
+		inline text location
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+heading.get_heading({opts}) 				*mdnotes.heading.get_heading()*
+
+    Get the Markdown heading that the specified line is under. Defaults to
+    the current buffer and current line.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {bufnum} (`integer?`, defaults to current buffer)
+		check for list only of the same indent level
+              • {lnum} (`integer?,` defaults to current line)
+
+    Return: ~
+      (`integer|nil`) Index of current heading in the parsed fragments. See
+      |mdnotes-buf_fragments| TODO:.
+      (`MdnFragment`) TODO:
+      (`integer`) Total fragments in the parsed buffer
 
 heading.goto_previous()					*mdnotes.heading.goto_previous()*
 
