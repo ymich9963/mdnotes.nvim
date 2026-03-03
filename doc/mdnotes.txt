@@ -25,7 +25,7 @@ To setup `mdnotes` using the Lazy package manager, put this in your `init.lua` f
 	"ymich9963/mdnotes.nvim",
     }
 
-Can use either `opts` or `config` with the traditional `setup({})` function,
+Can use either `opts` or `config` with the traditional `setup({}`) function,
 >lua
     {
 	"ymich9963/mdnotes.nvim",
@@ -194,23 +194,23 @@ date_format = `string`	 				*mdnotes-date_format*
     Format of the outputed date using |Mdn-journal_insert_entry|. See |strftime()| for
     acceptable formats.
 
-prefer_lsp = `false|true`				*mdnotes-prefer_lsp*
+prefer_lsp = `boolean`				*mdnotes-prefer_lsp*
 
     Choose whether to prefer to use the LSP functions instead of the `mdnotes`
     functions, when an LSP server is detected in the current Markdown buffer.
 
-auto_list_continuation = `false|true`			*mdnotes-auto_list_continuation*
+auto_list_continuation = `boolean`			*mdnotes-auto_list_continuation*
 
     Choose whether to allow automatic continuation of your unordered/ordered/
     task list. Works by remapping |<CR>|, |o|, and |O| but only in Markdown
     buffers by specifying it in the plugin's `after/ftplugin/markdown.lua`
     directory.
 
-default_keymaps = `false|true`				*mdnotes-default_keymaps*
+default_keymaps = `boolean`				*mdnotes-default_keymaps*
 
     Enable or disable the default keymaps listed in |mdnotes-keymaps|.
 
-autocmds = `false|true` or `table`			*mdnotes-autocmds*
+autocmds = `boolean` or `table`			*mdnotes-autocmds*
 
     Enable or disable the plugin's autocmds set in `plugin/mdnotes.lua`.
     Can be a boolean true/false for enabling or disabling all of them.
@@ -218,21 +218,21 @@ autocmds = `false|true` or `table`			*mdnotes-autocmds*
     as shown below,
 
     Parameters: ~
-    • {opts}  `(table?)` Optional parameters:
-              • {set_cwd} (`false|true`, default `true`)
+    • {opts}  (`table?`) Optional parameters:
+              • {set_cwd} (`boolean`, default `true`)
 		autocmd for path resolution
-              • {record_buf} (`false|true`, default `true`)
+              • {record_buf} (`boolean`, default `true`)
 		autocmd for buffer history
-              • {populate_buf_fragments} (`false|true`, default `true`)
+              • {populate_buf_fragments} (`boolean`, default `true`)
 		autocmd for ToC fragments
-              • {ordered_list_renumber} (`false|true`, default `true`)
+              • {ordered_list_renumber} (`boolean`, default `true`)
 		autocmd for ordered lists
-              • {table_best_fit} (`false|true`, default `true`)
+              • {table_best_fit} (`boolean`, default `true`)
 		autocmd for tables
-              • {outliner_state_notification} (`false|true`, default `true`)
+              • {outliner_state_notification} (`boolean`, default `true`)
 		autocmd for Outliner mode state notification. See
 		|mdnotes-outliner|.
-              • {journal_insert_entry} (`false|true`, default `true`)
+              • {journal_insert_entry} (`boolean`, default `true`)
 		autocmd for inserting a journal entry automatically on
 		entering the journal file in |mdnotes-journal_file|.
 
@@ -357,18 +357,18 @@ subcommands are listed below.
 
     Insert the image in the clipboard under the cursor and depending on
     |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|. (e.g
-    `![image](path/to/assets/image.png)`). Overwriting depends on
+    `![image](path/to/assets/image.png`)). Overwriting depends on
     |mdnotes-asset_overwrite_behaviour|.
 
 :Mdn assets insert_file					*:Mdn-assets-insert_file*
 
     Exactly the same as |Mdn-assets-insert_image| but it inserts a inline link to the
-    file (e.g. `[file](path/to/assets/file.txt)`).
+    file (e.g. `[file](path/to/assets/file.txt`)).
 
 :Mdn assets unused_delete				*:Mdn-assets-unused_delete*
 
     Cleanup unused assets in your |mdnotes-assets_path|. A |vim.ui.input()|
-    will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
+    will be used to prompt for `y/n/a(ll`) or `cancel` deletion actions. Uses
     |vim.fs.rm()|.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
@@ -377,7 +377,7 @@ subcommands are listed below.
 
     Move unused assets in your |mdnotes-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
-    to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses |vim.fs.rm()|.
+    to prompt for `y/n/a(ll`) or `cancel` deletion actions. Uses |vim.fs.rm()|.
 
 :Mdn assets open_containing_folder			*:Mdn-assets-open_containing_folder*
 
@@ -413,7 +413,7 @@ subcommands are listed below.
 
 :Mdn inline_link toggle					*:Mdn-inline_link-toggle*
 
-    Toggle inserting and deleting a inline link (e.g. `[text](link)`) from your
+    Toggle inserting and deleting a inline link (e.g. `[text](link`)) from your
     clipboard (the `"+` register). When removing a link it saves it to `"0`
     for later use.
 
@@ -589,9 +589,26 @@ subcommands are listed below.
 ==============================================================================
 API                                     		*mdnotes-api*
 
-In `mdnotes` most of the commands are just calling their corresponding functions.
-Some of the descriptions here are copied from the |mdnotes-commands| section.
 See |mdnotes-api-examples| for examples using the API.
+
+open_cmd						*mdnotes.open_cmd*
+
+    Variable of type `string` that contains the command to open a buffer
+    based on |mdnotes-open_behaviour|. Used like so,
+>lua
+    local buffer = 2 -- Any buffer
+    local open_cmd = require('mdnotes').open_cmd
+    vim.cmd(open_cmd .. buffer)
+<
+cwd							*mdnotes.cwd*
+
+    Variable to track the current working directory of `mdnotes`. Very important
+    for a variety of functions that work with paths.
+
+plugin_install_dir					*mdnotes.plugin_install_dir*
+
+    Install directory of the plugin. Used to access the `scripts/` folder for
+    the command used to insert assets.
 
 setup({opts})                                          	*mdnotes.setup()*
 
@@ -599,10 +616,10 @@ setup({opts})                                          	*mdnotes.setup()*
     defaults. See |mdnotes-config| for a more in-depth explanation.
 
     Parameters: ~
-    • {opts}  `(table?)` Optional parameters:
+    • {opts}  (`table?`) Optional parameters:
               • {index_file} (`string?`, default `""`)
 		path to index file.
-              • {journal_file} (`(string|fun():string)?`, default `""`)
+              • {journal_file} ((`string|fun():string)?`, default `""`)
 		path to journal file or function returning a string value.
               • {assets_path} (`string?`, default `""`)
 		path to assets directory.
@@ -620,14 +637,14 @@ setup({opts})                                          	*mdnotes.setup()*
               • {date_format} (`string?`, default `"%a %d %b %Y"`)
 		defines the date format used when inserting a journal entry.
 		See |strftime|.
-              • {prefer_lsp} (`false|true`, default `false`)
+              • {prefer_lsp} (`boolean`, default `false`)
 		prefer using the installed Markdown LSP functions instead of
 		the `mdnotes` implementations.
-              • {auto_list_continuation} (`false|true`, default `true`)
+              • {auto_list_continuation} (`boolean`, default `true`)
 		auto-continue Markdown lists. See |mdnotes-auto_list_continuation|.
-              • {default_keymaps} (`false|true`, default `false`)
+              • {default_keymaps} (`boolean`, default `false`)
 		use the default keymaps.
-              • {autocmds} (`false|true` or `table`, default `true`)
+              • {autocmds} (`boolean` or `table`, default `true`)
 		use the plugin's autocmds.
               • {table_best_fit_padding} (`integer?`, default `0`)
 		how much padding to add when executing 
@@ -635,102 +652,116 @@ setup({opts})                                          	*mdnotes.setup()*
               • {toc_depth} (`integer?`, default `4`)
 		the depth of the ToC when using |Mdn-toc-generate|.
 
-go_to_index_file() 			   		*mdnotes.go_to_index_file()*
+set_cwd()						*mdnotes.set_cwd()*
 
-    Go the index file defined by |mdnotes-index_file|.
+    Set the current working directory based on the currently opened buffer.
+    Used in `set_cwd` in |mdnotes-autocmds|.
 
-go_to_journal_file()					*mdnotes.go_to_journal_file()*
+open_buf({buf})						*mdnotes.open_buf()*
 
-    Go the journal file defined by |mdnotes-journal_file|.
-
-journal_insert_entry()					*mdnotes.journal_insert_entry()*
-
-    Insert a journal entry at the top of the file, which is the current date 
-    along with a separator to separate the different entries. Places the 
-    cursor on `<cursor>`. For example,
->markdown
-    ```
-    ## Sun 09 Nov 2025
-
-    <cursor>
-
-    ---
-    ```
-
-open() 							*mdnotes.open()*
-
-    Open the inline link under cursor. It can be a file or a URL.
-
-outliner.toggle()					*mdnotes.outliner.toggle()*
-
-    Toggle an Outliner mode (similar to programs like Logseq). This command
-    essentially creates or deletes certain keymaps to create the Outliner mode.
-    Indentation is also changed to use the outliner indentation commands
-    |Mdn-outliner-indent| and |Mdn-outliner-unindent|. See |mdnotes-outliner|.
-
-outliner.indent()					*mdnotes.outliner.indent()*
-
-    Indents the bulleted list using the indentation of the parent child items.
-    See |mdnotes-outliner|.
-	
-outliner.unindent()					*mdnotes.outliner.unindent()*
-
-    Unindents the bulleted list using the indentation of the parent child
-    items. See |mdnotes-outliner|.
-
-wikilink.follow()					*mdnotes.wikilink.follow()*
-
-    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
-
-wikilink.create()					*mdnotes.wikilink.create()*
-
-    Create a WikiLink by highlighting or hovering over a word and executing. 
-
-wikilink.show_references()				*mdnotes.wikilink.show_references()*
-
-    Show the references of the current Wikilink under cursor in a quickfix
-    list. If no Wikilink is under the cursor it shows the references to the
-    current buffer.
-
-wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
-
-    Rename the reference to a `[[link]]` and also the file pointing to that
-    link.
-
-wikilink.rename_references_cur_buf()			*mdnotes.wikilink.rename_references_cur_buf()*
-
-    Rename references to current buffer and also the file of the current
-    buffer.
-
-wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
-
-    Undo the most recent reference rename. Only available when 
-    `prefer_lsp = false`. 
-
-wikilink.delete()					*mdnotes.wikilink.delete()*
-
-    Delete WikiLink under the cursor.
-
-wikilink.normalize()					*mdnotes.wikilink.normalize()*
-
-    Normalize WikiLink path under cursor.
-
-wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
-
-    Show orphan pages (pages with no references) in current directory.
-
-formatting.check_md_format({pattern}) 			*mdnotes.formatting.check_md_format()*
-
-    Check if the text under cursor obeys a Lua pattern that is used to
-    describe Markdown formatting. Patterns used are the
-    |mdnotes.format_patterns|.
+    Open a buffer using its name or buffer number using the
+    |mdnotes-open_cmd|.
 
     Parameters: ~
-    • {pattern}  `(string?)` A Lua pattern that also returns cursor position
-      at the start and end.
+    • {buffer}  (`integer|string`)
+
+check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax*
+
+    Check if the Markdown syntax under the cursor matches the {pattern} of type
+    |mdnotes-MdnPattern| TODO:. Optionally specify a location using to check
+    using the {opts} table.
+
+    Parameters: ~
+    • {pattern}  (`string`) Pattern of type |mdnotes-MdnPattern|.
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`table?`, default `{}`)
+		A table of type |mdnotes-MdnInLineLocation| used to specify
+		the location of the function process.
 
     Return: ~
-      (`false|true`)
+      (`boolean`)
+
+get_text({opts})					*mdnotes.get_text()*
+
+    Get the text that was either, selected using Visual mode, under
+    cursor in Normal mode, or at the specified location using the opts
+    table. This function is usually used to retrieve the text to be formatted.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`table?`, default `{}`)
+		A table of type |mdnotes-MdnInLineLocation| used to specify
+		the location of the function process.
+
+    Return: ~
+      (`MdnText`): See |mdnotes-MdnText|. TODO:
+
+
+get_text_in_pattern({pattern}, {opts}) 			*mdnotes.get_text_in_pattern*
+
+    Get the text that matches the corresponding {pattern} of type
+    |mdnotes-MdnPattern| under the cursor, or at the specified location using
+    the opts table. This function is usually used to retrieve the text
+    to be formatted.
+
+    Parameters: ~
+    • {pattern}  (`string`) Pattern of type |mdnotes-MdnPattern|.
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`table?`, default `{}`)
+		A table of type |mdnotes-MdnInLineLocation| used to specify
+		the location of the function process.
+
+    Return: ~
+      (`MdnText`): See |mdnotes-MdnText|. TODO:
+
+new_line_remap({key}, {expr}) 				*mdnotes.new_line_remap()*
+
+    Kind of forgot how this works but it is used in the remaps for
+    |mdnotes-auto_list_continuation|.
+
+    Parameters: ~
+    • {key}  (`string`) Pattern of type |mdnotes-MdnPattern|.
+    • {expr}  (`boolean`) If `opts.expr` is set for |vim.keymap.set()|.
+
+    Return: ~
+      (`string|nil`): Return string if {expr} is true, if not then just set
+      the lines appropriately.
+
+go_to_index_file() 			   		*mdnotes.go_to_index_file()*
+
+    Go the index file defined by |mdnotes-index_file|. Used in the
+    |:Mdn-index| command.
+
+open_containing_folder() 				*mdnotes.open_containing_folder()*
+
+    Open the folder that contains the currently opened buffer.
+
+get_files_in_cwd({opts}) 				*mdnotes.get_files_in_cwd()*
+
+    Get a list of the files in the |mdnotes.cwd|. Uses |vim.fs.dir()|
+    internally so some options for it are exposed in the {opts} table.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {extension} (`string?`)
+		specify extension e.g. `.md`, can also speficy `.*` for all
+		file extensions
+              • {hidden} (`boolean?`)
+		specify if hidden files should be retrieved
+              • {fs_type} (`string?`)
+		specify the type of item to be retrieved, choose from,
+		`"file"`, `"directory"`, `"link"`, `"fifo"`, `"socket"`, `"char"`,
+		`"block"`, `"unknown"`, `"all"`.
+              • {pattern} (`string?`)
+		specify a Lua pattern for the item names containing the
+		pattern.
+
+    Return: ~
+      (`string[]`): List of file name strings.
+
+assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
+
+    Resolve the assets path from |mdnotes-assets_path|.
 
 assets.check_assets_path() 				*mdnotes.assets.check_assets_path()*
 
@@ -738,43 +769,208 @@ assets.check_assets_path() 				*mdnotes.assets.check_assets_path()*
     files.
 
     Return: ~
-      (`false|true`)
+      (`boolean`)
 
-assets.insert_image()					*mdnotes.assets.insert_image()*
+assets.open_containing_folder() 			*mdnotes.assets.open_containing_folder()*
 
-    Insert the image in the clipboard under the cursor and depending on
-    |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|. (e.g
-    `![image](path/to/assets/image.png)`). Overwriting depends on
-    |mdnotes-asset_overwrite_behaviour|.
+    Open the assets folder in the |mdnotes.cwd| specified in |mdnotes-assets_path|.
 
+assets.process_inserted_asset_file({file_path})		*mdnotes.assets.process_inserted_asset_file()*
+
+    Process the specified asset file path based on config options. Asset will
+    be placed in your |mdnotes-assets_path| depending on |mdnotes-asset_insert_behaviour|.
+    Overwriting depends on |mdnotes-asset_overwrite_behaviour|.
+
+    Parameters: ~
+    • {file_path}  (`string`) Path to the asset.
+
+    Return: ~
+      (`string|nil`): Return file name on success and `nil` on failure.
+
+assets.get_asset_il({is_image}, {process_file}, {file_path})	*mdnotes.assets.get_asset_inline_link()*
+
+    Create the asset inline link and also process the asset using 
+    |mdnotes.assets.process_inserted_asset_file()|.
+
+    Parameters: ~
+    • {is_image}  (`boolean`) If the file is an image
+    • {process_file}  (`boolean`) If the file should be processed, meaning to be
+      placed in the assets folder
+    • {file_path}  (`string?`) Optional path to asset. If not given, the
+      clipboard is used
+
+    Return: ~
+      (`string|nil`): Asset inline link on success.
 
 assets.insert_file()					*mdnotes.assets.insert_file()*
 
-    Exactly the same as |mdnotes.insert_image()| but it inserts a inline link to the
-    file (e.g. `[file](path/to/assets/file.txt)`).
+    Insert the file in the clipboard as an inline link under the cursor.
 
-assets.unused_delete()					*mdnotes.assets.unused_delete()*
+assets.insert_image()					*mdnotes.assets.insert_image()*
+
+    Insert the file in the clipboard as an image inline link under the cursor.
+
+assets.get_used_assets({opts}) 				*mdnotes.assets.get_used_assets()*
+
+    Get the assets used in the current |mdnotes.cwd|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean`, default `false`)
+		silence notifications
+
+    Return: ~
+      (`string[]`): List of asset file names
+
+assets.get_unused_assets({opts}) 			*mdnotes.assets.get_unused_assets()*
+
+    Get the unused assets in the current |mdnotes.cwd|.
+    Uses |mdnotes.assets.get_used_assets()| internally.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean`, default `false`)
+		silence notifications
+
+    Return: ~
+      (`string[]`): List of asset file names
+
+assets.unused_delete({opts})				*mdnotes.assets.unused_delete()*
 
     Cleanup unused assets in your |mdnnote-assets_path|. A |vim.ui.input()|
-    will be used to prompt for `y/n/a(ll)` or `cancel` deletion actions. Uses
+    will be used to prompt for `y/n/a(ll`) or `cancel` deletion actions. Uses
     |vim.fs.rm()|.
 
     Note: Data loss will obviously happen with this command so BE CAREFUL.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {skip_input} (`boolean`, default `false`)
+		skip the input prompt
 
 assets.unused_move()					*mdnotes.assets.unused_move()*
 
     Move unused assets in your |mdnnote-assets_path| to an `../unused_assets/` 
     folder relative to your assets folder. A |vim.ui.input()| will be used 
-    to prompt for `y/n/a(ll)` or `cancel` move actions. Uses |uv.fs_rename()|.
+    to prompt for `y/n/a(ll`) or `cancel` move actions. Uses |uv.fs_rename()|.
 
-assets.open_containing_folder()				*mdnotes.assets.open_containing_folder()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {skip_input} (`boolean?`, default `false`)
+		skip the input prompt
 
-    Open your assets folder declared in |mdnotes-assets_path|.
-
-assets.download_website_html()				*mdnotes.assets.download_website_html()*
+assets.download_website_html({opts})				*mdnotes.assets.download_website_html()*
 
     Download the HTML of the website in the inline link, and place it in the
     assets folder. 
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {uri} (`string?`)
+		URI with a valid URL to download the HTML from
+
+    Return: ~
+      (`string|nil`): Path of downloaded file on success.
+
+assets.delete()						*mdnotes.assets.unused_move()*
+
+    Delete the asset in the inline link under the cursor. Removes the inline
+    link and keeps the inline link text.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {uri} (`string?`)
+		specify URI to delete
+              • {skip_input} (`boolean?`, default `false`)
+		skip the input prompt
+
+    Return: ~
+      (`boolean`): Was the file deleted succesfully.
+      (`string|nil`): Path of the deleted asset.
+
+formatting.insert_format({format_char}, {opts})		*mdnotes.formatting.insert_format()*
+
+    Used internally for all formatting using format indicators. 
+
+    Parameters: ~
+    • {format_char}  (`MdnFormatIndicators?`) Markdown format indicator
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`) TODO:
+		inline text location
+              • {split_fi} (`boolean?`, default `false`)
+		split format indicator string in half
+
+formatting.delete_format({pattern}, {opts})		*mdnotes.formatting.insert_format()*
+
+    Used internall for removing format indicators from text.
+
+    Parameters: ~
+    • {pattern}  (`MdnPattern?`) Markdown format indicator TODO:
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`) TODO:
+		inline text location
+              • {move_cursor} (`boolean?`, default `true`)
+		move the cursor to the position of the deleted text
+
+formatting.strong_toggle()				*mdnotes.formatting.strong_toggle()*
+
+    Toggle Markdown `**strong**` syntax. Select a word and execute the command
+    or hover over already strong text to remove.
+
+formatting.emphasis_toggle()				*mdnotes.formatting.emphasis_toggle()*
+
+    Toggle Markdown `*emphasis*` syntax. Select a word and execute the command
+    or hover over already strong text to remove.
+
+formatting.strikethrough_toggle()			*mdnotes.formatting.strikethrough_toggle()*
+
+    Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
+    command or hover over already strong text to remove.
+
+formatting.inline_code_toggle()				*mdnotes.formatting.inline_code_toggle()*
+
+    Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
+    or hover over already strong text to remove.
+
+formatting.autolink_toggle()				*mdnotes.formatting.autolink_toggle()*
+
+    Toggle Markdown `<autolink>` (<>) syntax. Select a word and execute the command
+    or hover over already strong text to remove.
+
+formatting.task_list_toggle({line1}, {line2})		*mdnotes.formatting.task_list_toggle()*
+
+    Toggle through checked, unchecked, and no checkbox in a list item. Also works
+    with |linewise-visual|.
+
+    Parameters: ~
+    • {line1}  (`integer?`) Starting line number.
+    • {line2}  (`integer?`) Ending line number.
+
+formatting.ordered_list_renumber({silent})		*mdnotes.formatting.ordered_list_renumber()*
+
+    Renumber an ordered list starting from 1.
+
+    Parameters: ~
+    • {silent}  (`boolean`) Enable or disable error notifications from this
+      function. Used in autocmd.
+
+formatting.unformat_lines({line1}, {line2})		*mdnotes.formatting.unformat_lines()*
+
+    Unformat the current line or the selected lines. Removes format indicators
+    for strong, emphasis, strikethrough, inline code, heading, inline link,
+    ordered list, unordered list, and task.
+
+    Parameters: ~
+    • {line1}  (`integer?`) Starting line number.
+    • {line2}  (`integer?`) Ending line number.
+
+heading.goto_previous()					*mdnotes.heading.goto_previous()*
+
+   Go to the previous Markdown heading.
+
+heading.goto_next()					*mdnotes.heading.goto_next()*
+
+   Go to the next Markdown heading.
 
 history.buf_history					*mdnotes.history.buf_history*
 
@@ -814,6 +1010,12 @@ inline_link.delete()					*mdnotes.inline_link.delete()*
     Saves the link text in the `"0` register and the link in the `"+` register.
     This allows it to be reused when inserting again.
 
+inline_link.toggle()					*mdnotes.inline_link-toggle()*
+
+    Toggle adding or removing the inline link. When adding it uses
+    |mdnotes.inline_link-insert()| and when removing it uses
+    |mdnotes.inline_link-delete()|.
+
 inline_link.rename()					*mdnotes.inline_link.rename()*
 
     Rename the link text.
@@ -833,9 +1035,9 @@ inline_link.validate([{internal_call}, {norm}])		*mdnotes.inline_link.validate()
     |Mdn-open| with `internal_call = true`.
 
     Parameters: ~
-    • {internal_call}  (`false|true?`) Specify whether the function is called
+    • {internal_call}  (`boolean?`) Specify whether the function is called
       internally or externally by the user.
-    • {norm}  (`false|true?`) Specify whether |mdnotes.inline_link.normalize()
+    • {norm}  (`boolean?`) Specify whether |mdnotes.inline_link.normalize()
       is used.
 
     Return: ~
@@ -849,68 +1051,47 @@ inline_link.convert_fragment_to_gfm()			*mdnotes.inline_link.convert_fragment_to
     using LSP auto-completion and you want to create valid Markdown links on
     GitHub.
 
-formatting.inline_link.toggle()				*mdnotes.formatting.inline_link-toggle()*
+journal.go_to()						*mdnotes.journal.go_to()*
 
-    Toggle adding or removing the inline link. When adding it uses
-    |mdnotes.inline_link-insert()| and when removing it uses
-    |mdnotes.inline_link-delete()|.
+    Go the journal file defined by |mdnotes-journal_file|.
 
-formatting.strong_toggle()				*mdnotes.formatting.strong_toggle()*
+journal.insert_entry()					*mdnotes.journal_insert_entry()*
 
-    Toggle Markdown `**strong**` syntax. Select a word and execute the command
-    or hover over already strong text to remove.
+    Insert a journal entry at the top of the file, which is the current date 
+    along with a separator to separate the different entries. Places the 
+    cursor on `<cursor>`. For example,
+>markdown
+    ```
+    ## Sun 09 Nov 2025
 
-formatting.emphasis_toggle()				*mdnotes.formatting.emphasis_toggle()*
+    <cursor>
 
-    Toggle Markdown `*emphasis*` syntax. Select a word and execute the command
-    or hover over already strong text to remove.
+    ---
+    ```
 
-formatting.strikethrough_toggle()			*mdnotes.formatting.strikethrough_toggle()*
+outliner.toggle()					*mdnotes.outliner.toggle()*
 
-    Toggle Markdown `~~strikethrough~~` syntax. Select a word and execute the 
-    command or hover over already strong text to remove.
+    Toggle an Outliner mode (similar to programs like Logseq). This command
+    essentially creates or deletes certain keymaps to create the Outliner mode.
+    Indentation is also changed to use the outliner indentation commands
+    |Mdn-outliner-indent| and |Mdn-outliner-unindent|. See |mdnotes-outliner|.
 
-formatting.inline_code_toggle()				*mdnotes.formatting.inline_code_toggle()*
+outliner.indent()					*mdnotes.outliner.indent()*
 
-    Toggle Markdown `inline code` (``) syntax. Select a word and execute the command
-    or hover over already strong text to remove.
+    Indents the bulleted list using the indentation of the parent child items.
+    See |mdnotes-outliner|.
+	
+outliner.unindent()					*mdnotes.outliner.unindent()*
 
-formatting.autolink_toggle()				*mdnotes.formatting.autolink_toggle()*
+    Unindents the bulleted list using the indentation of the parent child
+    items. See |mdnotes-outliner|.
 
-    Toggle Markdown `<autolink>` (<>) syntax. Select a word and execute the command
-    or hover over already strong text to remove.
+patterns						*mdnotes.patterns*
 
-formatting.task_list_toggle({line1}, {line2})		*mdnotes.formatting.task_list_toggle()*
-
-    Toggle through checked, unchecked, and no checkbox in a list item. Also works
-    with |linewise-visual|.
-
-    Parameters: ~
-    • {line1}  `(integer?)` Starting line number.
-    • {line2}  `(integer?)` Ending line number.
-
-formatting.ordered_list_renumber({silent})		*mdnotes.formatting.ordered_list_renumber()*
-
-    Renumber an ordered list starting from 1.
-
-    Parameters: ~
-    • {silent}  `(false|true)` Enable or disable error notifications from this
-      function. Used in autocmd.
-
-formatting.unformat_lines({line1}, {line2})		*mdnotes.formatting.unformat_lines()*
-
-    Unformat the current line or the selected lines. Removes format indicators
-    for strong, emphasis, strikethrough, inline code, heading, inline link,
-    ordered list, unordered list, and task.
-
-    Parameters: ~
-    • {line1}  `(integer?)` Starting line number.
-    • {line2}  `(integer?)` Ending line number.
-
-toc.generate()						*mdnotes.toc.generate()*
-
-    Generate and insert a Table Of Contents of the current file at the cursor
-    position.
+    Format patterns are Lua patterns used to detect the existance of those
+    formats at the current cursor position. The patterns must return start
+    and end cursor positions (e.g. `"()~~(.-)~~()"`). 
+    See |mdnotes.check_md_format()|
 
 table.create({rows}, {cols})				*mdnotes.table.create()*
 
@@ -976,20 +1157,51 @@ table.column_sort({comp})				*mdnotes.table.column_sort_descending()*
    Sort table by the current column based on the {comp}. See
    |table.sort()| for the type of function expected.
 
-heading.goto_previous()					*mdnotes.heading.goto_previous()*
+toc.generate()						*mdnotes.toc.generate()*
 
-   Go to the previous Markdown heading.
+    Generate and insert a Table Of Contents of the current file at the cursor
+    position.
 
-heading.goto_next()					*mdnotes.heading.goto_next()*
+wikilink.follow()					*mdnotes.wikilink.follow()*
 
-   Go to the next Markdown heading.
+    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
 
-patterns						*mdnotes.patterns*
+wikilink.create()					*mdnotes.wikilink.create()*
 
-    Format patterns are Lua patterns used to detect the existance of those
-    formats at the current cursor position. The patterns must return start
-    and end cursor positions (e.g. `"()~~(.-)~~()"`). 
-    See |mdnotes.check_md_format()|
+    Create a WikiLink by highlighting or hovering over a word and executing. 
+
+wikilink.show_references()				*mdnotes.wikilink.show_references()*
+
+    Show the references of the current Wikilink under cursor in a quickfix
+    list. If no Wikilink is under the cursor it shows the references to the
+    current buffer.
+
+wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
+
+    Rename the reference to a `[[link]]` and also the file pointing to that
+    link.
+
+wikilink.rename_references_cur_buf()			*mdnotes.wikilink.rename_references_cur_buf()*
+
+    Rename references to current buffer and also the file of the current
+    buffer.
+
+wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
+
+    Undo the most recent reference rename. Only available when 
+    `prefer_lsp = false`. 
+
+wikilink.delete()					*mdnotes.wikilink.delete()*
+
+    Delete WikiLink under the cursor.
+
+wikilink.normalize()					*mdnotes.wikilink.normalize()*
+
+    Normalize WikiLink path under cursor.
+
+wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
+
+    Show orphan pages (pages with no references) in current directory.
 
 ==============================================================================
 API EXAMPLES                                  		*mdnotes-api-examples*

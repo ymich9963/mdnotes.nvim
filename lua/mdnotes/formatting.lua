@@ -33,9 +33,6 @@ local M = {}
 ---@field text string List item text
 ---@field type '"ordered"'|'"unordered"'
 
----@class MdnInsertFormatOpts: MdnFormattingOpts
----@field split_fi boolean? Split formatting indicator
-
 ---@type table<MdnFormats, MdnFormatData>
 local md_format = {
     emphasis = {
@@ -61,6 +58,9 @@ local md_format = {
 }
 
 local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
+
+---@class MdnInsertFormatOpts: MdnFormattingOpts
+---@field split_fi boolean? Split formatting indicator
 
 ---Insert a Markdown format
 ---@param format_char MdnFormatIndicators

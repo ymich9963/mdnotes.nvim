@@ -43,7 +43,7 @@ function M.open_containing_folder()
     vim.ui.open(vim.fs.joinpath(cwd, M.get_assets_folder_name()))
 end
 
-local function get_file_paths_from_cmd()
+local function get_file_paths_from_cb()
     local scripts_path = vim.fs.joinpath(require('mdnotes').plugin_install_dir, "scripts")
     local linux_script = vim.fs.joinpath(scripts_path, "get_file_path_from_clipboard.sh")
     local windows_script = vim.fs.joinpath(scripts_path, "get_file_path_from_clipboard.ps1")
@@ -66,7 +66,7 @@ local function get_file_paths_from_cmd()
     return file_paths, cmd_stdout
 end
 
----Process the asset file in clipboard based on config options
+---Process the specified asset file path based on config options
 ---@param file_path string File path of asset file
 ---@return string|nil file_name Return file name on success
 function M.process_inserted_asset_file(file_path)
@@ -107,15 +107,11 @@ function M.process_inserted_asset_file(file_path)
 end
 
 ---Create the asset inline link
----@param opts {is_image: boolean?, file_path: string?, process_file: boolean?}?
----@return string|nil text
-function M.get_asset_inline_link(opts)
-    opts = opts or {}
-
-    local is_image = opts.is_image or false
-    local process_file = opts.process_file or false
-    local file_path = opts.file_path or ""
-
+---@param is_image boolean Specify if file should be treated as an image
+---@param process_file boolean Process the file according to the plugin config
+---@param file_path string? Optional file_path to generate the inline link for
+---@return string|nil inline_link
+function M.get_asset_il(is_image, process_file, file_path)
     vim.validate("is_image", is_image, "boolean")
     vim.validate("process_file", process_file, "boolean")
     vim.validate("file_path", file_path, "string")
@@ -123,9 +119,9 @@ function M.get_asset_inline_link(opts)
     local asset_path = ""
     local file_name = nil
 
-    if file_path == "" then
+    if file_path == nil then
         -- Get the file paths as a table
-        local file_paths, cmd_stdout = get_file_paths_from_cmd()
+        local file_paths, cmd_stdout = get_file_paths_from_cb()
 
         -- Remove blank entries
         for i, v in ipairs(file_paths) do
@@ -175,23 +171,19 @@ function M.get_asset_inline_link(opts)
     return inline_link
 end
 
----Insert a file as an inline link
+--TODO: locopts
+---Insert a file as an inline link under the cursor
 function M.insert_file()
     if M.check_assets_path() == false then return end
-    local inline_link = M.get_asset_inline_link({
-        is_image = false,
-        process_file = true
-    })
+    local inline_link = M.get_asset_il(false, true)
     vim.api.nvim_put({inline_link}, "c", false, false)
 end
 
----Insert an image as an inline link
+--TODO: locopts
+---Insert an image as an inline link under the cursor
 function M.insert_image()
     if M.check_assets_path() == false then return end
-    local inline_link = M.get_asset_inline_link({
-        is_image = true,
-        process_file = true
-    })
+    local inline_link = M.get_asset_il(true, true)
     vim.api.nvim_put({inline_link}, "c", false, false)
 end
 
@@ -229,6 +221,7 @@ function M.get_used_assets(opts)
     end
 
     vim.fn.setqflist(temp_qflist)
+
     return used_assets
 end
 
@@ -345,8 +338,10 @@ function M.unused_move(opts)
     process_unused_assets("move", skip_input)
 end
 
+--TODO: locopts
 ---Download the the HTML of the inline link URL and place it in assets folder
 ---@param opts {uri: string?}? opts.uri: URI with a valid URL to download the HTML from
+---@return string|nil filepath Path of downloaded file
 function M.download_website_html(opts)
     opts = opts or {}
     local uri = opts.uri
@@ -399,10 +394,14 @@ function M.download_website_html(opts)
     else
         vim.notify("Mdn: Error with request response", vim.log.levels.ERROR)
     end
+
+    return filepath
 end
 
+--TODO: locopts
 ---Delete the asset under the cursor
 ---@param opts {uri: string?, skip_input: boolean?}?
+---@return boolean is_deleted, string|nil asset_path
 function M.delete(opts)
     opts = opts or {}
     local uri = opts.uri
@@ -415,13 +414,13 @@ function M.delete(opts)
     if uri == nil then
         local ildata = mdn_il.parse() or {}
         text, uri, col_start, col_end = ildata.text, ildata.uri, ildata.col_start, ildata.col_end
-        if uri == nil then return end
+        if uri == nil then return false, nil end
     end
 
     vim.validate("uri", uri, "string")
 
     local asset_path = mdn_il.get_path_from_uri(uri, true)
-    if asset_path == nil then return -2 end
+    if asset_path == nil then return false, nil end
 
     local behaviour = require('mdnotes').config.asset_delete_behaviour
     local cwd = require('mdnotes').cwd
@@ -432,7 +431,7 @@ function M.delete(opts)
     local text1 = ""
     local lnum = vim.fn.line('.')
     local cur_col = vim.fn.col('.')
-    local deleted = false
+    local is_deleted = false
 
     if behaviour == "delete" then
         prompt = "Delete file at '" .. asset_path .. "'. " .. prompt
@@ -446,7 +445,7 @@ function M.delete(opts)
             uv.fs_mkdir(garbage_path, tonumber('777', 8))
         end
     else
-        return
+        return false, nil
     end
 
     if skip_input == false then
@@ -465,14 +464,14 @@ function M.delete(opts)
             uv.fs_rename(asset_path, vim.fs.joinpath(garbage_path, asset_name))
         end
         vim.notify(("Mdn: %s '%s'"):format(text1, asset_path), vim.log.levels.WARN)
-        deleted = true
+        is_deleted = true
     elseif user_input == 'n' or '' then
         vim.notify(("Mdn: Skipped '%s'"):format(asset_path), vim.log.levels.WARN)
     else
         vim.notify(("Mdn: Unknown input '%s'"):format(user_input), vim.log.levels.ERROR)
     end
 
-    if uri_il ~= nil and deleted == true then
+    if uri_il ~= nil and is_deleted == true then
         local new_col = cur_col - 2
         if new_col < 1 then new_col = 1 end
 
@@ -481,7 +480,7 @@ function M.delete(opts)
         vim.fn.cursor({lnum, new_col})
     end
 
-    return deleted, asset_path
+    return is_deleted, asset_path
 end
 
 return M

@@ -370,11 +370,11 @@ end
 
 ---New line remaps
 ---@param key '"o"'|'"O"'|'"<CR>"'
----@param expr_set boolean If remap is used when opts.expr is true
+---@param expr boolean If remap is used when opts.expr is true
 ---@return string|nil
-function M.new_line_remap(key, expr_set)
+function M.new_line_remap(key, expr)
     vim.validate("key", key, "string")
-    vim.validate("expr_set", expr_set, "boolean")
+    vim.validate("expr_set", expr, "boolean")
 
     local lnum = vim.fn.line('.')
     local indent, list_remap = "", ""
@@ -383,9 +383,11 @@ function M.new_line_remap(key, expr_set)
         indent, list_remap = get_indent_indicator(1)
     elseif key == "O" then
         indent, list_remap = get_indent_indicator(-1)
+    else
+        return nil
     end
 
-    if expr_set == true then
+    if expr == true then
         return list_remap
     end
 
