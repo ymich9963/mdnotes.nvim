@@ -23,7 +23,7 @@ local T = new_set({
     },
 })
 
-T['get_current_heading()'] = function()
+T['get_heading()'] = function()
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -37,13 +37,13 @@ T['get_current_heading()'] = function()
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
     require('mdnotes.toc').populate_buf_fragments(cur_buf)
-    return {require('mdnotes.heading').get_current_heading()}
+    return {require('mdnotes.heading').get_heading()}
     ]])
     eq(ret, {1, {hash = "#", text = "Heading 1", lnum = 1}, 2})
 
     child.fn.cursor(4,1)
     ret = child.lua([[
-    return {require('mdnotes.heading').get_current_heading()}
+    return {require('mdnotes.heading').get_heading()}
     ]])
     eq(ret, {2, {hash = "##", text = "Heading 2", lnum = 4}, 2})
 end

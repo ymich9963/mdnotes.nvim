@@ -40,19 +40,11 @@ T['check_assets_path()'] = function()
     eq(ret, true)
 end
 
-T['get_asset_inline_link()'] = function()
-    local ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link({
-        is_image = false,
-        file_path = "path/test",
-        process_file = false
-    })]])
+T['get_asset_il()'] = function()
+    local ret = child.lua([[return require('mdnotes.assets').get_asset_il(false, false, "path/test")]])
     eq(ret, "[test](assets/test)")
 
-    ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link({
-        is_image = true,
-        file_path = "path/test",
-        process_file = false
-    })]])
+    ret = child.lua([[return require('mdnotes.assets').get_asset_il(true, false, "path/test")]])
     eq(ret, "![test](assets/test)")
 end
 
