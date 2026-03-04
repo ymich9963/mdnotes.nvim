@@ -38,7 +38,7 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
     group = mdnotes_pop_group,
     callback = function(args)
-        require('mdnotes.toc').populate_buf_fragments(args.buf)
+        require('mdnotes').populate_buf_fragments(args.buf)
     end,
     desc = "Mdnotes populating buffer fragments table autocmd"
 })
@@ -128,7 +128,7 @@ local get_commands = function() return {
         column_alignment_toggle = require("mdnotes.table").column_alignment_toggle,
         column_duplicate = require("mdnotes.table").column_duplicate,
         column_sort_ascending = require("mdnotes.table").column_sort_ascending,
-        column_sort_descending = require("mdnotes.table").column_sort_descending,
+        column_sort_descendig = require("mdnotes.table").column_sort_descending,
         row_insert_above = require("mdnotes.table").row_insert_above,
         row_insert_below = require("mdnotes.table").row_insert_below,
     },
@@ -170,7 +170,7 @@ local get_commands = function() return {
     miscellaneous = {
         set_cwd = require("mdnotes").set_cwd,
         record_buf = require("mdnotes.history").record_buf,
-        populate_buf_fragments = require("mdnotes.toc").populate_buf_fragments,
+        populate_buf_fragments = require("mdnotes").populate_buf_fragments,
         open_containing_folder = require("mdnotes").open_containing_folder,
     },
     user = vim.deepcopy(require('mdnotes').config.user_commands, true)

@@ -9,7 +9,7 @@ local M = {}
 function M.get_heading(opts)
     opts = opts or {}
 
-    local buf_fragments = require('mdnotes.toc').buf_fragments
+    local buf_fragments = require('mdnotes').buf_fragments
     local lnum = opts.lnum or vim.fn.line(".")
     local bufnum = opts.bufnum or vim.api.nvim_get_current_buf()
     local fragment = {hash = "", text = "", lnum = 0}
@@ -61,7 +61,7 @@ end
 
 ---Go to next Markdown heading
 function M.goto_next()
-    local buf_fragments = require('mdnotes.toc').buf_fragments
+    local buf_fragments = require('mdnotes').buf_fragments
     local cur_buf_num = vim.api.nvim_get_current_buf()
     local index, _, total_fragments = M.get_heading()
     if not index then return end
@@ -77,7 +77,7 @@ end
 
 ---Go to previous Markdown heading
 function M.goto_previous()
-    local buf_fragments = require('mdnotes.toc').buf_fragments
+    local buf_fragments = require('mdnotes').buf_fragments
     local cur_buf_num = vim.api.nvim_get_current_buf()
     local index, _, total_fragments = M.get_heading()
     if not index then return end

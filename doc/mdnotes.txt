@@ -574,7 +574,7 @@ subcommands are listed below.
 
 :Mdn miscellaneous populate_buf_fragments		*Mdn-miscellaneous-populate_buf_fragments*
 
-   Update or populate the `toc.buf_fragments` table containing the fragments
+   Update or populate the `buf_fragments` table containing the fragments
    for the current buffer. Happens automatically if its option in
    |mdnotes-autocmds is set.
 
@@ -758,6 +758,60 @@ get_files_in_cwd({opts}) 				*mdnotes.get_files_in_cwd()*
 
     Return: ~
       (`string[]`): List of file name strings.
+
+convert_text_to_gfm({text}) 				*mdnotes.convert_text_to_gfm()*
+
+    Convert the inputted text to GFM-style text based on 
+    https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links
+
+    Parameters: ~
+    • {text}  (`string`) String to convert to GFM-style
+
+    Return: ~
+      (`string`): Converted text
+
+populate_buf_fragments({bufnr}) 			*mdnotes.populate_buf_fragments()*
+
+    Parse the fragments in the specified buffer and update |mdnotes-buf_fragments|.
+
+    Parameters: ~
+    • {bufnr}  (`integer?` defaults to current buffer) Buffer to populate
+      `buf_fragments` with.
+
+get_fragments_from_headings({bufnr}) 			*mdnotes.get_fragments_from_headings()*
+
+    Get fragments from the Markdown buffer headings. Parses each heading to
+    table entries of type `MdnFragment` TODO:.
+    
+    Parameters: ~
+    • {bufnr}  (`integer?` defaults to current buffer) Buffer to get fragments
+      from.
+
+    Return: ~
+      (`MdnFragments`) TODO:
+
+convert_fragments_to_gfm_style({fragments}) 		*mdnotes.convert_fragments_to_gfm_style()*
+
+    Convert MdnFragments entries to GFM style and return as table.
+
+    Parameters: ~
+    • {fragments}  (`MdnFragments`) Fragments table.
+
+    Return: ~
+      (`MdnFragmentsGfm`) TODO:
+
+find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
+
+    Find the fragment in the |mdn-buf_fragments| table of the specified
+    buffer. Returns `nil` if the specified buffer and fragment are not
+    parsed in `buf_fragments`.
+
+    Parameters: ~
+    • {bufnr}  (`MdnFragments`) Fragments table.
+    • {fragment}  (`string`) Fragment to search for.
+
+    Return: ~
+      (`string`): Found fragment on success.
 
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
@@ -1050,13 +1104,13 @@ heading.get_heading({opts}) 				*mdnotes.heading.get_heading()*
       (`MdnFragment`) TODO:
       (`integer`) Total fragments in the parsed buffer
 
+heading.goto_next()					*mdnotes.heading.goto_next()*
+
+      Go to the next Markdown heading.
+
 heading.goto_previous()					*mdnotes.heading.goto_previous()*
 
    Go to the previous Markdown heading.
-
-heading.goto_next()					*mdnotes.heading.goto_next()*
-
-   Go to the next Markdown heading.
 
 history.buf_history					*mdnotes.history.buf_history*
 
@@ -1069,6 +1123,14 @@ history.buf_history					*mdnotes.history.buf_history*
 history.current_index					*mdnotes.history.current_index*
 
     Current index being pointed to in the |mdnotes.buf_history| table. 
+
+history.record_buf({bufnr}) 				*mdnotes.history.record_buf()*
+
+    Record {buffernr} to buffer history. Defaults to current buffer. Used in
+    the `record_buf` autocmd in |mdnotes-autocmds|.
+
+    Parameters: ~
+    • {bufnr}  (`integer?`, default current buffer) Buffer number
 
 history.go_back()					*mdnotes.history.go_back()*
 
@@ -1137,15 +1199,25 @@ inline_link.convert_fragment_to_gfm()			*mdnotes.inline_link.convert_fragment_to
     using LSP auto-completion and you want to create valid Markdown links on
     GitHub.
 
+journal.get_journal_file()				*mdnotes.journal.go_to()*
+
+    Resolve the journal file name from |mdnotes-journal_file|.
+
+    Return: ~
+    • (`string`) Journal file path
+
 journal.go_to()						*mdnotes.journal.go_to()*
 
-    Go the journal file defined by |mdnotes-journal_file|.
+    Go the journal file defined by |mdnotes-journal_file|. Used in
+    |:Mdn-journal|.
 
-journal.insert_entry()					*mdnotes.journal_insert_entry()*
+journal.insert_entry({opts})					*mdnotes.journal_insert_entry()*
 
     Insert a journal entry at the top of the file, which is the current date 
-    along with a separator to separate the different entries. Places the 
-    cursor on `<cursor>`. For example,
+    along with a separator to separate the different entries. Gets used in
+    `journal_insert_entry` with |mdnotes-autocmds|.
+
+    The entry is shown below with the cursor going on `<cursor>`,
 >markdown
     ```
     ## Sun 09 Nov 2025
@@ -1154,6 +1226,16 @@ journal.insert_entry()					*mdnotes.journal_insert_entry()*
 
     ---
     ```
+<
+    Date format is determined from the |mdnotes-date_format| used in
+    |strftime()|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+              • {check_file} (`boolean?,` default `false`)
+		check if currently in journal file
 
 outliner.toggle()					*mdnotes.outliner.toggle()*
 
@@ -1176,8 +1258,8 @@ patterns						*mdnotes.patterns*
 
     Format patterns are Lua patterns used to detect the existance of those
     formats at the current cursor position. The patterns must return start
-    and end cursor positions (e.g. `"()~~(.-)~~()"`). 
-    See |mdnotes.check_md_format()|
+    and end cursor positions (e.g. `"()~~(.-)~~()"`). See `MdnPatterns` TODO:.
+
 
 table.create({rows}, {cols})				*mdnotes.table.create()*
 
@@ -1243,10 +1325,26 @@ table.column_sort({comp})				*mdnotes.table.column_sort_descending()*
    Sort table by the current column based on the {comp}. See
    |table.sort()| for the type of function expected.
 
-toc.generate()						*mdnotes.toc.generate()*
+toc.generate({opts})					*mdnotes.toc.generate()*
 
     Generate and insert a Table Of Contents of the current file at the cursor
-    position.
+    position. Can also specify other buffers with {opts}.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {buffer} (`integer?`, defaults to current buffer)
+		buffer number to generate ToC for
+              • {lnum} (`integer?`, defaults to current line)
+		line number to write the ToC to in {buffer}
+              • {depth} (`integer?`, defaults to |mdnotes-toc_depth|)
+		depth of the ToC
+              • {write} (`boolean?`, default `true`)
+		write to the specified {buffer} and {line}
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`string`) Table with ToC lines on success
 
 wikilink.follow()					*mdnotes.wikilink.follow()*
 

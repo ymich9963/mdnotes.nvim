@@ -150,10 +150,9 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
                 buf = vim.api.nvim_get_current_buf()
             end
 
-            local mdn_toc = require('mdnotes.toc')
-            mdn_toc.populate_buf_fragments(buf)
+            require('mdnotes').populate_buf_fragments(buf)
 
-            local new_fragment = mdn_toc.get_fragments_from_buf_fragments(buf, fragment)
+            local new_fragment = require('mdnotes').find_fragment_in_buf_fragments(buf, fragment)
             if new_fragment == nil then
                 return fragment, -3
             end
@@ -387,7 +386,7 @@ function M.convert_fragment_to_gfm(opts)
     local locopts = opts.location or {}
     local ildata = M.parse({ location = locopts })
     local new_fragment = ""
-    local convert_text_to_gfm = require('mdnotes.toc').convert_text_to_gfm
+    local convert_text_to_gfm = require('mdnotes').convert_text_to_gfm
 
     if ildata == nil or ildata.text == nil then return end
 

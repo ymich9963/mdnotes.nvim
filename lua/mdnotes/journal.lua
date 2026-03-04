@@ -33,7 +33,7 @@ function M.go_to()
 end
 
 ---Insert an entry to the journal file
----@param opts {silent: boolean?, check_file: boolean}? opts.silent: Silence notifications, opts. check_file: Check if currently in journal file
+---@param opts {silent: boolean?, check_file: boolean}?
 function M.insert_entry(opts)
     opts = opts or {}
     local silent = opts.silent or false
