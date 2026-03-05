@@ -811,7 +811,7 @@ find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_
     • {fragment}  (`string`) Fragment to search for.
 
     Return: ~
-      (`string`): Found fragment on success.
+      (`string|nil`): Found fragment on success, `nil` on failure.
 
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
@@ -854,7 +854,7 @@ assets.get_asset_il({is_image}, {process_file}, {file_path})	*mdnotes.assets.get
       clipboard is used
 
     Return: ~
-      (`string|nil`): Asset inline link on success.
+      (`string|nil`): Asset inline link on success, `nil` on failure.
 
 assets.insert_file()					*mdnotes.assets.insert_file()*
 
@@ -924,7 +924,7 @@ assets.download_website_html({opts})				*mdnotes.assets.download_website_html()*
 		URI with a valid URL to download the HTML from
 
     Return: ~
-      (`string|nil`): Path of downloaded file on success.
+      (`string|nil`): Path of downloaded file on success, `nil` on failure.
 
 assets.delete()						*mdnotes.assets.unused_move()*
 
@@ -1099,10 +1099,10 @@ heading.get_heading({opts}) 				*mdnotes.heading.get_heading()*
               • {lnum} (`integer?,` defaults to current line)
 
     Return: ~
-      (`integer|nil`) Index of current heading in the parsed fragments. See
+      (`integer|nil`): Index of current heading in the parsed fragments. See
       |mdnotes-buf_fragments| TODO:.
       (`MdnFragment`) TODO:
-      (`integer`) Total fragments in the parsed buffer
+      (`integer`): Total fragments in the parsed buffer
 
 heading.goto_next()					*mdnotes.heading.goto_next()*
 
@@ -1146,52 +1146,222 @@ history.clear()						*mdnotes.history.clear()*
 
     Clear the |mdnotes.buf_history| table.
 
-inline_link.insert()					*mdnotes.inline_link.insert()*
+inline_link.uri_website_tbl 				*mdnotes.inline_link.uri_website_tbl*
+
+    Contains the strings `https` and `http` which are used to check if the URI
+    is a website.
+
+inline_link.parse({opts})				*mdnotes.inline_link.parse()*
+
+    Get the inline link data such as the image designator, link text, link URI/destination,
+    and the start and end columns.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {inline_link} (`string?`)
+		specify an inline link to parse
+              • {keep_pointy_brackets} (`boolean?`, default `true`)
+		whether to keep `<` and `>` surrounding a URI with spaces
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse TODO:
+	
+    If both {inline_link} and {location} are specified, it uses {location}.
+
+    Return: ~
+      (`MdnInLineLinkData|nil`): TODO: Parsed inline link on success, `nil` on
+      failure.
+
+inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_path_from_uri()*
+
+    Get the path from the URI and optionally check if it links to a valid
+    path.
+
+    Parameters: ~
+    • {uri}  (`string?`) URI
+    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
+    • {opts}  (`table?`) Optional parameters (unused)
+	
+    Return: ~
+      (`string`): Extracted path
+      (`integer|nil`): On failure, an error code
+      (`string|nil`): On failure, text describing the error
+
+    Error codes:
+	`-1` : is URL
+	`-2` : file not found
+
+inline_link.get_fragment_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_fragment_from_uri()*
+
+    Get the fragment from the URI and optionally check if it is a valid
+    fragment.
+
+    Parameters: ~
+    • {uri}  (`string?`) URI
+    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
+    • {opts}  (`table?`) Optional parameters (unused)
+	
+    Return: ~
+      (`string`): Extracted fragment
+      (`integer|nil`): On failure, an error code
+      (`string|nil`): On failure, text describing the error
+
+    Error codes:
+	`-1` : is URL
+	`-2` : invalid path: detected path and its error
+	`-3` : fragment not parsed
+	`-4` : invalid fragment: value retrieved from |mdn-buf_fragments|.
+
+inline_link.open({opts})				*mdnotes.inline_link.open()*
+
+    Open inline links in the appropriate programme.
+
+    Parameters: ~
+    • {uri}  (`string?`) URI
+    • {location}  (`MdnInLineLocation?`, defaults to current location) Location of the inline link
+	
+    Return: ~
+      (`integer|vim.SystemObj|string|nil`): Buffer number on new opened buffer,
+      |vim.ui.open()| result on programme opening, error string on error,
+      `nil` on failed |vim.ui.open()|.
+
+      Uses |mdnotes.inline_link.get_path_from_uri()| and
+      |mdnotes.inline_link.get_fragment_from_uri()| internally so it returns
+      all their errors except `-1`.
+
+inline_link.is_image({opts}) 				*mdnotes.inline_link.is_image()*
+
+    Check if inline link is an image.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {inline_link} (`string?`)
+		specify an inline link to parse
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse TODO:
+	
+    If both {inline_link} and {location} are specified, it uses {location}.
+
+    Return: ~
+      (`boolean`) `true` if it is an image and `false` if not.
+
+inline_link.is_url({opts}) 				*mdnotes.inline_link.is_url()*
+
+    Check if inline link is a URL.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {inline_link} (`string?`)
+		specify an inline link to parse
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse TODO:
+	
+    If both {inline_link} and {location} are specified, it uses {location}.
+
+    Return: ~
+      (`boolean`) `true` if it is a URL and `false` if not.
+
+inline_link.insert({opts})				*mdnotes.inline_link.insert()*
 
     Insert a inline link from the clipboard using the currently highlighted
-    text or the word under cursor. Uses the `"+` register to paste from
+    text or the word under cursor. Uses the |quote+| register to paste from
     clipboard.
 
-inline_link.delete()					*mdnotes.inline_link.delete()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {uri} (`string?`)
+		URI to insert an inline link for
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was inserted
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to insert TODO:
+
+inline_link.delete({opts})				*mdnotes.inline_link.delete()*
 
     Remove the inline link from the current inline link under the cursor.
-    Saves the link text in the `"0` register and the link in the `"+` register.
-    This allows it to be reused when inserting again.
+    Saves the link text in the |quote0| register and the link in the |quote+| 
+    register. This allows it to be reused when inserting again.
 
-inline_link.toggle()					*mdnotes.inline_link-toggle()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was deleted
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to delete TODO:
+
+inline_link.toggle({opts})				*mdnotes.inline_link-toggle()*
 
     Toggle adding or removing the inline link. When adding it uses
     |mdnotes.inline_link-insert()| and when removing it uses
     |mdnotes.inline_link-delete()|.
 
-inline_link.rename()					*mdnotes.inline_link.rename()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to toggle TODO:
 
-    Rename the link text.
-
-inline_link.relink()					*mdnotes.inline_link.relink()*
+inline_link.relink({opts})				*mdnotes.inline_link.relink()*
 
     Re-link the inline link.
 
-inline_link.normalize()					*mdnotes.inline_link.normalize()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {new_link} (`string?`)
+		skips the user prompt if given
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to relink TODO:
+
+inline_link.rename({opts})				*mdnotes.inline_link.rename()*
+
+    Rename the link text.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {new_name} (`string?`)
+		skips the user prompt if given
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to rename TODO:
+
+inline_link.normalize({opts})				*mdnotes.inline_link.normalize()*
 
     Execute |vim.fs.normalize()| on the inline link below the cursor and also
     add < and > if the link contains spaces.
 
-inline_link.validate([{internal_call}, {norm}])		*mdnotes.inline_link.validate()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to normalise TODO:
 
-    Validate any inline link without opening it. Gets called internally for
-    |Mdn-open| with `internal_call = true`.
+inline_link.convert_fragment_to_gfm({opts})		*mdnotes.inline_link.convert_fragment_to_gfm()*
+
+    Convert the fragment of the inline link under the cursor to GFM-style
+    fragment.
 
     Parameters: ~
-    • {internal_call}  (`boolean?`) Specify whether the function is called
-      internally or externally by the user.
-    • {norm}  (`boolean?`) Specify whether |mdnotes.inline_link.normalize()
-      is used.
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to normalise TODO:
+
+inline_link.validate({opts})				*mdnotes.inline_link.validate()*
+
+    Validate any inline link without opening it.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to relink TODO:
 
     Return: ~
-    • (`nil`) on failure.
-    • (`table`) which is the link text, destination URI, file path, and fragment, start 
-      column of link, and end column of link on success.
+    • (`boolean`) `true` if valid and `false` when invalid
 
 inline_link.convert_fragment_to_gfm()			*mdnotes.inline_link.convert_fragment_to_gfm()*
 
@@ -1344,7 +1514,7 @@ toc.generate({opts})					*mdnotes.toc.generate()*
 		silence notifications
 
     Return: ~
-    • (`string`) Table with ToC lines on success
+    • (`string[]|nil`) Table with ToC lines on success, `nil` on failure.
 
 wikilink.follow()					*mdnotes.wikilink.follow()*
 

@@ -19,14 +19,8 @@ M.uri_website_tbl = {"https", "http"}
 function M.parse(opts)
     opts = opts or {}
 
-    -- Overwrite if location is given
     local inline_link = opts.inline_link
     local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
-
-    local locopts = opts.location or {}
-    if not vim.tbl_isempty(locopts) then
-        inline_link = nil
-    end
 
     vim.validate("inline_link", inline_link, { "string", "nil" })
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
@@ -35,10 +29,11 @@ function M.parse(opts)
     local il_pattern = require("mdnotes.patterns").inline_link
     local txtdata
 
-    if inline_link == nil then
-        if not check_markdown_syntax(il_pattern, {location = locopts}) then return nil end
-        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = locopts })
-        inline_link = txtdata.text
+    -- Overwrite if location is given
+    if opts.location or inline_link == nil then
+        if not check_markdown_syntax(il_pattern, {location = opts.location}) then return nil end
+        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = opts.location })
+        inline_link = txtdata.text or ""
     end
 
     local text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
@@ -62,16 +57,13 @@ function M.parse(opts)
 end
 
 ---Check and get path from the URI
----Error codes:
---- -1 : is URL
---- -2 : file not found
 ---@param uri string URI to check
 ---@param check_valid boolean Whether to check if the path is to a valid file or not
 ---@param opts table?
----@return string path, integer|nil error
+---@return string path, integer|nil error, string|nil error_text
 function M.get_path_from_uri(uri, check_valid, opts)
     local path = ""
-    if M.is_url({ uri = uri }) == true then return path, -1 end
+    if M.is_url({ uri = uri }) == true then return path, -1, "is URL" end
 
     opts = opts or {} -- unused
 
@@ -100,7 +92,7 @@ function M.get_path_from_uri(uri, check_valid, opts)
             -- If the path is still not found, check if it's a URL
             if not uv.fs_stat(path) then
                 vim.notify("Mdn: Linked file at '" .. path .. "' not found", vim.log.levels.ERROR)
-                return path, -2
+                return path, -2, "file not found"
             end
         else
             -- Handle [link](#fragment)
@@ -112,18 +104,13 @@ function M.get_path_from_uri(uri, check_valid, opts)
 end
 
 ---Check and get fragment from the URI
----Error codes:
---- -1 : is URL
---- -2 : invalid path, error_text contains detected path and error
---- -3 : fragment not parsed
---- -4 : invalid fragment, error_text contains value retrieved from buf_fragments
 ---@param uri string URI to check
 ---@param check_valid boolean Whether to check if the path is to a valid file or not
 ---@param opts table?
----@return string|nil fragment, number|nil error, string|nil error_text
+---@return string|nil fragment, integer|nil error, string|nil error_text
 function M.get_fragment_from_uri(uri, check_valid, opts)
     local fragment = ""
-    if M.is_url({ uri = uri }) == true then return fragment, -1 end
+    if M.is_url({ uri = uri }) == true then return fragment, -1, "is URL" end
 
     opts = opts or {} -- unused
 
@@ -138,7 +125,7 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
             -- Need path to open file to parse sections
             local path, err = M.get_path_from_uri(uri, true)
             if err ~= nil then
-                return fragment, -2, path .. ", " .. err
+                return fragment, -2, "invalid path: " .. path .. ", " .. err
             end
 
             local buf
@@ -154,7 +141,7 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
 
             local new_fragment = require('mdnotes').find_fragment_in_buf_fragments(buf, fragment)
             if new_fragment == nil then
-                return fragment, -3
+                return fragment, -3, "fragment not parsed"
             end
 
             local search_ret = 0
@@ -164,7 +151,7 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
 
             if search_ret == 0 then
                 vim.notify("Mdn: Invalid fragment '" .. fragment .. "'", vim.log.levels.ERROR)
-                return fragment, -4, new_fragment
+                return fragment, -4, "invalid fragment: ".. new_fragment
             end
 
             fragment = new_fragment
@@ -174,7 +161,7 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
     return fragment, nil
 end
 
----Open inline links
+---Open inline links in the appropriate programme
 ---@param opts {uri: string?, location: MdnInLineLocation?}?
 ---@return integer|vim.SystemObj|string|nil
 function M.open(opts)
@@ -218,13 +205,14 @@ function M.is_image(opts)
     opts = opts or {}
 
     local inline_link = opts.inline_link
+
+    vim.validate("inline_link", inline_link, { "string", "nil" })
+
     if opts.location or inline_link == nil then
         local inline_link_pattern = require("mdnotes.patterns").inline_link
         local txtdata = require('mdnotes').get_text_in_pattern(inline_link_pattern, { location = opts.location })
-        inline_link = txtdata.text
+        inline_link = txtdata.text or ""
     end
-
-    vim.validate("inline_link", inline_link, { "string", "nil" })
 
     if inline_link == nil or inline_link:sub(1,1) ~= "!" then
         return false
@@ -235,7 +223,7 @@ end
 
 ---Check if inline link is an image
 ---@param opts {uri: string?, location: MdnInLineLocation}?
----@return boolean is_url Text to use when checking for an inline link
+---@return boolean is_url
 function M.is_url(opts)
     opts = opts or {}
 
@@ -281,17 +269,22 @@ function M.insert(opts)
 end
 
 ---Delete Markdown inline link and leave the text
----@param opts {location: MdnInLineLocation?}?
+---@param opts {move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.delete(opts)
     opts = opts or {}
 
+    local move_cursor = opts.move_cursor ~= false
     local locopts = opts.location or {}
     local ildata = M.parse({ location = locopts })
 
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.text})
-    vim.fn.cursor({vim.fn.line('.'), ildata.col_start - 1})
+
+    if move_cursor == true then
+        vim.cmd.buffer(ildata.buffer)
+        vim.fn.cursor({vim.fn.line('.'), ildata.col_start - 1})
+    end
 end
 
 ---Toggle inserting and deleting inline links
@@ -309,10 +302,11 @@ function M.toggle(opts)
 end
 
 ---Relink inline link
----@param opts {new_link: string?, location: MdnInLineLocation?}?
+---@param opts {new_link: string?, move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.relink(opts)
     opts = opts or {}
     local new_link = opts.new_link
+    local move_cursor = opts.move_cursor ~= false
     local locopts = opts.location or {}
 
     local ildata = M.parse({ location = locopts })
@@ -331,14 +325,19 @@ function M.relink(opts)
     end
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. user_input .. ')'})
-    vim.fn.cursor({ildata.lnum, ildata.col_start})
+
+    if move_cursor == true then
+        vim.cmd.buffer(ildata.buffer)
+        vim.fn.cursor({ildata.lnum, ildata.col_start})
+    end
 end
 
 ---Rename inline link
----@param opts {new_name: string?, location: MdnInLineLocation?}?
+---@param opts {new_name: string?, move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.rename(opts)
     opts = opts or {}
     local new_name = opts.new_name
+    local move_cursor = opts.move_cursor ~= false
     local locopts = opts.location or {}
 
     local ildata = M.parse({ location = locopts })
@@ -357,13 +356,19 @@ function M.rename(opts)
     end
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. user_input .. '](' .. ildata.uri .. ')'})
-    vim.fn.cursor({ildata.lnum, ildata.col_start})
+
+    if move_cursor == true then
+        vim.cmd.buffer(ildata.buffer)
+        vim.fn.cursor({ildata.lnum, ildata.col_start})
+    end
 end
 
 ---Normalize inline link
----@param opts {location: MdnInLineLocation?}?
+---@param opts {move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.normalize(opts)
     opts = opts or {}
+
+    local move_cursor = opts.move_cursor ~= false
     local locopts = opts.location or {}
     local ildata = M.parse({ location = locopts })
     local new_uri = ""
@@ -376,13 +381,19 @@ function M.normalize(opts)
     end
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. new_uri .. ')'})
-    vim.fn.cursor({ildata.lnum, ildata.col_start})
+
+    if move_cursor == true then
+        vim.cmd.buffer(ildata.buffer)
+        vim.fn.cursor({ildata.lnum, ildata.col_start})
+    end
 end
 
 ---Convert the fragment of the inline link under the cursor to GFM-style fragment
----@param opts {location: MdnInLineLocation?}?
+---@param opts {move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.convert_fragment_to_gfm(opts)
     opts = opts or {}
+
+    local move_cursor = opts.move_cursor ~= false
     local locopts = opts.location or {}
     local ildata = M.parse({ location = locopts })
     local new_fragment = ""
@@ -400,40 +411,62 @@ function M.convert_fragment_to_gfm(opts)
     local new_uri = uri:sub(1, hash_location) .. new_fragment
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. new_uri .. ')'})
-    vim.fn.cursor({ildata.lnum, ildata.col_start})
+
+    if move_cursor == true then
+        vim.cmd.buffer(ildata.buffer)
+        vim.fn.cursor({ildata.lnum, ildata.col_start})
+    end
 end
 
----Validate that the inline link is correct
----@param opts {location: MdnInLineLocation?}?
+---Validate inline link without opening it
+---@param opts {silent: boolean?, location: MdnInLineLocation?}?
+---@return boolean valid, string error
 function M.validate(opts)
     opts = opts or {}
+
+    local silent = opts.silent or false
     local locopts = opts.location or {}
     local ildata = M.parse({ location = locopts })
+
     if ildata == nil or ildata.text == nil or ildata.uri == nil then
-        vim.notify("Mdn: No valid inline link detected", vim.log.level.WARN)
-        return nil
+        if silent == false then
+            vim.notify("Mdn: No valid inline link detected", vim.log.level.WARN)
+        end
+
+        return false, "no valid inline link detected"
     end
 
     if ildata.uri:match(" ") and not ildata.uri:match("<.+>") then
-        vim.notify("Mdn: Destinations with spaces must be enclosed with < and >. Execute ':Mdn inline_link normalize' for a quick fix", vim.log.levels.ERROR)
-        return nil
+        if silent == false then
+            vim.notify("Mdn: Destinations with spaces must be enclosed with < and >. Execute ':Mdn inline_link normalize' for a quick fix", vim.log.levels.ERROR)
+        end
+
+        return false, "destinations with spaces must be enclosed with < and >"
     end
 
     ildata.uri = ildata.uri:gsub("[<>]?", "")
 
-    local path = M.get_path_from_uri(ildata.uri, true)
-    if path == nil then
-        vim.notify("Mdn: Inline link does not seem to point to a valid path", vim.log.level.WARN)
-        return nil
+    local _, perror = M.get_path_from_uri(ildata.uri, true)
+    if perror == -2 then
+        if silent == false then
+            vim.notify("Mdn: Inline link does not seem to point to a valid path", vim.log.level.WARN)
+        end
+
+        return false, "invalid path"
     end
 
-    local fragment = M.get_fragment_from_uri(ildata.uri, true)
-    if fragment == nil then
-        vim.notify("Mdn: Inline link does not seem to point to a valid fragment", vim.log.level.WARN)
-        return nil
+    local _, ferror = M.get_fragment_from_uri(ildata.uri, true)
+    if ferror ~= nil and ferror ~= -1 then
+        if silent == false then
+            vim.notify("Mdn: Inline link does not seem to point to a valid fragment", vim.log.level.WARN)
+        end
+
+        return false, "invalid fragment"
     end
 
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
+
+    return true, "valid"
 end
 
 return M

@@ -2,18 +2,20 @@
 
 local M = {}
 
----@class MdnTableComplexData
----@field content string Cell content
----@field start_pos integer Cell start position
----@field end_pos integer Cell end position
----@field line integer Line in the table
+---@alias MdnTableCell string
+
+---@class MdnTableCellComplex
+---@field content MdnTableCell Cell content
+---@field start_col integer Cell start position
+---@field end_col integer Cell end position
+---@field lnum integer Line in the table
+
+---@alias MdnTableContents table<table<MdnTableCell>> Contents of a table
+---@alias MdnTableContentsComplex table<table<MdnTableCellComplex>> Complex table data which is just more information about each cell
+---@alias MdnTableColLoc table<table<integer>> Table column locations
 
 ---@class MdnTable: MdnMultiLineLocation
----@field contents MdnTableContents
-
----@alias MdnTableContents table<table<string>> Contents of a table
----@alias MdnTableColLoc table<table<integer>> Table column locations
----@alias MdnTableComplex table<table<MdnTableComplexData>> Complex table data which is just more information about the table
+---@field contents MdnTableContents|MdnTableContentsComplex
 
 ---Check if there is a table in the specified search range or under the cursor
 ---@param opts {search: MdnSearchOpts?}?
@@ -185,7 +187,7 @@ end
 ---@param buffer integer
 ---@param table_startl integer
 ---@param table_endl integer
----@return MdnTableComplex
+---@return MdnTableContentsComplex
 function M.get_table_lines_complex(buffer, table_startl, table_endl)
     buffer = buffer or vim.api.nvim_get_current_buf()
 
@@ -209,9 +211,9 @@ function M.get_table_lines_complex(buffer, table_startl, table_endl)
         for j, cell in ipairs(line) do
             table.insert(table_complex_entry, {
                 content = cell,
-                start_pos = col_locations[i][j],
-                end_pos = col_locations[i][j + 1],
-                line = i
+                start_col = col_locations[i][j],
+                end_col = col_locations[i][j + 1],
+                lnum = i
             })
         end
         table.insert(table_complex, table_complex_entry)
@@ -268,17 +270,25 @@ function M.parse(opts)
     }
 end
 
+--TODO: locopts
 ---Get the table column locations
+---@param opts {search: MdnSearchOpts?}? opts.silent: Silence notifications
 ---@return MdnTableColLoc|nil
-function M.get_column_locations()
+function M.get_column_locations(opts)
+    opts = opts or {}
+    local search_opts = opts.search or {}
+    vim.validate("search_opts", search_opts, "table")
+
+    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+
     -- Fence post problem, all tables will have n+1 | characters with n being the text    
-    local tsearch = M.check_table_valid()
+    local tsearch = M.check_table_valid({ search = opts.search })
     if tsearch.valid == false then
         vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
         return nil
     end
 
-    local table_lines = vim.api.nvim_buf_get_lines(0, tsearch.startl - 1, tsearch.endl, false)
+    local table_lines = vim.api.nvim_buf_get_lines(buffer, tsearch.startl - 1, tsearch.endl, false)
     local col_locations_table = {}
     local col_locations_line = {}
 
@@ -308,7 +318,7 @@ function M.get_cur_column_num()
     for _, line in ipairs(tdata.contents) do
         for j, cell in ipairs(line) do
             -- Treats the left | as the start point of the column
-            if cell.start_pos <= cur_cursor_col_pos and cell.end_pos > cur_cursor_col_pos then
+            if cell.start_col <= cur_cursor_col_pos and cell.end_col > cur_cursor_col_pos then
                 return j
             end
         end
