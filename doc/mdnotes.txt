@@ -1580,7 +1580,6 @@ Toggling `emphasis` on all occurences of the word `balls` in a document.
 	end
     end
 <
-
 ==============================================================================
 OUTLINER                                     		*mdnotes-outliner*
 

@@ -188,81 +188,81 @@ T['get_table_lines_complex()'] = function()
         {
             {
                 content = "1r1c",
-                start_pos = 1,
-                end_pos = 6,
-                line = 1,
+                start_col = 1,
+                end_col = 6,
+                lnum = 1,
             },
             {
                 content = "1r2c",
-                start_pos = 6,
-                end_pos = 11,
-                line = 1,
+                start_col = 6,
+                end_col = 11,
+                lnum = 1,
             },
             {
                 content = "1r3c",
-                start_pos = 11,
-                end_pos = 16,
-                line = 1,
+                start_col = 11,
+                end_col = 16,
+                lnum = 1,
             }
         },
         {
             {
                 content = "----",
-                start_pos = 1,
-                end_pos = 6,
-                line = 2,
+                start_col = 1,
+                end_col = 6,
+                lnum = 2,
             },
             {
                 content = "----",
-                start_pos = 6,
-                end_pos = 11,
-                line = 2,
+                start_col = 6,
+                end_col = 11,
+                lnum = 2,
             },
             {
                 content = "----",
-                start_pos = 11,
-                end_pos = 16,
-                line = 2,
+                start_col = 11,
+                end_col = 16,
+                lnum = 2,
             }
         },
         {
             {
                 content = "2r1c",
-                start_pos = 1,
-                end_pos = 6,
-                line = 3,
+                start_col = 1,
+                end_col = 6,
+                lnum = 3,
             },
             {
                 content = "2r2c",
-                start_pos = 6,
-                end_pos = 11,
-                line = 3,
+                start_col = 6,
+                end_col = 11,
+                lnum = 3,
             },
             {
                 content = "2r3c",
-                start_pos = 11,
-                end_pos = 16,
-                line = 3,
+                start_col = 11,
+                end_col = 16,
+                lnum = 3,
             }
         },
         {
             {
                 content = "3r1c",
-                start_pos = 1,
-                end_pos = 6,
-                line = 4,
+                start_col = 1,
+                end_col = 6,
+                lnum = 4,
             },
             {
                 content = "3r2c",
-                start_pos = 6,
-                end_pos = 11,
-                line = 4,
+                start_col = 6,
+                end_col = 11,
+                lnum = 4,
             },
             {
                 content = "3r3c",
-                start_pos = 11,
-                end_pos = 16,
-                line = 4,
+                start_col = 11,
+                end_col = 16,
+                lnum = 4,
             }
         }
     }

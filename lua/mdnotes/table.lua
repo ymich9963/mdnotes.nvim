@@ -12,10 +12,11 @@ local M = {}
 
 ---@alias MdnTableContents table<table<MdnTableCell>> Contents of a table
 ---@alias MdnTableContentsComplex table<table<MdnTableCellComplex>> Complex table data which is just more information about each cell
----@alias MdnTableColLoc table<table<integer>> Table column locations
 
 ---@class MdnTable: MdnMultiLineLocation
 ---@field contents MdnTableContents|MdnTableContentsComplex
+
+---@alias MdnTableColLoc table<table<integer>> Table column locations
 
 ---Check if there is a table in the specified search range or under the cursor
 ---@param opts {search: MdnSearchOpts?}?
