@@ -83,7 +83,7 @@ end
 ---Write the table to the buffer
 ---Use startl == endl for inserting at current line
 ---@param opts MdnTable
-function M.write_table_lines(opts)
+function M.write_table(opts)
     opts = opts or {}
 
     local buffer = opts.buffer or vim.api.nvim_get_current_buf()
@@ -115,8 +115,8 @@ function M.write_table_lines(opts)
 end
 
 ---Create a table with r rows and c columns
----@param rows integer Rows
----@param columns integer Columns
+---@param rows integer
+---@param columns integer
 ---@param opts {buffer: integer?, lnum: integer?}?
 function M.create(rows, columns, opts)
     if rows == nil or columns == nil then
@@ -148,7 +148,7 @@ function M.create(rows, columns, opts)
     end
     table.insert(new_table, 2, header_row)
 
-    M.write_table_lines({ buffer = buffer, startl = lnum, endl = lnum, contents = new_table })
+    M.write_table({ buffer = buffer, startl = lnum, endl = lnum, contents = new_table })
 end
 
 ---Get the table lines in the specified line numbers
@@ -271,9 +271,8 @@ function M.parse(opts)
     }
 end
 
---TODO: locopts
 ---Get the table column locations
----@param opts {search: MdnSearchOpts?}? opts.silent: Silence notifications
+---@param opts {search: MdnSearchOpts?}?
 ---@return MdnTableColLoc|nil
 function M.get_column_locations(opts)
     opts = opts or {}
@@ -282,7 +281,7 @@ function M.get_column_locations(opts)
 
     local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
 
-    -- Fence post problem, all tables will have n+1 | characters with n being the text    
+    -- Fence post problem, all tables will have n+1 '|' characters with n being the text    
     local tsearch = M.check_table_valid({ search = opts.search })
     if tsearch.valid == false then
         vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
@@ -328,21 +327,6 @@ function M.get_cur_column_num()
     return nil
 end
 
----Insert a column to the table either left or right
----@param contents table tdata.contents
-local function insert_column(contents, cur_col)
-
-    for i, v in ipairs(contents) do
-        if i == 2 then
-            table.insert(v, cur_col, "----")
-        else
-            table.insert(v, cur_col, "    ")
-        end
-    end
-
-    return contents
-end
-
 ---Insert column to the left of the current column
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
 function M.column_insert_left(opts)
@@ -362,9 +346,15 @@ function M.column_insert_left(opts)
 
     vim.validate("cur_col", cur_col, "number")
 
-    tdata.contents = insert_column(tdata.contents, cur_col)
+    for i, v in ipairs(tdata.contents) do
+        if i == 2 then
+            table.insert(v, cur_col, "----")
+        else
+            table.insert(v, cur_col, "    ")
+        end
+    end
 
-    M.write_table_lines(tdata)
+    M.write_table(tdata)
 end
 
 ---Insert column to the right of the current column
@@ -386,25 +376,15 @@ function M.column_insert_right(opts)
 
     vim.validate("cur_col", cur_col, "number")
 
-    tdata.contents = insert_column(tdata.contents, cur_col + 1)
-
-    M.write_table_lines(tdata)
-end
-
----Move a column either left or right
-local function move_column(contents, new_col, cur_col)
-    if new_col < 1 or new_col > #contents[1] then
-        return nil
+    for i, v in ipairs(tdata.contents) do
+        if i == 2 then
+            table.insert(v, cur_col + 1, "----")
+        else
+            table.insert(v, cur_col + 1, "    ")
+        end
     end
 
-    local temp_col_val = ""
-    for _, v in ipairs(contents) do
-        temp_col_val = v[cur_col]
-        table.remove(v, cur_col)
-        table.insert(v, new_col, temp_col_val)
-    end
-
-    return contents
+    M.write_table(tdata)
 end
 
 ---Move current column to the left
@@ -426,14 +406,20 @@ function M.column_move_left(opts)
 
     vim.validate("cur_col", cur_col, "number")
 
-    local contents = move_column(tdata.contents, cur_col - 1, cur_col)
-    if contents == nil then
+    local new_col = cur_col - 1
+    if new_col < 1 or new_col > #tdata.contents[1] then
         vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
         return
     end
-    tdata.contents = contents
 
-    M.write_table_lines(tdata)
+    local temp_col_val = ""
+    for _, v in ipairs(tdata.contents) do
+        temp_col_val = v[cur_col]
+        table.remove(v, cur_col)
+        table.insert(v, new_col, temp_col_val)
+    end
+
+    M.write_table(tdata)
 end
 
 ---Move current column to the right
@@ -455,33 +441,23 @@ function M.column_move_right(opts)
 
     vim.validate("cur_col", cur_col, "number")
 
-    local contents = move_column(tdata.contents, cur_col + 1, cur_col)
-    if contents == nil then
+    local new_col = cur_col + 1
+    if new_col < 1 or new_col > #tdata.contents[1] then
         vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
         return
     end
-    tdata.contents = contents
 
-    M.write_table_lines(tdata)
-end
-
----Insert an empty row either above or below
-local function insert_row(contents, cur_table_line_num)
-    -- In case the table is at the very top
-    if cur_table_line_num == 0 then cur_table_line_num = 1 end
-
-    local cur_table_line = contents[cur_table_line_num]
-    local new_table_line = {}
-
-    for _, v in ipairs(cur_table_line) do
-        local text = v:gsub(".", " ")
-        table.insert(new_table_line, text)
+    local temp_col_val = ""
+    for _, v in ipairs(tdata.contents) do
+        temp_col_val = v[cur_col]
+        table.remove(v, cur_col)
+        table.insert(v, new_col, temp_col_val)
     end
 
-    return new_table_line
+    M.write_table(tdata)
 end
 
----Insert a row above the current row
+---Insert an empty row above the current row
 ---@param opts {search: MdnSearchOpts?, lnum: integer?}? opts.silent: Silence notifications
 function M.row_insert_above(opts)
     opts = opts or {}
@@ -497,14 +473,24 @@ function M.row_insert_above(opts)
         return
     end
 
-    local cur_table_line = lnum - tdata.startl
-    local new_table_line = insert_row(tdata.contents, cur_table_line)
+    local cur_table_lnum = lnum - tdata.startl
+
+    -- In case the table is at the very top
+    if cur_table_lnum == 0 then cur_table_lnum = 1 end
+
+    local new_table_line = {}
+    local cur_table_line = tdata.contents[cur_table_lnum]
+    for _, v in ipairs(cur_table_line) do
+        local text = v:gsub(".", " ")
+        table.insert(new_table_line, text)
+    end
+
     table.insert(tdata.contents, cur_table_line, new_table_line)
 
-    M.write_table_lines(tdata)
+    M.write_table(tdata)
 end
 
----Insert a row below the current row
+---Insert an empty row below the current row
 ---@param opts {search: MdnSearchOpts?, lnum: integer?}? opts.silent: Silence notifications
 function M.row_insert_below(opts)
     opts = opts or {}
@@ -520,11 +506,21 @@ function M.row_insert_below(opts)
         return
     end
 
-    local cur_table_line = lnum - tdata.startl
-    local new_table_line = insert_row(tdata.contents, cur_table_line)
+    local cur_table_lnum = lnum - tdata.startl
+
+    -- In case the table is at the very top
+    if cur_table_lnum == 0 then cur_table_lnum = 1 end
+
+    local new_table_line = {}
+    local cur_table_line = tdata.contents[cur_table_lnum]
+    for _, v in ipairs(cur_table_line) do
+        local text = v:gsub(".", " ")
+        table.insert(new_table_line, text)
+    end
+
     table.insert(tdata.contents, cur_table_line + 1, new_table_line)
 
-    M.write_table_lines(tdata)
+    M.write_table(tdata)
 end
 
 ---Add the appropriate amount of spaces for each column
@@ -595,7 +591,7 @@ function M.best_fit(opts)
         tdata.contents[2][c] = new_delimiter_row
     end
 
-    M.write_table_lines(tdata)
+    M.write_table(tdata)
 end
 
 ---Delete current column. Can also use visual block mode
@@ -621,7 +617,7 @@ function M.column_delete(opts)
         table.remove(v, cur_col)
     end
 
-    M.write_table_lines(tdata)
+    M.write_table(tdata)
 end
 
 ---Toggle alignment of the current column
@@ -666,7 +662,7 @@ function M.column_alignment_toggle(opts)
 
     tdata.contents[2][cur_col] = new_delimiter_row
 
-    M.write_table_lines(tdata)
+    M.write_table(tdata)
 end
 
 ---Duplicate the current column. Inserts it to the right
@@ -697,7 +693,7 @@ function M.column_duplicate(opts)
         end
     end
 
-    M.write_table_lines(tdata)
+    M.write_table(tdata)
 end
 
 ---Get table as columns
@@ -788,7 +784,7 @@ function M.column_sort(comp, opts)
 
     if write == true then
         tdata.contents = new_table_lines
-        M.write_table_lines(tdata)
+        M.write_table(tdata)
     end
 
     return new_table_lines, tdata.startl, tdata.endl

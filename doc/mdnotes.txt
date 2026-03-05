@@ -1361,7 +1361,7 @@ inline_link.validate({opts})				*mdnotes.inline_link.validate()*
 		specify location of inline link to relink TODO:
 
     Return: ~
-    • (`boolean`) `true` if valid and `false` when invalid
+    • (`boolean`): `true` if valid and `false` when invalid
 
 inline_link.convert_fragment_to_gfm()			*mdnotes.inline_link.convert_fragment_to_gfm()*
 
@@ -1374,7 +1374,7 @@ journal.get_journal_file()				*mdnotes.journal.go_to()*
     Resolve the journal file name from |mdnotes-journal_file|.
 
     Return: ~
-    • (`string`) Journal file path
+    • (`string`): Journal file path
 
 journal.go_to()						*mdnotes.journal.go_to()*
 
@@ -1431,7 +1431,24 @@ patterns						*mdnotes.patterns*
     and end cursor positions (e.g. `"()~~(.-)~~()"`). See `MdnPatterns` TODO:.
 
 
-table.create({rows}, {cols})				*mdnotes.table.create()*
+table.check_table_valid({opts}) 			*mdnotes.table.check_table_valid()*
+
+    Check if there is a table under the cursor. Can also specify where to
+    search using {opts}.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+
+    Return: ~
+    • (`MdnSearchRet`) TODO:
+
+table.write_table({opts}) 				*mdnotes.table.write_table()*
+
+    Parameters: ~
+    • {opts}  (`MdnTable?`) TODO:
+
+table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
 
    Create a table of the size {rows} x {cols}. It will get populated with
    `ROWrCOLc` text automatically. This is to activate the parsers so that the
@@ -1441,26 +1458,132 @@ table.create({rows}, {cols})				*mdnotes.table.create()*
     |----|----|----|
     |2r1c|2r2c|2r3c|
     |3r1c|3r2c|3r3c|
+<
+    Parameters: ~
+    • {rows}  (`integer?`)
+    • {columns}  (`integer?`)
+    • {opts}  (`table?`) Optional parameters:
+              • {buffer} (`integer?`, defaults to current buffer)
+		buffer to write the table to
+              • {lnum} (`integer?`, defaults to current line)
+		line number to insert the table at
+
+table.get_table_lines({buffer}, {table_startl}, {table_endl})	*mdnotes.table.get_table_lines()*
+
+    Get the table lines in the specified buffer and line numbers.
+
+    Parameters: ~
+    • {buffer}  (`integer?`)
+    • {table_startl}  (`integer?`)
+    • {table_endl}  (`table?`) Optional parameters:
+
+    Return: ~
+    • (`MdnTableContents`) TODO:
+
+table.get_table_lines_complex({buffer}, {table_startl}, {table_endl})	*mdnotes.table.get_table_lines()*
+
+    Same with |mdnotes.table.get_table_lines()| but returns more information
+    for each cell.
+
+    Parameters: ~
+    • {buffer}  (`integer?`)
+    • {table_startl}  (`integer?`)
+    • {table_endl}  (`table?`) Optional parameters:
+
+    Return: ~
+    • (`MdnTableContentsComplex`) TODO:
+
+table.parse({opts})					*mdnotes.table.parse()*
+
+    Parse the specified table. Data returned can be passed directly to
+    |mdnotes.table.write_table()|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {complex} (`boolean?`, default `false`)
+		use complex parsing for the table
+
+    Return: ~
+    • (`MdnTable`) TODO:
+
+table.get_column_locations({opts}) 			*mdnotes.table.get_column_locations()*
+
+    Get the table column locations.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+
+    Return: ~
+    • (`MdnTableColLoc`) TODO:
+
+table.get_cur_column_num() 				*mdnotes.table.get_cur_column_num()*
+
+    Get the current column based on cursor location.
+
+    Return: ~
+    • (`integer`) TODO:
+
+table.column_insert_left({opts}) 			*mdnotes.table.column_insert_left()*
+
+    Insert column to the left of the current column.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+
+table.column_insert_right({opts}) 			*mdnotes.table.column_insert_left()*
+
+    Insert column to the right of the current column.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+
+table.column_move_left({opts}) 				*mdnotes.table.column_move_left()*
+
+    Move current column to the left.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+
+table.column_move_right({opts}) 			*mdnotes.table.column_move_right()*
+
+    Move current column to the right.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+
+table.row_insert_above({opts}) 				*mdnotes.table.row_insert_above()*
+
+    Insert an empty row above the current row.
+    
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {lnum} (`integer?`, defaults to under the cursor)
+
+table.row_insert_below({opts}) 				*mdnotes.table.row_insert_below()*
+
+    Insert an empty row below the current row.
+    
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {lnum} (`integer?`, defaults to under the cursor)
 
 table.best_fit()					*mdnotes.table.best_fit()*
 
    Set the best fit per column of your table so that they are all even.
-
-table.column_insert_left()				*mdnotes.table.column_insert_left()*
-
-   Insert a column to the left of the current column you're in.
-
-table.column_insert_right()				*mdnotes.table.column_insert_right()*
-
-   Insert a column to the right of the current column you're in.
-
-table.column_move_left()				*mdnotes.table.column_move_left()*
-
-   Insert a column to the left of the current column you're in.
-
-table.column_move_right()				*mdnotes.table.column_move_right()*
-
-   Insert a column to the right of the current column you're in.
 
 table.column_delete()					*mdnotes.table.column_delete()*
 
