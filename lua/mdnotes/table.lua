@@ -485,7 +485,7 @@ function M.row_insert_above(opts)
         table.insert(new_table_line, text)
     end
 
-    table.insert(tdata.contents, cur_table_line, new_table_line)
+    table.insert(tdata.contents, cur_table_lnum, new_table_line)
 
     M.write_table(tdata)
 end
@@ -518,7 +518,7 @@ function M.row_insert_below(opts)
         table.insert(new_table_line, text)
     end
 
-    table.insert(tdata.contents, cur_table_line + 1, new_table_line)
+    table.insert(tdata.contents, cur_table_lnum + 1, new_table_line)
 
     M.write_table(tdata)
 end

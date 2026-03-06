@@ -98,31 +98,31 @@ T['show_references()'] = function()
 end
 
 T['rename_references()'] = function()
-    -- -- Rename file5 to file55
-    -- child.cmd([[edit tests/test-data/files/file4.md]])
-    -- child.fn.cursor(2,1)
-    -- local ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file55" })}]])
-    -- eq(ret, {"file5", "file55"})
-    --
-    -- local lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)
-    -- eq(lines[2], "[[file55]]")
-    -- eq(lines[3], "[[file55]]")
-    -- eq(lines[4], "[[file55.md]]")
-    -- eq(lines[5], "[[file55#File 5]]")
-    --
-    -- child.cmd([[edit tests/test-data/files/file55.md]])
-    -- lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)
-    -- eq(lines[1], "# File 5")
-    --
-    -- -- Rename back to file5
-    -- child.fn.cursor(2,1)
-    -- child.cmd([[edit tests/test-data/files/file4.md]])
-    -- child.lua([[require('mdnotes.wikilink').rename_references({ new_name = "file5" })]])
+    -- Rename file5 to file55
+    child.cmd([[edit tests/test-data/files/file4.md]])
+    child.fn.cursor(2,1)
+    local ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file55" })}]])
+    eq(ret, {"file5", "file55"})
+
+    local lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)
+    eq(lines[2], "[[file55]]")
+    eq(lines[3], "[[file55]]")
+    eq(lines[4], "[[file55.md]]")
+    eq(lines[5], "[[file55#File 5]]")
+
+    child.cmd([[edit tests/test-data/files/file55.md]])
+    lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)
+    eq(lines[1], "# File 5")
+
+    -- Rename back to file5
+    child.fn.cursor(2,1)
+    child.cmd([[edit tests/test-data/files/file4.md]])
+    child.lua([[require('mdnotes.wikilink').rename_references({ new_name = "file5" })]])
 
     -- Self rename
     child.cmd([[edit tests/test-data/files/file4.md]])
     child.fn.cursor(1,1)
-    local ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file44" })}]])
+    ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file44" })}]])
     eq(child.fs.basename(child.api.nvim_buf_get_name(0)), "file44.md")
     eq(ret, {"file4", "file44"})
 

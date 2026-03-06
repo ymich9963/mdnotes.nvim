@@ -49,7 +49,7 @@ T['check_table_valid()'] = function()
     eq(ret.endl, nil)
 end
 
-T['write_table_lines()'] = function()
+T['write_table()'] = function()
     local lines = {
         "",
     }
@@ -63,7 +63,7 @@ T['write_table_lines()'] = function()
         {"3r1c","3r2c","3r3c"},
     }
 
-    require('mdnotes.table').write_table_lines({
+    require('mdnotes.table').write_table({
         buffer = 0,
         startl = 1,
         endl = #table_content,
