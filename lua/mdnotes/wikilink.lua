@@ -140,14 +140,13 @@ function M.show_references(opts)
 end
 
 ---Get the buffer number from the buffer name
----Returns 0 if it's the current buffer
-local function get_bufnum_from_name(bufname)
+local function get_buf_from_buf_list(bufname)
     local buf_list = vim.api.nvim_list_bufs()
-    local ret = 0
+    local ret = nil
 
     for _, bufnum in ipairs(buf_list) do
         local filename = vim.fs.basename(vim.api.nvim_buf_get_name(bufnum))
-        if filename == bufname and bufnum ~= vim.api.nvim_get_current_buf() then
+        if filename == bufname then
             ret = bufnum
             break
         end
@@ -157,8 +156,9 @@ local function get_bufnum_from_name(bufname)
 end
 
 ---Rename references of the WikiLink under the cursor
----If there is no WikiLink under the cursor, prompt to rename the current buffer
----@param opts {new_name: string?, cur_buf: boolean?, location: MdnInLineLocation?}?
+---If there is no WikiLink under the cursor, prompt to rename references to
+---the current buffer
+---@param opts {new_name: string?, location: MdnInLineLocation?}?
 ---@return string|nil old_name, string|nil new_name 
 function M.rename_references(opts)
     if check_markdown_lsp() then
@@ -170,26 +170,26 @@ function M.rename_references(opts)
     end
 
     opts = opts or {}
-    local cur_buf = opts.cur_buf or false
     local new_name = opts.new_name
     local locopts = opts.location or {}
 
-    vim.validate("cur_buf", cur_buf, "boolean")
-    vim.validate("rename", new_name, { "string", "nil" })
+    vim.validate("new_name", new_name, { "string", "nil" })
 
+    -- Save current position to rever back later
+    local cur_buf = vim.api.nvim_get_current_buf()
+    local pos = vim.fn.getpos('.')
+
+    local temp_qflist = vim.fn.getqflist()
+    local prompt = "Rename WikiLink and file: "
+    local cwd = require('mdnotes').cwd
     local wldata = M.parse({ location = locopts })
 
-    local prompt = "Rename WikiLink and file: "
-    local temp_qflist = vim.fn.getqflist()
-    local cwd = require('mdnotes').cwd
-
-    if wldata == nil or cur_buf == true then
-        cur_buf = true
+    if wldata == nil then
+        prompt = "Rename current buffer: "
         wldata = {
             wikilink_nofrag = vim.fs.basename(vim.api.nvim_buf_get_name(0)):match("(.+)%.[^%.]+$"),
             fragment = ""
         }
-        prompt = "Rename current buffer: "
     end
 
     -- Remove the file extension for this function
@@ -197,43 +197,56 @@ function M.rename_references(opts)
         wldata.wikilink_nofrag = wldata.wikilink_nofrag:sub(1,-4)
     end
 
-    if not uv.fs_stat(vim.fs.joinpath(cwd, wldata.wikilink_nofrag .. ".md")) then
+    -- Check if it exists
+    local filepath = vim.fs.normalize(vim.fs.joinpath(cwd, wldata.wikilink_nofrag .. ".md"))
+    if not uv.fs_stat(filepath) then
         vim.notify("Mdn: WikiLink does not seem to link to a valid Markdown file", vim.log.levels.ERROR)
+
         return wldata.wikilink_nofrag, "invalid file"
     end
 
+    -- Prompt for new name and check if valid
     if new_name == nil then
         vim.ui.input({ prompt = prompt, default = wldata.wikilink_nofrag },
         function(input)
             new_name = input
         end)
+
+        if new_name == "" or new_name == nil then
+            vim.notify("Mdn: Please insert a valid name", vim.log.levels.ERROR)
+
+            return wldata.wikilink_nofrag, "invalid name"
+        end
     end
 
-    if new_name == "" or new_name == nil then
-        vim.notify("Mdn: Please insert a valid name", vim.log.levels.ERROR)
-        return wldata.wikilink_nofrag, "invalid name"
-    end
-
-    local ret, err = uv.fs_rename(
-        vim.fs.joinpath(cwd, wldata.wikilink_nofrag .. ".md"),
-        vim.fs.joinpath(cwd, new_name .. ".md")
-    )
-    if not ret then
-        vim.notify("Mdn: File rename failed", vim.log.levels.ERROR)
-        return wldata.wikilink_nofrag, err
-    end
-
+    -- Change all [[WikiLink]] text to be the new name
     vim.cmd.wall({bang = true, mods = {silent = true}})
     vim.cmd.vimgrep({args = {'/\\[\\[' .. wldata.wikilink_nofrag .. '.*\\]\\]/', vim.fs.joinpath(cwd, "*")}, mods = {emsg_silent = true}})
-    vim.cmd.cdo({args = {('s/%s/%s/'):format(wldata.wikilink_nofrag, new_name)}, mods = {emsg_silent = true}})
+    vim.cmd.cdo({args = {('s/%s/%s/'):format("\\[\\[" .. wldata.wikilink_nofrag, "\\[\\[" .. new_name)}, mods = {emsg_silent = true}})
     vim.cmd.wall({bang = true, mods = {silent = true}})
 
-    local bufnum = get_bufnum_from_name(wldata.wikilink_nofrag .. ".md")
+    -- Get the buffer number of the renamed file if it is in the buffer list
+    local renamed_bufnum = get_buf_from_buf_list(wldata.wikilink_nofrag .. ".md")
 
-    if cur_buf == false and bufnum ~= 0 then
-        vim.api.nvim_buf_delete(bufnum, {force = false})
-    elseif cur_buf == true then
-        vim.api.nvim_buf_set_name(0, new_name .. ".md")
+    -- If the buffer number of the renamed file is in the buffer list
+    if renamed_bufnum ~= nil then
+        if renamed_bufnum ~= cur_buf then
+            vim.api.nvim_buf_delete(renamed_bufnum, {force = true})
+        elseif renamed_bufnum == cur_buf then
+            vim.api.nvim_buf_set_name(cur_buf, vim.fs.joinpath(cwd, new_name .. ".md"))
+        end
+    end
+
+    -- Rename and check if succesful
+    local ret, err = uv.fs_rename(
+        filepath,
+        vim.fs.joinpath(cwd, new_name .. ".md")
+    )
+
+    if not ret then
+        vim.notify("Mdn: File rename failed", vim.log.levels.ERROR)
+
+        return wldata.wikilink_nofrag, err
     end
 
     M.old_filename = wldata.wikilink_nofrag
@@ -241,6 +254,10 @@ function M.rename_references(opts)
 
     -- Set the qf list to what it was before the operation
     vim.fn.setqflist(temp_qflist)
+
+    -- Go back to position where command started
+    vim.cmd.buffer(cur_buf)
+    vim.fn.setpos('.', pos)
 
     vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.wikilink_nofrag, new_name), vim.log.levels.INFO)
 
@@ -260,6 +277,8 @@ function M.undo_rename()
         return
     end
 
+    local temp_qflist = vim.fn.getqflist()
+    local cur_buf = vim.api.nvim_get_current_buf()
     local cur_pos = vim.fn.getpos('.')
     local cwd = require('mdnotes').cwd
 
@@ -279,15 +298,23 @@ function M.undo_rename()
 
     vim.notify(("Mdn: Undo renaming '%s' to '%s'"):format(M.old_filename, M.new_filename), vim.log.levels.INFO)
 
-    local bufnum = get_bufnum_from_name(M.old_filename .. ".md")
+    -- Get the buffer number of the renamed file if it is in the buffer list
+    local renamed_bufnum = get_buf_from_buf_list(M.old_filename .. ".md")
 
-    if bufnum ~= 0 then
-        vim.api.nvim_buf_delete(bufnum, {force = false})
-    elseif bufnum == 0 then
-        vim.api.nvim_buf_set_name(0, M.old_filename .. ".md")
+    -- If the buffer number of the renamed file is in the buffer list
+    if renamed_bufnum ~= nil then
+        if renamed_bufnum ~= cur_buf then
+            vim.api.nvim_buf_delete(renamed_bufnum, {force = true})
+        elseif renamed_bufnum == cur_buf then
+            vim.api.nvim_buf_set_name(cur_buf, vim.fs.joinpath(cwd, M.old_filename .. ".md"))
+        end
     end
 
+    vim.cmd.buffer(cur_buf)
     vim.fn.setpos('.', cur_pos)
+
+    -- Set the qf list to what it was before the operation
+    vim.fn.setqflist(temp_qflist)
 
     return M.new_filename, M.old_filename
 end
