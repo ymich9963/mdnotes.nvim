@@ -594,7 +594,7 @@ function M.best_fit(opts)
     M.write_table(tdata)
 end
 
----Delete current column. Can also use visual block mode
+---Delete current column
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
 function M.column_delete(opts)
     opts = opts or {}
@@ -726,14 +726,13 @@ function M.get_table_columns(opts)
     return table_columns
 end
 
----Sort table based on current column
+---Sort table based on current column using a comp function
 ---@param comp fun(a, b): boolean
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
 function M.column_sort(comp, opts)
     opts = opts or {}
 
     local write = opts.write ~= false
-
     local tdata = M.parse({ search = opts.search })
 
     if tdata.contents == nil then
@@ -800,7 +799,7 @@ function M.column_sort_descending(opts)
     M.column_sort(function(a, b) return a > b end, opts or {})
 end
 
----Get table as columns
+---Parse columns back to lines
 ---@param contents MdnTableContents
 ---@return MdnTableContents contents 
 function M.parse_columns_to_lines(contents)

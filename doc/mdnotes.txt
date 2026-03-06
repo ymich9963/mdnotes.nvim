@@ -1445,6 +1445,9 @@ table.check_table_valid({opts}) 			*mdnotes.table.check_table_valid()*
 
 table.write_table({opts}) 				*mdnotes.table.write_table()*
 
+    Write the table to the buffer. Use `startl == endl` for inserting at
+    current line.
+
     Parameters: ~
     • {opts}  (`MdnTable?`) TODO:
 
@@ -1581,42 +1584,108 @@ table.row_insert_below({opts}) 				*mdnotes.table.row_insert_below()*
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {lnum} (`integer?`, defaults to under the cursor)
 
-table.best_fit()					*mdnotes.table.best_fit()*
+table.best_fit({opts})					*mdnotes.table.best_fit()*
 
    Set the best fit per column of your table so that they are all even.
 
-table.column_delete()					*mdnotes.table.column_delete()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+
+table.column_delete({opts})				*mdnotes.table.column_delete()*
 
    Delete current column.
 
-table.column_alignment_toggle()				*mdnotes.table.column_alignment_toggle()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+
+table.column_alignment_toggle({opts})			*mdnotes.table.column_alignment_toggle()*
 
    Cycle through the left, right and centre alignments in the Markdown table.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
 
 table.column_duplicate()				*mdnotes.table.column_duplicate()*
 
-   Cycle through the left, right and centre alignments in the Markdown table.
+    Duplicate the current column. Inserts it to the right.
 
-table.row_insert_above()				*mdnotes.table.row_insert_above()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
 
-   Insert a row to above the current row.
+table.get_table_columns({opts}) 			*mdnotes.table.get_table_columns()*
 
-table.row_insert_below()				*mdnotes.table.row_insert_below()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
 
-   Insert a row to below the current row.
+    Return: ~
+    • (`MdnTableContents`) TODO:
 
-table.column_sort_ascending()				*mdnotes.table.column_sort_ascending()*
+table.column_sort({comp}, {opts}) 			*mdnotes.table.column_sort()*
 
-   Sort table in ascending order by the current column.
+    Sort table based on current column using a {comp} function.
+    
+    Parameters: ~
+    • {comp} (`fun(a, b): boolean`) A function that compares values `a
+      and `b` as used in the |table.sort()| function.
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
 
-table.column_sort_descending()				*mdnotes.table.column_sort_descending()*
+table.column_sort({comp}, {opts}) 			*mdnotes.table.column_sort()*
 
-   Sort table in descending order by the current column.
+    Sort table based on current column using a {comp} function.
+    
+    Parameters: ~
+    • {comp} (`fun(a, b): boolean`) A function that compares values `a
+      and `b` as used in the |table.sort()| function.
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
 
-table.column_sort({comp})				*mdnotes.table.column_sort_descending()*
+table.column_sort_ascending({opts}) 			*mdnotes.table.column_sort_ascending()*
 
-   Sort table by the current column based on the {comp}. See
-   |table.sort()| for the type of function expected.
+    Uses |mdnotes.table.column_sort()| internally to sort by ascending.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+
+table.column_sort_descending({opts}) 			*mdnotes.table.column_sort_descending()*
+
+    Uses |mdnotes.table.column_sort()| internally to sort by descending.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {cur_col} (`integer?`, defaults to under the cursor)
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+
+    Return: ~
+    • (`MdnTableContents`)
+
+table.parse_columns_to_lines({contents}) 		*mdnotes.table.parse_columns_to_lines()
+
+    Parse columns back to lines.
+
+    Parameters: ~
+    • {contents}  (`MdnTableContents?`)
 
 toc.generate({opts})					*mdnotes.toc.generate()*
 
