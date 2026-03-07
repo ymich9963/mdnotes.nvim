@@ -188,7 +188,7 @@ function M.insert_image()
 end
 
 ---Get the assets that are already used in the notes
----@param opts {silent: boolean?}? opts.silent: Silence notifications
+---@param opts {silent: boolean?}?
 ---@return table<string>
 function M.get_used_assets(opts)
     opts = opts or {}

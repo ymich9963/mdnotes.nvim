@@ -665,7 +665,7 @@ open_buf({buf})						*mdnotes.open_buf()*
     Parameters: ~
     • {buffer}  (`integer|string`)
 
-check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax*
+check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax()*
 
     Check if the Markdown syntax under the cursor matches the {pattern} of type
     |mdnotes-MdnPattern| TODO:. Optionally specify a location using to check
@@ -677,6 +677,14 @@ check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax*
               • {location} (`table?`, default `{}`)
 		A table of type |mdnotes-MdnInLineLocation| used to specify
 		the location of the function process.
+
+    Return: ~
+      (`boolean`)
+
+check_markdown_lsp_cur_buf() 				*mdnotes.check_markdown_lsp_cur_buf()*
+
+    Check if Markdown LSP server can be used in the current buffer. Also
+    checks |mdnotes-prefer_lsp| option.
 
     Return: ~
       (`boolean`)
@@ -812,6 +820,13 @@ find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_
 
     Return: ~
       (`string|nil`): Found fragment on success, `nil` on failure.
+
+get_buf_from_buf_list({bufname}) 			*mdnotes.get_buf_from_buf_list()*
+
+    The buffer number from the buffer list using the buffer name. 
+
+    Parameters: ~
+    • {bufname}  (`string`) Buffer name.
 
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
@@ -1708,46 +1723,132 @@ toc.generate({opts})					*mdnotes.toc.generate()*
     Return: ~
     • (`string[]|nil`) Table with ToC lines on success, `nil` on failure.
 
-wikilink.follow()					*mdnotes.wikilink.follow()*
 
-    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
+wikilink.parse({opts}) 					*mdnotes.wikilink.parse()*
 
-wikilink.create()					*mdnotes.wikilink.create()*
+    Get the WikiLink without the fragment, and the fragment.
 
-    Create a WikiLink by highlighting or hovering over a word and executing. 
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {wikilink} (`string?`)
+		specify a WikiLink to parse
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of WikiLink to parse TODO:
+	
+    If both {wikilink} and {location} are specified, it uses {location}.
 
-wikilink.show_references()				*mdnotes.wikilink.show_references()*
+    Return: ~
+      (`MdnWikiLinkData|nil`): TODO: Parsed WikiLink on success, `nil` on
+      failure.
+
+wikilink.follow({opts})					*mdnotes.wikilink.follow()*
+
+    Follow the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of WikiLink to parse TODO:
+
+wikilink.show_references({opts})			*mdnotes.wikilink.show_references()*
 
     Show the references of the current Wikilink under cursor in a quickfix
     list. If no Wikilink is under the cursor it shows the references to the
     current buffer.
 
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of WikiLink to parse TODO:
+
+    Return: ~
+      (`table|nil`): Return `qflist` using |getqflist()| on success, `nil` on
+      failure.
+
 wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
 
-    Rename the reference to a `[[link]]` and also the file pointing to that
+    Rename the reference to a `[[WikiLink]]` and also the file pointing to that
     link.
 
-wikilink.rename_references_cur_buf()			*mdnotes.wikilink.rename_references_cur_buf()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {new_name} (`string?` defaults to user input) 
+		New name of the WikiLink
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of WikiLink to parse TODO:
 
-    Rename references to current buffer and also the file of the current
-    buffer.
+    Return: ~
+      (`string|nil`): Old name on success, `nil` on failure.
+      (`string|nil`): New name name on success, `nil` on failure.
 
 wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
 
     Undo the most recent reference rename. Only available when 
-    `prefer_lsp = false`. 
+    |mdnotes-prefer_lsp| is `false`. 
+
+    Return: ~
+      (`string|nil`): Old name on success, `nil` on failure.
+      (`string|nil`): New name name on success, `nil` on failure.
+
+wikilink.create({opts})					*mdnotes.wikilink.create()*
+
+    Create a WikiLink by highlighting or hovering over a word and executing. 
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of WikiLink to parse TODO:
+              • {move_cursor} (`boolean?`, default `true`)
+		move the cursor to the position of the deleted text
 
 wikilink.delete()					*mdnotes.wikilink.delete()*
 
     Delete WikiLink under the cursor.
 
-wikilink.normalize()					*mdnotes.wikilink.normalize()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of WikiLink to parse TODO:
+              • {move_cursor} (`boolean?`, default `true`)
+		move the cursor to the position of the deleted text
+              • {skip_input} (`boolean`, default `false`)
+		skip the input prompt
+
+wikilink.normalize({opts})				*mdnotes.wikilink.normalize()*
 
     Normalize WikiLink path under cursor.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of WikiLink to parse TODO:
+              • {move_cursor} (`boolean?`, default `true`)
+		move the cursor to the position of the deleted text
+
+wikilink.get_orphans({opts}) 				*mdnotes.wikilink.get_orphans()*
+
+    Get a list of orphan files in the |mdnotes-cwd|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean`, default `false`)
+		silence notifications
+
+    Return: ~
+      (`string[]`): List of orphan file names
 
 wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
 
     Show orphan pages (pages with no references) in current directory.
+
+MdnInLineLocation 					*mdnotes.MdnInLineLocation*
+
+    Fields: ~
+    • {buffer}  (`table?`) Buffer number
+    • {lnum} (`integer?`) Line number
+    • {col_start} (`integer?`) Start column of text
+    • {col_end} (`integer?`) End column of text
+    • {cur_col} (`integer?`) Set the current cursor position on the line
 
 ==============================================================================
 API EXAMPLES                                  		*mdnotes-api-examples*

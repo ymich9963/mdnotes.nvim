@@ -256,6 +256,16 @@ function M.check_markdown_syntax(pattern, opts)
     return false
 end
 
+---Check if Markdown LSP server can be used in the current buffer
+---@return boolean
+function M.check_markdown_lsp_cur_buf()
+    if not vim.tbl_isempty(vim.lsp.get_clients({bufnr = 0})) and vim.bo.filetype == "markdown" and M.config.prefer_lsp == true then
+        return true
+    else
+        return false
+    end
+end
+
 ---Get the text that was either, selected using Visual mode, under cursor in Normal mode, or specified using the opts table
 ---@param opts {location: MdnInLineLocation?}?
 ---@return MdnText
@@ -627,6 +637,23 @@ function M.find_fragment_in_buf_fragments(bufnr, fragment)
     end
 
     return text
+end
+
+---Get the buffer number from the buffer list using the buffer name 
+---@param bufname string Buffer name
+function M.get_buf_from_buf_list(bufname)
+    local buf_list = vim.api.nvim_list_bufs()
+    local ret = nil
+
+    for _, bufnum in ipairs(buf_list) do
+        local filename = vim.fs.basename(vim.api.nvim_buf_get_name(bufnum))
+        if filename == bufname then
+            ret = bufnum
+            break
+        end
+    end
+
+    return ret
 end
 
 return M

@@ -21,6 +21,7 @@ local M = {}
 ---| '"~~"'
 ---| '"`"'
 ---| '"<>"'
+---| '"[[]]"'
 
 ---@class MdnFormatData
 ---@field indicator fun(): MdnFormatIndicators Function returning a string for the format indicator
@@ -107,6 +108,7 @@ end
 ---@param opts {location: MdnInLineLocation?, move_cursor: boolean?}?
 function M.delete_format(pattern, opts)
     opts = opts or {}
+
     local move_cursor = opts.move_cursor ~= false
     vim.validate("pattern", pattern, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
