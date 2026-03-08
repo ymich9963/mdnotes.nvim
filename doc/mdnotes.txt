@@ -1955,7 +1955,7 @@ MdnAutocmdsConfig	 				*mdnotes.MdnAutocmdsConfig*
     • {outliner_state} (`boolean`) autocmd for Outliner mode state notification
     • {journal_insert_entry} (`boolean`) autocmd for inserting a journal entry on opening the journal file
 
-MdnGetFilesInCwd 					*mdnotes.MdnGetFilesInCwd*
+MdnGetFilesInCwdOpts 					*mdnotes.MdnGetFilesInCwdOpts*
 
     Class for |mdnotes.get_files_in_cwd()|.
 

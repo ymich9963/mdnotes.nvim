@@ -450,14 +450,14 @@ function M.open_containing_folder()
     vim.ui.open(M.cwd)
 end
 
----@class MdnGetFilesInCwd
+---@class MdnGetFilesInCwdOpts
 ---@field extension string? Specify extension e.g. ".md". Use ".*" for all file extensions
 ---@field hidden boolean? Get hidden files
 ---@field fs_type '"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"'? Specify type from vim.fs.dir() return
 ---@field pattern string? Lua pattern for names containing pattern
 
 ---Get the files in the cwd
----@param opts MdnGetFilesInCwd?
+---@param opts MdnGetFilesInCwdOpts?
 ---@return table<string> files Table with file names
 function M.get_files_in_cwd(opts)
     opts = opts or {}
