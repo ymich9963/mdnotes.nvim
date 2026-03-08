@@ -318,7 +318,6 @@ function M.delete(opts)
     local found_file = ""
     local deleted = false
     local cwd = require('mdnotes').cwd
-    local path = vim.fs.joinpath(cwd, found_file)
     local mdn_wikilink_pattern = require('mdnotes.patterns').wikilink
     local delete_format = require('mdnotes.formatting').delete_format
 
@@ -332,6 +331,7 @@ function M.delete(opts)
         found_file = wldata.wikilink_nofrag
     end
 
+    local path = vim.fs.normalize(vim.fs.joinpath(cwd, found_file))
     if uv.fs_stat(path) then
         if skip_input == false then
             vim.ui.input( { prompt = ("Mdn: Delete '%s' WikiLink and file? Type y/n (default 'n'): "):format(wldata.wikilink_nofrag), }, function(input)
@@ -374,6 +374,8 @@ function M.normalize(opts)
     if wldata.fragment ~= nil then
         new_wikilink = new_wikilink .. '#' .. wldata.fragment
     end
+
+    vim.api.nvim_buf_set_text(wldata.buffer, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {"[[" .. new_wikilink .. "]]"})
 
     if move_cursor == true then
         vim.cmd.buffer(wldata.buffer)
