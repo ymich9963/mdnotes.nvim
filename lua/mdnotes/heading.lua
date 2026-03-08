@@ -5,7 +5,7 @@ local M = {}
 ---Get the Markdown heading that the specified line is under
 ---Defaults to current buffer and current line
 ---@param opts {bufnum: integer?, lnum: integer?}?
----@return integer|nil index, MdnFragment fragment, integer total_fragments
+---@return integer? index, MdnFragment fragment, integer total_fragments
 function M.get_heading(opts)
     opts = opts or {}
 

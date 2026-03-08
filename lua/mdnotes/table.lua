@@ -20,7 +20,7 @@ local M = {}
 
 ---Check if there is a table in the specified search range or under the cursor
 ---@param opts {search: MdnSearchOpts?}?
----@return MdnSearchRet
+---@return MdnSearchResult
 function M.check_table_valid(opts)
     opts = opts or {}
 
@@ -273,7 +273,7 @@ end
 
 ---Get the table column locations
 ---@param opts {search: MdnSearchOpts?}?
----@return MdnTableColLoc|nil
+---@return MdnTableColLoc?
 function M.get_column_locations(opts)
     opts = opts or {}
     local search_opts = opts.search or {}
@@ -304,7 +304,7 @@ function M.get_column_locations(opts)
 end
 
 ---Get the current column based on cursor location
----@return integer|nil
+---@return integer?
 function M.get_cur_column_num()
     local tdata = M.parse({ complex = true })
 
@@ -698,7 +698,7 @@ end
 
 ---Get table as columns
 ---@param opts {silent: boolean?, search: MdnSearchOpts?}? opts.silent: Silence notifications
----@return MdnTableContents|nil contents 
+---@return MdnTableContents? contents 
 function M.get_table_columns(opts)
     opts = opts or {}
     local silent = opts.silent or false

@@ -9,7 +9,7 @@ local M = {}
     ---write: boolean?,
     ---depth: integer?,
     ---silent: boolean?}?
----@return table<string>|nil toc
+---@return table<string>? toc
 function M.generate(opts)
     opts = opts or {}
     local buffer = opts.buffer or vim.api.nvim_get_current_buf()

@@ -15,7 +15,7 @@ M.uri_website_tbl = {"https", "http"}
 ---Get the inline link data such as the image designator, link text, link URI/destination,
 ---and the start and end columns
 ---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation}?
----@return MdnInlineLinkData|nil
+---@return MdnInlineLinkData?
 function M.parse(opts)
     opts = opts or {}
 
@@ -60,7 +60,7 @@ end
 ---@param uri string URI to check
 ---@param check_valid boolean Whether to check if the path is to a valid file or not
 ---@param opts table?
----@return string path, integer|nil error, string|nil error_text
+---@return string path, integer? error, string? error_text
 function M.get_path_from_uri(uri, check_valid, opts)
     local path = ""
     if M.is_url({ uri = uri }) == true then return path, -1, "is URL" end
@@ -107,7 +107,7 @@ end
 ---@param uri string URI to check
 ---@param check_valid boolean Whether to check if the path is to a valid file or not
 ---@param opts table?
----@return string|nil fragment, integer|nil error, string|nil error_text
+---@return string? fragment, integer? error, string? error_text
 function M.get_fragment_from_uri(uri, check_valid, opts)
     local fragment = ""
     if M.is_url({ uri = uri }) == true then return fragment, -1, "is URL" end
@@ -163,7 +163,7 @@ end
 
 ---Open inline links in the appropriate programme
 ---@param opts {uri: string?, location: MdnInLineLocation?}?
----@return integer|vim.SystemObj|string|nil
+---@return integer|vim.SystemObj|string?
 function M.open(opts)
     opts = opts or {}
 

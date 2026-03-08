@@ -14,16 +14,16 @@ local M = {}
 ---@field startl integer? Start line
 ---@field endl integer? End line
 
----@class MdnSearchOpts Options for searching for a valid multi-line Markdown element
+---@class MdnSearchOpts
 ---@field buffer integer?
 ---@field origin_lnum integer? Line number between the lower and upper limits
----@field upper_limit_lnum integer? Higher limit of search
----@field lower_limit_lnum integer? Lower limit of search
+---@field lower_limit_lnum integer? Lower line number limit of search
+---@field upper_limit_lnum integer? Higher line number limit of search
 
----@class MdnSearchRet
+---@class MdnSearchResult
 ---@field valid boolean Is the search item valid
----@field startl integer|nil Start line of the item
----@field endl integer|nil End line of the item
+---@field startl integer? Start line of the item
+---@field endl integer? End line of the item
 
 ---@class MdnText: MdnInLineLocation
 ---@field text string? Text in the corresponding location
@@ -31,13 +31,13 @@ local M = {}
 ---@type MdnConfig
 M.config = {}
 
----@type string|nil Open command for opening buffers
+---@type string Open command for opening buffers
 M.open_cmd = nil
 
----@type string|nil Current working directory
+---@type string Current working directory
 M.cwd = nil
 
----@type string|nil Plugin install directory
+---@type string Plugin install directory
 M.plugin_install_dir = nil
 
 ---@class MdnFragment
@@ -235,7 +235,7 @@ end
 ---Check text for valid Markdown syntax
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
 ---@param opts {location: MdnInLineLocation?}?
----@return boolean|nil
+---@return boolean?
 function M.check_markdown_syntax(pattern, opts)
     opts = opts or {}
     vim.validate("pattern", pattern, "string")
@@ -398,7 +398,7 @@ end
 ---New line remaps
 ---@param key '"o"'|'"O"'|'"<CR>"'
 ---@param expr boolean If remap is used when opts.expr is true
----@return string|nil
+---@return string?
 function M.new_line_remap(key, expr)
     vim.validate("key", key, "string")
     vim.validate("expr_set", expr, "boolean")
@@ -453,7 +453,7 @@ end
 ---@class MdnGetFilesInCwd
 ---@field extension string? Specify extension e.g. ".md". Use ".*" for all file extensions
 ---@field hidden boolean? Get hidden files
----@field fs_type '"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"' Specify type from vim.fs.dir() return
+---@field fs_type '"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"'? Specify type from vim.fs.dir() return
 ---@field pattern string? Lua pattern for names containing pattern
 
 ---Get the files in the cwd
@@ -606,7 +606,7 @@ end
 ---Find the fragment in the buf_fragments table of the specified buffer
 ---@param bufnr integer Buffer number
 ---@param fragment string GFM-style fragment
----@return string|nil
+---@return string?
 function M.find_fragment_in_buf_fragments(bufnr, fragment)
     local parsed_fragments
     for _, v in ipairs(M.buf_fragments) do

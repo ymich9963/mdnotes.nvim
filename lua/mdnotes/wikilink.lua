@@ -19,7 +19,7 @@ local get_buf_from_buf_list = function(...) return require('mdnotes').get_buf_fr
 
 ---Parse WikiLink
 ---@param opts {wikilink: string?, location: MdnInLineLocation?}?
----@return MdnWikiLinkData|nil
+---@return MdnWikiLinkData?
 function M.parse(opts)
     opts = opts or {}
 
@@ -91,7 +91,7 @@ end
 
 ---Show the references to the current WikiLink under the cursor
 ---@param opts {location: MdnInLineLocation?}?
----@return table|nil qflist Resulting quickfix list
+---@return table? qflist Resulting quickfix list
 function M.show_references(opts)
     if check_markdown_lsp_cur_buf() then
         vim.lsp.buf.references()
@@ -136,7 +136,7 @@ end
 ---If there is no WikiLink under the cursor, prompt to rename references to
 ---the current buffer
 ---@param opts {new_name: string?, location: MdnInLineLocation?}?
----@return string|nil old_name, string|nil new_name 
+---@return string? old_name, string|nil new_name 
 function M.rename_references(opts)
     if check_markdown_lsp_cur_buf() then
         -- I think this renames the current buffer and
@@ -242,7 +242,7 @@ function M.rename_references(opts)
 end
 
 ---Undo the most recent rename
----@return string|nil old_name, string|nil new_name 
+---@return string? old_name, string|nil new_name 
 function M.undo_rename()
     if check_markdown_lsp_cur_buf() then
         vim.notify("Mdn: 'undo_rename' is only available when your config has 'prefer_lsp = false'", vim.log.levels.ERROR)

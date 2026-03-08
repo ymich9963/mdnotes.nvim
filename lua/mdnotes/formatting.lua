@@ -290,7 +290,7 @@ end
 --TODO: Tests for function
 ---Check if the list surrounding the origin line is valid and return its line numbers
 ---@param opts {same_indent: boolean?, search: MdnSearchOpts?, outliner_list: boolean?}?
----@return MdnSearchRet
+---@return MdnSearchResult
 function M.check_list_valid(opts)
     opts = opts or {}
 

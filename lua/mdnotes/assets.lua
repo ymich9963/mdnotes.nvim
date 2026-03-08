@@ -68,7 +68,7 @@ end
 
 ---Process the specified asset file path based on config options
 ---@param file_path string File path of asset file
----@return string|nil file_name Return file name on success
+---@return string? file_name Return file name on success
 function M.process_inserted_asset_file(file_path)
     vim.validate("file_path", file_path, "string")
 
@@ -110,7 +110,7 @@ end
 ---@param is_image boolean Specify if file should be treated as an image
 ---@param process_file boolean Process the file according to the plugin config
 ---@param file_path string? Optional file_path to generate the inline link for
----@return string|nil inline_link
+---@return string? inline_link
 function M.get_asset_il(is_image, process_file, file_path)
     vim.validate("is_image", is_image, "boolean")
     vim.validate("process_file", process_file, "boolean")
@@ -341,7 +341,7 @@ end
 --TODO: locopts
 ---Download the the HTML of the inline link URL and place it in assets folder
 ---@param opts {uri: string?}? opts.uri: URI with a valid URL to download the HTML from
----@return string|nil filepath Path of downloaded file
+---@return string? filepath Path of downloaded file
 function M.download_website_html(opts)
     opts = opts or {}
     local uri = opts.uri
@@ -401,7 +401,7 @@ end
 --TODO: locopts
 ---Delete the asset under the cursor
 ---@param opts {uri: string?, skip_input: boolean?}?
----@return boolean is_deleted, string|nil asset_path
+---@return boolean is_deleted, string? asset_path
 function M.delete(opts)
     opts = opts or {}
     local uri = opts.uri

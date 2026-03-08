@@ -732,7 +732,7 @@ new_line_remap({key}, {expr}) 				*mdnotes.new_line_remap()*
     • {expr}  (`boolean`) If `opts.expr` is set for |vim.keymap.set()|.
 
     Return: ~
-      (`string|nil`): Return string if {expr} is true, if not then just set
+      (`string?`): Return string if {expr} is true, if not then just set
       the lines appropriately.
 
 go_to_index_file() 			   		*mdnotes.go_to_index_file()*
@@ -819,7 +819,7 @@ find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_
     • {fragment}  (`string`) Fragment to search for.
 
     Return: ~
-      (`string|nil`): Found fragment on success, `nil` on failure.
+      (`string?`): Found fragment on success, `nil` on failure.
 
 get_buf_from_buf_list({bufname}) 			*mdnotes.get_buf_from_buf_list()*
 
@@ -854,7 +854,7 @@ assets.process_inserted_asset_file({file_path})		*mdnotes.assets.process_inserte
     • {file_path}  (`string`) Path to the asset.
 
     Return: ~
-      (`string|nil`): Return file name on success and `nil` on failure.
+      (`string?`): Return file name on success and `nil` on failure.
 
 assets.get_asset_il({is_image}, {process_file}, {file_path})	*mdnotes.assets.get_asset_inline_link()*
 
@@ -869,7 +869,7 @@ assets.get_asset_il({is_image}, {process_file}, {file_path})	*mdnotes.assets.get
       clipboard is used
 
     Return: ~
-      (`string|nil`): Asset inline link on success, `nil` on failure.
+      (`string?`): Asset inline link on success, `nil` on failure.
 
 assets.insert_file()					*mdnotes.assets.insert_file()*
 
@@ -939,7 +939,7 @@ assets.download_website_html({opts})				*mdnotes.assets.download_website_html()*
 		URI with a valid URL to download the HTML from
 
     Return: ~
-      (`string|nil`): Path of downloaded file on success, `nil` on failure.
+      (`string?`): Path of downloaded file on success, `nil` on failure.
 
 assets.delete()						*mdnotes.assets.unused_move()*
 
@@ -955,7 +955,7 @@ assets.delete()						*mdnotes.assets.unused_move()*
 
     Return: ~
       (`boolean`): Was the file deleted succesfully.
-      (`string|nil`): Path of the deleted asset.
+      (`string?`): Path of the deleted asset.
 
 formatting.insert_format({format_char}, {opts})		*mdnotes.formatting.insert_format()*
 
@@ -1114,7 +1114,7 @@ heading.get_heading({opts}) 				*mdnotes.heading.get_heading()*
               • {lnum} (`integer?,` defaults to current line)
 
     Return: ~
-      (`integer|nil`): Index of current heading in the parsed fragments. See
+      (`integer?`): Index of current heading in the parsed fragments. See
       |mdnotes-buf_fragments| TODO:.
       (`MdnFragment`) TODO:
       (`integer`): Total fragments in the parsed buffer
@@ -1183,7 +1183,7 @@ inline_link.parse({opts})				*mdnotes.inline_link.parse()*
     If both {inline_link} and {location} are specified, it uses {location}.
 
     Return: ~
-      (`MdnInLineLinkData|nil`): TODO: Parsed inline link on success, `nil` on
+      (`MdnInLineLinkData?`): TODO: Parsed inline link on success, `nil` on
       failure.
 
 inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_path_from_uri()*
@@ -1198,8 +1198,8 @@ inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link
 	
     Return: ~
       (`string`): Extracted path
-      (`integer|nil`): On failure, an error code
-      (`string|nil`): On failure, text describing the error
+      (`integer?`): On failure, an error code
+      (`string?`): On failure, text describing the error
 
     Error codes:
 	`-1` : is URL
@@ -1217,8 +1217,8 @@ inline_link.get_fragment_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_
 	
     Return: ~
       (`string`): Extracted fragment
-      (`integer|nil`): On failure, an error code
-      (`string|nil`): On failure, text describing the error
+      (`integer?`): On failure, an error code
+      (`string?`): On failure, text describing the error
 
     Error codes:
 	`-1` : is URL
@@ -1235,7 +1235,7 @@ inline_link.open({opts})				*mdnotes.inline_link.open()*
     • {location}  (`MdnInLineLocation?`, defaults to current location) Location of the inline link
 	
     Return: ~
-      (`integer|vim.SystemObj|string|nil`): Buffer number on new opened buffer,
+      (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
       |vim.ui.open()| result on programme opening, error string on error,
       `nil` on failed |vim.ui.open()|.
 
@@ -1721,7 +1721,7 @@ toc.generate({opts})					*mdnotes.toc.generate()*
 		silence notifications
 
     Return: ~
-    • (`string[]|nil`) Table with ToC lines on success, `nil` on failure.
+    • (`string[]?`) Table with ToC lines on success, `nil` on failure.
 
 
 wikilink.parse({opts}) 					*mdnotes.wikilink.parse()*
@@ -1738,7 +1738,7 @@ wikilink.parse({opts}) 					*mdnotes.wikilink.parse()*
     If both {wikilink} and {location} are specified, it uses {location}.
 
     Return: ~
-      (`MdnWikiLinkData|nil`): TODO: Parsed WikiLink on success, `nil` on
+      (`MdnWikiLinkData?`): TODO: Parsed WikiLink on success, `nil` on
       failure.
 
 wikilink.follow({opts})					*mdnotes.wikilink.follow()*
@@ -1762,7 +1762,7 @@ wikilink.show_references({opts})			*mdnotes.wikilink.show_references()*
 		specify location of WikiLink to parse TODO:
 
     Return: ~
-      (`table|nil`): Return `qflist` using |getqflist()| on success, `nil` on
+      (`table?`): Return `qflist` using |getqflist()| on success, `nil` on
       failure.
 
 wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
@@ -1778,8 +1778,8 @@ wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
 		specify location of WikiLink to parse TODO:
 
     Return: ~
-      (`string|nil`): Old name on success, `nil` on failure.
-      (`string|nil`): New name name on success, `nil` on failure.
+      (`string?`): Old name on success, `nil` on failure.
+      (`string?`): New name name on success, `nil` on failure.
 
 wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
 
@@ -1787,8 +1787,8 @@ wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
     |mdnotes-prefer_lsp| is `false`. 
 
     Return: ~
-      (`string|nil`): Old name on success, `nil` on failure.
-      (`string|nil`): New name name on success, `nil` on failure.
+      (`string?`): Old name on success, `nil` on failure.
+      (`string?`): New name name on success, `nil` on failure.
 
 wikilink.create({opts})					*mdnotes.wikilink.create()*
 
@@ -1843,12 +1843,128 @@ wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
 
 MdnInLineLocation 					*mdnotes.MdnInLineLocation*
 
+    Used for locating in-line Markdown elements.
+
     Fields: ~
     • {buffer}  (`table?`) Buffer number
     • {lnum} (`integer?`) Line number
     • {col_start} (`integer?`) Start column of text
     • {col_end} (`integer?`) End column of text
     • {cur_col} (`integer?`) Set the current cursor position on the line
+
+MdnMultiLineLocation 					*mdnotes.MdnMultiLineLocation*
+
+    Used for locating multi-line Markdown elements.
+
+    Fields: ~
+    • {buffer}  (`table?`) Buffer number
+    • {startl} (`integer?`) Start line number
+    • {endl} (`integer?`) End line number
+
+MdnSearchOpts	 					*mdnotes.MdnSearchOpts*
+    
+    Options for searching for a valid multi-line Markdown element.
+
+    Fields: ~
+    • {buffer}  (`table?`) Buffer number
+    • {origin_lnum} (`integer?`) Line number between the lower and upper limits
+    • {upper_limit_lnum} (`integer?`) Higher line number limit of search
+    • {lower_limit_lnum} (`integer?`) Lower line number limit of search
+
+MdnSearchResult	 					*mdnotes.MdnSearchResult*
+    
+    Object found from the search.
+
+    Fields: ~
+    • {valid}  (`boolean?`) Is search item valid
+    • {startl} (`integer?`) Start line of the item
+    • {endl} (`integer?`) End line of the item
+
+MdnText		 					*mdnotes.MdnText*
+    
+    Text object.
+
+    Inherits from |mdnotes.MdnInLineLocation|.
+
+    Fields: ~
+    • {text}  (`string?`) Text in the corresponding location
+
+MdnFragment	 					*mdnotes.MdnFragment*
+
+    Table for how fragments are stored.
+
+    Fields: ~
+    • {hash} (`string`) The '#' present in the heading
+    • {text} (`string`) Original fragment text from the file headings
+    • {lnum} (`integer`) Line number of the heading
+
+MdnFragments	 					*mdnotes.MdnFragments*
+
+    Table containing |mdnotes.MdnFragment| entries.
+
+    Fields: ~
+    • {fragment} (`table<MdnFragment>`)
+
+MdnFragmentsGfm 					*mdnotes.MdnFragmentsGfm*
+
+    Alias for `table<string>` to signify how GFM-style fragments are stored.
+
+MdnBufFragments	 					*mdnotes.MdnBufFragments*
+
+    Format of the |mdn.buf_fragments| table.
+
+    Fields: ~
+    • {buf_num} (`integer`) Buffer number
+    • {parsed} (`table<MdnFragments, MdnFragmentsGfm`)
+
+MdnConfig	 					*mdnotes.MdnConfig*
+
+    |mdnotes-config| class.
+
+    Fields: ~
+    • {index_file} (`string?`) Index file name or path
+    • {journal_file} (`(string|fun(): string)?`) Journal file name or path
+    • {assets_path} (`(string|fun(): string)?`) Path to assets folder
+    • {asset_insert_behaviour} (`'"copy"'|'"move"'?`) Behaviour when inserting assets from clipboard
+    • {asset_overwrite_behaviour} (`'"overwrite"'|'"error"'?`) Behaviour when the asset being inserted already exists
+    • {asset_delete_behaviour} (`'"remove"'|'"garbage"'?`) Behaviour when the deleting an asset
+    • {open_behaviour} (`'"buffer"'|'"tab"'|'"split"'|'"vsplit"'?`) Behaviour when opening buffers
+    • {strong_format} (`'"**"'|'"__"'?`) Strong format indicator
+    • {emphasis_format} (`'"*"'|'"_"'?`) Emphasis format indicator
+    • {date_format} (`string?`) Date format when using journal_insert_entry(), see :h strftime()
+    • {prefer_lsp} (`boolean?`) To prefer Markdown LSP functions rather than the mdnotes functions
+    • {auto_list_continuation} (`boolean?`) Automatic list continuation
+    • {auto_list_renumber} (`boolean?`) Automatic renumbering of ordered lists
+    • {auto_table_best_fit} (`boolean?`) Automatic table best fit
+    • {default_keymaps} (`boolean?`)
+    • {autocmds} (`boolean|MdnAutocmdsConfig?`)
+    • {table_best_fit_padding} (`integer?`) Add padding around cell contents when using tables_best_fit
+    • {toc_depth} (`integer?`) Depth shown in the ToC
+    • {user_commands} (`table?`) User commands in the Mdn namespace
+
+MdnAutocmdsConfig	 				*mdnotes.MdnAutocmdsConfig*
+
+    |mdnotes-autocmds| class.
+
+    Fields: ~
+    • {set_cwd} (`boolean`) |mdnotes.set_cwd()| autocmd for path resolution
+    • {record_buf} (`boolean`) |mdnotes.record_buf()| autocmd for buffer history
+    • {populate_buf_fragments} (`boolean`) |mdnotes.populate_buf_fragments()| autocmd for ToC fragments
+    • {ordered_list_renumber} (`boolean`) |mdnotes.formatting.ordered_list_renumber()| autocmd for ordered lists
+    • {table_best_fit} (`boolean`) |mdnotes.table.best_fit()| autocmd for tables
+    • {outliner_state} (`boolean`) autocmd for Outliner mode state notification
+    • {journal_insert_entry} (`boolean`) autocmd for inserting a journal entry on opening the journal file
+
+MdnGetFilesInCwd 					*mdnotes.MdnGetFilesInCwd*
+
+    Class for |mdnotes.get_files_in_cwd()|.
+
+    Fields: ~
+    • {extension} (`string?`) Specify extension e.g. `".md"`. Use `".*"` for all file extensions
+    • {hidden} (`boolean?`) Get hidden files
+    • {fs_type} (`'"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"'?`)
+      Specify type from vim.fs.dir() return
+    • {pattern} (`string?`) Lua pattern for names containing pattern
 
 ==============================================================================
 API EXAMPLES                                  		*mdnotes-api-examples*
