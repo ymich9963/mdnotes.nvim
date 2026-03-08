@@ -224,7 +224,7 @@ function M.get_table_lines_complex(buffer, table_startl, table_endl)
 end
 
 ---Parse the table
----@param opts {silent: boolean?, search: MdnSearchOpts?, complex: boolean?}? opts.silent: Silence notifications
+---@param opts {silent: boolean?, search: MdnSearchOpts?, complex: boolean?}?
 ---@return MdnTable
 function M.parse(opts)
     opts = opts or {}
@@ -458,7 +458,7 @@ function M.column_move_right(opts)
 end
 
 ---Insert an empty row above the current row
----@param opts {search: MdnSearchOpts?, lnum: integer?}? opts.silent: Silence notifications
+---@param opts {search: MdnSearchOpts?, lnum: integer?}?
 function M.row_insert_above(opts)
     opts = opts or {}
     local search_opts = opts.search or {}
@@ -491,7 +491,7 @@ function M.row_insert_above(opts)
 end
 
 ---Insert an empty row below the current row
----@param opts {search: MdnSearchOpts?, lnum: integer?}? opts.silent: Silence notifications
+---@param opts {search: MdnSearchOpts?, lnum: integer?}?
 function M.row_insert_below(opts)
     opts = opts or {}
     local search_opts = opts.search or {}
@@ -524,7 +524,7 @@ function M.row_insert_below(opts)
 end
 
 ---Add the appropriate amount of spaces for each column
----@param opts {silent: boolean?, search: MdnSearchOpts?}? opts.silent: Silence notifications
+---@param opts {silent: boolean?, search: MdnSearchOpts?}?
 function M.best_fit(opts)
     opts = opts or {}
     local silent = opts.silent or false
@@ -697,7 +697,7 @@ function M.column_duplicate(opts)
 end
 
 ---Get table as columns
----@param opts {silent: boolean?, search: MdnSearchOpts?}? opts.silent: Silence notifications
+---@param opts {silent: boolean?, search: MdnSearchOpts?}?
 ---@return MdnTableContents? contents 
 function M.get_table_columns(opts)
     opts = opts or {}
