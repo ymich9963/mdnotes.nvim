@@ -668,7 +668,7 @@ open_buf({buf})						*mdnotes.open_buf()*
 check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax()*
 
     Check if the Markdown syntax under the cursor matches the {pattern} of type
-    |mdnotes-MdnPattern| TODO:. Optionally specify a location using to check
+    |mdnotes-MdnPattern|. Optionally specify a location using to check
     using the {opts} table.
 
     Parameters: ~
@@ -702,7 +702,7 @@ get_text({opts})					*mdnotes.get_text()*
 		the location of the function process.
 
     Return: ~
-      (`MdnText`): See |mdnotes-MdnText|. TODO:
+      (`MdnText`): See |mdnotes-MdnText|.
 
 
 get_text_in_pattern({pattern}, {opts}) 			*mdnotes.get_text_in_pattern*
@@ -720,7 +720,7 @@ get_text_in_pattern({pattern}, {opts}) 			*mdnotes.get_text_in_pattern*
 		the location of the function process.
 
     Return: ~
-      (`MdnText`): See |mdnotes-MdnText|. TODO:
+      (`MdnText`): See |mdnotes-MdnText|.
 
 new_line_remap({key}, {expr}) 				*mdnotes.new_line_remap()*
 
@@ -789,14 +789,14 @@ populate_buf_fragments({bufnr}) 			*mdnotes.populate_buf_fragments()*
 get_fragments_from_headings({bufnr}) 			*mdnotes.get_fragments_from_headings()*
 
     Get fragments from the Markdown buffer headings. Parses each heading to
-    table entries of type `MdnFragment` TODO:.
+    table entries of type `MdnFragment`.
     
     Parameters: ~
     • {bufnr}  (`integer?` defaults to current buffer) Buffer to get fragments
       from.
 
     Return: ~
-      (`MdnFragments`) TODO:
+      (`MdnFragments`)
 
 convert_fragments_to_gfm_style({fragments}) 		*mdnotes.convert_fragments_to_gfm_style()*
 
@@ -806,7 +806,7 @@ convert_fragments_to_gfm_style({fragments}) 		*mdnotes.convert_fragments_to_gfm_
     • {fragments}  (`MdnFragments`) Fragments table.
 
     Return: ~
-      (`MdnFragmentsGfm`) TODO:
+      (`MdnFragmentsGfm`)
 
 find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
 
@@ -856,28 +856,43 @@ assets.process_inserted_asset_file({file_path})		*mdnotes.assets.process_inserte
     Return: ~
       (`string?`): Return file name on success and `nil` on failure.
 
-assets.get_asset_il({is_image}, {process_file}, {file_path})	*mdnotes.assets.get_asset_inline_link()*
+assets.has_image_extension({file_name})			*mdnotes.assets.has_image_extension()*
+
+    Check if {file_name} contains one of the following extensions:
+    `".jpg"`, `".jpeg"`, `".png"`, `".gif"`, `".webp"`, `".tiff"`, `".bmp"`, `".svg"`, `".heic`"
+
+    Parameters: ~
+    • {file_name}  (`string`) File name to check
+
+assets.get_asset_inline_link({opts})			*mdnotes.assets.get_asset_inline_link()*
 
     Create the asset inline link and also process the asset using 
     |mdnotes.assets.process_inserted_asset_file()|.
 
     Parameters: ~
-    • {is_image}  (`boolean`) If the file is an image
-    • {process_file}  (`boolean`) If the file should be processed, meaning to be
-      placed in the assets folder
-    • {file_path}  (`string?`) Optional path to asset. If not given, the
-      clipboard is used
+    • {opts}  (`table?`) Optional parameters:
+	      • {process_file}  (`boolean?`, default `true`)
+		if the file should be processed, meaning to be placed in
+		the assets folder
+	      • {file_path}  (`string?`)
+		optional path to asset and the clipboard is used if `nil`
 
     Return: ~
       (`string?`): Asset inline link on success, `nil` on failure.
 
-assets.insert_file()					*mdnotes.assets.insert_file()*
+assets.insert()						*mdnotes.assets.insert()*
 
     Insert the file in the clipboard as an inline link under the cursor.
 
-assets.insert_image()					*mdnotes.assets.insert_image()*
-
-    Insert the file in the clipboard as an image inline link under the cursor.
+    Parameters: ~
+    • {opts}  (`MdnInsertOpts?`)
+	      • {process_file}  (`boolean?`, default `true`)
+		if the file should be processed, meaning to be placed in
+		the assets folder
+	      • {file_path}  (`string?`)
+		optional path to asset and the clipboard is used if `nil`
+              • {location} (`MdnInLineLocation?`)
+		inline link location
 
 assets.get_used_assets({opts}) 				*mdnotes.assets.get_used_assets()*
 
@@ -937,6 +952,8 @@ assets.download_website_html({opts})				*mdnotes.assets.download_website_html()*
     • {opts}  (`table?`) Optional parameters:
               • {uri} (`string?`)
 		URI with a valid URL to download the HTML from
+              • {location} (`MdnInLineLocation?`)
+		inline text location
 
     Return: ~
       (`string?`): Path of downloaded file on success, `nil` on failure.
@@ -952,6 +969,8 @@ assets.delete()						*mdnotes.assets.unused_move()*
 		specify URI to delete
               • {skip_input} (`boolean?`, default `false`)
 		skip the input prompt
+              • {location} (`MdnInLineLocation?`)
+		inline text location
 
     Return: ~
       (`boolean`): Was the file deleted succesfully.
@@ -964,7 +983,7 @@ formatting.insert_format({format_char}, {opts})		*mdnotes.formatting.insert_form
     Parameters: ~
     • {format_char}  (`MdnFormatIndicators?`) Markdown format indicator
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`) TODO:
+              • {location} (`MdnInLineLocation?`)
 		inline text location
               • {split_fi} (`boolean?`, default `false`)
 		split format indicator string in half
@@ -974,9 +993,9 @@ formatting.delete_format({pattern}, {opts})		*mdnotes.formatting.insert_format()
     Used internall for removing format indicators from text.
 
     Parameters: ~
-    • {pattern}  (`MdnPattern?`) Markdown format indicator TODO:
+    • {pattern}  (`MdnPattern?`) Markdown format indicator
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`) TODO:
+              • {location} (`MdnInLineLocation?`)
 		inline text location
               • {move_cursor} (`boolean?`, default `true`)
 		move the cursor to the position of the deleted text
@@ -988,7 +1007,7 @@ formatting.emphasis_toggle({opts})			*mdnotes.formatting.emphasis_toggle()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`) TODO:
+              • {location} (`MdnInLineLocation?`)
 		inline text location
               • {split_fi} (`boolean?`, default `false`)
 		split format indicator string in half
@@ -1000,7 +1019,7 @@ formatting.strong_toggle({opts})			*mdnotes.formatting.strong_toggle()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`) TODO:
+              • {location} (`MdnInLineLocation?`)
 		inline text location
               • {split_fi} (`boolean?`, default `false`)
 		split format indicator string in half
@@ -1012,7 +1031,7 @@ formatting.strikethrough_toggle({opts})			*mdnotes.formatting.strikethrough_togg
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`) TODO:
+              • {location} (`MdnInLineLocation?`)
 		inline text location
               • {split_fi} (`boolean?`, default `false`)
 		split format indicator string in half
@@ -1024,7 +1043,7 @@ formatting.inline_code_toggle({opts})			*mdnotes.formatting.inline_code_toggle()
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`) TODO:
+              • {location} (`MdnInLineLocation?`)
 		inline text location
               • {split_fi} (`boolean?`, default `false`)
 		split format indicator string in half
@@ -1036,7 +1055,7 @@ formatting.autolink_toggle({opts})			*mdnotes.formatting.autolink_toggle()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`) TODO:
+              • {location} (`MdnInLineLocation?`)
 		inline text location
               • {split_fi} (`boolean?`, default `false`)
 		split format indicator string in half
@@ -1050,7 +1069,7 @@ resolve_list_content({line})				*mdnotes.formatting.resolve_list_content()*
     • {line}  (`string?`) Line text
 
     Return: ~
-      (`MdnListContent`) TODO:
+      (`MdnListContent`)
 
 formatting.task_list_toggle({opts})			*mdnotes.formatting.task_list_toggle()*
 
@@ -1059,7 +1078,7 @@ formatting.task_list_toggle({opts})			*mdnotes.formatting.task_list_toggle()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`) TODO:
+              • {location} (`MdnMultiLineLocation?`)
 		inline text location
               • {silent} (`boolean?`, default `false`)
 		silence notifications
@@ -1072,12 +1091,12 @@ formatting.check_list_valid({opts}) 			*mdnotes.formatting.check_list_valid()*
     • {opts}  (`table?`) Optional parameters:
               • {same_indent} (`boolean?`, default `false`)
 		check for list only of the same indent level
-              • {search} (`MdnSearchOpts?`) TODO:
+              • {search} (`MdnSearchOpts?`)
               • {outliner_list} (`boolean?`, default `false`)
 		treat list as an outliner list
 
     Return: ~
-      (`MdnSearchRet`) TODO:
+      (`MdnSearchRet`)
 
 formatting.ordered_list_renumber({opts})		*mdnotes.formatting.ordered_list_renumber()*
 
@@ -1087,7 +1106,7 @@ formatting.ordered_list_renumber({opts})		*mdnotes.formatting.ordered_list_renum
     • {opts}  (`table?`) Optional parameters:
               • {silent} (`boolean?`, default `false`)
 		silence notifications
-              • {search} (`MdnSearchOpts?`) TODO:
+              • {search} (`MdnSearchOpts?`)
 
 formatting.unformat_lines({opts})			*mdnotes.formatting.unformat_lines()*
 
@@ -1097,7 +1116,7 @@ formatting.unformat_lines({opts})			*mdnotes.formatting.unformat_lines()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`) TODO:
+              • {location} (`MdnMultiLineLocation?`)
 		inline text location
               • {silent} (`boolean?`, default `false`)
 		silence notifications
@@ -1115,8 +1134,8 @@ heading.get_heading({opts}) 				*mdnotes.heading.get_heading()*
 
     Return: ~
       (`integer?`): Index of current heading in the parsed fragments. See
-      |mdnotes-buf_fragments| TODO:.
-      (`MdnFragment`) TODO:
+      |mdnotes-buf_fragments|.
+      (`MdnFragment`)
       (`integer`): Total fragments in the parsed buffer
 
 heading.goto_next()					*mdnotes.heading.goto_next()*
@@ -1178,12 +1197,12 @@ inline_link.parse({opts})				*mdnotes.inline_link.parse()*
               • {keep_pointy_brackets} (`boolean?`, default `true`)
 		whether to keep `<` and `>` surrounding a URI with spaces
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse TODO:
+		specify location of inline link to parse
 	
     If both {inline_link} and {location} are specified, it uses {location}.
 
     Return: ~
-      (`MdnInLineLinkData?`): TODO: Parsed inline link on success, `nil` on
+      (`MdnInLineLinkData?`): Parsed inline link on success, `nil` on
       failure.
 
 inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_path_from_uri()*
@@ -1252,7 +1271,7 @@ inline_link.is_image({opts}) 				*mdnotes.inline_link.is_image()*
               • {inline_link} (`string?`)
 		specify an inline link to parse
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse TODO:
+		specify location of inline link to parse
 	
     If both {inline_link} and {location} are specified, it uses {location}.
 
@@ -1268,7 +1287,7 @@ inline_link.is_url({opts}) 				*mdnotes.inline_link.is_url()*
               • {inline_link} (`string?`)
 		specify an inline link to parse
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse TODO:
+		specify location of inline link to parse
 	
     If both {inline_link} and {location} are specified, it uses {location}.
 
@@ -1288,7 +1307,7 @@ inline_link.insert({opts})				*mdnotes.inline_link.insert()*
               • {move_cursor} (`boolean?`, default `true`)
 		place cursor where the new inline link was inserted
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to insert TODO:
+		specify location of inline link to insert
 
 inline_link.delete({opts})				*mdnotes.inline_link.delete()*
 
@@ -1301,7 +1320,7 @@ inline_link.delete({opts})				*mdnotes.inline_link.delete()*
               • {move_cursor} (`boolean?`, default `true`)
 		place cursor where the new inline link was deleted
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to delete TODO:
+		specify location of inline link to delete
 
 inline_link.toggle({opts})				*mdnotes.inline_link-toggle()*
 
@@ -1312,7 +1331,7 @@ inline_link.toggle({opts})				*mdnotes.inline_link-toggle()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to toggle TODO:
+		specify location of inline link to toggle
 
 inline_link.relink({opts})				*mdnotes.inline_link.relink()*
 
@@ -1325,7 +1344,7 @@ inline_link.relink({opts})				*mdnotes.inline_link.relink()*
               • {move_cursor} (`boolean?`, default `true`)
 		place cursor where the new inline link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to relink TODO:
+		specify location of inline link to relink
 
 inline_link.rename({opts})				*mdnotes.inline_link.rename()*
 
@@ -1338,7 +1357,7 @@ inline_link.rename({opts})				*mdnotes.inline_link.rename()*
               • {move_cursor} (`boolean?`, default `true`)
 		place cursor where the new inline link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to rename TODO:
+		specify location of inline link to rename
 
 inline_link.normalize({opts})				*mdnotes.inline_link.normalize()*
 
@@ -1350,7 +1369,7 @@ inline_link.normalize({opts})				*mdnotes.inline_link.normalize()*
               • {move_cursor} (`boolean?`, default `true`)
 		place cursor where the new inline link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to normalise TODO:
+		specify location of inline link to normalise
 
 inline_link.convert_fragment_to_gfm({opts})		*mdnotes.inline_link.convert_fragment_to_gfm()*
 
@@ -1362,7 +1381,7 @@ inline_link.convert_fragment_to_gfm({opts})		*mdnotes.inline_link.convert_fragme
               • {move_cursor} (`boolean?`, default `true`)
 		place cursor where the new inline link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to normalise TODO:
+		specify location of inline link to normalise
 
 inline_link.validate({opts})				*mdnotes.inline_link.validate()*
 
@@ -1373,7 +1392,7 @@ inline_link.validate({opts})				*mdnotes.inline_link.validate()*
               • {silent} (`boolean?`, default `false`)
 		silence notifications
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to relink TODO:
+		specify location of inline link to relink
 
     Return: ~
     • (`boolean`): `true` if valid and `false` when invalid
@@ -1443,7 +1462,7 @@ patterns						*mdnotes.patterns*
 
     Format patterns are Lua patterns used to detect the existance of those
     formats at the current cursor position. The patterns must return start
-    and end cursor positions (e.g. `"()~~(.-)~~()"`). See `MdnPatterns` TODO:.
+    and end cursor positions (e.g. `"()~~(.-)~~()"`). See `MdnPatterns`.
 
 
 table.check_table_valid({opts}) 			*mdnotes.table.check_table_valid()*
@@ -1456,7 +1475,7 @@ table.check_table_valid({opts}) 			*mdnotes.table.check_table_valid()*
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
 
     Return: ~
-    • (`MdnSearchRet`) TODO:
+    • (`MdnSearchRet`)
 
 table.write_table({opts}) 				*mdnotes.table.write_table()*
 
@@ -1464,7 +1483,7 @@ table.write_table({opts}) 				*mdnotes.table.write_table()*
     current line.
 
     Parameters: ~
-    • {opts}  (`MdnTable?`) TODO:
+    • {opts}  (`MdnTable?`)
 
 table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
 
@@ -1496,7 +1515,7 @@ table.get_table_lines({buffer}, {table_startl}, {table_endl})	*mdnotes.table.get
     • {table_endl}  (`table?`) Optional parameters:
 
     Return: ~
-    • (`MdnTableContents`) TODO:
+    • (`MdnTableContents`)
 
 table.get_table_lines_complex({buffer}, {table_startl}, {table_endl})	*mdnotes.table.get_table_lines()*
 
@@ -1509,7 +1528,7 @@ table.get_table_lines_complex({buffer}, {table_startl}, {table_endl})	*mdnotes.t
     • {table_endl}  (`table?`) Optional parameters:
 
     Return: ~
-    • (`MdnTableContentsComplex`) TODO:
+    • (`MdnTableContentsComplex`)
 
 table.parse({opts})					*mdnotes.table.parse()*
 
@@ -1525,7 +1544,7 @@ table.parse({opts})					*mdnotes.table.parse()*
 		use complex parsing for the table
 
     Return: ~
-    • (`MdnTable`) TODO:
+    • (`MdnTable`)
 
 table.get_column_locations({opts}) 			*mdnotes.table.get_column_locations()*
 
@@ -1536,14 +1555,14 @@ table.get_column_locations({opts}) 			*mdnotes.table.get_column_locations()*
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
 
     Return: ~
-    • (`MdnTableColLoc`) TODO:
+    • (`MdnTableColLoc`)
 
 table.get_cur_column_num() 				*mdnotes.table.get_cur_column_num()*
 
     Get the current column based on cursor location.
 
     Return: ~
-    • (`integer`) TODO:
+    • (`integer`)
 
 table.column_insert_left({opts}) 			*mdnotes.table.column_insert_left()*
 
@@ -1643,7 +1662,7 @@ table.get_table_columns({opts}) 			*mdnotes.table.get_table_columns()*
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
 
     Return: ~
-    • (`MdnTableContents`) TODO:
+    • (`MdnTableContents`)
 
 table.column_sort({comp}, {opts}) 			*mdnotes.table.column_sort()*
 
@@ -1733,12 +1752,12 @@ wikilink.parse({opts}) 					*mdnotes.wikilink.parse()*
               • {wikilink} (`string?`)
 		specify a WikiLink to parse
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of WikiLink to parse TODO:
+		specify location of WikiLink to parse
 	
     If both {wikilink} and {location} are specified, it uses {location}.
 
     Return: ~
-      (`MdnWikiLinkData?`): TODO: Parsed WikiLink on success, `nil` on
+      (`MdnWikiLinkData?`): Parsed WikiLink on success, `nil` on
       failure.
 
 wikilink.follow({opts})					*mdnotes.wikilink.follow()*
@@ -1748,7 +1767,7 @@ wikilink.follow({opts})					*mdnotes.wikilink.follow()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of WikiLink to parse TODO:
+		specify location of WikiLink to parse
 
 wikilink.show_references({opts})			*mdnotes.wikilink.show_references()*
 
@@ -1759,7 +1778,7 @@ wikilink.show_references({opts})			*mdnotes.wikilink.show_references()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of WikiLink to parse TODO:
+		specify location of WikiLink to parse
 
     Return: ~
       (`table?`): Return `qflist` using |getqflist()| on success, `nil` on
@@ -1775,7 +1794,7 @@ wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
               • {new_name} (`string?` defaults to user input) 
 		New name of the WikiLink
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of WikiLink to parse TODO:
+		specify location of WikiLink to parse
 
     Return: ~
       (`string?`): Old name on success, `nil` on failure.
@@ -1797,7 +1816,7 @@ wikilink.create({opts})					*mdnotes.wikilink.create()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of WikiLink to parse TODO:
+		specify location of WikiLink to parse
               • {move_cursor} (`boolean?`, default `true`)
 		move the cursor to the position of the deleted text
 
@@ -1808,7 +1827,7 @@ wikilink.delete()					*mdnotes.wikilink.delete()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of WikiLink to parse TODO:
+		specify location of WikiLink to parse
               • {move_cursor} (`boolean?`, default `true`)
 		move the cursor to the position of the deleted text
               • {skip_input} (`boolean`, default `false`)
@@ -1821,7 +1840,7 @@ wikilink.normalize({opts})				*mdnotes.wikilink.normalize()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of WikiLink to parse TODO:
+		specify location of WikiLink to parse
               • {move_cursor} (`boolean?`, default `true`)
 		move the cursor to the position of the deleted text
 
@@ -1846,7 +1865,7 @@ MdnInLineLocation 					*mdnotes.MdnInLineLocation*
     Used for locating in-line Markdown elements.
 
     Fields: ~
-    • {buffer}  (`table?`) Buffer number
+    • {buffer} (`integer?`) Buffer number
     • {lnum} (`integer?`) Line number
     • {col_start} (`integer?`) Start column of text
     • {col_end} (`integer?`) End column of text
@@ -1857,7 +1876,7 @@ MdnMultiLineLocation 					*mdnotes.MdnMultiLineLocation*
     Used for locating multi-line Markdown elements.
 
     Fields: ~
-    • {buffer}  (`table?`) Buffer number
+    • {buffer} (`integer?`) Buffer number
     • {startl} (`integer?`) Start line number
     • {endl} (`integer?`) End line number
 
@@ -1866,7 +1885,7 @@ MdnSearchOpts	 					*mdnotes.MdnSearchOpts*
     Options for searching for a valid multi-line Markdown element.
 
     Fields: ~
-    • {buffer}  (`table?`) Buffer number
+    • {buffer} (`integer?`) Buffer number
     • {origin_lnum} (`integer?`) Line number between the lower and upper limits
     • {upper_limit_lnum} (`integer?`) Higher line number limit of search
     • {lower_limit_lnum} (`integer?`) Lower line number limit of search
@@ -1876,7 +1895,8 @@ MdnSearchResult	 					*mdnotes.MdnSearchResult*
     Object found from the search.
 
     Fields: ~
-    • {valid}  (`boolean?`) Is search item valid
+    • {valid} (`boolean?`) Is search item valid
+    • {buffer} (`table?`) Buffer number
     • {startl} (`integer?`) Start line of the item
     • {endl} (`integer?`) End line of the item
 
@@ -1965,6 +1985,138 @@ MdnGetFilesInCwdOpts 					*mdnotes.MdnGetFilesInCwdOpts*
     • {fs_type} (`'"file"'|'"directory"'|'"link"'|'"fifo"'|'"socket"'|'"char"'|'"block"'|'"unknown"'|'"all"'?`)
       Specify type from vim.fs.dir() return
     • {pattern} (`string?`) Lua pattern for names containing pattern
+
+MdnGetAssetInlineLinkOpts 				*mdnotes.MdnGetAssetInlineLinkOpts*
+    
+    Options for |mdnotes.assets.get_asset_inline_link()|.
+    
+    Fields: ~
+    • {process_file} (`boolean?`) Process the file according to the plugin config
+    • {file_path} (`string?`) Optional file_path to generate the inline link for
+
+MdnAssetInsertOpts 					*mdnotes.MdnAssetInsertOpts*
+
+    Options for |mdnotes.assets.insert()|.
+
+    Inherits from |mdnotes.MdnGetAssetInlineLinkOpts|.
+
+    Fields: ~
+    • {location} (`MdnInLineLocation?`)
+
+MdnFormatIndicators 					*mdnotes.MdnFormatIndicators*
+
+    Alias for the supported Markdown format indicators which are, `*`, `_`,
+    `**`, `__`, `~~`, ```, `<>`, `[[]]`.
+
+MdnFormattingOpts 					*mdnotes.MdnFormattingOpts*
+
+    Options for all formatting related functions.
+
+    Fields: ~
+    • {location} (`MdnInLineLocation?`)
+    • {move_cursor} (`boolean?`) Move cursor to the specified location
+
+MdnListContent						 *mdnotes.MdnListContent*
+
+    List item contents that have been deemed important by me.
+
+    Fields: ~
+    • {indent} (`string`) Indent of list item
+    • {marker} (`string List`) List item marker
+    • {separator} (`string List`) List item separator, only in ordered lists
+    • {text} (`string List`) List item text
+    • {type} (`'"ordered"'|'"unordered"'`)
+
+MdnInsertFormattingOpts					 *mdnotes.MdnInsertFormattingOpts*
+
+    Options for |mdnotes.formatting.insert_format()|.
+
+    Fields: ~
+    • {split_fi} (`boolean`?) Split formatting indicator
+
+MdnInlineLinkData 					*mdnotes.MdnInlineLinkData*
+
+    Data object of an inline link.
+
+    Inherits from |mdnotes.MdnInLineLocation|.
+
+    Fields: ~
+    • {img_char} (`'"!"'|'""'`) Inline link image character
+    • {text} (`string`) Inline link text
+    • {uri} (`string`) Inline link URI ir destination
+
+MdnPattern 					*mdnotes.MdnPattern*
+
+    Alias for a Lua pattern that returns the start and end columns,
+    as well as the text.
+
+MdnPatterns 					*mdnotes.MdnPatterns*
+
+    Patterns used throughout.
+
+    Fields: ~
+    • {wikilink} (`MdnPattern`) WikiLink pattern
+    • {inline_link} (`MdnPattern`) Inline link pattern
+    • {text_uri} (`string`) Text and URI from inline link pattern
+    • {strong} (`MdnPattern`) Strong format indicator pattern
+    • {emphasis} (`MdnPattern`) Emphasis format indicator pattern
+    • {strikethrough} (`MdnPattern`) Strikethrough format indicator pattern
+    • {inline_code} (`MdnPattern`) Inline code format indicator pattern
+    • {autolink} (`MdnPattern`) Autolink format indicator pattern
+    • {uri_no_fragment} (`string`) URI only pattern
+    • {fragment} (`string`) Fragment only pattern
+    • {unordered_list} (`string`) Unordered list pattern
+    • {ordered_list} (`string`) Ordered list pattern
+    • {task} (`string`) Task item pattern
+    • {heading} (`string`) Heading pattern
+
+MdnTableCell 					*mdnotes.MdnTableCell*
+
+    Alias for a `string` type for the cell contents of a table.
+
+MdnTableCellComplex 				*mdnotes.MdnTableCellComplex*
+
+    More information about each cell.
+
+    Fields: ~
+    • {content} (`MdnTableCell`) Cell content
+    • {start_col} (`integer`) Cell start position
+    • {end_col} (`integer`) Cell end position
+    • {lnum} (`integer`) Line in the table
+
+MdnTableContents 				*mdnotes.MdnTableContents*
+
+    Alias for a `table` with entries of type `table` containing
+    |mdnotes.MdnTableCell| entires.
+
+MdnTableContentsComplex				*mdnotes.MdnTableContentsComplex*
+
+    Alias for a `table` with entries of type `table` containing
+    |mdnotes.MdnTableCellComplex| entires.
+
+MdnTable					*mdnotes.MdnTable*
+
+    Table object.
+
+    Inherits from |mdnotes.MdnMultiLineLocation|.
+
+    Fields: ~
+    • {contents} (`MdnTableContents|MdnTableContentsComplex`) Table content
+
+MdnTableColLoc					*mdnotes.MdnTableColLoc*
+
+    Table column locations. Alias for a `table` with entries of type `table`
+    which itself has entries of type `integer`.
+
+MdnWikiLinkData					*mdnotes.MdnWikiLinkData*
+
+    Data of a WikiLink.
+
+    Inherits from |mdnotes.MdnInLineLocation|.
+
+    Fields: ~
+    • {wikilink_nofrag} (`string`) WikiLink without the fragment
+    • {fragment} (`string`) Only the fragment in the WikiLink.
 
 ==============================================================================
 API EXAMPLES                                  		*mdnotes-api-examples*

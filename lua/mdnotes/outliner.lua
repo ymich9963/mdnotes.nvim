@@ -38,29 +38,40 @@ function  M.toggle()
     end
 end
 
---TODO: Add location opts
 ---Indent the current parent-child list
-function M.indent()
-    local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true })
-    local lines = vim.api.nvim_buf_get_lines(0, lsearch.startl - 1, lsearch.endl, false) or {}
-    local cur_lnum = vim.fn.line('.') - 1
+---@param opts {search: MdnSearchOpts?, move_cursor: boolean?}?
+function M.indent(opts)
+    opts = opts or {}
+
+    local move_cursor = opts.move_cursor ~= false
+    local searchopts = opts.search or {}
+    local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true, search = searchopts })
+    local lines = vim.api.nvim_buf_get_lines(lsearch.buffer, lsearch.startl - 1, lsearch.endl, false) or {}
+    local cur_lnum = searchopts.origin_lnum or vim.fn.line('.')
     local new_lines = {}
 
     for _, line in ipairs(lines) do
         table.insert(new_lines, (" "):rep(vim.o.shiftwidth) .. line)
     end
 
-    vim.api.nvim_buf_set_lines(0, cur_lnum, cur_lnum + #new_lines, false, new_lines)
+    vim.api.nvim_buf_set_lines(lsearch.buffer, cur_lnum - 1, cur_lnum - 1 + #new_lines, false, new_lines)
 
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), vim.fn.col('.') + vim.o.shiftwidth - 1})
+    if move_cursor == true then
+        vim.cmd.buffer(lsearch.buffer)
+        vim.fn.cursor({cur_lnum, vim.fn.col('.') + vim.o.shiftwidth - 1})
+    end
 end
 
---TODO: Add location opts
 ---Unindent the current parent-child list
-function M.unindent()
-    local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true })
-    local lines = vim.api.nvim_buf_get_lines(0, lsearch.startl - 1, lsearch.endl, false) or {}
-    local cur_lnum = vim.fn.line('.') - 1
+---@param opts {search: MdnSearchOpts?, move_cursor: boolean?}?
+function M.unindent(opts)
+    opts = opts or {}
+
+    local move_cursor = opts.move_cursor ~= false
+    local searchopts = opts.search or {}
+    local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true, search = opts.search })
+    local lines = vim.api.nvim_buf_get_lines(lsearch.buffer, lsearch.startl - 1, lsearch.endl, false) or {}
+    local cur_lnum = searchopts.origin_lnum or vim.fn.line('.')
     local new_lines = {}
 
     for _, line in ipairs(lines or {}) do
@@ -69,12 +80,17 @@ function M.unindent()
         table.insert(new_lines, line:sub(vim.o.shiftwidth + 1))
     end
 
-    vim.api.nvim_buf_set_lines(0, cur_lnum, cur_lnum + #new_lines, false, new_lines)
+    vim.api.nvim_buf_set_lines(lsearch.buffer, cur_lnum - 1, cur_lnum - 1 + #new_lines, false, new_lines)
 
-    -- If indenting from a column close to the start
-    local new_col = vim.fn.col('.') - vim.o.shiftwidth - 1
-    if new_col < 1 then new_col = 1 end
-    vim.api.nvim_win_set_cursor(0, {vim.fn.line('.'), new_col})
+    if move_cursor == true then
+        local new_col = vim.fn.col('.') - vim.o.shiftwidth - 1
+
+        -- If indenting from a column close to the start
+        if new_col < 1 then new_col = 1 end
+
+        vim.cmd.buffer(lsearch.buffer)
+        vim.fn.cursor({cur_lnum, new_col})
+    end
 end
 
 return M

@@ -1,6 +1,7 @@
 local MiniTest = require('mini.test')
 local new_set = MiniTest.new_set
 local eq = MiniTest.expect.equality
+local create_md_buffer = require('tests/helpers').create_md_buffer
 
 -- Create (but not start) child Neovim object
 local child = MiniTest.new_child_neovim()
@@ -40,12 +41,24 @@ T['check_assets_path()'] = function()
     eq(ret, true)
 end
 
-T['get_asset_il()'] = function()
-    local ret = child.lua([[return require('mdnotes.assets').get_asset_il(false, false, "path/test")]])
+T['get_asset_inline_link()'] = function()
+    local ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link({ process_file = false, file_path = "path/test" })]])
     eq(ret, "[test](assets/test)")
 
-    ret = child.lua([[return require('mdnotes.assets').get_asset_il(true, false, "path/test")]])
-    eq(ret, "![test](assets/test)")
+    ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link({ process_file = false, file_path = "path/test.png" })]])
+    eq(ret, "![test.png](assets/test.png)")
+end
+
+T['insert()'] = function()
+    -- To have a valid assets directory
+    child.cmd([[edit tests/test-data/files/file7.md]])
+
+    local lines = { "" }
+    local buf = create_md_buffer(child, lines)
+
+    child.lua([[return require('mdnotes.assets').insert({ process_file = false, file_path = "path/test" })]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1],  "[test](assets/test)")
 end
 
 T['get_used_assets()'] = function()

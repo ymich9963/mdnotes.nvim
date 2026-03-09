@@ -2,7 +2,7 @@
 
 local M = {}
 
----@alias MdnPattern string Pattern that returns the start and end columns, as well as the text
+---@alias MdnPattern string Lua pattern that returns the start and end columns, as well as the text
 
 ---@class MdnPatterns
 ---@field wikilink MdnPattern WikiLink pattern

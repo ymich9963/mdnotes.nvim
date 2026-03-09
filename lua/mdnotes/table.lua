@@ -75,6 +75,7 @@ function M.check_table_valid(opts)
 
     return {
         valid = true,
+        buffer = buffer,
         startl = table_startl,
         endl = table_endl,
     }

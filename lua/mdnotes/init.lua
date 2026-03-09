@@ -22,6 +22,7 @@ local M = {}
 
 ---@class MdnSearchResult
 ---@field valid boolean Is the search item valid
+---@field buffer integer? Buffer number
 ---@field startl integer? Start line of the item
 ---@field endl integer? End line of the item
 

@@ -3,10 +3,10 @@
 local M = {}
 
 ---@alias MdnFormatIndicators
----| '"**"'
----| '"__"'
 ---| '"*"'
 ---| '"_"'
+---| '"**"'
+---| '"__"'
 ---| '"~~"'
 ---| '"`"'
 ---| '"<>"'
@@ -16,7 +16,7 @@ local M = {}
 ---@field location MdnInLineLocation?
 ---@field move_cursor boolean?
 
----@class MdnListContent List item contents that have been deemed important by me
+---@class MdnListContent
 ---@field indent string Indent of list item
 ---@field marker string List item marker
 ---@field separator string List item separator, only in ordered lists
@@ -314,6 +314,7 @@ function M.check_list_valid(opts)
 
         return {
             valid = true,
+            buffer = buffer,
             startl = origin_lnum,
             endl = list_endl,
         }
@@ -348,6 +349,7 @@ function M.check_list_valid(opts)
 
     return {
         valid = true,
+        buffer = buffer,
         startl = list_startl,
         endl = list_endl,
     }
