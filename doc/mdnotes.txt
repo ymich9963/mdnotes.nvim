@@ -1487,19 +1487,19 @@ table.write_table({opts}) 				*mdnotes.table.write_table()*
 
 table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
 
-   Create a table of the size {rows} x {cols}. It will get populated with
-   `ROWrCOLc` text automatically. This is to activate the parsers so that the
-   table looks nice on generation. For example on a 3 x 3 table, it would be, 
->
-    |1r1c|1r2c|1r3c|
+   Create a table of the size {rows} x {cols}. Each cell will get populated with
+   four spaces automatically, and the minimum table that can be created is a 2 x
+   1. For example, a 3 x 3 table would be >text
+
+    |    |    |    |
     |----|----|----|
-    |2r1c|2r2c|2r3c|
-    |3r1c|3r2c|3r3c|
+    |    |    |    |
+    |    |    |    |
 <
     Parameters: ~
-    • {rows}  (`integer|string`)
-    • {columns}  (`integer|string`)
-    • {opts}  (`table?`) Optional parameters:
+    • {rows} (`integer|string`)
+    • {columns} (`integer|string`)
+    • {opts} (`table?`) Optional parameters:
               • {buffer} (`integer?`, defaults to current buffer)
 		buffer to write the table to
               • {lnum} (`integer?`, defaults to current line)

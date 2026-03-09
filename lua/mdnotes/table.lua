@@ -144,10 +144,10 @@ function M.create(rows, columns, opts)
     local new_table = {}
     local header_row = {}
 
-    for row = 1, rows do
+    for _ = 1, rows do
         row_entry = {}
-        for col = 1, columns do
-            table.insert(row_entry, tostring(row) .. "r" .. tostring(col) .. "c")
+        for _ = 1, columns do
+            table.insert(row_entry, "    ")
         end
         table.insert(new_table, row_entry)
     end
