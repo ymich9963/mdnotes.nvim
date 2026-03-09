@@ -255,10 +255,10 @@ toc_depth = `integer`		 			*mdnotes-toc_depth*
 user_commands = `table`		 			*mdnotes-user_commands*
 
     Custom user commands organised within the Mdn namespace unser the
-    `:Mdn user` command. Example below,
+    `:Mdn user` command. Each function can accept one argument. Example below,
 >lua
      user_commands = {
-        example = function() vim.notify("Mdn: This is an example command in the Mdnotes namespace") end
+        example = function(arg) vim.notify("Mdn: This is an example command in the Mdnotes namespace") end
     }
 
 ==============================================================================
@@ -2148,11 +2148,11 @@ Some examples are listed below for using the API in different scenarios. If
 you want to use these as functions within the `Mdn` namespace then you would
 add them as a `{command = function}` table in |mdn-user_commands|.
 
-Toggling `emphasis` on all occurences of the word `balls` in the current
+Toggling `emphasis` on all occurences of the variable `arg` in the current
 buffer.
 >lua
-    local function emphasis_toggle_balls()
-	vim.cmd.vimgrep({ args = {"/balls/", "%"}})
+    local function emphasis_toggle_arg(arg)
+	vim.cmd.vimgrep({ args = {"/" .. arg .. "/", "%"}})
 	local qflist = vim.fn.getqflist()
 	local emphasis_toggle = require('mdnotes.formatting').emphasis_toggle
 	for _, v in pairs(qflist) do
@@ -2167,14 +2167,14 @@ buffer.
 <
 Edit a cell in the table under the cursor with this example,
 >lua
-    local function edit_cell()
+    local function edit_cell(arg)
 	local parse = require('mdnotes.table').parse
 	local write_table = require('mdnotes.table').write_table
 
 	local tdata = parse()
 
 	-- Row 3, Column 1
-	tdata.contents[3][1] = "test"
+	tdata.contents[3][1] = arg
 
 	write_table(tdata)
     end
