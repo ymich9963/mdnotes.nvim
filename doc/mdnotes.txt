@@ -1626,6 +1626,11 @@ table.best_fit({opts})					*mdnotes.table.best_fit()*
     • {opts}  (`table?`) Optional parameters:
               • {silent} (`boolean?`, default `false`)
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+
+    Return: ~
+    • (`MdnTable?`)
 
 table.column_delete({opts})				*mdnotes.table.column_delete()*
 
@@ -1675,6 +1680,9 @@ table.column_sort({comp}, {opts}) 			*mdnotes.table.column_sort()*
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {cur_col} (`integer?`, defaults to under the cursor)
               • {cur_col} (`integer?`, defaults to under the cursor)
+
+    Return: ~
+    • (`MdnTable?`)
 
 table.column_sort({comp}, {opts}) 			*mdnotes.table.column_sort()*
 
@@ -1819,6 +1827,11 @@ wikilink.create({opts})					*mdnotes.wikilink.create()*
 		specify location of WikiLink to parse
               • {move_cursor} (`boolean?`, default `true`)
 		move the cursor to the position of the deleted text
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+
+    Return: ~
+      (`MdnTableContents?`)
 
 wikilink.delete()					*mdnotes.wikilink.delete()*
 

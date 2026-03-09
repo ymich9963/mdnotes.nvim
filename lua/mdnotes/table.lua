@@ -118,7 +118,8 @@ end
 ---Create a table with r rows and c columns
 ---@param rows integer|string
 ---@param columns integer|string
----@param opts {buffer: integer?, lnum: integer?}?
+---@param opts {buffer: integer?, lnum: integer?, write: boolean?}?
+---@return MdnTableContents?
 function M.create(rows, columns, opts)
     if rows == nil or columns == nil then
         vim.notify("Mdn: Please specify both row and column dimensions", vim.log.levels.ERROR)
@@ -128,6 +129,7 @@ function M.create(rows, columns, opts)
     opts = opts or {}
     local buffer = opts.buffer or vim.api.nvim_get_current_buf()
     local lnum = opts.lnum or vim.fn.line('.')
+    local write = opts.write ~= false
 
     if type(rows) == "string" then
         rows = vim.fn.str2nr(rows)
@@ -157,7 +159,11 @@ function M.create(rows, columns, opts)
     end
     table.insert(new_table, 2, header_row)
 
-    M.write_table({ buffer = buffer, startl = lnum, endl = lnum, contents = new_table })
+    if write == true then
+        M.write_table({ buffer = buffer, startl = lnum, endl = lnum, contents = new_table })
+    end
+
+    return new_table
 end
 
 ---Get the table lines in the specified line numbers
@@ -538,10 +544,12 @@ function M.row_insert_below(opts)
 end
 
 ---Add the appropriate amount of spaces for each column
----@param opts {silent: boolean?, search: MdnSearchOpts?}?
+---@param opts {silent: boolean?, search: MdnSearchOpts?, write: boolean?}?
+---@return MdnTable?
 function M.best_fit(opts)
     opts = opts or {}
     local silent = opts.silent or false
+    local write = opts.write ~= true
     local search_opts = opts.search or {}
     vim.validate("silent", silent, "boolean")
 
@@ -605,7 +613,11 @@ function M.best_fit(opts)
         tdata.contents[2][c] = new_delimiter_row
     end
 
-    M.write_table(tdata)
+    if write == true then
+        M.write_table(tdata)
+    end
+
+    return tdata
 end
 
 ---Delete current column
@@ -743,6 +755,7 @@ end
 ---Sort table based on current column using a comp function
 ---@param comp fun(a, b): boolean
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
+---@return MdnTable?
 function M.column_sort(comp, opts)
     opts = opts or {}
 
@@ -794,13 +807,13 @@ function M.column_sort(comp, opts)
     for _, v in ipairs(index_tbl) do
         new_table_lines[v.new_index] = tdata.contents[v.old_index]
     end
+    tdata.contents = new_table_lines
 
     if write == true then
-        tdata.contents = new_table_lines
         M.write_table(tdata)
     end
 
-    return new_table_lines, tdata.startl, tdata.endl
+    return tdata
 end
 
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
