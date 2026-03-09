@@ -88,10 +88,10 @@ T['create()'] = function()
     child.lua([[require('mdnotes.table').create(3,3)]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
-        "|1r1c|1r2c|1r3c|",
+        "|    |    |    |",
         "|----|----|----|",
-        "|2r1c|2r2c|2r3c|",
-        "|3r1c|3r2c|3r3c|",
+        "|    |    |    |",
+        "|    |    |    |",
     })
 end
 
