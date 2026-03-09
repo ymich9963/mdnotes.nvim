@@ -106,13 +106,42 @@ function M.process_inserted_asset_file(file_path)
     return file_name
 end
 
+---@param file_name string File to check the extension of
+function M.has_image_extension(file_name)
+    local image_extensions = {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".tiff",
+        ".bmp",
+        ".svg",
+        ".heic"
+    }
+
+    local extension = file_name:match(".*(%..*)")
+
+    if vim.tbl_contains(image_extensions, extension) then
+        return true
+    else
+        return false
+    end
+end
+
+---@class MdnGetAssetInlineLinkOpts
+---@field process_file boolean? Process the file according to the plugin config
+---@field file_path string? Optional file_path to generate the inline link for
+
 ---Create the asset inline link
----@param is_image boolean Specify if file should be treated as an image
----@param process_file boolean Process the file according to the plugin config
----@param file_path string? Optional file_path to generate the inline link for
+---@param opts MdnGetAssetInlineLinkOpts
 ---@return string? inline_link
-function M.get_asset_il(is_image, process_file, file_path)
-    vim.validate("is_image", is_image, "boolean")
+function M.get_asset_inline_link(opts)
+    opts = opts or {}
+
+    local process_file = opts.process_file ~= false
+    local file_path = opts.file_path
+
     vim.validate("process_file", process_file, "boolean")
     vim.validate("file_path", file_path, "string")
 
@@ -164,27 +193,33 @@ function M.get_asset_il(is_image, process_file, file_path)
 
     local inline_link = ("[%s](%s)"):format(file_name, asset_path)
 
-    if is_image == true then
+    -- Auto-detect image
+    if M.has_image_extension(file_name or "") == true then
         inline_link = "!" .. inline_link
     end
 
     return inline_link
 end
 
---TODO: locopts
----Insert a file as an inline link under the cursor
-function M.insert_file()
-    if M.check_assets_path() == false then return end
-    local inline_link = M.get_asset_il(false, true)
-    vim.api.nvim_put({inline_link}, "c", false, false)
-end
+---@class MdnAssetInsertOpts: MdnGetAssetInlineLinkOpts
+---@field location MdnInLineLocation
 
---TODO: locopts
----Insert an image as an inline link under the cursor
-function M.insert_image()
+---Insert a file as an inline link under the cursor
+---@param opts MdnAssetInsertOpts
+function M.insert(opts)
     if M.check_assets_path() == false then return end
-    local inline_link = M.get_asset_il(true, true)
-    vim.api.nvim_put({inline_link}, "c", false, false)
+
+    opts = opts or {}
+    local locopts = opts.location or {}
+    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
+    local lnum = locopts.lnum or vim.fn.line('.')
+    local col_start = -1 or locopts.col_start
+    local col_end = -1 or locopts.col_end
+    local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
+
+    local inline_link = M.get_asset_inline_link({ process_file = opts.process_file, file_path = opts.file_path })
+
+    vim.api.nvim_buf_set_text(bufnum, lnum - 1, cur_col, lnum - 1,  cur_col, {inline_link})
 end
 
 ---Get the assets that are already used in the notes
@@ -338,9 +373,8 @@ function M.unused_move(opts)
     process_unused_assets("move", skip_input)
 end
 
---TODO: locopts
 ---Download the the HTML of the inline link URL and place it in assets folder
----@param opts {uri: string?}? opts.uri: URI with a valid URL to download the HTML from
+---@param opts {uri: string?, location: MdnInLineLocation?}?
 ---@return string? filepath Path of downloaded file
 function M.download_website_html(opts)
     opts = opts or {}
@@ -348,7 +382,7 @@ function M.download_website_html(opts)
 
     local mdn_il = require('mdnotes.inline_link')
     if uri == nil then
-        uri = (mdn_il.parse()).uri
+        uri = (mdn_il.parse({ location = opts.location })).uri
     end
 
     vim.validate("uri", uri, "string")
@@ -398,9 +432,8 @@ function M.download_website_html(opts)
     return filepath
 end
 
---TODO: locopts
 ---Delete the asset under the cursor
----@param opts {uri: string?, skip_input: boolean?}?
+---@param opts {uri: string?, skip_input: boolean?, location: MdnInLineLocation}?
 ---@return boolean is_deleted, string? asset_path
 function M.delete(opts)
     opts = opts or {}
@@ -410,10 +443,10 @@ function M.delete(opts)
 
     local mdn_il = require('mdnotes.inline_link')
 
-    local _, text, uri_il, col_start, col_end
+    local ildata
     if uri == nil then
-        local ildata = mdn_il.parse() or {}
-        text, uri, col_start, col_end = ildata.text, ildata.uri, ildata.col_start, ildata.col_end
+        ildata = mdn_il.parse({ location = opts.location }) or {}
+        uri = ildata.uri
         if uri == nil then return false, nil end
     end
 
@@ -426,20 +459,16 @@ function M.delete(opts)
     local cwd = require('mdnotes').cwd
     local garbage_path = vim.fs.normalize(vim.fs.joinpath(cwd, M.get_assets_folder_name(), "../garbage"))
     local asset_name = vim.fs.basename(asset_path)
-    local prompt = "Type y/n/a(ll) to %s file(s) or 'c' to cancel (default 'n'): "
-    local user_input = ""
-    local text1 = ""
-    local lnum = vim.fn.line('.')
-    local cur_col = vim.fn.col('.')
     local is_deleted = false
 
+    local user_input, text1 = "", ""
+    local prompt = "Type y/n/a(ll) to %s file(s) or 'c' to cancel (default 'n'): "
     if behaviour == "delete" then
         prompt = "Delete file at '" .. asset_path .. "'. " .. prompt
         text1 = "Deleted"
     elseif behaviour == "garbage" then
         prompt = "Move file at '" .. asset_path .. "' to garbage folder. " .. prompt
         text1 = "Moved"
-
         -- Create directory if it does not exist
         if vim.fn.isdirectory(garbage_path) == 0 then
             uv.fs_mkdir(garbage_path, tonumber('777', 8))
@@ -471,13 +500,14 @@ function M.delete(opts)
         vim.notify(("Mdn: Unknown input '%s'"):format(user_input), vim.log.levels.ERROR)
     end
 
-    if uri_il ~= nil and is_deleted == true then
-        local new_col = cur_col - 2
+    -- Reset the text if a location for it was found
+    if ildata ~= nil and is_deleted == true then
+        local new_col = ildata.cur_col - 2
         if new_col < 1 then new_col = 1 end
 
         -- Set the line and cursor position
-        vim.api.nvim_buf_set_text(0, lnum - 1, col_start - 1, lnum - 1, col_end - 1, {text})
-        vim.fn.cursor({lnum, new_col})
+        vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.text})
+        vim.fn.cursor({ildata.lnum, new_col})
     end
 
     return is_deleted, asset_path
