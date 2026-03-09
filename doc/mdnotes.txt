@@ -1497,8 +1497,8 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
     |3r1c|3r2c|3r3c|
 <
     Parameters: ~
-    • {rows}  (`integer?`)
-    • {columns}  (`integer?`)
+    • {rows}  (`integer|string`)
+    • {columns}  (`integer|string`)
     • {opts}  (`table?`) Optional parameters:
               • {buffer} (`integer?`, defaults to current buffer)
 		buffer to write the table to

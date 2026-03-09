@@ -116,8 +116,8 @@ function M.write_table(opts)
 end
 
 ---Create a table with r rows and c columns
----@param rows integer
----@param columns integer
+---@param rows integer|string
+---@param columns integer|string
 ---@param opts {buffer: integer?, lnum: integer?}?
 function M.create(rows, columns, opts)
     if rows == nil or columns == nil then
@@ -128,6 +128,14 @@ function M.create(rows, columns, opts)
     opts = opts or {}
     local buffer = opts.buffer or vim.api.nvim_get_current_buf()
     local lnum = opts.lnum or vim.fn.line('.')
+
+    if type(rows) == "string" then
+        rows = vim.fn.str2nr(rows)
+    end
+
+    if type(columns) == "string" then
+        columns = vim.fn.str2nr(columns)
+    end
 
     vim.validate("rows", rows, "number")
     vim.validate("columns", columns, "number")
