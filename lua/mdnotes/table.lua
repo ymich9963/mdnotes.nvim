@@ -187,6 +187,11 @@ function M.get_table_lines(buffer, table_startl, table_endl)
         for text in v:gmatch("[^|]+") do
             table.insert(table_temp, text)
         end
+
+        if vim.tbl_isempty(table_temp) then
+            table.insert(table_temp, "")
+        end
+
         table.insert(table_lines, table_temp)
     end
 
