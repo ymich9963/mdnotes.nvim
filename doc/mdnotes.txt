@@ -2134,6 +2134,8 @@ directory in your LSP config. Example for that is below,
 		    checkThirdParty = false,
 		    library = {
 			"path/to/mdnotes.nvim"
+			-- or
+			require('mdnotes').plugin_install_dir
 		    }
 		},
 	    },
