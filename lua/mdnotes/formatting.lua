@@ -272,7 +272,6 @@ function M.task_list_toggle(opts)
     vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, new_lines)
 end
 
---TODO: Tests for function
 ---Check if the list surrounding the origin line is valid and return its line numbers
 ---@param opts {same_indent: boolean?, search: MdnSearchOpts?, outliner_list: boolean?}?
 ---@return MdnSearchResult

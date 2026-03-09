@@ -301,7 +301,49 @@ T['task_list'] = function()
     end
 end
 
-T['unformat_lines'] = function()
+T['check_list_valid()'] = function()
+
+    local lines = {
+        "- item",
+        "- item",
+        "    - item",
+        "    - item",
+        "- item",
+        "- item",
+        "    - item",
+        "    - item",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[return require('mdnotes.formatting').check_list_valid()]])
+    eq(ret, {
+        valid = true,
+        buffer = 2,
+        startl = 1,
+        endl = 8
+    })
+
+    child.fn.cursor(2,1)
+    ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ outliner_list = true })]])
+    eq(ret, {
+        valid = true,
+        buffer = 2,
+        startl = 2,
+        endl = 4
+    })
+
+    child.fn.cursor(5,1)
+    ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ same_indent = true })]])
+    eq(ret, {
+        valid = true,
+        buffer = 2,
+        startl = 5,
+        endl = 6
+    })
+
+end
+
+T['unformat_lines()'] = function()
     local lines = {
         "# Heading",
         "*emphasis*",
