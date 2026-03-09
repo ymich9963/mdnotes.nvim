@@ -198,7 +198,7 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     elseif func == commands.table.create then
         func(args[3], args[4])
     elseif func == commands.toc.generate then
-        func({ write = true, depth = args[3] })
+        func({ depth = args[3] })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif command == commands.user then
