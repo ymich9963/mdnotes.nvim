@@ -302,7 +302,6 @@ T['task_list'] = function()
 end
 
 T['check_list_valid()'] = function()
-
     local lines = {
         "- item",
         "- item",
@@ -340,7 +339,6 @@ T['check_list_valid()'] = function()
         startl = 5,
         endl = 6
     })
-
 end
 
 T['unformat_lines()'] = function()
