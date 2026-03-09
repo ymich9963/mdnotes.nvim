@@ -2165,7 +2165,20 @@ buffer.
 	end
     end
 <
+Edit a cell in the table under the cursor with this example,
+>lua
+    local function edit_cell()
+	local parse = require('mdnotes.table').parse
+	local write_table = require('mdnotes.table').write_table
 
+	local tdata = parse()
+
+	-- Row 3, Column 1
+	tdata.contents[3][1] = "test"
+
+	write_table(tdata)
+    end
+<
 ==============================================================================
 OUTLINER                                     		*mdnotes-outliner*
 
