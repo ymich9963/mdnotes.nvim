@@ -1504,6 +1504,11 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
 		buffer to write the table to
               • {lnum} (`integer?`, defaults to current line)
 		line number to insert the table at
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+
+    Return: ~
+    • (`MdnTable`)
 
 table.get_table_lines({buffer}, {table_startl}, {table_endl})	*mdnotes.table.get_table_lines()*
 
@@ -1679,6 +1684,8 @@ table.best_fit({opts})					*mdnotes.table.best_fit()*
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {write} (`boolean?`, default `true`)
 		write result to the buffer
+              • {tdata} (`MdnTable?`)
+		table data to use
 
     Return: ~
     • (`MdnTable?`)
@@ -1690,7 +1697,7 @@ table.column_delete({opts})				*mdnotes.table.column_delete()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
-              • {cur_col} (`integer?`, defaults to under the cursor)
+              • {col_num} (`integer?`, defaults to under the cursor)
 
 table.column_alignment_toggle({opts})			*mdnotes.table.column_alignment_toggle()*
 
@@ -1699,7 +1706,7 @@ table.column_alignment_toggle({opts})			*mdnotes.table.column_alignment_toggle()
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
-              • {cur_col} (`integer?`, defaults to under the cursor)
+              • {col_num} (`integer?`, defaults to under the cursor)
 
 table.column_duplicate()				*mdnotes.table.column_duplicate()*
 
@@ -1708,7 +1715,7 @@ table.column_duplicate()				*mdnotes.table.column_duplicate()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
-              • {cur_col} (`integer?`, defaults to under the cursor)
+              • {col_num} (`integer?`, defaults to under the cursor)
 
 table.get_table_columns({opts}) 			*mdnotes.table.get_table_columns()*
 

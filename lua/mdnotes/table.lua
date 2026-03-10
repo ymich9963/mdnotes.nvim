@@ -119,7 +119,7 @@ end
 ---@param rows integer|string
 ---@param columns integer|string
 ---@param opts {buffer: integer?, lnum: integer?, write: boolean?}?
----@return MdnTableContents?
+---@return MdnTable?
 function M.create(rows, columns, opts)
     if rows == nil or columns == nil then
         vim.notify("Mdn: Please specify both row and column dimensions", vim.log.levels.ERROR)
@@ -163,7 +163,12 @@ function M.create(rows, columns, opts)
         M.write_table({ buffer = buffer, startl = lnum, endl = lnum, contents = new_table })
     end
 
-    return new_table
+    return {
+        contents = new_table,
+        buffer = buffer,
+        startl = lnum,
+        endl = lnum + #new_table - 1
+    }
 end
 
 ---Get the table lines in the specified line numbers
@@ -349,6 +354,7 @@ end
 
 ---@param contents MdnTableContents|MdnTableContentsComplex
 ---@param opts {col_index: integer, col_data: table<string>?}?
+---@return MdnTableContents|MdnTableContentsComplex contents 
 function M.column_insert(contents, opts)
     opts = opts or {}
 
@@ -381,6 +387,7 @@ function M.column_insert(contents, opts)
 
     return contents
 end
+
 ---Insert column to the left of the current column
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
 function M.column_insert_left(opts)
@@ -508,6 +515,7 @@ end
 
 ---@param contents MdnTableContents|MdnTableContentsComplex
 ---@param opts {row_index: integer?, row_data: table<MdnTableCell>?}?
+---@return MdnTableContents|MdnTableContentsComplex contents 
 function M.row_insert(contents, opts)
     opts = opts or {}
 
@@ -589,20 +597,23 @@ function M.row_insert_below(opts)
 end
 
 ---Add the appropriate amount of spaces for each column
----@param opts {silent: boolean?, search: MdnSearchOpts?, write: boolean?}?
+---@param opts {silent: boolean?, search: MdnSearchOpts?, write: boolean?, tdata: MdnTable?}?
 ---@return MdnTable?
 function M.best_fit(opts)
     opts = opts or {}
     local silent = opts.silent or false
     local write = opts.write ~= true
     local search_opts = opts.search or {}
+    local tdata = opts.tdata
+
     vim.validate("silent", silent, "boolean")
 
-    local tdata = M.parse({ search = search_opts, silent = silent })
-
-    if tdata.contents == nil then
-        -- Errors would already be outputted
-        return
+    if tdata == nil then
+        tdata = M.parse({ search = search_opts, silent = silent })
+        if tdata.contents == nil then
+            -- Errors would already be outputted
+            return
+        end
     end
 
     local max_char_count = {}
@@ -666,51 +677,67 @@ function M.best_fit(opts)
 end
 
 ---Delete current column
----@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
+---@return MdnTable?
 function M.column_delete(opts)
     opts = opts or {}
-    local tdata = M.parse({ search = opts.search })
 
-    if tdata.contents == nil then
-        -- Errors would already be outputted
+    local write = opts.write ~= false
+    local tdata = opts.tdata
+
+    if tdata == nil then
+        tdata = M.parse({ search = opts.search })
+        if tdata.contents == nil then
+            -- Errors would already be outputted
+            return
+        end
+    end
+
+    local col_num = opts.col_num or M.get_cur_column_num()
+
+    if col_num == nil then
         return
     end
 
-    local cur_col = opts.cur_col or M.get_cur_column_num()
-
-    if cur_col == nil then
-        return
-    end
-
-    vim.validate("cur_col", cur_col, "number")
+    vim.validate("col_num", col_num, "number")
 
     for _, v in ipairs(tdata.contents) do
-        table.remove(v, cur_col)
+        table.remove(v, col_num)
     end
 
-    M.write_table(tdata)
+    if write == true then
+        M.write_table(tdata)
+    end
+
+    return tdata
 end
 
 ---Toggle alignment of the current column
----@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
+---@return MdnTable?
 function M.column_alignment_toggle(opts)
     opts = opts or {}
-    local tdata = M.parse({ search = opts.search })
 
-    if tdata.contents == nil then
-        -- Errors would already be outputted
+    local write = opts.write ~= false
+    local tdata = opts.tdata
+
+    if tdata == nil then
+        tdata = M.parse({ search = opts.search })
+        if tdata.contents == nil then
+            -- Errors would already be outputted
+            return
+        end
+    end
+
+    local col_num = opts.col_num or M.get_cur_column_num()
+
+    if col_num == nil then
         return
     end
 
-    local cur_col = opts.cur_col or M.get_cur_column_num()
+    vim.validate("col_num", col_num, "number")
 
-    if cur_col == nil then
-        return
-    end
-
-    vim.validate("cur_col", cur_col, "number")
-
-    local delimiter_row = tdata.contents[2][cur_col]
+    local delimiter_row = tdata.contents[2][col_num]
     local new_delimiter_row = ""
 
     -- if delimeter row is --- create :--
@@ -731,23 +758,32 @@ function M.column_alignment_toggle(opts)
         return
     end
 
-    tdata.contents[2][cur_col] = new_delimiter_row
+    tdata.contents[2][col_num] = new_delimiter_row
 
-    M.write_table(tdata)
+    if write == true then
+        M.write_table(tdata)
+    end
+
+    return tdata
 end
 
 ---Duplicate the current column. Inserts it to the right
----@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
+---@return MdnTable?
 function M.column_duplicate(opts)
     opts = opts or {}
-    local tdata = M.parse({ search = opts.search })
+    local write = opts.write ~= false
+    local tdata = opts.tdata
 
-    if tdata.contents == nil then
-        -- Errors would already be outputted
-        return
+    if tdata == nil then
+        tdata = M.parse({ search = opts.search })
+        if tdata.contents == nil then
+            -- Errors would already be outputted
+            return
+        end
     end
 
-    local cur_col = opts.cur_col or M.get_cur_column_num()
+    local cur_col = opts.col_num or M.get_cur_column_num()
 
     if cur_col == nil then
         return
@@ -764,7 +800,11 @@ function M.column_duplicate(opts)
         end
     end
 
-    M.write_table(tdata)
+    if write == true then
+        M.write_table(tdata)
+    end
+
+    return tdata
 end
 
 ---Get table as columns
@@ -799,26 +839,28 @@ end
 
 ---Sort table based on current column using a comp function
 ---@param comp fun(a, b): boolean
----@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
+---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
 ---@return MdnTable?
 function M.column_sort(comp, opts)
     opts = opts or {}
-
     local write = opts.write ~= false
-    local tdata = M.parse({ search = opts.search })
+    local tdata = opts.tdata
 
-    if tdata.contents == nil then
-        -- Errors would already be outputted
+    if tdata == nil then
+        tdata = M.parse({ search = opts.search })
+        if tdata.contents == nil then
+            -- Errors would already be outputted
+            return
+        end
+    end
+
+    local col_num = opts.col_num or M.get_cur_column_num()
+
+    if col_num == nil then
         return
     end
 
-    local cur_col = opts.cur_col or M.get_cur_column_num()
-
-    if cur_col == nil then
-        return
-    end
-
-    vim.validate("cur_col", cur_col, "number")
+    vim.validate("col_num", col_num, "number")
 
     local table_columns = M.get_table_columns({ search = opts.search })
 
@@ -827,7 +869,7 @@ function M.column_sort(comp, opts)
         return
     end
 
-    local cur_column = vim.deepcopy(table_columns[cur_col], true)
+    local cur_column = vim.deepcopy(table_columns[col_num], true)
 
     -- Remove heading and separator
     table.remove(cur_column, 1)
@@ -861,12 +903,12 @@ function M.column_sort(comp, opts)
     return tdata
 end
 
----@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
+---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
 function M.column_sort_ascending(opts)
     M.column_sort(function(a, b) return a < b end, opts or {})
 end
 
----@param opts {search: MdnSearchOpts?, cur_col: integer?, write: boolean?}?
+---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
 function M.column_sort_descending(opts)
     M.column_sort(function(a, b) return a > b end, opts or {})
 end
