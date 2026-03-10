@@ -284,7 +284,7 @@ T['get_cur_column_num()'] = function()
     eq(ret, 1)
 end
 
-T['insert_column()'] = function()
+T['column_insert()'] = function()
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -312,7 +312,7 @@ T['insert_column()'] = function()
     })
 end
 
-T['move_column()'] = function()
+T['column_move()'] = function()
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -341,7 +341,7 @@ T['move_column()'] = function()
     })
 end
 
-T['insert_row()'] = function()
+T['row_insert()'] = function()
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -357,8 +357,8 @@ T['insert_row()'] = function()
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
         "|2r1c|2r2c|2r3c|",
-        "|    |    |    |",
         "|3r1c|3r2c|3r3c|",
+        "|    |    |    |",
     })
 
     child.lua([[require('mdnotes.table').row_insert_above()]])
@@ -366,10 +366,10 @@ T['insert_row()'] = function()
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
-        "|    |    |    |",
         "|2r1c|2r2c|2r3c|",
         "|    |    |    |",
         "|3r1c|3r2c|3r3c|",
+        "|    |    |    |",
     })
 end
 

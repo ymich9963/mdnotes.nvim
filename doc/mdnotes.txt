@@ -1564,9 +1564,27 @@ table.get_cur_column_num() 				*mdnotes.table.get_cur_column_num()*
     Return: ~
     • (`integer`)
 
+table.column_insert({contents}, {opts})			*mdnotes.table.column_insert()*
+
+    Insert a column at {col_index} with {col_data} in the table with the
+    contents in {contents}. If {col_data} is not provided then an empty one is
+    generated.
+
+    Parameters: ~
+    • {contents} (`MdnTableContents`)
+    • {opts}  (`table?`) Optional parameters:
+	    • {col_index} (`integer?`)
+	      column index to insert at
+	    • {col_data} (`table<MdnTableCell>?`)
+	      new column data
+
+    Return: ~
+    • (`MdnTableContents`)
+
 table.column_insert_left({opts}) 			*mdnotes.table.column_insert_left()*
 
-    Insert column to the left of the current column.
+    Insert column to the left of the current column. Uses
+    |mdnotes.table.column_insert()| internally.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -1575,16 +1593,30 @@ table.column_insert_left({opts}) 			*mdnotes.table.column_insert_left()*
 
 table.column_insert_right({opts}) 			*mdnotes.table.column_insert_left()*
 
-    Insert column to the right of the current column.
+    Insert column to the right of the current column. Uses
+    |mdnotes.table.column_insert()| internally.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {cur_col} (`integer?`, defaults to under the cursor)
 
+table.column_move({contents}, {col_index}, {new_col_index})	*mdnotes.table.column_move_left()*
+
+    Move column of {contents} at {col_index} to {new_col_index}.
+
+    Parameters: ~
+    • {contents} (`MdnTableContents`)
+    • {col_index} (`integer`) Column index to move
+    • {new_col_index} (`integer?`) Column index to move to
+
+    Return: ~
+    • (`MdnTableContents`)
+
 table.column_move_left({opts}) 				*mdnotes.table.column_move_left()*
 
-    Move current column to the left.
+    Move current column to the left. Uses |mdnotes.table.column_move()|
+    internally.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -1593,16 +1625,34 @@ table.column_move_left({opts}) 				*mdnotes.table.column_move_left()*
 
 table.column_move_right({opts}) 			*mdnotes.table.column_move_right()*
 
-    Move current column to the right.
+    Move current column to the right. Uses |mdnotes.table.column_move()|
+    internally.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {cur_col} (`integer?`, defaults to under the cursor)
 
+table.row_insert({contents}, {opts}) 			*mdnotes.table.row_insert()*
+
+    Insert an empty row at the end of the table with {contents}. Optionally
+    specify in {opts} the row index to insert at or the row data to use.
+
+    Parameters: ~
+    • {contents} (`MdnTableContents`)
+    • {opts}  (`table?`) Optional parameters:
+	    • {row_index} (`integer?`, default `-1`)
+	      row index to insert at
+	    • {row_data} (`table<MdnTableCell>?`, defaults to empty strings)
+	      new row data
+
+    Return: ~
+    • (`MdnTableContents`)
+
 table.row_insert_above({opts}) 				*mdnotes.table.row_insert_above()*
 
-    Insert an empty row above the current row.
+    Insert an empty row above the current row. Uses
+    |mdnotes.table.row_insert()| internally.
     
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -1611,7 +1661,8 @@ table.row_insert_above({opts}) 				*mdnotes.table.row_insert_above()*
 
 table.row_insert_below({opts}) 				*mdnotes.table.row_insert_below()*
 
-    Insert an empty row below the current row.
+    Insert an empty row below the current row. Uses
+    |mdnotes.table.row_insert()| internally.
     
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:

@@ -347,6 +347,40 @@ function M.get_cur_column_num()
     return nil
 end
 
+---@param contents MdnTableContents|MdnTableContentsComplex
+---@param opts {col_index: integer, col_data: table<string>?}?
+function M.column_insert(contents, opts)
+    opts = opts or {}
+
+    local col_index = opts.col_index or -1
+    local col_data = opts.col_data
+
+    -- Have a default list if col_data not given
+    if col_data == nil then
+        col_data = {}
+        for i, _ in ipairs(contents) do
+            if i == 2 then
+                table.insert(col_data, i, "----")
+            else
+                table.insert(col_data, i, "    ")
+            end
+        end
+    end
+
+    -- Fill up the list for any empty entries
+    for i = 1, #contents do
+        if not col_data[i]:match("%S-") then
+            col_data[i] = ""
+        end
+    end
+
+    -- Insert the new column
+    for i, v in ipairs(contents) do
+        table.insert(v, col_index, col_data[i])
+    end
+
+    return contents
+end
 ---Insert column to the left of the current column
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
 function M.column_insert_left(opts)
@@ -366,13 +400,7 @@ function M.column_insert_left(opts)
 
     vim.validate("cur_col", cur_col, "number")
 
-    for i, v in ipairs(tdata.contents) do
-        if i == 2 then
-            table.insert(v, cur_col, "----")
-        else
-            table.insert(v, cur_col, "    ")
-        end
-    end
+    M.column_insert(tdata.contents, { col_index = cur_col })
 
     M.write_table(tdata)
 end
@@ -396,15 +424,28 @@ function M.column_insert_right(opts)
 
     vim.validate("cur_col", cur_col, "number")
 
-    for i, v in ipairs(tdata.contents) do
-        if i == 2 then
-            table.insert(v, cur_col + 1, "----")
-        else
-            table.insert(v, cur_col + 1, "    ")
-        end
-    end
+    M.column_insert(tdata.contents, { col_index = cur_col + 1 })
 
     M.write_table(tdata)
+end
+
+---@param contents MdnTableContents|MdnTableContentsComplex
+---@param col_index integer Column index to insert a new column at
+---@param new_col_index integer New column index
+---@return MdnTableContents|MdnTableContentsComplex? contents
+function M.column_move(contents, col_index, new_col_index)
+    if new_col_index < 1 or new_col_index > #contents[1] then
+        return
+    end
+
+    local temp_col_val = ""
+    for _, v in ipairs(contents) do
+        temp_col_val = v[col_index]
+        table.remove(v, col_index)
+        table.insert(v, new_col_index, temp_col_val)
+    end
+
+    return contents
 end
 
 ---Move current column to the left
@@ -427,16 +468,10 @@ function M.column_move_left(opts)
     vim.validate("cur_col", cur_col, "number")
 
     local new_col = cur_col - 1
-    if new_col < 1 or new_col > #tdata.contents[1] then
+
+    if not M.column_move(tdata.contents, cur_col, new_col) then
         vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
         return
-    end
-
-    local temp_col_val = ""
-    for _, v in ipairs(tdata.contents) do
-        temp_col_val = v[cur_col]
-        table.remove(v, cur_col)
-        table.insert(v, new_col, temp_col_val)
     end
 
     M.write_table(tdata)
@@ -462,19 +497,49 @@ function M.column_move_right(opts)
     vim.validate("cur_col", cur_col, "number")
 
     local new_col = cur_col + 1
-    if new_col < 1 or new_col > #tdata.contents[1] then
+
+    if not M.column_move(tdata.contents, cur_col, new_col) then
         vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
         return
     end
 
-    local temp_col_val = ""
-    for _, v in ipairs(tdata.contents) do
-        temp_col_val = v[cur_col]
-        table.remove(v, cur_col)
-        table.insert(v, new_col, temp_col_val)
+    M.write_table(tdata)
+end
+
+---@param contents MdnTableContents|MdnTableContentsComplex
+---@param opts {row_index: integer?, row_data: table<MdnTableCell>?}?
+function M.row_insert(contents, opts)
+    opts = opts or {}
+
+    local row_index = opts.row_index or #contents
+    local row_data = opts.row_data
+
+    local row = contents[row_index]
+
+    -- In the case where it is inserted below the last line
+    if row == nil then
+        row = contents[row_index - 1]
     end
 
-    M.write_table(tdata)
+    -- Default row
+    if row_data == nil then
+        row_data = {}
+        for _, v in ipairs(row) do
+            local text = v:gsub(".", " ")
+            table.insert(row_data, text)
+        end
+    end
+
+    -- Fill up the list for any empty entries
+    for i = 1, #row do
+        if not row_data[i]:match("%S-") then
+            row_data[i] = ""
+        end
+    end
+
+    table.insert(contents, row_index, row_data)
+
+    return contents
 end
 
 ---Insert an empty row above the current row
@@ -493,19 +558,9 @@ function M.row_insert_above(opts)
         return
     end
 
-    local cur_table_lnum = lnum - tdata.startl
+    local cur_row = lnum - tdata.startl + 1
 
-    -- In case the table is at the very top
-    if cur_table_lnum == 0 then cur_table_lnum = 1 end
-
-    local new_table_line = {}
-    local cur_table_line = tdata.contents[cur_table_lnum]
-    for _, v in ipairs(cur_table_line) do
-        local text = v:gsub(".", " ")
-        table.insert(new_table_line, text)
-    end
-
-    table.insert(tdata.contents, cur_table_lnum, new_table_line)
+    M.row_insert(tdata.contents, { row_index = cur_row })
 
     M.write_table(tdata)
 end
@@ -526,19 +581,9 @@ function M.row_insert_below(opts)
         return
     end
 
-    local cur_table_lnum = lnum - tdata.startl
+    local cur_row = lnum - tdata.startl + 1
 
-    -- In case the table is at the very top
-    if cur_table_lnum == 0 then cur_table_lnum = 1 end
-
-    local new_table_line = {}
-    local cur_table_line = tdata.contents[cur_table_lnum]
-    for _, v in ipairs(cur_table_line) do
-        local text = v:gsub(".", " ")
-        table.insert(new_table_line, text)
-    end
-
-    table.insert(tdata.contents, cur_table_lnum + 1, new_table_line)
+    M.row_insert(tdata.contents, { row_index = cur_row + 1 })
 
     M.write_table(tdata)
 end
