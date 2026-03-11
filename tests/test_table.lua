@@ -91,7 +91,6 @@ T['create()'] = function()
         "|    |    |    |",
         "|----|----|----|",
         "|    |    |    |",
-        "|    |    |    |",
     })
 end
 
@@ -174,7 +173,7 @@ T['get_column_locations()'] = function()
     })
 end
 
-T['get_table_lines_complex()'] = function()
+T['convert_contents_to_complex()'] = function()
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -187,19 +186,19 @@ T['get_table_lines_complex()'] = function()
     {
         {
             {
-                content = "1r1c",
+                text = "1r1c",
                 start_col = 1,
                 end_col = 6,
                 lnum = 1,
             },
             {
-                content = "1r2c",
+                text = "1r2c",
                 start_col = 6,
                 end_col = 11,
                 lnum = 1,
             },
             {
-                content = "1r3c",
+                text = "1r3c",
                 start_col = 11,
                 end_col = 16,
                 lnum = 1,
@@ -207,19 +206,19 @@ T['get_table_lines_complex()'] = function()
         },
         {
             {
-                content = "----",
+                text = "----",
                 start_col = 1,
                 end_col = 6,
                 lnum = 2,
             },
             {
-                content = "----",
+                text = "----",
                 start_col = 6,
                 end_col = 11,
                 lnum = 2,
             },
             {
-                content = "----",
+                text = "----",
                 start_col = 11,
                 end_col = 16,
                 lnum = 2,
@@ -227,19 +226,19 @@ T['get_table_lines_complex()'] = function()
         },
         {
             {
-                content = "2r1c",
+                text = "2r1c",
                 start_col = 1,
                 end_col = 6,
                 lnum = 3,
             },
             {
-                content = "2r2c",
+                text = "2r2c",
                 start_col = 6,
                 end_col = 11,
                 lnum = 3,
             },
             {
-                content = "2r3c",
+                text = "2r3c",
                 start_col = 11,
                 end_col = 16,
                 lnum = 3,
@@ -247,19 +246,19 @@ T['get_table_lines_complex()'] = function()
         },
         {
             {
-                content = "3r1c",
+                text = "3r1c",
                 start_col = 1,
                 end_col = 6,
                 lnum = 4,
             },
             {
-                content = "3r2c",
+                text = "3r2c",
                 start_col = 6,
                 end_col = 11,
                 lnum = 4,
             },
             {
-                content = "3r3c",
+                text = "3r3c",
                 start_col = 11,
                 end_col = 16,
                 lnum = 4,
@@ -267,7 +266,10 @@ T['get_table_lines_complex()'] = function()
         }
     }
 
-    local ret = child.lua([[return require('mdnotes.table').get_table_lines_complex(0, 1, 4)]])
+    local ret = child.lua([[
+    local col_locs = require('mdnotes.table').get_column_locations()
+    local tdata = require('mdnotes.table').parse()
+    return require('mdnotes.table').convert_contents_to_complex(tdata.contents, col_locs)]])
     eq(ret, expected_table_complex)
 end
 
@@ -495,7 +497,9 @@ T['get_table_columns()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.table').get_table_columns()]])
+    local ret = child.lua([[
+    local tdata = require('mdnotes.table').parse()
+    return require('mdnotes.table').get_table_columns(tdata.contents)]])
     eq(ret, {
         {"1r1c", "----", "2r1c", "3r1c"},
         {"1r2c", "----", "2r2c", "3r2c"},
@@ -515,7 +519,11 @@ T['column_sort()'] = function()
     local buf = create_md_buffer(child, lines)
 
     -- Ascending
-    child.lua([[require('mdnotes.table').column_sort(function(a, b) return a < b end)]])
+    child.lua([[
+    local tdata = require('mdnotes.table').parse()
+    tdata.contents = require('mdnotes.table').column_sort(tdata.contents, 1, function(a, b) return a < b end)
+    require('mdnotes.table').write_table(tdata)
+    ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -526,8 +534,12 @@ T['column_sort()'] = function()
         "|4r1c|3r2c|3r3c|",
     })
 
-    -- Ascending
-    child.lua([[require('mdnotes.table').column_sort(function(a, b) return a > b end)]])
+    -- Descending
+    child.lua([[
+    local tdata = require('mdnotes.table').parse()
+    tdata.contents = require('mdnotes.table').column_sort(tdata.contents, 1, function(a, b) return a > b end)
+    require('mdnotes.table').write_table(tdata)
+    ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -549,7 +561,8 @@ T['parse_columns_to_lines()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local table = require('mdnotes.table').get_table_columns()
+    local tdata = require('mdnotes.table').parse()
+    local table = require('mdnotes.table').get_table_columns(tdata.contents)
     return require('mdnotes.table').parse_columns_to_lines(table)
     ]])
     eq(ret, {

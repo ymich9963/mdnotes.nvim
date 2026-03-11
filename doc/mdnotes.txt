@@ -1522,19 +1522,6 @@ table.get_table_lines({buffer}, {table_startl}, {table_endl})	*mdnotes.table.get
     Return: ~
     • (`MdnTableContents`)
 
-table.get_table_lines_complex({buffer}, {table_startl}, {table_endl})	*mdnotes.table.get_table_lines()*
-
-    Same with |mdnotes.table.get_table_lines()| but returns more information
-    for each cell.
-
-    Parameters: ~
-    • {buffer}  (`integer?`)
-    • {table_startl}  (`integer?`)
-    • {table_endl}  (`table?`) Optional parameters:
-
-    Return: ~
-    • (`MdnTableContentsComplex`)
-
 table.parse({opts})					*mdnotes.table.parse()*
 
     Parse the specified table. Data returned can be passed directly to
@@ -1545,22 +1532,32 @@ table.parse({opts})					*mdnotes.table.parse()*
               • {silent} (`boolean?`, default `false`)
 		silence notifications
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
-              • {complex} (`boolean?`, default `false`)
-		use complex parsing for the table
 
     Return: ~
     • (`MdnTable`)
 
 table.get_column_locations({opts}) 			*mdnotes.table.get_column_locations()*
 
-    Get the table column locations.
+    Get the table column locations. Used in |mdnotes.table.convert_contents_to_complex()|.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
 
     Return: ~
-    • (`MdnTableColLoc`)
+    • (`MdnTableColLocs`) Column locations for every cell.
+
+table.convert_contents_to_complex({contents}, {col_locs})	*mdnotes.table.convert_contents_to_complex()*
+
+    Convert the table contents to provide more information (which is why it's
+    called complex).
+    
+    Parameters: ~
+    • {contents} (`MdnTableContents?`)
+    • {col_locs} (`MdnTableColLocs?`)
+
+    Return: ~
+    • (`MdnTableContentsComplex`)
 
 table.get_cur_column_num() 				*mdnotes.table.get_cur_column_num()*
 
@@ -1698,6 +1695,10 @@ table.column_delete({opts})				*mdnotes.table.column_delete()*
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {col_num} (`integer?`, defaults to under the cursor)
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+              • {tdata} (`MdnTable?`)
+		table data to use
 
 table.column_alignment_toggle({opts})			*mdnotes.table.column_alignment_toggle()*
 
@@ -1707,6 +1708,10 @@ table.column_alignment_toggle({opts})			*mdnotes.table.column_alignment_toggle()
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {col_num} (`integer?`, defaults to under the cursor)
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+              • {tdata} (`MdnTable?`)
+		table data to use
 
 table.column_duplicate()				*mdnotes.table.column_duplicate()*
 
@@ -1716,6 +1721,10 @@ table.column_duplicate()				*mdnotes.table.column_duplicate()*
     • {opts}  (`table?`) Optional parameters:
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {col_num} (`integer?`, defaults to under the cursor)
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+              • {tdata} (`MdnTable?`)
+		table data to use
 
 table.get_table_columns({opts}) 			*mdnotes.table.get_table_columns()*
 
@@ -1723,37 +1732,26 @@ table.get_table_columns({opts}) 			*mdnotes.table.get_table_columns()*
     • {opts}  (`table?`) Optional parameters:
               • {silent} (`boolean?`, default `false`)
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
+              • {write} (`boolean?`, default `true`)
+		write result to the buffer
+              • {tdata} (`MdnTable?`)
+		table data to use
 
     Return: ~
     • (`MdnTableContents`)
 
-table.column_sort({comp}, {opts}) 			*mdnotes.table.column_sort()*
+table.column_sort({contents}, {col_num}, {comp}) 	*mdnotes.table.column_sort()*
 
-    Sort table based on current column using a {comp} function.
+    Sort {contents} based on {col_num} using a {comp} function.
     
     Parameters: ~
+    • {contents} (`MdnTableContents`)
+    • {col_num} (`integer`) Column number to sort
     • {comp} (`fun(a, b): boolean`) A function that compares values `a
       and `b` as used in the |table.sort()| function.
-    • {opts}  (`table?`) Optional parameters:
-              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
-              • {cur_col} (`integer?`, defaults to under the cursor)
-              • {cur_col} (`integer?`, defaults to under the cursor)
 
     Return: ~
-    • (`MdnTable?`)
-
-table.column_sort({comp}, {opts}) 			*mdnotes.table.column_sort()*
-
-    Sort table based on current column using a {comp} function.
-    
-    Parameters: ~
-    • {comp} (`fun(a, b): boolean`) A function that compares values `a
-      and `b` as used in the |table.sort()| function.
-    • {opts}  (`table?`) Optional parameters:
-              • {search} (`MdnSearchOpts?`, defaults to under the cursor)
-              • {cur_col} (`integer?`, defaults to under the cursor)
-              • {write} (`boolean?`, default `true`)
-		write result to the buffer
+    • (`MdnTableContents?`)
 
 table.column_sort_ascending({opts}) 			*mdnotes.table.column_sort_ascending()*
 
@@ -1765,6 +1763,8 @@ table.column_sort_ascending({opts}) 			*mdnotes.table.column_sort_ascending()*
               • {cur_col} (`integer?`, defaults to under the cursor)
               • {write} (`boolean?`, default `true`)
 		write result to the buffer
+              • {tdata} (`MdnTable?`)
+		table data to use
 
 table.column_sort_descending({opts}) 			*mdnotes.table.column_sort_descending()*
 
@@ -1776,6 +1776,8 @@ table.column_sort_descending({opts}) 			*mdnotes.table.column_sort_descending()*
               • {cur_col} (`integer?`, defaults to under the cursor)
               • {write} (`boolean?`, default `true`)
 		write result to the buffer
+              • {tdata} (`MdnTable?`)
+		table data to use
 
     Return: ~
     • (`MdnTableContents`)
@@ -2174,7 +2176,7 @@ MdnTable					*mdnotes.MdnTable*
     Fields: ~
     • {contents} (`MdnTableContents|MdnTableContentsComplex`) Table content
 
-MdnTableColLoc					*mdnotes.MdnTableColLoc*
+MdnTableColLocs					*mdnotes.MdnTableColLocs*
 
     Table column locations. Alias for a `table` with entries of type `table`
     which itself has entries of type `integer`.
@@ -2248,6 +2250,58 @@ Edit a cell in the table under the cursor with this example,
 	tdata.contents[3][1] = arg
 
 	write_table(tdata)
+    end
+<
+
+Create a table with the wordcounts of all Markdown files in the cwd. Sort this
+table based on the file's worcount.
+>lua
+    local function create_word_counts_tbl()
+	local scratch_buf = vim.api.nvim_create_buf(true, true)
+	local tdata = require('mdnotes.table').create(2 ,2 ,{ buffer = scratch_buf, lnum = 1, write = false })
+	local row_insert = require('mdnotes.table').row_insert
+	local write_table = require('mdnotes.table').write_table
+	local best_fit = require('mdnotes.table').best_fit
+	local column_sort = require('mdnotes.table').column_sort
+	local files = require('mdnotes').get_files_in_cwd({ extension = ".md" })
+
+	tdata.contents[1][1] = "File name"
+	tdata.contents[1][2] = "Word count"
+
+	vim.notify("Looking through files...")
+	vim.cmd.redraw()
+	for _, name in ipairs(files) do
+	    -- Load the buffer
+	    local buf = vim.fn.bufadd(name)
+	    vim.fn.bufload(buf)
+
+	    -- Get the wordcount for the buffer
+	    local wordcount = 0
+	    vim.api.nvim_buf_call(buf, function()
+		wordcount = vim.fn.wordcount().words
+	    end)
+
+	    -- Insert data in the table
+	    row_insert(tdata.contents, {row_data = {name, tostring(wordcount)}})
+
+	    -- If the buffer is not in the window
+	    -- then delete from the buffer list
+	    if vim.fn.bufwinnr(buf) == -1 then
+		vim.cmd.bdelete(buf)
+	    end
+	end
+
+	-- Get the best fit for the table columns
+	best_fit({ tdata = tdata, write = false})
+
+	-- Sort the table by the numbers in the second column
+	tdata.contents = column_sort(tdata.contents, 2, function(a, b) return tonumber(a) > tonumber(b) end)
+
+	-- Write the table to the buffer in tdata
+	write_table(tdata)
+
+	vim.cmd.vsplit()
+	vim.cmd.buffer(scratch_buf)
     end
 <
 ==============================================================================
