@@ -958,7 +958,7 @@ assets.download_website_html({opts})				*mdnotes.assets.download_website_html()*
     Return: ~
       (`string?`): Path of downloaded file on success, `nil` on failure.
 
-assets.delete()						*mdnotes.assets.unused_move()*
+assets.delete()						*mdnotes.assets.delete()*
 
     Delete the asset in the inline link under the cursor. Removes the inline
     link and keeps the inline link text.
