@@ -291,8 +291,7 @@ T['toggle()'] = function()
 
     local buf = create_md_buffer(child, lines)
     child.lua([[
-    vim.fn.setreg("+", "link", "")
-    require('mdnotes.inline_link').toggle()
+    require('mdnotes.inline_link').toggle({ uri = "link" })
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](link)")

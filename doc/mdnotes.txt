@@ -1330,6 +1330,8 @@ inline_link.toggle({opts})				*mdnotes.inline_link-toggle()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
+              • {uri} (`string?`)
+		URI to use
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to toggle
 

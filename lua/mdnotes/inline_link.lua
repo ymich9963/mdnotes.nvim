@@ -288,7 +288,7 @@ function M.delete(opts)
 end
 
 ---Toggle inserting and deleting inline links
----@param opts {location: MdnInLineLocation?}?
+---@param opts {uri: string?, location: MdnInLineLocation?}?
 function M.toggle(opts)
     opts = opts or {}
     local locopts = opts.location or {}
@@ -297,7 +297,7 @@ function M.toggle(opts)
     if check_markdown_syntax(require("mdnotes.patterns").inline_link, { location = locopts }) then
         M.delete({ location = locopts })
     else
-        M.insert({ location = locopts })
+        M.insert({ uri = opts.uri, location = locopts })
     end
 end
 
