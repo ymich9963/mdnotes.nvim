@@ -316,7 +316,7 @@ end
 
 T['normalize()'] = function()
     local lines = {
-        "[test](link\\ has spaces\\ test)"
+        "[test](link/ has spaces/ test)"
     }
 
     local buf = create_md_buffer(child, lines)
