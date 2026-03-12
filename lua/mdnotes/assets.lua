@@ -143,7 +143,7 @@ function M.get_asset_inline_link(opts)
     local file_path = opts.file_path
 
     vim.validate("process_file", process_file, "boolean")
-    vim.validate("file_path", file_path, "string")
+    vim.validate("file_path", file_path, { "string", "nil" })
 
     local asset_path = ""
     local file_name = nil
