@@ -314,8 +314,10 @@ T['relink()/rename()'] = function()
     eq(lines[1], "[test2](link2)")
 end
 
+-- INFO: issue in CI with this test - not sure why
 T['normalize()'] = function()
     local lines = {
+        -- "[test](link\\ has spaces\\ test)"
         "[test](link/ has spaces/ test)"
     }
 
