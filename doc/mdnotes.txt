@@ -677,9 +677,14 @@ check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax()*
               • {location} (`table?`, default `{}`)
 		A table of type |mdnotes-MdnInLineLocation| used to specify
 		the location of the function process.
+              • {entire_line} (`boolean?`, default `false`)
+		check the entire line for valid Markdown syntax and return its 
+		start/end columns.
 
     Return: ~
-      (`boolean`)
+      (`boolean?`): Valid Markdown syntax found
+      (`start_col?`): Start column of syntax
+      (`end_col?`): End column of syntax
 
 check_markdown_lsp_cur_buf() 				*mdnotes.check_markdown_lsp_cur_buf()*
 

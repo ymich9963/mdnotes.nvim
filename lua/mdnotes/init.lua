@@ -235,26 +235,29 @@ end
 
 ---Check text for valid Markdown syntax
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
----@param opts {location: MdnInLineLocation?}?
----@return boolean?
+---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
+---@return boolean? valid, number? start_col, number? end_col
 function M.check_markdown_syntax(pattern, opts)
     opts = opts or {}
     vim.validate("pattern", pattern, "string")
 
+    local entire_line = opts.entire_line or false
     local locopts = opts.location or {}
     local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
-    local linenum = locopts.lnum or vim.fn.line('.')
+    local lnum = locopts.lnum or vim.fn.line('.')
     local cur_col = locopts.cur_col or vim.fn.col('.')
 
-    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
+    local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
 
     for start_pos, _, end_pos in line:gmatch(pattern) do
-        if start_pos <= cur_col and end_pos > cur_col then
-            return true
+        start_pos = vim.fn.str2nr(start_pos)
+        end_pos = vim.fn.str2nr(end_pos)
+        if (start_pos <= cur_col and end_pos > cur_col) or entire_line == true then
+            return true, start_pos, end_pos
         end
     end
 
-    return false
+    return false, -1, -1
 end
 
 ---Check if Markdown LSP server can be used in the current buffer
@@ -275,18 +278,23 @@ function M.get_text(opts)
     local locopts = opts.location or {}
 
     local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
-    local linenum = locopts.lnum or vim.fn.line('.')
+    local lnum = locopts.lnum or vim.fn.line('.')
     local col_start = locopts.col_start or vim.fn.getpos("'<")[3]
     local col_end = locopts.col_end or vim.fn.getpos("'>")[3]
     local cur_col = locopts.cur_col or vim.fn.col('.')
 
-    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
+    local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
     local text = line:sub(col_start, col_end)
 
     -- This would happen by default when executing in Normal mode
     if col_start == col_end then
-        -- Get the word under cursor and cursor position
-        text = vim.fn.expand("<cWORD>")
+        vim.api.nvim_buf_call(bufnum, function()
+            -- Ensure cursor is at the correct spot
+            vim.fn.cursor(lnum, cur_col)
+
+            -- Get the word under cursor and cursor position
+            text = vim.fn.expand("<cWORD>")
+        end)
 
         -- Search for the word in the line and check if it's under the cursor
         for i = 1, #line do
@@ -307,7 +315,7 @@ function M.get_text(opts)
 
     return {
         buffer = bufnum,
-        lnum = linenum,
+        lnum = lnum,
         col_start = col_start,
         col_end = col_end,
         cur_col = cur_col,
@@ -327,16 +335,16 @@ function M.get_text_in_pattern(pattern, opts)
 
     local locopts = opts.location or {}
     local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
-    local linenum = locopts.lnum or vim.fn.line('.')
-    local col_start = -1 or locopts.col_start
-    local col_end = -1 or locopts.col_end
+    local lnum = locopts.lnum or vim.fn.line('.')
+    local col_start = locopts.col_start or -1
+    local col_end = locopts.col_end or -1
     local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
 
     if cur_col == -1 then
         cur_col = vim.fn.col('.')
     end
 
-    local line = vim.api.nvim_buf_get_lines(bufnum, linenum - 1, linenum, false)[1]
+    local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
 
     local found_text = ""
     for start_pos, search_text, end_pos in line:gmatch(pattern) do
@@ -352,7 +360,7 @@ function M.get_text_in_pattern(pattern, opts)
 
     return {
         buffer = bufnum,
-        lnum = linenum,
+        lnum = lnum,
         col_start = col_start,
         col_end = col_end,
         cur_col = cur_col,

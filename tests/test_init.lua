@@ -22,6 +22,135 @@ local T = new_set({
     },
 })
 
+T['check_markdown_syntax()'] = function()
+    local lines = {
+        "*emphasis* emphasis",
+        "emphasis *emphasis*",
+        "emphasis emphasis",
+    }
+    create_md_buffer(child, lines)
+
+    child.fn.cursor(1,1)
+    local ret = child.lua([[
+    local pattern = require('mdnotes.patterns').emphasis
+    return {require('mdnotes').check_markdown_syntax(pattern)}
+    ]])
+    eq(ret, {true, 1, 11})
+
+    child.fn.cursor(2,1)
+    ret = child.lua([[
+    local pattern = require('mdnotes.patterns').emphasis
+    return {require('mdnotes').check_markdown_syntax(pattern)}
+    ]])
+    eq(ret, {false, -1, -1})
+
+    ret = child.lua([[
+    local pattern = require('mdnotes.patterns').emphasis
+    return {require('mdnotes').check_markdown_syntax(pattern, { entire_line = true })}
+    ]])
+    eq(ret, {true, 10, 20})
+
+    child.fn.cursor(3,1)
+    ret = child.lua([[
+    local pattern = require('mdnotes.patterns').emphasis
+    return {require('mdnotes').check_markdown_syntax(pattern)}
+    ]])
+    eq(ret, {false, -1, -1})
+
+    ret = child.lua([[
+    local pattern = require('mdnotes.patterns').emphasis
+    return {require('mdnotes').check_markdown_syntax(pattern, { entire_line = true })}
+    ]])
+    eq(ret, {false, -1, -1})
+end
+
+T['get_text()'] = function()
+    local lines = {
+        "test1 test2",
+        "test3 test4",
+        "test5 test6",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[
+    return require('mdnotes').get_text({ location = {
+        buffer = vim.api.nvim_get_current_buf(),
+        lnum = 2,
+        col_start = 1,
+        col_end = 5,
+    } })
+    ]])
+    eq(ret, {
+        buffer = 2,
+        lnum = 2,
+        col_start = 1,
+        col_end = 5,
+        cur_col = 1,
+        text = "test3",
+    })
+
+    ret = child.lua([[
+    return require('mdnotes').get_text({ location = {
+        buffer = vim.api.nvim_get_current_buf(),
+        lnum = 3,
+        col_start = 1,
+        col_end = 1,
+    } })
+    ]])
+    eq(ret, {
+        buffer = 2,
+        lnum = 3,
+        col_start = 1,
+        col_end = 5,
+        cur_col = 1,
+        text = "test5",
+    })
+end
+
+T['get_text_in_pattern()'] = function()
+    local lines = {
+        "*test1* test2",
+        "test3 *test4*",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[
+    local pattern = require('mdnotes.patterns').emphasis
+    return require('mdnotes').get_text_in_pattern(pattern, { location = {
+        buffer = vim.api.nvim_get_current_buf(),
+        lnum = 2,
+        col_start = 1,
+        col_end = 5,
+    } })
+    ]])
+    eq(ret, {
+        buffer = 2,
+        lnum = 2,
+        col_start = 1,
+        col_end = 5,
+        cur_col = 3,
+        text = "",
+    })
+
+    ret = child.lua([[
+    local pattern = require('mdnotes.patterns').emphasis
+    return require('mdnotes').get_text_in_pattern(pattern, { location = {
+        buffer = vim.api.nvim_get_current_buf(),
+        lnum = 1,
+        col_start = 1,
+        col_end = 1,
+    } })
+    ]])
+    eq(ret, {
+        buffer = 2,
+        lnum = 1,
+        col_start = 1,
+        col_end = 8,
+        cur_col = 1,
+        text = "test1",
+    })
+end
+
 T['get_files_in_cwd()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
