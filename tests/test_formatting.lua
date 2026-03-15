@@ -344,25 +344,27 @@ end
 T['unformat_lines()'] = function()
     local lines = {
         "# Heading",
-        "*emphasis*",
-        "**strong**",
-        "[[WikiLink]]",
-        "~~strikethrough~~",
-        "`inline code`",
-        "1) ordered item",
-        "- unordered item",
+        "*emphasis* *emphasis*",
+        "**strong** **strong**",
+        "[[WikiLink]] [[WikiLink]]",
+        "[inline](link) [inline](link)",
+        "~~strikethrough~~ ~~strikethrough~~",
+        "`inline code` `inline code`",
+        "1) [ ] ordered item",
+        "- [ ] unordered item",
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.formatting').unformat_lines({ location = { startl = 1, endl = 8 } })]])
+    child.lua([[require('mdnotes.formatting').unformat_lines({ location = { startl = 1, endl = 9 } })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "Heading",
-        "emphasis",
-        "strong",
-        "WikiLink",
-        "strikethrough",
-        "inline code",
+        "emphasis emphasis",
+        "strong strong",
+        "WikiLink WikiLink",
+        "inline inline",
+        "strikethrough strikethrough",
+        "inline code inline code",
         "ordered item",
         "unordered item",
     })

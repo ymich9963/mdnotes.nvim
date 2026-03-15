@@ -418,52 +418,87 @@ function M.unformat_lines(opts)
     vim.validate("endl", endl, "number")
 
     local mdnotes_patterns = require('mdnotes.patterns')
-    local new_lines = {}
 
-    local patterns = {
+    local multi_line_patterns = {
+        mdnotes_patterns.heading,
+        mdnotes_patterns.ordered_list,
+        mdnotes_patterns.unordered_list,
+    }
+
+    local format_patterns = {
         mdnotes_patterns.strong,
         mdnotes_patterns.wikilink,
         mdnotes_patterns.emphasis,
         mdnotes_patterns.strikethrough,
         mdnotes_patterns.inline_code,
-        mdnotes_patterns.heading,
-        mdnotes_patterns.inline_link,
-        mdnotes_patterns.ordered_list,
-        mdnotes_patterns.unordered_list,
-        mdnotes_patterns.task,
     }
 
     local lines = vim.api.nvim_buf_get_lines(buffer, startl - 1, endl, false)
 
+    -- Remove certain characters first
     for _, line in ipairs(lines) do
         line = line:gsub("[^%d%a%p ]+", "")
-        for _, pattern in ipairs(patterns) do
+    end
+
+    -- Remove inline links
+    for i, line in ipairs(lines) do
+        -- Find the text to change
+        local pos_tbl = {}
+        for start_pos, inline_link, end_pos in line:gmatch(mdnotes_patterns.inline_link) do
+            local inline_text, _ = inline_link:match(mdnotes_patterns.text_uri)
+            table.insert(pos_tbl, {
+                inline_text = inline_text,
+                start_pos = vim.fn.str2nr(start_pos),
+                end_pos = vim.fn.str2nr(end_pos)
+            })
+
+            -- If starting from the end of the line, the column numbers don't change!
+            table.sort(pos_tbl, function(a,b) return a.end_pos > b.end_pos end)
+        end
+        for _, v in ipairs(pos_tbl) do
+            line = line:sub(1, v.start_pos - 1) .. v.inline_text .. line:sub(v.end_pos)
+        end
+        lines[i] = line
+    end
+
+    -- Remove format patterns like emphasis, strong, etc.
+    for i, line in ipairs(lines) do
+        for _, pattern in pairs(format_patterns) do
+            -- Find the text to change
+            local pos_tbl = {}
+            for start_pos, text, end_pos in line:gmatch(pattern) do
+                table.insert(pos_tbl, {
+                    inline_text = text,
+                    start_pos = vim.fn.str2nr(start_pos),
+                    end_pos = vim.fn.str2nr(end_pos)
+                })
+                table.sort(pos_tbl, function(a,b) return a.end_pos > b.end_pos end)
+            end
+            for _, v in ipairs(pos_tbl) do
+                line = line:sub(1, v.start_pos - 1) .. v.inline_text .. line:sub(v.end_pos)
+            end
+            lines[i] = line
+        end
+    end
+
+    -- Rest of the patterns
+    for i, line in ipairs(lines) do
+        for _, pattern in ipairs(multi_line_patterns) do
             if pattern == mdnotes_patterns.heading then
                 local _, heading_text = line:match(pattern)
                 if heading_text then line = heading_text end
-            elseif pattern == mdnotes_patterns.task then
-                line = line:gsub(pattern, "")
             elseif pattern == mdnotes_patterns.ordered_list then
                 local _, _, _, ol_text = line:match(pattern)
-                if ol_text then line = ol_text end
+                if ol_text then line = ol_text:gsub(mdnotes_patterns.task, "") end
             elseif pattern == mdnotes_patterns.unordered_list then
                 local _, _, ul_text = line:match(pattern)
-                if ul_text then line = ul_text end
-            elseif pattern == mdnotes_patterns.inline_link then
-                for start_pos, inline_link, end_pos in line:gmatch(pattern) do
-                    local inline_text, _ = inline_link:match(mdnotes_patterns.text_uri)
-                    if inline_text then line = line:sub(1, vim.fn.str2nr(start_pos) - 1) .. inline_text .. line:sub(vim.fn.str2nr(end_pos)) end
-                end
-            else
-                for start_pos, text, end_pos in line:gmatch(pattern) do
-                    if text then line = line:sub(1, vim.fn.str2nr(start_pos) - 1) .. text .. line:sub(vim.fn.str2nr(end_pos)) end
-                end
+                if ul_text then line = ul_text:gsub(mdnotes_patterns.task, "") end
             end
+            lines[i] = line
         end
-        table.insert(new_lines, line)
     end
 
-    vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, new_lines)
+    vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, lines)
 end
 
 return M
