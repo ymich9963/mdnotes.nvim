@@ -35,7 +35,7 @@ function M.check_table_valid(opts)
     local table_startl = 0
     local table_endl = 0
 
-    -- A table needs at least 3 lines to be valid
+    -- A file needs more than 3 lines to have a valid table
     if upper_limit_lnum < 3 then
         return { valid = false }
     end
@@ -70,6 +70,10 @@ function M.check_table_valid(opts)
     end
 
     if table_endl == 0 then
+        return { valid = false }
+    end
+
+    if (table_endl - table_startl) < 3 then
         return { valid = false }
     end
 
