@@ -22,13 +22,13 @@ QUICK START            	             			*mdnotes-quickstart*
 To setup `mdnotes` using the Lazy package manager, put this in your `init.lua` file,
 >lua
     {
-	"ymich9963/mdnotes.nvim",
+	"ymic9963/mdnotes.nvim",
     }
 
 Can use either `opts` or `config` with the traditional `setup({}`) function,
 >lua
     {
-	"ymich9963/mdnotes.nvim",
+	"ymic9963/mdnotes.nvim",
 	opts = {
 	    -- Config here
 	}

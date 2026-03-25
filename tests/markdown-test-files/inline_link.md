@@ -3,7 +3,7 @@
 ## Inline Links
 
 URL
-[link](https://github.com/ymich9963/mdnotes.nvim)
+[link](https://github.com/ymic9963/mdnotes.nvim)
 
 File
 [link](../../README.md)

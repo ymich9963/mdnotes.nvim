@@ -3,7 +3,7 @@
 ![Lua badge](https://img.shields.io/badge/Made%20with-Lua-purple?logo=lua&color=%23000080&link=https%3A%2F%2Flua.org%2F)
 ![MIT license](https://img.shields.io/badge/License-MIT-blue?link=https%3A%2F%2Fmit-license.org%2F)
 
-**Simple and improved Markdown note taking.**
+**Simple, improved, and extensible Markdown note taking.**
 
 ---
 
@@ -44,7 +44,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 ### 👩‍💼 Asset Management
 - Use `:Mdn assets unused_delete` to easily cleanup assets that you no longer use.
 - Use `:Mdn assets unused_move` to move unused assets to a separate folder.
-- Insert an image or file from clipboard using `:Mdn assets insert_image` or `:Mdn assets insert_file` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
+- Insert an image or file from clipboard using `:Mdn assets insert` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
 - Open your assets folder using `:Mdn assets open_containing_folder`. 
 - Download website HTML to your assets folder with `:Mdn assets download_website_html`.
 - Delete the asset in the inline link under the cursor with `:Mdn assets delete`.
@@ -82,20 +82,20 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Opt-in use of existing Markdown LSP functions by setting `prefer_lsp = true`.
 - Supports Windows eccentricities.
 - Create user commands within the `:Mdn user` namespace for better organisation.
-- Exposes most internal functions to provide an API as to allow a hyper-extensible note-taking experience. See `:h mdnotes-api`.
+- Exposes most internal functions to provide an API as to allow a hyper-extensible note-taking experience. See `:h mdnotes-api` for function documentation and `:h mdnotes-api-examples` for example usage.
 
 ## 👽 Setup
 Using the lazy.nvim package manager,
 ```lua
 {
-    "ymich9963/mdnotes.nvim",
+    "ymic9963/mdnotes.nvim",
 }
 ```
 
 and specify your config using `opts = {}` or with a `setup({})` function,
 ```lua
 {
-    "ymich9963/mdnotes.nvim",
+    "ymic9963/mdnotes.nvim",
     opts = {
         -- Config here
     }
@@ -232,7 +232,7 @@ Opened with `:Mdn wikilink follow`. Can only be filenames, so `link` can also be
     [[link#fragment-with-spaces]]
 ```
 ### Formatting
-Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the strong and emphasis formats needs to be specified in the `strong_format` and `emphasis_format` config options. The `strong emphasis` format can be done by first applying `emphasis` and then `strong`.
+Toggled with `:Mdn formatting <format>_toggle`. Using `_` for the strong and emphasis formats needs to be specified in the `strong_format` and `emphasis_format` config options. The ***strong emphasis*** format can be done by first applying `emphasis` and then `strong`.
 ```
     **strong**
     __strong__
@@ -275,3 +275,4 @@ Using [mini.test](https://github.com/nvim-mini/mini.test) for testing. For this 
 ```bash
 nvim --headless --noplugin -u ./scripts/minimal_init.lua -c "lua MiniTest.run()"
 ```
+
