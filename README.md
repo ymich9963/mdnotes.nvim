@@ -266,9 +266,10 @@ I wanted to make a more Neovim-centric Markdown notes plugin that tries to work 
 
 ## 🫰 Other Cool Markdown-related Plugins
 - [obsidian.nvim](https://github.com/obsidian-nvim/obsidian.nvim)
-- [markdown-plus](https://github.com/yousefhadder/markdown-plus.nvim)
+- [markdown-plus.nvim](https://github.com/yousefhadder/markdown-plus.nvim)
 - [mkdnflow.nvim](https://github.com/jakewvincent/mkdnflow.nvim)
 - [markdown.nvim](https://github.com/tadmccorkle/markdown.nvim) 
+- [neowiki.nvim](https://github.com/echaya/neowiki.nvim)
  
 ## Tests
 Using [mini.test](https://github.com/nvim-mini/mini.test) for testing. For this project, if you want to run the tests then you need to install mini.test as a plugin locally. This was done to minimise dependencies in the repo. If you're not using lazy then you need to specify the `mini.test` location, using the `mini_path` variable in `scripts/minimal_init.lua`. To run the tests execute the following command in the project root,
