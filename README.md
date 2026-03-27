@@ -155,7 +155,9 @@ For the best Neovim Markdown note-taking experience, I've listed some other proj
 - LSP - Please see the [Using LSPs Section](RATIONALE.md#using-lsps) for more information regarding LSPs, but I recommend,
     - [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide) or
     - [marksman](https://github.com/artempyanykh/marksman)
-
+- Optional standalone plugins for specific tasks (may require some config settings to use properly),
+    - [vim-markdown-toc](https://github.com/mzlogin/vim-markdown-toc)
+    - [vim-table-mode](https://github.com/dhruvasagar/vim-table-mode)
 
 ### ⌨️ Keymaps
  The keymappings below can be enabled by setting `default_keymaps = true` as they are not enabled by default, and they will only be available in Markdown buffers. Place any `mdnotes` keymaps in a  `<Neovim config path>/after/ftplugin/markdown.lua` file so that they're also Markdown specific. For organisation they use the `<leader>m` prefix.
