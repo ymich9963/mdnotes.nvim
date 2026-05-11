@@ -6,6 +6,8 @@ local M = {}
 ---@field lines table<string>
 ---@field depth integer
 
+local check_markdown_lsp_cur_buf = function() return require('mdnotes').check_markdown_lsp_cur_buf() end
+
 ---Generate Table of Contents (ToC)
 ---@param opts { buffer: integer?, lnum: integer?, write: boolean?, depth: integer?, silent: boolean?}?
 ---@return MdnToc? toc
@@ -208,6 +210,26 @@ function M.update(opts)
     local depth = opts.depth or tocdata.depth
 
     return M.generate({ depth = tonumber(depth), write = write })
+end
+
+---Browse the ToC in a location list. Uses gO if LSP is enabled.
+function M.browse()
+    if check_markdown_lsp_cur_buf() then
+        vim.api.nvim_feedkeys("gO", "n", true)
+
+        return
+    end
+
+    local pattern = "^\\#+ .+"
+    if vim.o.grepprg == "internal" then
+        pattern = pattern:gsub("+", "*")
+        pattern = "/" .. pattern .. "/"
+    else
+        pattern = "'" .. pattern .. "'"
+    end
+
+    vim.cmd.lgrep({args = {pattern, "%"}, mods = {emsg_silent = true}})
+    vim.cmd.lopen()
 end
 
 return M

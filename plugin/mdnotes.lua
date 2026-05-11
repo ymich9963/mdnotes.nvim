@@ -163,7 +163,8 @@ local get_commands = function() return {
     },
     toc = {
         generate = require("mdnotes.toc").generate,
-        update = require("mdnotes.toc").update
+        update = require("mdnotes.toc").update,
+        browse = require("mdnotes.toc").browse
     },
     heading = {
         next = require("mdnotes.heading").goto_next,

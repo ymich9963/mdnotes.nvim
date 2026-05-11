@@ -51,10 +51,13 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Automatically renumber your ordered lists (`auto_list_renumber = true` by default, can also be done manually).
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn formatting task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 - Unformat your line(s) with `:Mdn formatting unformat_lines`. 
- 
-## 🧍‍♂️ Uncategorised
+
+## Table of Contents
 - Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC by changing the `toc_depth = 4` or by specifying the depth in the command e.g. `:Mdn toc generate 2`.
 - Update a ToC in-place with `:Mdn toc update`. Optionally specify the new depth with `:Mdn toc update X`.
+- Browse the ToC as a location list using `:Mdn toc browse`.
+
+## 🧍‍♂️ Uncategorised
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling. Can also use outliner-like indentation with `:Mdn outliner indent/unindent`.
 - Journal entries are automatically inserted to the journal file, but can also be done manually with `:Mdn journal insert_entry`. 
 - Open your folder containing the current file with `:Mdn miscellaneous open_containing_folder`. 

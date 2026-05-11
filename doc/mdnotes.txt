@@ -1895,6 +1895,13 @@ toc.update({opts})					*mdnotes.toc.update()*
     Return: ~
     • (`MdnToc?`) 
 
+toc.browse()						*mdnotes.toc.browse()*
+
+    Browse the ToC in a location list. Uses |gO| if LSP is enabled.
+
+    Return: ~
+    • (`nil`)
+
 wikilink.parse({opts}) 					*mdnotes.wikilink.parse()*
 
     Get the WikiLink without the fragment, and the fragment.
