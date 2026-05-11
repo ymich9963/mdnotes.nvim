@@ -499,6 +499,15 @@ subcommands are listed below.
     position. Optionally specify the {depth} of the ToC in the command or
     specify the default size with |mdnotes-toc_depth|.
 
+:Mdn toc update {depth}					*:Mdn-toc-update*
+
+    Update the ToC contents in-place. Can specify {depth} to change the depth
+    of the ToC.
+
+:Mdn toc browse						*:Mdn-toc-browse*
+
+    Browse the ToC in a location list. Uses |gO| if LSP is enabled.
+
 :Mdn table create {rows} {cols}				*Mdn-table-create*
 
    Create a table of the size {rows} x {cols}. It will get populated with
