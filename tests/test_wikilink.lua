@@ -26,20 +26,21 @@ local T = new_set({
 
 T['parse()'] = function()
     local lines = {
-        "[[test#fragment]]"
+        "[[test#fragment|alias]]"
     }
     create_md_buffer(child, lines)
 
     local ret = child.lua("return require('mdnotes.wikilink').parse()")
     eq(ret, {
         buffer = 2,
-        col_end = 18,
+        col_end = 24,
         col_start = 1,
         cur_col = 1,
         lnum = 1,
-        text = "test#fragment",
+        text = "test#fragment|alias",
         wikilink_nofrag = "test",
         fragment = "fragment",
+        alias = "alias",
     })
 end
 
@@ -147,10 +148,13 @@ T['rename_references()'] = function()
     eq(ret, {"file5", "file55"})
 
     local lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)
-    eq(lines[2], "[[file55]]")
-    eq(lines[3], "[[file55]]")
-    eq(lines[4], "[[file55.md]]")
-    eq(lines[5], "[[file55#File 5]]")
+    eq(lines, {
+        "# File 4",
+        "[[file55]]",
+        "[[file55]]",
+        "[[file55.md]]",
+        "[[file55#File 5]]",
+    })
 
     child.cmd([[edit tests/test-data/files/file55.md]])
     lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)

@@ -2325,6 +2325,7 @@ MdnWikiLinkData					*mdnotes.MdnWikiLinkData*
     Fields: ~
     • {wikilink_nofrag} (`string`) WikiLink without the fragment
     • {fragment} (`string`) Only the fragment in the WikiLink.
+    • {alias} (`string`) WikiLink alias
 
 ==============================================================================
 USING API                             		*mdnotes-using-api*

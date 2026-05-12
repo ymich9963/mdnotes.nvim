@@ -13,6 +13,7 @@ M.new_filenames = {}
 ---@class MdnWikiLinkData: MdnInLineLocation
 ---@field wikilink_nofrag string WikiLink without the fragment
 ---@field fragment string The fragment in the WikiLink
+---@field alias string WikiLink alias
 
 local check_markdown_lsp_cur_buf = function() return require('mdnotes').check_markdown_lsp_cur_buf() end
 local get_buf_from_buf_list = function(...) return require('mdnotes').get_buf_from_buf_list(...) end
@@ -45,10 +46,12 @@ function M.parse(opts)
 
     local wikilink_no_fragment = wikilink:match(mdn_patterns.uri_no_fragment)
     local fragment = wikilink:match(mdn_patterns.fragment)
+    local alias = wikilink:match(mdn_patterns.wikilink_alias)
 
     return vim.tbl_extend("keep", {
         wikilink_nofrag = wikilink_no_fragment,
         fragment = fragment,
+        alias = alias,
     }, txtdata)
 end
 
