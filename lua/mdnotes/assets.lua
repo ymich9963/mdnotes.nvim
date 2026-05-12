@@ -166,17 +166,17 @@ function M.get_asset_inline_link(opts)
         end
 
         if vim.tbl_isempty(file_paths) then
-            vim.notify("Mdn: Error when trying to read clipboard. Output of command: '" .. cmd_stdout .. '"', vim.log.levels.WARN)
+            vim.notify("Mdn: Error when trying to read clipboard. Output of command: '" .. cmd_stdout .. '"', vim.log.levels.ERROR)
             return
         end
 
         if #file_paths > 1 then
-            vim.notify('Mdn: Too many files paths detected - please copy only one file', vim.log.levels.WARN)
+            vim.notify('Mdn: Too many files paths detected, please copy only one file', vim.log.levels.ERROR)
             return
         end
 
         if file_paths[1] == nil then
-            vim.notify('Mdn: No file paths found in clipboard', vim.log.levels.WARN)
+            vim.notify('Mdn: No file paths found in clipboard', vim.log.levels.ERROR)
             return
         end
 
@@ -224,7 +224,12 @@ function M.insert(opts)
 
     opts = opts or {}
     local txtdata = require('mdnotes').get_text({ location = opts.location }) or {}
-    local asset_il = M.get_asset_inline_link({ process_file = opts.process_file, file_path = opts.file_path }) or {}
+    local asset_il = M.get_asset_inline_link({ process_file = opts.process_file, file_path = opts.file_path })
+    if asset_il == nil then
+        -- Errors already outputted
+        return
+    end
+
     if txtdata.text == "" then
         vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.cur_col - 1, txtdata.lnum - 1, txtdata.cur_col - 1, {asset_il.inline_link})
     else
