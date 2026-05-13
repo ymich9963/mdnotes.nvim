@@ -1,5 +1,14 @@
 # 📢 Supported Markdown Formatting
-Here is the supported Markdown formatting for `mdnotes.nvim`. The plugin tries to adhere to the [CommonMark](https://spec.commonmark.org/) and [GitHub Flavoured Markdown (GFM)](https://github.github.com/gfm/) spec as well as providing WikiLink support. If any problems arise please don't hesitate to create an issue for it!
+Here is the supported Markdown formatting for `mdnotes.nvim`. The plugin tries to adhere to the CommonMark and GitHub Flavoured Markdown spec as well as providing WikiLink support. The plan is to adhere to existing specs and **not** create another one specific for the plugin.
+
+Markdown specifications that have influenced `mdnotes.nvim` Markdown syntax,
+- [CommonMark](https://spec.commonmark.org/current/)
+- [Github Flavored Markdown (GFM)](https://github.github.com/gfm/)
+- [GitHub Basic writing and formatting syntax](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax)
+- [GitLab Flavored Markdown (GLFM)](https://docs.gitlab.com/user/markdown/)
+- [Obsidian formatting](https://obsidian.md/help/syntax)
+- [Markdown Flavors Comparison](https://github.com/ArchieCur/MARKDOWN_FLAVORS)
+
 ## Links
 Opened with `:Mdn inline_link open`. Inserted with the `:Mdn assets insert_file/image` and `:Mdn inline_link toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
 ```
