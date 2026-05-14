@@ -10,7 +10,8 @@ M.uri_website_tbl = {"https", "http"}
 ---@class MdnInlineLinkData: MdnInLineLocation
 ---@field img_char '"!"'|'""' Inline link image character
 ---@field text string Inline link text
----@field uri string Inline link URI ir destination
+---@field uri string Inline link URI or destination
+---@field title string Inline link title
 
 ---Get the inline link data such as the image designator, link text, link URI/destination,
 ---and the start and end columns
@@ -37,6 +38,10 @@ function M.parse(opts)
     end
 
     local text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
+    local title = uri:match(require("mdnotes.patterns").uri_title) or ""
+    if title ~= "" then
+        uri = uri:sub(1, #uri - #title - 3) -- 2 quotes and 1 space
+    end
 
     -- Remove any < or > from uri
     if keep_pointy_brackets == false then
@@ -53,7 +58,19 @@ function M.parse(opts)
         img_char = img_char,
         text = text,
         uri = uri,
+        title = title,
     }, txtdata)
+end
+
+---Get an inline link string from an MdnInlineLinkData object
+---@param ildata MdnInlineLinkData Inline link object
+---@return string inline_link
+function M.get_il_from_obj(ildata)
+    if ildata.title == nil or ildata.title == "" then
+        return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.uri .. ')'
+    else
+        return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.uri .. ' "' .. ildata.title .. '")'
+    end
 end
 
 ---Check and get path from the URI
@@ -324,7 +341,10 @@ function M.relink(opts)
         return
     end
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. user_input .. ')'})
+    ildata.uri = user_input
+    local new_il = M.get_il_from_obj(ildata)
+
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
 
     if move_cursor == true then
         vim.cmd.buffer(ildata.buffer)
@@ -355,7 +375,10 @@ function M.rename(opts)
         return
     end
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. user_input .. '](' .. ildata.uri .. ')'})
+    ildata.text = user_input
+    local new_il = M.get_il_from_obj(ildata)
+
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
 
     if move_cursor == true then
         vim.cmd.buffer(ildata.buffer)
@@ -380,7 +403,10 @@ function M.normalize(opts)
         new_uri = "<" .. new_uri .. ">"
     end
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. new_uri .. ')'})
+    ildata.uri = new_uri
+    local new_il = M.get_il_from_obj(ildata)
+
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
 
     if move_cursor == true then
         vim.cmd.buffer(ildata.buffer)
@@ -410,7 +436,10 @@ function M.convert_fragment_to_gfm(opts)
     local hash_location = uri:find("#") or 1
     local new_uri = uri:sub(1, hash_location) .. new_fragment
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.img_char .. '[' .. ildata.text .. '](' .. new_uri .. ')'})
+    ildata.uri = new_uri
+    local new_il = M.get_il_from_obj(ildata)
+
+    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
 
     if move_cursor == true then
         vim.cmd.buffer(ildata.buffer)

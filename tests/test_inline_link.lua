@@ -31,6 +31,7 @@ T['parse()'] = function()
         "![image1](tests/test-data/images/neovim-mark-flat.svg) ![image2](tests/test-data/images/neovim-mark.svg)",
         "[url1](https://neovim.io/) [url2](https://neovim.io/doc/user/#Q_ct)",
         "[section](#test-section)",
+        "[section](#test-section \"title\")",
         "",
         "# Test Section"
     }
@@ -47,7 +48,8 @@ T['parse()'] = function()
         lnum = 1,
         col_start = 1,
         col_end = 40,
-        cur_col = 2
+        cur_col = 2,
+        title = ""
     })
 
     child.fn.cursor(1,42)
@@ -60,7 +62,8 @@ T['parse()'] = function()
         lnum = 1,
         col_start = 41,
         col_end = 80,
-        cur_col = 42
+        cur_col = 42,
+        title = ""
     })
 
     -- File inline links with sections
@@ -74,7 +77,8 @@ T['parse()'] = function()
         lnum = 2,
         col_start = 1,
         col_end = 50,
-        cur_col = 2
+        cur_col = 2,
+        title = ""
     })
 
     child.fn.cursor(2,60)
@@ -87,7 +91,8 @@ T['parse()'] = function()
         lnum = 2,
         col_start = 51,
         col_end = 97,
-        cur_col = 60
+        cur_col = 60,
+        title = ""
     })
 
     -- Inline images
@@ -101,7 +106,8 @@ T['parse()'] = function()
         lnum = 3,
         col_start = 1,
         col_end = 55,
-        cur_col = 2
+        cur_col = 2,
+        title = ""
     })
 
     child.fn.cursor(3,60)
@@ -114,7 +120,8 @@ T['parse()'] = function()
         lnum = 3,
         col_start = 56,
         col_end = 105,
-        cur_col = 60
+        cur_col = 60,
+        title = ""
     })
 
     child.fn.cursor(4,2)
@@ -127,7 +134,8 @@ T['parse()'] = function()
         lnum = 4,
         col_start = 1,
         col_end = 27,
-        cur_col = 2
+        cur_col = 2,
+        title = ""
     })
 
     child.fn.cursor(4,60)
@@ -140,7 +148,8 @@ T['parse()'] = function()
         lnum = 4,
         col_start = 28,
         col_end = 68,
-        cur_col = 60
+        cur_col = 60,
+        title = ""
     })
 
     -- Same file section
@@ -154,8 +163,30 @@ T['parse()'] = function()
         lnum = 5,
         col_start = 1,
         col_end = 25,
-        cur_col = 2
+        cur_col = 2,
+        title = ""
     })
+
+    child.fn.cursor(6,2)
+    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    eq(ret, {
+        img_char = "",
+        text = "section",
+        uri = "#test-section",
+        buffer = 2,
+        lnum = 6,
+        col_start = 1,
+        col_end = 33,
+        cur_col = 2,
+        title = "title"
+    })
+end
+
+T['get_il_from_obj()'] = function()
+    local ret = child.lua([[return require('mdnotes.inline_link').get_il_from_obj({img_char = "", text = 1, uri = 2})]])
+    eq(ret, "[1](2)")
+    ret = child.lua([[return require('mdnotes.inline_link').get_il_from_obj({img_char = "", text = 1, uri = 2, title = 3})]])
+    eq(ret, "[1](2 \"3\")")
 end
 
 T['get_path_from_uri()'] = function()

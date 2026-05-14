@@ -1248,6 +1248,17 @@ inline_link.parse({opts})				*mdnotes.inline_link.parse()*
       (`MdnInLineLinkData?`): Parsed inline link on success, `nil` on
       failure.
 
+inline_link.get_il_from_obj({ildata})				*mdnotes.inline_link.get_il_from_obj()*
+
+    Get a full inline link string from the given |mdnotes.MdnInlineLinkData|
+    object.
+
+    Parameters: ~
+    • {ildata}  (`MdnInLineLinkData`) Inline link object
+
+    Return: ~
+      (`string`)
+
 inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_path_from_uri()*
 
     Get the path from the URI and optionally check if it links to a valid
@@ -2241,7 +2252,8 @@ MdnInlineLinkData 					*mdnotes.MdnInlineLinkData*
     Fields: ~
     • {img_char} (`'"!"'|'""'`) Inline link image character
     • {text} (`string`) Inline link text
-    • {uri} (`string`) Inline link URI ir destination
+    • {uri} (`string`) Inline link URI or destination
+    • {title} (`string`) Inline link title
 
 MdnPattern 					*mdnotes.MdnPattern*
 
