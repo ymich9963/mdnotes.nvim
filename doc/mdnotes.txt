@@ -1375,6 +1375,8 @@ inline_link.delete({opts})				*mdnotes.inline_link.delete()*
 		place cursor where the new inline link was deleted
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to delete
+              • {store} (`boolean?`, default `false`)
+		store deleted URI in the |quote+| register
 
 inline_link.toggle({opts})				*mdnotes.inline_link-toggle()*
 

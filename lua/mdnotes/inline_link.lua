@@ -286,12 +286,13 @@ function M.insert(opts)
 end
 
 ---Delete Markdown inline link and leave the text
----@param opts {move_cursor: boolean?, location: MdnInLineLocation?}?
+---@param opts {move_cursor: boolean?, location: MdnInLineLocation?, store: boolean?}?
 function M.delete(opts)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
     local locopts = opts.location or {}
+    local store = opts.store or false
     local ildata = M.parse({ location = locopts })
 
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
@@ -301,6 +302,10 @@ function M.delete(opts)
     if move_cursor == true then
         vim.cmd.buffer(ildata.buffer)
         vim.fn.cursor({vim.fn.line('.'), ildata.col_start - 1})
+    end
+
+    if store == true then
+        vim.fn.setreg('+', ildata.uri)
     end
 end
 
@@ -312,7 +317,7 @@ function M.toggle(opts)
 
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
     if check_markdown_syntax(require("mdnotes.patterns").inline_link, { location = locopts }) then
-        M.delete({ location = locopts })
+        M.delete({ location = locopts, store = true })
     else
         M.insert({ uri = opts.uri, location = locopts })
     end
