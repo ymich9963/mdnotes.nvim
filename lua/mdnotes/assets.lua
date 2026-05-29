@@ -215,7 +215,7 @@ function M.get_asset_inline_link(opts)
 end
 
 ---@class MdnAssetInsertOpts: MdnGetAssetInlineLinkOpts
----@field location MdnInLineLocation
+---@field location MdnInLineLocation?
 
 ---Insert a file as an inline link under the cursor
 ---@param opts MdnAssetInsertOpts
@@ -546,6 +546,42 @@ function M.delete(opts)
     end
 
     return is_deleted, asset_path
+end
+
+function M.get_asset_list()
+    local assets_list = {}
+    local cwd = require('mdnotes').cwd
+    local assets_path = vim.fs.joinpath(cwd, M.get_assets_folder_name())
+
+    for name, _ in vim.fs.dir(assets_path) do
+        table.insert(assets_list, name)
+    end
+
+    return assets_list
+end
+
+function M.view(opts)
+    opts = opts or {}
+    local asset = opts.asset
+    local cwd = require('mdnotes').cwd
+    local assets_path = vim.fs.joinpath(cwd, M.get_assets_folder_name())
+
+    if asset == nil then
+        local assets_list = M.get_asset_list()
+        vim.ui.select(assets_list, {
+            prompt = "Select an asset from '" .. M.get_assets_folder_name() .. "'",
+        }, function (item, _)
+            asset = item
+        end)
+
+        if asset == nil then
+            return
+        end
+    end
+
+    local chosen_asset_path = vim.fs.joinpath(assets_path, asset)
+    vim.ui.open(chosen_asset_path)
+    vim.notify(("Mdn: Viewing asset at '%s'"):format(chosen_asset_path), vim.log.levels.INFO)
 end
 
 return M

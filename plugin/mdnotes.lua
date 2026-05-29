@@ -146,6 +146,7 @@ local get_commands = function() return {
         open_containing_folder = require("mdnotes.assets").open_containing_folder,
         download_website_html  = require("mdnotes.assets").download_website_html,
         delete  = require("mdnotes.assets").delete,
+        view  = require("mdnotes.assets").view,
     },
     outliner= {
         toggle = require("mdnotes.outliner").toggle,
@@ -203,6 +204,13 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func(args[3], args[4])
     elseif func == commands.toc.generate or func == commands.toc.update then
         func({ depth = args[3] })
+    elseif func == commands.assets.view or func == commands.assets.insert then
+        local asset = args[3]
+        for i = 4, #args do
+            asset = asset .. " " .. args[i]
+        end
+        local asset_path = vim.fs.joinpath(require('mdnotes').cwd, asset)
+        func({ asset = asset, file_path = asset_path, process_file = false })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif command == commands.user then
@@ -234,13 +242,21 @@ end,
             end
 
             return vim.tbl_filter(function(k)
-                if type(k) == "number" then return false end
                 return k:find("^" .. arg)
             end, vim.tbl_keys(subcmd))
+        elseif #args >= 4 then
+            local command = args[2]
+            local subcmd = args[3]
+            if command == "assets" then
+                if subcmd == "insert" or subcmd == "view" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.assets').get_asset_list())
+                end
+            end
         end
     end,
     desc = "Mdnotes main command",
     range = true,
 })
-
 

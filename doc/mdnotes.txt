@@ -362,14 +362,22 @@ subcommands are listed below.
 
     Show orphan pages (pages with no references) in current directory.
 
-:Mdn assets insert					*:Mdn-assets-insert_image*
+:Mdn assets insert {asset}				*:Mdn-assets-insert_image*
 
     Insert the file in the clipboard under the cursor and depending on
-    |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|. (e.g
-    `![image](path/to/assets/image.png`)). Overwriting depends on
-    |mdnotes-asset_overwrite_behaviour|. Auto-detects if the file has an image
-    extension to add the `!` character for inline links using
-    |mdnotes.assets.has_image_extension()|.
+    |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|.
+    (e.g `![image](path/to/assets/image.png`)).
+
+    Overwriting depends on |mdnotes-asset_overwrite_behaviour|. Auto-detects
+    if the file has an image extension to add the `!` character for inline
+    links using |mdnotes.assets.has_image_extension()|.
+
+    If there is no text under the cursor, the asset file name used, otherwise
+    the hovered or selected text is used for the asset inline link.
+
+    An optional {asset} that is in your |mdnotes-assets_path| can also be
+    inserted as an inline link. This can be done by invoking |'wildchar'|
+    (`<Tab>` by default) to autocomplete the assets locaded in the assets path.
 
 :Mdn assets unused_delete				*:Mdn-assets-unused_delete*
 
@@ -398,6 +406,15 @@ subcommands are listed below.
 
     Delete the asset in the inline link under the cursor. Behaviour depends on
     |mdnotes-asset_delete_behaviour|.
+
+:Mdn assets view {asset}				*:Mdn-assets-view*
+
+    View the asset in the |mdnotes-assets_path| in |vim.ui.select()| by
+    default. Using autocompletion by typing |'wildchar'| (`<Tab>` by default)
+    will also allow you to browse and then view the assets from the
+    command line.
+
+    Uses the OS default program to view the selected asset.
 
 :Mdn history go_back					*:Mdn-history-go_back*
 
@@ -983,7 +1000,7 @@ assets.unused_move()					*mdnotes.assets.unused_move()*
               • {skip_input} (`boolean?`, default `false`)
 		skip the input prompt
 
-assets.download_website_html({opts})				*mdnotes.assets.download_website_html()*
+assets.download_website_html({opts})			*mdnotes.assets.download_website_html()*
 
     Download the HTML of the website in the inline link, and place it in the
     assets folder. 
@@ -1016,6 +1033,26 @@ assets.delete()						*mdnotes.assets.delete()*
     Return: ~
       (`boolean`): Was the file deleted succesfully.
       (`string?`): Path of the deleted asset.
+
+assets.get_asset_list() 				*mdnotes.assets.get_asset_list()*
+    
+    Get a list of all the assets in your |mdnotes-assets_path| in the
+    |mdnotes.cwd|.
+
+    Return: ~
+      (`nil`)
+
+assets.view({opts}) 					*mdnotes.assets.view()*
+    
+    View an asset in the |mdnotes-assets_path| with the OS default program.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {asset} (`string?`)
+	      asset name to view
+
+    Return: ~
+      (`nil`)
 
 formatting.insert_format({format_char}, {opts})		*mdnotes.formatting.insert_format()*
 

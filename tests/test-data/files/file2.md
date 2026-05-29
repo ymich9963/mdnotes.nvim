@@ -2,4 +2,4 @@
 this is file2
 
 ## Section 2
-text!
+text
