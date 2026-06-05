@@ -127,6 +127,7 @@ function M.show_references(opts)
         -- If wikilink pattern isn't detected use current file name
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
         wldata = {
+            alias = "",
             buffer = vim.api.nvim_get_current_buf(),
             wikilink_nofrag = cur_file_basename:gsub(".md$",""),
             fragment = "",
@@ -136,7 +137,6 @@ function M.show_references(opts)
     local cur_pos = vim.fn.getpos('.')
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
-    local temp_qflist = vim.fn.getqflist()
 
     mdn_grep("\\[\\[" .. wldata.wikilink_nofrag .. ".*\\]\\]", cwd)
 
@@ -149,7 +149,6 @@ function M.show_references(opts)
     vim.cmd("buffer " .. wldata.buffer)
     vim.fn.setpos('.', cur_pos)
     vim.cmd.copen()
-    vim.fn.setqflist(temp_qflist)
 
     return qflist
 end
