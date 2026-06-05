@@ -2491,6 +2491,71 @@ table based on the file's worcount.
 	vim.cmd.buffer(scratch_buf)
     end
 <
+
+Export a table to a file as comma separated values (CSV),
+>lua
+    local function export_table_to_file()
+	local mdn_table = require('mdnotes.table')
+	local filename = "test.txt"
+	local f = io.open(filename, "w+")
+
+	if not f then
+	    vim.notify('Mdn: File ' .. filename .. ' could not be written to', vim.log.levels.ERROR)
+	    return
+	end
+
+	local tdata = mdn_table.parse()
+	for i, row in ipairs(tdata.contents) do
+	    if i ~= 2 then
+		local line = table.concat(row, ",")
+		line = line .. "\n"
+		f:write(line)
+	    end
+	end
+
+	f.close(f)
+    end
+<
+
+Import a CSV file as a Markdown table,
+>lua
+    local function import_table_from_file()
+	local write_table = require('mdnotes.table').write_table
+	local best_fit = require('mdnotes.table').best_fit
+	local filename = "test.txt"
+	local f = io.open(filename, "r")
+
+	if not f then
+	    vim.notify('Mdn: File ' .. filename .. ' could not be read', vim.log.levels.ERROR)
+	    return
+	end
+
+	local contents = f:read("*a")
+
+	local table_contents = {}
+	for row in contents:gmatch("([^\n]+)") do
+	    local entry = {}
+	    for cell in row:gmatch("([^,]+)") do
+		table.insert(entry, cell)
+	    end
+	    table.insert(table_contents, entry)
+	end
+
+	local delimeter_row = {}
+	for _ = 1, #table_contents[1] do
+	    table.insert(delimeter_row, "---")
+	end
+
+	table.insert(table_contents, 2, delimeter_row)
+
+	local cur_line = vim.fn.line(".")
+	write_table({ contents = table_contents, startl = cur_line, endl = cur_line })
+	best_fit()
+
+	f.close(f)
+    end
+<
+
 ==============================================================================
 OUTLINER                                     		*mdnotes-outliner*
 
