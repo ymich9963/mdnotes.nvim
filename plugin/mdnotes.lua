@@ -200,11 +200,11 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     if func == commands.formatting.task_list_toggle
         or func == commands.formatting.unformat_lines then
         func({ location = { startl = opts.line1, endl = opts.line2 } })
-    elseif func == commands.table.create then
+    elseif func == commands.table.create and #args > 2 then
         func(args[3], args[4])
-    elseif func == commands.toc.generate or func == commands.toc.update then
+    elseif func == commands.toc.generate or func == commands.toc.update and #args > 2 then
         func({ depth = args[3] })
-    elseif func == commands.assets.view or func == commands.assets.insert then
+    elseif func == commands.assets.view or func == commands.assets.insert and #args > 2 then
         local asset = args[3]
         for i = 4, #args do
             asset = asset .. " " .. args[i]
@@ -244,7 +244,7 @@ end,
             return vim.tbl_filter(function(k)
                 return k:find("^" .. arg)
             end, vim.tbl_keys(subcmd))
-        elseif #args >= 4 then
+        elseif #args == 4 then
             local command = args[2]
             local subcmd = args[3]
             if command == "assets" then
