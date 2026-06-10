@@ -151,7 +151,7 @@ T['rename_references()'] = function()
     eq(lines, {
         "# File 4",
         "[[file55]]",
-        "[[file55]]",
+        "[[file55 text]]",
         "[[file55.md]]",
         "[[file55#File 5]]",
     })
