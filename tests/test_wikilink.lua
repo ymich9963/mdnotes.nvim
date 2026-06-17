@@ -151,9 +151,10 @@ T['rename_references()'] = function()
     eq(lines, {
         "# File 4",
         "[[file55]]",
-        "[[file55 text]]",
+        "[[file5 text]]",
         "[[file55.md]]",
         "[[file55#File 5]]",
+        "[[file55.md#File 5]]",
     })
 
     child.cmd([[edit tests/test-data/files/file55.md]])

@@ -262,18 +262,7 @@ end
 ---@param path string File path
 function M.mdn_grep(pattern, path)
     if vim.o.grepprg == "internal" then
-        -- INFO:
-        -- To convert e.g.
-        -- grep "\]\(<?assets\/" .
-        -- to
-        -- grep "](<\?assets/" *
-        pattern = pattern:gsub("\\", "")
-        pattern = pattern:gsub("%?", "\\?")
-        pattern = pattern:gsub("/", "\\/")
-        pattern = pattern:gsub("%[", "\\[")
-        pattern = pattern:gsub("%]", "\\]")
-
-        pattern = "/" .. pattern .. "/"
+        pattern = "/\\v" .. pattern .. "/"
         path = vim.fs.joinpath(vim.fs.normalize(path), "*")
     else
         pattern = '"' .. pattern .. '"'

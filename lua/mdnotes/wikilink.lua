@@ -127,10 +127,10 @@ function M.show_references(opts)
         -- If wikilink pattern isn't detected use current file name
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
         wldata = {
-            alias = "",
             buffer = vim.api.nvim_get_current_buf(),
             wikilink_nofrag = cur_file_basename:gsub(".md$",""),
             fragment = "",
+            alias = "",
         }
     end
 
@@ -138,7 +138,7 @@ function M.show_references(opts)
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
 
-    mdn_grep("\\[\\[" .. wldata.wikilink_nofrag .. ".*\\]\\]", cwd)
+    mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
 
     local qflist = vim.fn.getqflist()
     if vim.tbl_isempty(qflist) then
@@ -187,7 +187,8 @@ function M.rename_references(opts)
         prompt = "Rename current buffer: "
         wldata = {
             wikilink_nofrag = vim.fs.basename(vim.api.nvim_buf_get_name(0)):match("(.+)%.[^%.]+$"),
-            fragment = ""
+            fragment = "",
+            alias = "",
         }
     end
 
@@ -220,7 +221,7 @@ function M.rename_references(opts)
 
     -- Change all [[WikiLink]] text to be the new name
     vim.cmd.wall({bang = true, mods = {silent = true}})
-    mdn_grep("\\[\\[" .. wldata.wikilink_nofrag .. ".*\\]\\]", cwd)
+    mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
     vim.cmd.cdo({args = {('s/%s/%s/'):format("\\[\\[" .. wldata.wikilink_nofrag, "\\[\\[" .. new_name)}, mods = {emsg_silent = true}})
     vim.cmd.wall({bang = true, mods = {silent = true}})
 
@@ -286,7 +287,7 @@ function M.undo_rename()
     local mdn_grep = require('mdnotes').mdn_grep
 
     vim.cmd.wall({bang = true, mods = {silent = true}})
-    mdn_grep("\\[\\[" .. newest_filename .. ".*\\]\\]", cwd)
+    mdn_grep("\\[\\[".. newest_filename .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
     vim.cmd.cdo({args = {('s/%s/%s/'):format(newest_filename, newest_old_filename)}, mods = {emsg_silent = true}})
     vim.cmd.wall({bang = true, mods = {silent = true}})
 
@@ -433,7 +434,7 @@ function M.get_orphans(opts)
 
     for _, file in pairs(files_cwd) do
         file = file:gsub(".md", "")
-        mdn_grep("\\[\\[" .. file .. ".*\\]\\]", cwd)
+        mdn_grep("\\[\\[".. file .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
         if vim.tbl_isempty(vim.fn.getqflist()) then
             count = count + 1
             table.insert(orphans, file .. ".md")
