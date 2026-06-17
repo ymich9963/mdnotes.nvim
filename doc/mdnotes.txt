@@ -2232,7 +2232,7 @@ MdnGetAssetInlineLinkOpts 				*mdnotes.MdnGetAssetInlineLinkOpts*
     • {process_file} (`boolean?`) Process the file according to the plugin config
     • {file_path} (`string?`) Optional file_path to generate the inline link for
 
-MdnAssetInlineLink					*mdnotes.MdnGetAssetInlineLinkOpts*
+MdnAssetInlineLink					*mdnotes.MdnAssetInlineLinkOpts*
     
     Return of |mdnotes.assets.get_asset_inline_link()|.
     
