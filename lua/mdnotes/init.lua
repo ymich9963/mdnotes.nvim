@@ -262,6 +262,8 @@ end
 ---@param path string File path
 function M.mdn_grep(pattern, path)
     if vim.o.grepprg == "internal" then
+        pattern = pattern:gsub("<", "\\<")
+        pattern = pattern:gsub("/", "\\/")
         pattern = "/\\v" .. pattern .. "/"
         path = vim.fs.joinpath(vim.fs.normalize(path), "*")
     else

@@ -147,29 +147,33 @@ T['delete()'] = function()
     edit tests/test-data/files/file7.md
     ]])
 
-    local lastlnum = child.fn.line("$")
-    child.api.nvim_buf_set_lines(0, lastlnum, lastlnum+1, false, {"[asset4.txt](assets/asset4.txt)"})
-    child.api.nvim_buf_set_lines(0, lastlnum+1, lastlnum+2, false, {"[asset4.txt](assets/asset4.txt)"})
+    child.api.nvim_buf_set_lines(0, -1, -1, false, {"[asset4.txt](assets/asset4.txt)"})
     child.cmd([[write]])
 
     local ret = child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes.assets').delete({
+    return {
+        require('mdnotes.assets').delete({
         uri = "assets/asset4.txt",
-        skip_input = true
-    })]])
-    eq(ret , true)
+        skip_input = true })
+    }]])
+    eq(ret[1] , true)
+    eq(vim.fs.basename(ret[2]) , "asset4.txt")
     eq(
         vim.fs.basename(vim.fs.find("asset4.txt", { path = './tests/test-data/files/garbage' })[1]),
         "asset4.txt"
     )
     vim.fs.rm('./tests/test-data/files/garbage', {recursive = true})
+    child.cmd([[write]])
 
     local lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
-    lastlnum = child.fn.line("$")
-    eq(lines[lastlnum],  "asset4.txt")
-    eq(lines[lastlnum-1],  "asset4.txt")
-    child.api.nvim_buf_set_lines(0, -2, -1, false, {})
+    eq(lines,  {
+        "# File 7",
+        "",
+        "[asset1](assets/asset1.txt)",
+        "[asset2 spaces](<assets/asset2 spaces.txt>)",
+        "asset4.txt",
+    })
     child.api.nvim_buf_set_lines(0, -2, -1, false, {})
     child.cmd([[write]])
 end

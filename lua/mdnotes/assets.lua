@@ -253,7 +253,7 @@ function M.get_used_assets(opts)
     local temp_qflist = vim.fn.getqflist()
 
     -- Grep inline links with asset paths
-    local pattern = "\\]\\(<?" .. M.get_assets_folder_name() .. "\\/"
+    local pattern = "\\]\\(<?" .. M.get_assets_folder_name() .. "/"
     mdn_grep(pattern, cwd)
     local assets_list = vim.fn.getqflist()
 
