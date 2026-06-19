@@ -464,7 +464,7 @@ function M.validate(opts)
 
     if ildata == nil or ildata.text == nil or ildata.uri == nil then
         if silent == false then
-            vim.notify("Mdn: No valid inline link detected", vim.log.level.WARN)
+            vim.notify("Mdn: No valid inline link detected", vim.log.levels.WARN)
         end
 
         return false, "no valid inline link detected"
@@ -483,7 +483,7 @@ function M.validate(opts)
     local _, perror = M.get_path_from_uri(ildata.uri, true)
     if perror == -2 then
         if silent == false then
-            vim.notify("Mdn: Inline link does not seem to point to a valid path", vim.log.level.WARN)
+            vim.notify("Mdn: Inline link does not seem to point to a valid path", vim.log.levels.WARN)
         end
 
         return false, "invalid path"
@@ -492,7 +492,7 @@ function M.validate(opts)
     local _, ferror = M.get_fragment_from_uri(ildata.uri, true)
     if ferror ~= nil and ferror ~= -1 then
         if silent == false then
-            vim.notify("Mdn: Inline link does not seem to point to a valid fragment", vim.log.level.WARN)
+            vim.notify("Mdn: Inline link does not seem to point to a valid fragment", vim.log.levels.WARN)
         end
 
         return false, "invalid fragment"
