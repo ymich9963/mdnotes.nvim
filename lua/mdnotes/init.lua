@@ -276,7 +276,7 @@ end
 ---Check text for valid Markdown syntax
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
 ---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
----@return boolean? valid, number? start_col, number? end_col
+---@return boolean? valid, table|table<table>? cols_tbl
 function M.check_markdown_syntax(pattern, opts)
     opts = opts or {}
     vim.validate("pattern", pattern, "string")
@@ -288,16 +288,26 @@ function M.check_markdown_syntax(pattern, opts)
     local cur_col = locopts.cur_col or vim.fn.col('.')
 
     local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
+    local cols_tbl = {}
 
-    for start_pos, _, end_pos in line:gmatch(pattern) do
+    for start_pos, text, end_pos in line:gmatch(pattern) do
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
-        if (start_pos <= cur_col and end_pos > cur_col) or entire_line == true then
-            return true, start_pos, end_pos
+        local pos_tbl = {start_pos, end_pos}
+        if entire_line == false then
+            if start_pos <= cur_col and end_pos > cur_col then
+                return true, pos_tbl
+            end
+        else
+            table.insert(cols_tbl, pos_tbl)
         end
     end
 
-    return false, -1, -1
+    if not vim.tbl_isempty(cols_tbl) then
+        return true, cols_tbl
+    end
+
+    return false, {}
 end
 
 ---Check if Markdown LSP server can be used in the current buffer
@@ -705,6 +715,113 @@ function M.get_buf_from_buf_list(bufname)
     end
 
     return ret
+end
+
+---@class MdnScanLines
+---@field lnum number Line number of specified pattern
+---@field cols table<number, number> Table containing start and end columns of specified pattern
+
+---Scan lines for inline Markdown items
+---@param pattern MdnPattern Pattern that also returns start and end column numbers
+---@param opts {location: MdnMultiLineLocation?, silent: boolean?}?
+---@return table<MdnScanLines>?
+function M.scan_lines(pattern, opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buffer = locopts.buffer or 0
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+    local silent = opts.silent ~= false
+
+    vim.validate("buffer", buffer, "number")
+    vim.validate("silent", silent, "boolean")
+    vim.validate("startl", startl, "number")
+    vim.validate("endl", endl, "number")
+
+    local scan_tbl = {}
+    for lnum = startl, endl do
+        local valid, cols_tbl = M.check_markdown_syntax(pattern, {entire_line = true, location = {lnum = lnum, bufnum = buffer}})
+        if valid == true then
+            table.insert(scan_tbl, {lnum = lnum, cols = cols_tbl})
+        end
+    end
+
+    if vim.tbl_isempty(scan_tbl) then
+        return nil
+    end
+
+    return scan_tbl
+end
+
+---File statistics
+---@param opts {buffer: number?, silent: boolean?}?
+---@return table statistics
+function M.statistics(opts)
+    opts = opts or {}
+
+    local bufnum = opts.buffer or vim.api.nvim_get_current_buf()
+    local silent = opts.silent ~= false
+    local bytes = 0
+    local chars = 0
+    local words = 0
+    local lines = 0
+    local ils = 0
+    local wls = 0
+    local headings = 0
+
+    local fn_wordcount
+    vim.api.nvim_buf_call(bufnum, function()
+        fn_wordcount = vim.fn.wordcount()
+    end)
+    local last_lnum = vim.fn.line('$')
+    local mdn_patterns = require('mdnotes.patterns')
+
+    bytes = fn_wordcount.bytes
+    chars = fn_wordcount.chars
+    words = fn_wordcount.words
+    lines = last_lnum
+
+    local ils_ret = M.scan_lines(mdn_patterns.inline_link, { location = { startl = 1, endl = last_lnum, buffer = bufnum } }) or {}
+    for _, ret in pairs(ils_ret or {}) do
+        if ret.cols ~= nil then
+            ils = ils + #ret.cols
+        end
+    end
+
+    local wls_ret = M.scan_lines(mdn_patterns.wikilink, { location = { startl = 1, endl = last_lnum, buffer = bufnum } }) or {}
+    for _, ret in pairs(wls_ret) do
+        if ret.cols ~= nil then
+            wls = wls + #ret.cols
+        end
+    end
+
+    headings = #M.get_fragments_from_buf_headings(bufnum)
+
+    -- NOTE: Tried to print "formatted words" but because URLs might contain
+    -- `_word_` then `word` is matched in scan_lines
+
+    if silent ~= false then
+        vim.notify(("Bytes:\t\t%s\n" ..
+        "Characters:\t%s\n" ..
+        "Words:\t\t%s\n" ..
+        "Lines:\t\t%s\n" ..
+        "Inline links:\t%s\n" ..
+        "WikiLinks:\t%s\n" ..
+        "Headings:\t%s\n")
+        :format(bytes, chars, words, lines, ils, wls, headings)
+        , vim.log.levels.INFO)
+    end
+
+    return {
+        bytes = bytes,
+        chars = chars,
+        words = words,
+        lines = lines,
+        ils = ils,
+        wls = wls,
+        headings = headings,
+    }
 end
 
 return M

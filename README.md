@@ -34,6 +34,7 @@ For a complete descriptive feature list with their associated commands, please s
 - Unformat lines to remove any Markdown formatting
 - Generate, update, and browse Table of Contents
 - Outliner mode
+- View statistics of current buffer
 - Create user commands within the plugin namespace for organisation
 - Most internal functions are exposed as an API for extensibility (`:h mdnotes-api`)
 

@@ -35,33 +35,33 @@ T['check_markdown_syntax()'] = function()
     local pattern = require('mdnotes.patterns').emphasis
     return {require('mdnotes').check_markdown_syntax(pattern)}
     ]])
-    eq(ret, {true, 1, 11})
+    eq(ret, {true, {1, 11}})
 
     child.fn.cursor(2,1)
     ret = child.lua([[
     local pattern = require('mdnotes.patterns').emphasis
     return {require('mdnotes').check_markdown_syntax(pattern)}
     ]])
-    eq(ret, {false, -1, -1})
+    eq(ret, {false, {}})
 
     ret = child.lua([[
     local pattern = require('mdnotes.patterns').emphasis
     return {require('mdnotes').check_markdown_syntax(pattern, { entire_line = true })}
     ]])
-    eq(ret, {true, 10, 20})
+    eq(ret, {true, {{10, 20}}})
 
     child.fn.cursor(3,1)
     ret = child.lua([[
     local pattern = require('mdnotes.patterns').emphasis
     return {require('mdnotes').check_markdown_syntax(pattern)}
     ]])
-    eq(ret, {false, -1, -1})
+    eq(ret, {false, {}})
 
     ret = child.lua([[
     local pattern = require('mdnotes.patterns').emphasis
     return {require('mdnotes').check_markdown_syntax(pattern, { entire_line = true })}
     ]])
-    eq(ret, {false, -1, -1})
+    eq(ret, {false, {}})
 end
 
 T['get_text()'] = function()
@@ -376,6 +376,53 @@ T['convert_fragments_to_gfm_style()'] = function()
     return require('mdnotes').convert_fragments_to_gfm_style(fragments)
     ]])
     eq(ret, {"heading-1", "heading-2"})
+end
+
+T['scan_lines()'] = function()
+    local lines = {
+        "[test](link)",
+        "",
+        "[test](link)",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[
+    local pattern = require('mdnotes.patterns')
+    return require('mdnotes').scan_lines(pattern.inline_link, { location = { startl = 1, endl = 3}})
+    ]])
+
+    eq(ret, {
+        {
+            lnum = 1,
+            cols = { { 1,13 } }
+        },
+        {
+            lnum = 3,
+            cols = { { 1,13 } }
+        }
+    })
+end
+
+T['statistics()'] = function()
+    local lines = {
+        "# Heading",
+        "",
+        "[test](link)",
+        "[[test]]",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[ return require('mdnotes').statistics({ silent = true }) ]])
+
+    eq(ret, {
+        bytes = 37,
+        chars = 37,
+        words = 4,
+        lines = 4,
+        ils = 1,
+        wls = 1,
+        headings = 1
+    })
 end
 
 return T

@@ -176,6 +176,7 @@ local get_commands = function() return {
         record_buf = require("mdnotes.history").record_buf,
         populate_buf_fragments = require("mdnotes").populate_buf_fragments,
         open_containing_folder = require("mdnotes").open_containing_folder,
+        statistics = require("mdnotes").statistics,
     },
     user = vim.deepcopy(require('mdnotes').config.user_commands, true)
 }
