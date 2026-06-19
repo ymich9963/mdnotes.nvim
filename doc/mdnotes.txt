@@ -2300,14 +2300,16 @@ MdnPatterns 					*mdnotes.MdnPatterns*
     Fields: ~
     • {wikilink} (`MdnPattern`) WikiLink pattern
     • {inline_link} (`MdnPattern`) Inline link pattern
-    • {text_uri} (`string`) Text and URI from inline link pattern
     • {strong} (`MdnPattern`) Strong format indicator pattern
     • {emphasis} (`MdnPattern`) Emphasis format indicator pattern
     • {strikethrough} (`MdnPattern`) Strikethrough format indicator pattern
     • {inline_code} (`MdnPattern`) Inline code format indicator pattern
     • {autolink} (`MdnPattern`) Autolink format indicator pattern
+    • {text_uri} (`string`) Text and URI from inline link pattern
+    • {uri_title} (`string`) Title from inline link URI
     • {uri_no_fragment} (`string`) URI only pattern
     • {fragment} (`string`) Fragment only pattern
+    • {wikilink_alias} (`string`) WikiLink alias
     • {unordered_list} (`string`) Unordered list pattern
     • {ordered_list} (`string`) Ordered list pattern
     • {task} (`string`) Task item pattern
