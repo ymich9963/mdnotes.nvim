@@ -415,8 +415,8 @@ T['statistics()'] = function()
     local ret = child.lua([[ return require('mdnotes').statistics({ silent = true }) ]])
 
     eq(ret, {
-        bytes = 37,
-        chars = 37,
+        bytes = 33, -- 37 on Windows
+        chars = 33, -- 37 on Windows
         words = 4,
         lines = 4,
         ils = 1,
