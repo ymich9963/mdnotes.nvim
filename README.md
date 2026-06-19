@@ -11,7 +11,7 @@
 
 Mdnotes aims to be a lightweight plugin that improves the Markdown note-taking experience in Neovim, with minimal configuration required. It also exposes most of the functions used internally, so that the user can create an extensible note-taking experience similar to Neovim's philosophy.
 
-In the [Recommendations](#-recommendations) section I've written some notes on my recommended `mdnotes` setup, and please read [MARKDOWN.md](MARKDOWN.md) to know how `mdnotes` aims to format your notes.
+In the [Recommendations](#-recommendations) section I've written some notes on my recommended `mdnotes` setup, and please read [MARKDOWN.md](MARKDOWN.md) to know how `mdnotes` aims to format your notes. Also see [RATIONALE.md](RATIONALE.md) for information on certain design decisions like directory structure, using LSPs, and editing tables.
 
 If you are migrating from another note-taking application, then [MIGRATING.md](MIGRATING.md) might be of interest to you, and I've also written some useful tips in [TIPS.md](TIPS.md) for when writing notes in out-of-the-box Neovim. Lastly, a disclaimer I must unfortunately say, is if you are executing any mass data-altering commands, ensure you have a notes backup!
 
@@ -92,7 +92,6 @@ and specify your config using `opts = {}` or with a `setup({})` function,
 ```
 ### 📂 Directory Setup
 Sample directory structure for `mdnotes` is shown below. See [RATIONALE.md](RATIONALE.md) for reasons regarding the accepted file structure.
-
 ```
 notes/
 ├───assets/
