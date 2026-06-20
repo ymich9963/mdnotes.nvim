@@ -414,15 +414,69 @@ T['statistics()'] = function()
 
     local ret = child.lua([[ return require('mdnotes').statistics({ silent = true }) ]])
 
+    if vim.fn.has("win32") then
+        eq(ret, {
+            bytes = 37, -- 37 on Windows, 33 on Linux
+            chars = 37, -- 37 on Windows, 33 on Linux
+            words = 4,
+            lines = 4,
+            ils = 1,
+            wls = 1,
+            headings = 1
+        })
+    else
+        eq(ret, {
+            bytes = 33,
+            chars = 33,
+            words = 4,
+            lines = 4,
+            ils = 1,
+            wls = 1,
+            headings = 1
+        })
+    end
+end
+
+T['parse_lines()'] = function()
+    local lines = {
+        "# Heading",
+        "",
+        "[test](link)",
+        "[[test]]",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[return require('mdnotes').parse_lines("inline_link", { location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
-        bytes = 33, -- 37 on Windows
-        chars = 33, -- 37 on Windows
-        words = 4,
-        lines = 4,
-        ils = 1,
-        wls = 1,
-        headings = 1
+        {
+            buffer = 2,
+            col_end = 13,
+            col_start = 1,
+            cur_col = 7,
+            img_char = "",
+            lnum = 3,
+            text = "test",
+            title = "",
+            uri = "link"
+        }
     })
+    ret = child.lua([[return require('mdnotes').parse_lines("inline_link", { text = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {"[test](link)"})
+
+    ret = child.lua([[return require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {
+        {
+            buffer = 2,
+            col_end = 9,
+            col_start = 1,
+            cur_col = 5,
+            lnum = 4,
+            text = "test",
+            wikilink_nofrag = "test"
+        }
+    })
+    ret = child.lua([[return require('mdnotes').parse_lines("wikilink", { text = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {"[[test]]"})
 end
 
 return T

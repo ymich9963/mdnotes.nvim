@@ -563,6 +563,8 @@ function M.get_asset_list()
     return assets_list
 end
 
+---View asset
+---@param opts {asset: string?}?
 function M.view(opts)
     opts = opts or {}
     local asset = opts.asset
@@ -571,6 +573,10 @@ function M.view(opts)
 
     if asset == nil then
         local assets_list = M.get_asset_list()
+        if vim.tbl_isempty(assets_list) then
+            vim.notify(("Mdn: No assets to view in '%s'"):format(assets_path), vim.log.levels.ERROR)
+            return
+        end
         vim.ui.select(assets_list, {
             prompt = "Select an asset from '" .. M.get_assets_folder_name() .. "'",
         }, function (item, _)

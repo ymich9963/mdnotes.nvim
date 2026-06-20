@@ -248,4 +248,16 @@ T['get_orphans()'] = function()
     })
 end
 
+T['get_wl_from_obj()'] = function()
+    local ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({wikilink_nofrag = "test", fragment = "frag", alias = "alias"})]])
+    eq(ret, "[[test#frag|alias]]")
+    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({wikilink_nofrag = "test", fragment = "", alias = "alias"})]])
+    eq(ret, "[[test|alias]]")
+    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({wikilink_nofrag = "test", fragment = "", alias = ""})]])
+    eq(ret, "[[test]]")
+    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({wikilink_nofrag = "test", fragment = "frag"})]])
+    eq(ret, "[[test#frag]]")
+end
+
+
 return T

@@ -118,6 +118,7 @@ local get_commands = function() return {
         delete = require("mdnotes.wikilink").delete,
         normalize = require("mdnotes.wikilink").normalize,
         find_orphans = require("mdnotes.wikilink").find_orphans,
+        go_to = require("mdnotes.wikilink").go_to,
     },
     table = {
         create = require("mdnotes.table").create,
@@ -161,6 +162,7 @@ local get_commands = function() return {
         normalize = require("mdnotes.inline_link").normalize,
         validate = require("mdnotes.inline_link").validate,
         convert_fragment_to_gfm = require("mdnotes.inline_link").convert_fragment_to_gfm,
+        go_to = require("mdnotes.inline_link").go_to,
     },
     toc = {
         generate = require("mdnotes.toc").generate,
@@ -180,6 +182,17 @@ local get_commands = function() return {
     },
     user = vim.deepcopy(require('mdnotes').config.user_commands, true)
 }
+end
+
+---To concatinate args with spaces so that
+---they aren't considered as separate argument
+local function concat_arg(args)
+    local arg = args[3]
+    for i = 4, #args do
+        arg = arg .. " " .. args[i]
+    end
+
+    return arg
 end
 
 vim.api.nvim_create_user_command( "Mdn", function(opts)
@@ -206,12 +219,13 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     elseif func == commands.toc.generate or func == commands.toc.update and #args > 2 then
         func({ depth = tonumber(args[3]) })
     elseif func == commands.assets.view or func == commands.assets.insert and #args > 2 then
-        local asset = args[3]
-        for i = 4, #args do
-            asset = asset .. " " .. args[i]
-        end
+        local asset = concat_arg(args)
         local asset_path = vim.fs.joinpath(require('mdnotes').cwd, asset)
         func({ asset = asset, file_path = asset_path, process_file = false })
+    elseif func == commands.inline_link.go_to then
+        func({ inline_link = concat_arg(args) })
+    elseif func == commands.wikilink.go_to then
+        func({ wikilink = concat_arg(args) })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif command == commands.user then
@@ -252,7 +266,25 @@ end,
                 if subcmd == "insert" or subcmd == "view" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
-                    end, require('mdnotes.assets').get_asset_list())
+                    end, require('mdnotes.assets').get_asset_list() or {})
+                end
+            end
+
+            if command == "inline_link" then
+                if subcmd == "go_to" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes').parse_lines("inline_link", { location = {startl = 1, endl = vim.fn.line("$") }, text = true, silent = true }) or {}
+                    )
+                end
+            end
+
+            if command == "wikilink" then
+                if subcmd == "go_to" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$") }, text = true, silent = true }) or {}
+                    )
                 end
             end
         end

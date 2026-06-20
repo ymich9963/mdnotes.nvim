@@ -9,6 +9,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
 - Validate an inline link without opening it by executing `:Mdn inline_link validate`. This ensures that your inline link has a valid destination.
 - Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510) with `Mdn inline_link convert_fragment_to_gfm`. Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
+- Go to an inline link in the current buffer with `:Mdn inline_link go_to` or specify it using `:Mdn inline_link go_to [inline_link]`. Defaults to Neovim picker.
 
 ## 🖇️ WikiLinks
 - Create a WikiLink by highlighting or hovering over a word and executing `:Mdn wikilink create`.
@@ -19,6 +20,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Delete the WikiLink under the cursor with `:Mdn wikilink delete`. 
 - Normalize your WikiLink path with `:Mdn wikilink normalize`. 
 - Find orphan pages (pages with no references) in current directory with `:Mdn wikilink find_orphans`. 
+- Go to a WikiLink in the current buffer with `:Mdn wikilink go_to` or specify it using `:Mdn wikilink go_to [wikilink]`. Defaults to Neovim picker.
 
 ## 👩‍💼 Asset Management
 - Insert an image or file from clipboard using `:Mdn assets insert` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.

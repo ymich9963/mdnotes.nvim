@@ -22,6 +22,7 @@ function M.parse(opts)
 
     local inline_link = opts.inline_link
     local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
+    local locopts = opts.location or {}
 
     vim.validate("inline_link", inline_link, { "string", "nil" })
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
@@ -31,9 +32,9 @@ function M.parse(opts)
     local txtdata = {}
 
     -- Overwrite if location is given
-    if opts.location or inline_link == nil then
-        if not check_markdown_syntax(il_pattern, {location = opts.location}) then return nil end
-        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = opts.location })
+    if not vim.tbl_isempty(locopts) or inline_link == nil then
+        if not check_markdown_syntax(il_pattern, { location = locopts }) then return nil end
+        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = locopts })
         inline_link = txtdata.text or ""
     end
 
@@ -63,9 +64,10 @@ function M.parse(opts)
 end
 
 ---Get an inline link string from an MdnInlineLinkData object
----@param ildata MdnInlineLinkData Inline link object
+---@param ildata MdnInlineLinkData? Inline link object
 ---@return string inline_link
 function M.get_il_from_obj(ildata)
+    if ildata == nil then return "" end
     if ildata.title == nil or ildata.title == "" then
         return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.uri .. ')'
     else
@@ -179,20 +181,28 @@ function M.get_fragment_from_uri(uri, check_valid, opts)
 end
 
 ---Open inline links in the appropriate programme
----@param opts {uri: string?, location: MdnInLineLocation?}?
+---@param opts {inline_link: string?, location: MdnInLineLocation?}?
 ---@return integer|vim.SystemObj|string?
 function M.open(opts)
     opts = opts or {}
 
+    local locopts = opts.location or {}
+    local inline_link = opts.inline_link
+
+    vim.validate("inline_link", inline_link, {"string", "nil"})
+
+    local ildata
+
     -- Overwrite if location is given
-    local uri = opts.uri
-    if opts.location or uri == nil then
-        uri = (M.parse({ keep_pointy_brackets = false, location = opts.location }) or {}).uri
+    if not vim.tbl_isempty(locopts) or inline_link == nil then
+        ildata = M.parse({ keep_pointy_brackets = false, location = locopts })
+    else
+        ildata = M.parse({ inline_link = inline_link, keep_pointy_brackets = false })
     end
+    if ildata == nil then return end
 
+    local uri = ildata.uri
     if uri == nil then return "URI error" end
-
-    vim.validate("uri", uri, "string")
 
     local path, perror = M.get_path_from_uri(uri, true)
     if perror ~= nil and perror ~= -1 then return path .. ", " .. perror end
@@ -501,6 +511,46 @@ function M.validate(opts)
     vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
 
     return true, "valid"
+end
+
+---Go to inline link
+---@param opts {inline_link: string?, buffer: number?}?
+function M.go_to(opts)
+    opts = opts or {}
+
+    local il = opts.inline_link
+    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+
+    if il == nil then
+        local il_pattern = require('mdnotes.patterns').inline_link
+        local parsed_tbl = require('mdnotes').parse_lines(il_pattern, M.parse, { location = {startl = 1, endl = vim.fn.line("$"), buffer = buffer }, silent = true})
+        if parsed_tbl == nil then
+            vim.notify("Mdn: No inline links in current file to go to", vim.log.levels.ERROR)
+            return
+        end
+
+        local sel_list = {}
+        for _, v in ipairs(parsed_tbl) do
+            table.insert(sel_list, v.text .. " | " .. v.uri)
+        end
+
+
+        local il_index = nil
+        vim.ui.select(sel_list, {
+            prompt = "Select an inline link to go to",
+        }, function (_, idx)
+            il_index = idx
+        end)
+
+        if il_index == nil then
+            return
+        end
+
+        il = M.get_il_from_obj(parsed_tbl[il_index])
+    end
+
+    M.open({inline_link = il})
+    vim.notify(("Mdn: Opening '%s'"):format(il), vim.log.levels.INFO)
 end
 
 return M

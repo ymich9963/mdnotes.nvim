@@ -27,21 +27,19 @@ function M.parse(opts)
     local wikilink = opts.wikilink
     local locopts = opts.location or {}
 
-    -- Overwrite if location is given
-    if not vim.tbl_isempty(locopts) then
-        wikilink = nil
-    end
-
     vim.validate("wikilink", wikilink, { "string", "nil" })
 
     local mdn_patterns = require('mdnotes.patterns')
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
-    local txtdata
+    local txtdata = {}
 
-    if wikilink == nil then
+    -- Overwrite if location is given
+    if not vim.tbl_isempty(locopts) or wikilink == nil then
         if not check_markdown_syntax(mdn_patterns.wikilink, {location = locopts}) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.wikilink, { location = locopts })
         wikilink = txtdata.text
+    else
+        _, wikilink, _ = wikilink:match(mdn_patterns.wikilink)
     end
 
     local wikilink_no_fragment = wikilink:match(mdn_patterns.uri_no_fragment)
@@ -56,7 +54,7 @@ function M.parse(opts)
 end
 
 ---Follow the WikiLink under the cursor
----@param opts {location: MdnInLineLocation?, hor: boolean?, vert: boolean?}?
+---@param opts {wikilink: string?, location: MdnInLineLocation?, hor: boolean?, vert: boolean?}?
 function M.follow(opts)
     if check_markdown_lsp_cur_buf() then
         vim.lsp.buf.definition()
@@ -65,12 +63,12 @@ function M.follow(opts)
     end
 
     opts = opts or {}
+    local wikilink = opts.wikilink
     local locopts = opts.location or {}
     local hor = opts.hor or false
     local vert = opts.vert or false
 
-    local wldata = M.parse({ location = locopts })
-
+    local wldata = M.parse({ wikilink = wikilink, location = locopts })
     if wldata == nil then
         vim.notify("Mdn: No WikiLink under the cursor was detected", vim.log.levels.ERROR)
         return
@@ -462,6 +460,66 @@ function M.find_orphans()
         orphans_txt = orphans_txt(1,#orphans_txt - 2)
         vim.notify("Mdn: Found the following orphan pages: " .. orphans_txt, vim.log.levels.WARN)
     end
+end
+
+---Get an inline link string from an MdnInlineLinkData object
+---@param wldata MdnWikiLinkData? Inline link object
+---@return string wikilink
+function M.get_wl_from_obj(wldata)
+    if wldata == nil then return "" end
+
+    if wldata.alias == nil or wldata.alias == "" then
+        if wldata.fragment == nil or wldata.fragment == "" then
+            return "[[" .. wldata.wikilink_nofrag .. "]]"
+        else
+            return "[[" .. wldata.wikilink_nofrag .. "#" .. wldata.fragment .. "]]"
+        end
+    else
+        if wldata.fragment == nil or wldata.fragment == "" then
+            return "[[" .. wldata.wikilink_nofrag .. "|" .. wldata.alias .. "]]"
+        else
+            return "[[" .. wldata.wikilink_nofrag .. "#" .. wldata.fragment .. "|" .. wldata.alias .. "]]"
+        end
+    end
+end
+
+---Go to WikiLink
+---@param opts {wikilink: string?, buffer: number?}?
+function M.go_to(opts)
+    opts = opts or {}
+
+    local wl = opts.wikilink
+    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+
+    if wl == nil then
+        local wl_pattern = require('mdnotes.patterns').wikilink
+        local parsed_tbl = require('mdnotes').parse_lines(wl_pattern, M.parse, { location = {startl = 1, endl = vim.fn.line("$"), buffer = buffer }, silent = true})
+        if parsed_tbl == nil then
+            vim.notify("Mdn: No WikiLinks in current file to go to", vim.log.levels.ERROR)
+            return
+        end
+
+        local sel_list = {}
+        for _, v in ipairs(parsed_tbl) do
+            table.insert(sel_list, M.get_wl_from_obj(v):sub(3, -3))
+        end
+
+        local wl_index = nil
+        vim.ui.select(sel_list, {
+            prompt = "Select a WikiLink to go to",
+        }, function (_, idx)
+            wl_index = idx
+        end)
+
+        if wl_index == nil then
+            return
+        end
+
+        wl = M.get_wl_from_obj(parsed_tbl[wl_index])
+    end
+
+    M.follow({ wikilink = wl })
+    vim.notify(("Mdn: Opening '%s'"):format(wl), vim.log.levels.INFO)
 end
 
 return M
