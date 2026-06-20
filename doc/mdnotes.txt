@@ -438,9 +438,7 @@ subcommands are listed below.
 
 :Mdn inline_link open					*:Mdn-inline_link-open*
 
-    Opens the asset under the cursor. Uses |vim.ui.open()| but due to a bug for
-    Winows it's currently using, >lua
-	vim.system({"cmd.exe", "/c", "start", link}) 
+    Opens the asset under the cursor with |vim.ui.open()|.
 
 :Mdn inline_link toggle					*:Mdn-inline_link-toggle*
 
@@ -744,8 +742,8 @@ check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax()*
 		start/end columns.
 
     Return: ~
-      (`boolean?`): Valid Markdown syntax found
-      (`table?`): Table containing `[start_col, end_col]`. If `entire_line = true` 
+    • (`boolean?`): Valid Markdown syntax found
+    • (`table?`): Table containing `[start_col, end_col]`. If `entire_line = true` 
       then it is `table<table<start_col, end_col>>`.
 
 check_markdown_lsp_cur_buf() 				*mdnotes.check_markdown_lsp_cur_buf()*
@@ -754,7 +752,7 @@ check_markdown_lsp_cur_buf() 				*mdnotes.check_markdown_lsp_cur_buf()*
     checks |mdnotes-prefer_lsp| option.
 
     Return: ~
-      (`boolean`)
+    • (`boolean`)
 
 get_text({opts})					*mdnotes.get_text()*
 
@@ -769,7 +767,7 @@ get_text({opts})					*mdnotes.get_text()*
 		the location of the function process.
 
     Return: ~
-      (`MdnText`): See |mdnotes-MdnText|.
+    • (`MdnText`): See |mdnotes-MdnText|.
 
 
 get_text_in_pattern({pattern}, {opts}) 			*mdnotes.get_text_in_pattern*
@@ -787,7 +785,7 @@ get_text_in_pattern({pattern}, {opts}) 			*mdnotes.get_text_in_pattern*
 		the location of the function process.
 
     Return: ~
-      (`MdnText`): See |mdnotes-MdnText|.
+    • (`MdnText`): See |mdnotes-MdnText|.
 
 new_line_remap({key}, {expr}) 				*mdnotes.new_line_remap()*
 
@@ -799,7 +797,7 @@ new_line_remap({key}, {expr}) 				*mdnotes.new_line_remap()*
     • {expr}  (`boolean`) If `opts.expr` is set for |vim.keymap.set()|.
 
     Return: ~
-      (`string?`): Return string if {expr} is true, if not then just set
+    • (`string?`): Return string if {expr} is true, if not then just set
       the lines appropriately.
 
 go_to_index_file() 			   		*mdnotes.go_to_index_file()*
@@ -832,7 +830,7 @@ get_files_in_cwd({opts}) 				*mdnotes.get_files_in_cwd()*
 		pattern.
 
     Return: ~
-      (`string[]`): List of file name strings.
+    • (`string[]`): List of file name strings.
 
 convert_text_to_gfm({text}) 				*mdnotes.convert_text_to_gfm()*
 
@@ -843,7 +841,7 @@ convert_text_to_gfm({text}) 				*mdnotes.convert_text_to_gfm()*
     • {text}  (`string`) String to convert to GFM-style
 
     Return: ~
-      (`string`): Converted text
+    • (`string`): Converted text
 
 populate_buf_fragments({bufnr}) 			*mdnotes.populate_buf_fragments()*
 
@@ -863,7 +861,7 @@ get_fragments_from_headings({bufnr}) 			*mdnotes.get_fragments_from_headings()*
       from.
 
     Return: ~
-      (`MdnFragments`)
+    • (`MdnFragments`)
 
 convert_fragments_to_gfm_style({fragments}) 		*mdnotes.convert_fragments_to_gfm_style()*
 
@@ -873,7 +871,7 @@ convert_fragments_to_gfm_style({fragments}) 		*mdnotes.convert_fragments_to_gfm_
     • {fragments}  (`MdnFragments`) Fragments table.
 
     Return: ~
-      (`MdnFragmentsGfm`)
+    • (`MdnFragmentsGfm`)
 
 find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
 
@@ -886,7 +884,7 @@ find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_
     • {fragment}  (`string`) Fragment to search for.
 
     Return: ~
-      (`string?`): Found fragment on success, `nil` on failure.
+    • (`string?`): Found fragment on success, `nil` on failure.
 
 get_buf_from_buf_list({bufname}) 			*mdnotes.get_buf_from_buf_list()*
 
@@ -909,7 +907,7 @@ scan_lines({pattern}, {opts})				*mdnotes.scan_lines()*
 		silence notifications
 
     Return: ~
-      (`table<MdnScanLines>?`)
+    • (`table<MdnScanLines>?`)
 
 statistics({opts})					*mdnotes.statistics()*
 
@@ -925,7 +923,7 @@ statistics({opts})					*mdnotes.statistics()*
 		silence notifications
 
     Return: ~
-      (`table`) Table containing statistics. Current values are bytes,
+    • (`table`) Table containing statistics. Current values are bytes,
       characters, words, lines, inline links, WikiLinks, and headings
 
 parse_lines({item_type}, {opts})			*mdnotes.parse_lines()*
@@ -944,7 +942,7 @@ parse_lines({item_type}, {opts})			*mdnotes.parse_lines()*
 		silence notifications
 
     Return: ~
-      (`table<MdnWikiLinkData>|table<MdnInlineLinkData?`)
+    • (`table<MdnWikiLinkData>|table<MdnInlineLinkData?`)
 
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
@@ -956,7 +954,7 @@ assets.check_assets_path() 				*mdnotes.assets.check_assets_path()*
     files.
 
     Return: ~
-      (`boolean`)
+    • (`boolean`)
 
 assets.open_containing_folder() 			*mdnotes.assets.open_containing_folder()*
 
@@ -972,7 +970,7 @@ assets.process_inserted_asset_file({file_path})		*mdnotes.assets.process_inserte
     • {file_path}  (`string`) Path to the asset.
 
     Return: ~
-      (`string?`): Return file name on success and `nil` on failure.
+    • (`string?`): Return file name on success and `nil` on failure.
 
 assets.has_image_extension({file_name})			*mdnotes.assets.has_image_extension()*
 
@@ -996,7 +994,7 @@ assets.get_asset_inline_link({opts})			*mdnotes.assets.get_asset_inline_link()*
 		optional path to asset and the clipboard is used if `nil`
 
     Return: ~
-      (`MdnAssetInlineLink?`)
+    • (`MdnAssetInlineLink?`)
 
 assets.insert()						*mdnotes.assets.insert()*
 
@@ -1028,7 +1026,7 @@ assets.get_used_assets({opts}) 				*mdnotes.assets.get_used_assets()*
 		silence notifications
 
     Return: ~
-      (`string[]`): List of asset file names
+    • (`string[]`): List of asset file names
 
 assets.get_unused_assets({opts}) 			*mdnotes.assets.get_unused_assets()*
 
@@ -1041,7 +1039,7 @@ assets.get_unused_assets({opts}) 			*mdnotes.assets.get_unused_assets()*
 		silence notifications
 
     Return: ~
-      (`string[]`): List of asset file names
+    • (`string[]`): List of asset file names
 
 assets.unused_delete({opts})				*mdnotes.assets.unused_delete()*
 
@@ -1080,7 +1078,7 @@ assets.download_website_html({opts})			*mdnotes.assets.download_website_html()*
 		inline text location
 
     Return: ~
-      (`string?`): Path of downloaded file on success, `nil` on failure.
+    • (`string?`): Path of downloaded file on success, `nil` on failure.
 
 assets.delete()						*mdnotes.assets.delete()*
 
@@ -1098,8 +1096,8 @@ assets.delete()						*mdnotes.assets.delete()*
 		inline text location
 
     Return: ~
-      (`boolean`): Was the file deleted succesfully.
-      (`string?`): Path of the deleted asset.
+    • (`boolean`): Was the file deleted succesfully.
+    • (`string?`): Path of the deleted asset.
 
 assets.get_asset_list() 				*mdnotes.assets.get_asset_list()*
     
@@ -1107,7 +1105,7 @@ assets.get_asset_list() 				*mdnotes.assets.get_asset_list()*
     |mdnotes.cwd|.
 
     Return: ~
-      (`nil`)
+    • (`nil`)
 
 assets.view({opts}) 					*mdnotes.assets.view()*
     
@@ -1119,7 +1117,7 @@ assets.view({opts}) 					*mdnotes.assets.view()*
 	      asset name to view
 
     Return: ~
-      (`nil`)
+    • (`nil`)
 
 formatting.insert_format({format_char}, {opts})		*mdnotes.formatting.insert_format()*
 
@@ -1214,7 +1212,7 @@ resolve_list_content({line})				*mdnotes.formatting.resolve_list_content()*
     • {line}  (`string?`) Line text
 
     Return: ~
-      (`MdnListContent?`)
+    • (`MdnListContent?`)
 
 formatting.task_list_toggle({opts})			*mdnotes.formatting.task_list_toggle()*
 
@@ -1243,7 +1241,7 @@ formatting.check_list_valid({opts}) 			*mdnotes.formatting.check_list_valid()*
 		treat list as an outliner list
 
     Return: ~
-      (`MdnSearchRet`)
+    • (`MdnSearchRet`)
 
 formatting.ordered_list_renumber({opts})		*mdnotes.formatting.ordered_list_renumber()*
 
@@ -1280,10 +1278,10 @@ heading.get_heading({opts}) 				*mdnotes.heading.get_heading()*
               • {lnum} (`integer?,` defaults to current line)
 
     Return: ~
-      (`integer?`): Index of current heading in the parsed fragments. See
+    • (`integer?`): Index of current heading in the parsed fragments. See
       |mdnotes-buf_fragments|.
-      (`MdnFragment`)
-      (`integer`): Total fragments in the parsed buffer
+    • (`MdnFragment`)
+    • (`integer`): Total fragments in the parsed buffer
 
 heading.goto_next()					*mdnotes.heading.goto_next()*
 
@@ -1349,7 +1347,7 @@ inline_link.parse({opts})				*mdnotes.inline_link.parse()*
     If both {inline_link} and {location} are specified, it uses {location}.
 
     Return: ~
-      (`MdnInLineLinkData?`): Parsed inline link on success, `nil` on
+    • (`MdnInLineLinkData?`): Parsed inline link on success, `nil` on
       failure.
 
 inline_link.get_il_from_obj({ildata})				*mdnotes.inline_link.get_il_from_obj()*
@@ -1361,7 +1359,7 @@ inline_link.get_il_from_obj({ildata})				*mdnotes.inline_link.get_il_from_obj()*
     • {ildata}  (`MdnInLineLinkData`) Inline link object
 
     Return: ~
-      (`string`)
+    • (`string`)
 
 inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_path_from_uri()*
 
@@ -1374,13 +1372,13 @@ inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link
     • {opts}  (`table?`) Optional parameters (unused)
 	
     Return: ~
-      (`string`): Extracted path
-      (`integer?`): On failure, an error code
-      (`string?`): On failure, text describing the error
+    • (`string`): Extracted path
+    • (`integer?`): On failure, an error code
+    • (`string?`): On failure, text describing the error
 
     Error codes:
-	`-1` : is URL
-	`-2` : file not found
+    • `-1` : is URL
+    • `-2` : file not found
 
 inline_link.get_fragment_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_fragment_from_uri()*
 
@@ -1393,15 +1391,15 @@ inline_link.get_fragment_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_
     • {opts}  (`table?`) Optional parameters (unused)
 	
     Return: ~
-      (`string`): Extracted fragment
-      (`integer?`): On failure, an error code
-      (`string?`): On failure, text describing the error
+    • (`string`): Extracted fragment
+    • (`integer?`): On failure, an error code
+    • (`string?`): On failure, text describing the error
 
     Error codes:
-	`-1` : is URL
-	`-2` : invalid path: detected path and its error
-	`-3` : fragment not parsed
-	`-4` : invalid fragment: value retrieved from |mdn-buf_fragments|.
+    • `-1` : is URL
+    • `-2` : invalid path: detected path and its error
+    • `-3` : fragment not parsed
+    • `-4` : invalid fragment: value retrieved from |mdn-buf_fragments|.
 
 inline_link.open({opts})				*mdnotes.inline_link.open()*
 
@@ -1412,7 +1410,7 @@ inline_link.open({opts})				*mdnotes.inline_link.open()*
     • {location}  (`MdnInLineLocation?`, defaults to current location) Location of the inline link
 	
     Return: ~
-      (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
+    • (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
       |vim.ui.open()| result on programme opening, error string on error,
       `nil` on failed |vim.ui.open()|.
 
@@ -1434,7 +1432,7 @@ inline_link.is_image({opts}) 				*mdnotes.inline_link.is_image()*
     If both {inline_link} and {location} are specified, it uses {location}.
 
     Return: ~
-      (`boolean`) `true` if it is an image and `false` if not.
+    • (`boolean`) `true` if it is an image and `false` if not.
 
 inline_link.is_url({opts}) 				*mdnotes.inline_link.is_url()*
 
@@ -1450,7 +1448,7 @@ inline_link.is_url({opts}) 				*mdnotes.inline_link.is_url()*
     If both {inline_link} and {location} are specified, it uses {location}.
 
     Return: ~
-      (`boolean`) `true` if it is a URL and `false` if not.
+    • (`boolean`) `true` if it is a URL and `false` if not.
 
 inline_link.insert({opts})				*mdnotes.inline_link.insert()*
 
@@ -2029,7 +2027,7 @@ toc.browse()						*mdnotes.toc.browse()*
 
 wikilink.parse({opts}) 					*mdnotes.wikilink.parse()*
 
-    Get the WikiLink without the fragment, and the fragment.
+    Get the WikiLink without the fragment, the fragment, and the alias.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -2041,7 +2039,7 @@ wikilink.parse({opts}) 					*mdnotes.wikilink.parse()*
     If both {wikilink} and {location} are specified, it uses {location}.
 
     Return: ~
-      (`MdnWikiLinkData?`): Parsed WikiLink on success, `nil` on
+    • (`MdnWikiLinkData?`): Parsed WikiLink on success, `nil` on
       failure.
 
 wikilink.follow({opts})					*mdnotes.wikilink.follow()*
@@ -2091,7 +2089,7 @@ wikilink.show_references({opts})			*mdnotes.wikilink.show_references()*
 		specify location of WikiLink to parse
 
     Return: ~
-      (`table?`): Return `qflist` using |getqflist()| on success, `nil` on
+    • (`table?`): Return `qflist` using |getqflist()| on success, `nil` on
       failure.
 
 wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
@@ -2107,8 +2105,8 @@ wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
 		specify location of WikiLink to parse
 
     Return: ~
-      (`string?`): Old name on success, `nil` on failure.
-      (`string?`): New name name on success, `nil` on failure.
+    • (`string?`): Old name on success, `nil` on failure.
+    • (`string?`): New name name on success, `nil` on failure.
 
 wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
 
@@ -2116,8 +2114,8 @@ wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
     |mdnotes-prefer_lsp| is `false`. 
 
     Return: ~
-      (`string?`): Old name on success, `nil` on failure.
-      (`string?`): New name name on success, `nil` on failure.
+    • (`string?`): Old name on success, `nil` on failure.
+    • (`string?`): New name name on success, `nil` on failure.
 
 wikilink.create({opts})					*mdnotes.wikilink.create()*
 
@@ -2133,7 +2131,7 @@ wikilink.create({opts})					*mdnotes.wikilink.create()*
 		write result to the buffer
 
     Return: ~
-      (`MdnTableContents?`)
+    • (`MdnTableContents?`)
 
 wikilink.delete()					*mdnotes.wikilink.delete()*
 
@@ -2169,7 +2167,7 @@ wikilink.get_orphans({opts}) 				*mdnotes.wikilink.get_orphans()*
 		silence notifications
 
     Return: ~
-      (`string[]`): List of orphan file names
+    • (`string[]`): List of orphan file names
 
 wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
 
