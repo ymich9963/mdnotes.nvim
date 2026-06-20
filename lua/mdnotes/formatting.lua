@@ -35,13 +35,14 @@ function M.insert_format(format_char, opts)
     opts = opts or {}
     local split_fi = opts.split_fi or false
     local move_cursor = opts.move_cursor ~= false
+    local locopts = opts.location or {}
 
     vim.validate("split_fi", split_fi, "boolean")
     vim.validate("format_char", format_char, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
 
     if split_fi == nil then split_fi = false end
-    local txtdata = require('mdnotes').get_text({ location = opts.location })
+    local txtdata = require('mdnotes').get_text({ location = locopts })
     local fi1, fi2 = "", ""
 
     if split_fi == true then
@@ -74,11 +75,12 @@ end
 function M.delete_format(pattern, opts)
     opts = opts or {}
 
+    local locopts = opts.location or {}
     local move_cursor = opts.move_cursor ~= false
     vim.validate("pattern", pattern, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
 
-    local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = opts.location})
+    local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = locopts})
     local line = vim.api.nvim_buf_get_lines(txtdata.buffer, txtdata.lnum - 1, txtdata.lnum, false)[1]
 
     -- Find the character count change before the cursor
@@ -103,14 +105,15 @@ end
 function M.emphasis_toggle(opts)
     opts = opts or {}
 
+    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').emphasis
     local indicator = require('mdnotes').config.emphasis_format
 
-    local ret = check_markdown_syntax(pattern, { location = opts.location })
+    local ret = check_markdown_syntax(pattern, { location = locopts })
     if ret == true then
-        M.delete_format(pattern, { location = opts.location, move_cursor = opts.move_cursor })
+        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(indicator, { location = opts.location, move_cursor = opts.move_cursor })
+        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor })
     end
 end
 
@@ -119,14 +122,15 @@ end
 function M.strong_toggle(opts)
     opts = opts or {}
 
+    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').strong
     local indicator = require('mdnotes').config.strong_format
 
-    local ret = check_markdown_syntax(pattern, { location = opts.location })
+    local ret = check_markdown_syntax(pattern, { location = locopts })
     if ret == true then
-        M.delete_format(pattern, { location = opts.location, move_cursor = opts.move_cursor })
+        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(indicator, { location = opts.location, move_cursor = opts.move_cursor })
+        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor })
     end
 end
 
@@ -135,14 +139,15 @@ end
 function M.strikethrough_toggle(opts)
     opts = opts or {}
 
+    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').strikethrough
     local indicator = "~~"
 
-    local ret = check_markdown_syntax(pattern, { location = opts.location })
+    local ret = check_markdown_syntax(pattern, { location = locopts })
     if ret == true then
-        M.delete_format(pattern, { location = opts.location, move_cursor = opts.move_cursor })
+        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(indicator, { location = opts.location, move_cursor = opts.move_cursor })
+        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor })
     end
 end
 
@@ -151,14 +156,15 @@ end
 function M.inline_code_toggle(opts)
     opts = opts or {}
 
+    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').inline_code
     local indicator = "`"
 
-    local ret = check_markdown_syntax(pattern, { location = opts.location })
+    local ret = check_markdown_syntax(pattern, { location = locopts })
     if ret == true then
-        M.delete_format(pattern, { location = opts.location, move_cursor = opts.move_cursor })
+        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(indicator, { location = opts.location, move_cursor = opts.move_cursor })
+        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor })
     end
 end
 
@@ -167,14 +173,15 @@ end
 function M.autolink_toggle(opts)
     opts = opts or {}
 
+    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').autolink
     local indicator = "<>"
 
-    local ret = check_markdown_syntax(pattern, { location = opts.location })
+    local ret = check_markdown_syntax(pattern, { location = locopts })
     if ret == true then
-        M.delete_format(pattern, { location = opts.location, move_cursor = opts.move_cursor })
+        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(indicator, { location = opts.location, move_cursor = opts.move_cursor, split_fi = true })
+        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor, split_fi = true })
     end
 end
 
