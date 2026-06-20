@@ -414,7 +414,7 @@ T['statistics()'] = function()
 
     local ret = child.lua([[ return require('mdnotes').statistics({ silent = true }) ]])
 
-    if vim.fn.has("win32") then
+    if vim.fn.has("win32") == 1 then
         eq(ret, {
             bytes = 37, -- 37 on Windows, 33 on Linux
             chars = 37, -- 37 on Windows, 33 on Linux
