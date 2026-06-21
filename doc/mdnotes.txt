@@ -1136,7 +1136,18 @@ formatting.delete_format({pattern}, {opts})		*mdnotes.formatting.delete_format()
     Used internall for removing format indicators from text.
 
     Parameters: ~
-    • {pattern}  (`MdnPattern?`) Markdown format indicator
+    • {pattern}  (`MdnPattern?`)
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`)
+		inline text location
+              • {move_cursor} (`boolean?`, default `true`)
+		move the cursor to the position of the deleted text
+
+formatting.toggle({pattern},{indicator},{opts})		*mdnotes.formatting.toggle()*
+
+    Parameters: ~
+    • {pattern}  (`MdnPattern?`)
+    • {pattern}  (`MdnFormatIndicators?`)
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
@@ -2358,6 +2369,7 @@ MdnFormattingOpts 					*mdnotes.MdnFormattingOpts*
     Fields: ~
     • {location} (`MdnInLineLocation?`)
     • {move_cursor} (`boolean?`) Move cursor to the specified location
+    • {split_fi} (`boolean`?) Split formatting indicator
 
 MdnListContent						 *mdnotes.MdnListContent*
 
@@ -2369,13 +2381,6 @@ MdnListContent						 *mdnotes.MdnListContent*
     • {separator} (`string`) List item separator, only in ordered lists
     • {text} (`string`) List item text
     • {type} (`'"ordered"'|'"unordered"'`)
-
-MdnInsertFormattingOpts					 *mdnotes.MdnInsertFormattingOpts*
-
-    Options for |mdnotes.formatting.insert_format()|.
-
-    Fields: ~
-    • {split_fi} (`boolean`?) Split formatting indicator
 
 MdnInlineLinkData 					*mdnotes.MdnInlineLinkData*
 

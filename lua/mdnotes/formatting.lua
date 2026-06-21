@@ -15,6 +15,7 @@ local M = {}
 ---@class MdnFormattingOpts
 ---@field location MdnInLineLocation?
 ---@field move_cursor boolean?
+---@field split_fi boolean? Split formatting indicator
 
 ---@class MdnListContent
 ---@field indent string Indent of list item
@@ -25,24 +26,20 @@ local M = {}
 
 local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
 
----@class MdnInsertFormatOpts: MdnFormattingOpts
----@field split_fi boolean? Split formatting indicator
-
 ---Insert a Markdown format
 ---@param format_char MdnFormatIndicators
----@param opts MdnInsertFormatOpts?
+---@param opts MdnFormattingOpts?
 function M.insert_format(format_char, opts)
     opts = opts or {}
     local split_fi = opts.split_fi or false
     local move_cursor = opts.move_cursor ~= false
-    local locopts = opts.location or {}
 
     vim.validate("split_fi", split_fi, "boolean")
     vim.validate("format_char", format_char, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
 
     if split_fi == nil then split_fi = false end
-    local txtdata = require('mdnotes').get_text({ location = locopts })
+    local txtdata = require('mdnotes').get_text({ location = opts.location })
     local fi1, fi2 = "", ""
 
     if split_fi == true then
@@ -71,16 +68,15 @@ end
 
 ---Check current line position for text in a Markdown format
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
----@param opts {location: MdnInLineLocation?, move_cursor: boolean?}?
+---@param opts MdnFormattingOpts?
 function M.delete_format(pattern, opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local move_cursor = opts.move_cursor ~= false
     vim.validate("pattern", pattern, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
 
-    local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = locopts})
+    local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = opts.location})
     local line = vim.api.nvim_buf_get_lines(txtdata.buffer, txtdata.lnum - 1, txtdata.lnum, false)[1]
 
     -- Find the character count change before the cursor
@@ -101,20 +97,29 @@ function M.delete_format(pattern, opts)
 end
 
 ---Toggle the emphasis Markdown formatting
+---@param pattern MdnPattern
+---@param indicator MdnFormatIndicators
+---@param opts MdnFormattingOpts?
+function M.toggle(pattern, indicator, opts)
+    opts = opts or {}
+
+    local ret = check_markdown_syntax(pattern, { location = opts.location })
+    if ret == true then
+        M.delete_format(pattern, { location = opts.location, move_cursor = opts.move_cursor })
+    elseif ret == false then
+        M.insert_format(indicator, { location = opts.location, move_cursor = opts.move_cursor, split_fi = opts.split_fi })
+    end
+end
+
+---Toggle the emphasis Markdown formatting
 ---@param opts MdnFormattingOpts?
 function M.emphasis_toggle(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').emphasis
     local indicator = require('mdnotes').config.emphasis_format
 
-    local ret = check_markdown_syntax(pattern, { location = locopts })
-    if ret == true then
-        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
-    elseif ret == false then
-        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor })
-    end
+    M.toggle(pattern, indicator, opts)
 end
 
 ---Toggle the strong Markdown formatting
@@ -122,16 +127,10 @@ end
 function M.strong_toggle(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').strong
     local indicator = require('mdnotes').config.strong_format
 
-    local ret = check_markdown_syntax(pattern, { location = locopts })
-    if ret == true then
-        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
-    elseif ret == false then
-        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor })
-    end
+    M.toggle(pattern, indicator, opts)
 end
 
 ---Toggle the strikethrough Markdown formatting
@@ -139,16 +138,10 @@ end
 function M.strikethrough_toggle(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').strikethrough
     local indicator = "~~"
 
-    local ret = check_markdown_syntax(pattern, { location = locopts })
-    if ret == true then
-        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
-    elseif ret == false then
-        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor })
-    end
+    M.toggle(pattern, indicator, opts)
 end
 
 ---Toggle the inline code Markdown formatting
@@ -156,16 +149,10 @@ end
 function M.inline_code_toggle(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').inline_code
     local indicator = "`"
 
-    local ret = check_markdown_syntax(pattern, { location = locopts })
-    if ret == true then
-        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
-    elseif ret == false then
-        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor })
-    end
+    M.toggle(pattern, indicator, opts)
 end
 
 ---Toggle the autolink Markdown formatting
@@ -173,16 +160,11 @@ end
 function M.autolink_toggle(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local pattern = require('mdnotes.patterns').autolink
     local indicator = "<>"
+    opts.split_fi = true
 
-    local ret = check_markdown_syntax(pattern, { location = locopts })
-    if ret == true then
-        M.delete_format(pattern, { location = locopts, move_cursor = opts.move_cursor })
-    elseif ret == false then
-        M.insert_format(indicator, { location = locopts, move_cursor = opts.move_cursor, split_fi = true })
-    end
+    M.toggle(pattern, indicator, opts)
 end
 
 ---Get a consistent table containing all data on a list item whether it is ordered or unordered

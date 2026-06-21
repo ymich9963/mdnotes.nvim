@@ -223,8 +223,7 @@ function M.insert(opts)
     if M.check_assets_path() == false then return end
 
     opts = opts or {}
-    local locopts = opts.location or {}
-    local txtdata = require('mdnotes').get_text({ location = locopts }) or {}
+    local txtdata = require('mdnotes').get_text({ location = opts.location }) or {}
     local asset_il = M.get_asset_inline_link({ process_file = opts.process_file, file_path = opts.file_path })
     if asset_il == nil then
         -- Errors already outputted
@@ -396,11 +395,10 @@ end
 function M.download_website_html(opts)
     opts = opts or {}
     local uri = opts.uri
-    local locopts = opts.location or {}
 
     local mdn_il = require('mdnotes.inline_link')
     if uri == nil then
-        uri = (mdn_il.parse({ location = locopts })).uri
+        uri = (mdn_il.parse({ location = opts.location })).uri
     end
 
     vim.validate("uri", uri, "string")
@@ -460,11 +458,10 @@ function M.delete(opts)
     vim.validate("skip_input", skip_input, "boolean")
 
     local mdn_il = require('mdnotes.inline_link')
-    local locopts = opts.location or {}
 
     local ildata
     if uri == nil then
-        ildata = mdn_il.parse({ location = locopts, keep_pointy_brackets = false }) or {}
+        ildata = mdn_il.parse({ location = opts.location, keep_pointy_brackets = false }) or {}
         uri = ildata.uri
         if uri == nil then return false, nil end
     end
