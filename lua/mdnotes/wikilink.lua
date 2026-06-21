@@ -25,7 +25,6 @@ function M.parse(opts)
     opts = opts or {}
 
     local wikilink = opts.wikilink
-    local locopts = opts.location or {}
 
     vim.validate("wikilink", wikilink, { "string", "nil" })
 
@@ -34,9 +33,9 @@ function M.parse(opts)
     local txtdata = {}
 
     -- Overwrite if location is given
-    if not vim.tbl_isempty(locopts) or wikilink == nil then
-        if not check_markdown_syntax(mdn_patterns.wikilink, {location = locopts}) then return nil end
-        txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.wikilink, { location = locopts })
+    if opts.location ~= nil or wikilink == nil then
+        if not check_markdown_syntax(mdn_patterns.wikilink, {location = opts.location}) then return nil end
+        txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.wikilink, { location = opts.location })
         wikilink = txtdata.text
     else
         _, wikilink, _ = wikilink:match(mdn_patterns.wikilink)
@@ -64,11 +63,10 @@ function M.follow(opts)
 
     opts = opts or {}
     local wikilink = opts.wikilink
-    local locopts = opts.location or {}
     local hor = opts.hor or false
     local vert = opts.vert or false
 
-    local wldata = M.parse({ wikilink = wikilink, location = locopts })
+    local wldata = M.parse({ wikilink = wikilink, location = opts.location })
     if wldata == nil then
         vim.notify("Mdn: No WikiLink under the cursor was detected", vim.log.levels.ERROR)
         return
@@ -117,9 +115,8 @@ function M.show_references(opts)
     end
 
     opts = opts or {}
-    local locopts = opts.location or {}
 
-    local wldata = M.parse({ location = locopts })
+    local wldata = M.parse({ location = opts.location })
 
     if wldata == nil then
         -- If wikilink pattern isn't detected use current file name
@@ -167,7 +164,6 @@ function M.rename_references(opts)
 
     opts = opts or {}
     local new_name = opts.new_name
-    local locopts = opts.location or {}
 
     vim.validate("new_name", new_name, { "string", "nil" })
 
@@ -179,7 +175,7 @@ function M.rename_references(opts)
     local prompt = "Rename WikiLink and file: "
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
-    local wldata = M.parse({ location = locopts })
+    local wldata = M.parse({ location = opts.location })
 
     if wldata == nil then
         prompt = "Rename current buffer: "
@@ -329,9 +325,8 @@ end
 function M.create(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local insert_format = require('mdnotes.formatting').insert_format
-    insert_format("[[]]", { split_fi = true, location = locopts, move_cursor = opts.move_cursor })
+    insert_format("[[]]", { split_fi = true, location = opts.location, move_cursor = opts.move_cursor })
 end
 
 ---Delete the current WikiLink and the associated file
@@ -341,7 +336,6 @@ function M.delete(opts)
     opts = opts or {}
 
     local skip_input = opts.skip_input or false
-    local locopts = opts.location or {}
 
     local found_file = ""
     local deleted = false
@@ -349,7 +343,7 @@ function M.delete(opts)
     local mdn_wikilink_pattern = require('mdnotes.patterns').wikilink
     local delete_format = require('mdnotes.formatting').delete_format
 
-    local wldata = M.parse({ location = locopts })
+    local wldata = M.parse({ location = opts.location })
     if wldata == nil then return false, "" end
 
     -- Append .md to guarantee a file name
@@ -391,10 +385,9 @@ end
 function M.normalize(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local move_cursor = opts.move_cursor ~= false
 
-    local wldata = M.parse({ location = locopts })
+    local wldata = M.parse({ location = opts.location })
     if wldata == nil then return end
 
     local new_wikilink = vim.fs.normalize(wldata.wikilink_nofrag)

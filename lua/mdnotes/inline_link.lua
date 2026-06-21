@@ -22,7 +22,6 @@ function M.parse(opts)
 
     local inline_link = opts.inline_link
     local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
-    local locopts = opts.location or {}
 
     vim.validate("inline_link", inline_link, { "string", "nil" })
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
@@ -32,9 +31,9 @@ function M.parse(opts)
     local txtdata = {}
 
     -- Overwrite if location is given
-    if not vim.tbl_isempty(locopts) or inline_link == nil then
-        if not check_markdown_syntax(il_pattern, { location = locopts }) then return nil end
-        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = locopts })
+    if opts.location ~= nil or inline_link == nil then
+        if not check_markdown_syntax(il_pattern, { location = opts.location }) then return nil end
+        txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = opts.location })
         inline_link = txtdata.text or ""
     end
 
@@ -186,7 +185,6 @@ end
 function M.open(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
     local inline_link = opts.inline_link
 
     vim.validate("inline_link", inline_link, {"string", "nil"})
@@ -194,8 +192,8 @@ function M.open(opts)
     local ildata
 
     -- Overwrite if location is given
-    if not vim.tbl_isempty(locopts) or inline_link == nil then
-        ildata = M.parse({ keep_pointy_brackets = false, location = locopts })
+    if opts.location ~= nil or inline_link == nil then
+        ildata = M.parse({ keep_pointy_brackets = false, location = opts.location })
     else
         ildata = M.parse({ inline_link = inline_link, keep_pointy_brackets = false })
     end
@@ -276,7 +274,6 @@ function M.insert(opts)
     opts = opts or {}
     local uri = opts.uri or vim.fn.getreg('+')
     local move_cursor = opts.move_cursor ~= false
-    local locopts = opts.location or {}
 
     if uri == '' then
         vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
@@ -284,7 +281,7 @@ function M.insert(opts)
     end
 
     local cur_col = vim.fn.col('.')
-    local txtdata = require('mdnotes').get_text({ location = locopts })
+    local txtdata = require('mdnotes').get_text({ location = opts.location })
 
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. uri .. ')'})
@@ -301,9 +298,8 @@ function M.delete(opts)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
-    local locopts = opts.location or {}
     local store = opts.store or false
-    local ildata = M.parse({ location = locopts })
+    local ildata = M.parse({ location = opts.location })
 
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
@@ -323,13 +319,12 @@ end
 ---@param opts {uri: string?, location: MdnInLineLocation?}?
 function M.toggle(opts)
     opts = opts or {}
-    local locopts = opts.location or {}
 
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
-    if check_markdown_syntax(require("mdnotes.patterns").inline_link, { location = locopts }) then
-        M.delete({ location = locopts, store = true })
+    if check_markdown_syntax(require("mdnotes.patterns").inline_link, { location = opts.location }) then
+        M.delete({ location = opts.location, store = true })
     else
-        M.insert({ uri = opts.uri, location = locopts })
+        M.insert({ uri = opts.uri, location = opts.location })
     end
 end
 
@@ -339,9 +334,8 @@ function M.relink(opts)
     opts = opts or {}
     local new_link = opts.new_link
     local move_cursor = opts.move_cursor ~= false
-    local locopts = opts.location or {}
 
-    local ildata = M.parse({ location = locopts })
+    local ildata = M.parse({ location = opts.location })
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
     local user_input
@@ -373,9 +367,8 @@ function M.rename(opts)
     opts = opts or {}
     local new_name = opts.new_name
     local move_cursor = opts.move_cursor ~= false
-    local locopts = opts.location or {}
 
-    local ildata = M.parse({ location = locopts })
+    local ildata = M.parse({ location = opts.location })
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
 
     local user_input
@@ -407,8 +400,7 @@ function M.normalize(opts)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
-    local locopts = opts.location or {}
-    local ildata = M.parse({ location = locopts })
+    local ildata = M.parse({ location = opts.location })
     local new_uri = ""
 
     if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
@@ -435,8 +427,7 @@ function M.convert_fragment_to_gfm(opts)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
-    local locopts = opts.location or {}
-    local ildata = M.parse({ location = locopts })
+    local ildata = M.parse({ location = opts.location })
     local new_fragment = ""
     local convert_text_to_gfm = require('mdnotes').convert_text_to_gfm
 
@@ -469,8 +460,7 @@ function M.validate(opts)
     opts = opts or {}
 
     local silent = opts.silent or false
-    local locopts = opts.location or {}
-    local ildata = M.parse({ location = locopts })
+    local ildata = M.parse({ location = opts.location })
 
     if ildata == nil or ildata.text == nil or ildata.uri == nil then
         if silent == false then
