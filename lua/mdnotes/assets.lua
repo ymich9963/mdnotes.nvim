@@ -285,12 +285,11 @@ function M.get_unused_assets(opts)
     local silent = opts.silent or false
     vim.validate("silent", silent, "boolean")
 
-    local cwd = require('mdnotes').cwd
-    local assets_path = vim.fs.joinpath(cwd, M.get_assets_folder_name())
+    local assets_list = M.get_asset_list()
     local unused_assets = {}
-    for name, _ in vim.fs.dir(assets_path) do
-        if vim.tbl_contains(M.get_used_assets({silent = true}), name) == false then
-            table.insert(unused_assets, name)
+    for _, asset in ipairs(assets_list) do
+        if vim.tbl_contains(M.get_used_assets({silent = true}), asset) == false then
+            table.insert(unused_assets, asset)
         end
     end
 
