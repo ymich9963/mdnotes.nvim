@@ -863,16 +863,6 @@ get_fragments_from_headings({bufnr}) 			*mdnotes.get_fragments_from_headings()*
     Return: ~
     • (`MdnFragments`)
 
-convert_fragments_to_gfm_style({fragments}) 		*mdnotes.convert_fragments_to_gfm_style()*
-
-    Convert MdnFragments entries to GFM style and return as table.
-
-    Parameters: ~
-    • {fragments}  (`MdnFragments`) Fragments table.
-
-    Return: ~
-    • (`MdnFragmentsGfm`)
-
 find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
 
     Find the fragment in the |mdn-buf_fragments| table of the specified

@@ -359,25 +359,6 @@ T['find_fragment_in_buf_fragments()'] = function()
     eq(ret, "Heading 1")
 end
 
-T['convert_fragments_to_gfm_style()'] = function()
-    -- Setup test buffer
-    local lines = {
-        "# Heading 1",
-        "Text here",
-        "",
-        "## Heading 2",
-        "Text here",
-    }
-    create_md_buffer(child, lines)
-
-    local ret = child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    local fragments = require('mdnotes').get_fragments_from_buf_headings(cur_buf)
-    return require('mdnotes').convert_fragments_to_gfm_style(fragments)
-    ]])
-    eq(ret, {"heading-1", "heading-2"})
-end
-
 T['scan_lines()'] = function()
     local lines = {
         "[test](link)",

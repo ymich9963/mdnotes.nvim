@@ -605,14 +605,22 @@ function M.populate_buf_fragments(bufnr)
     if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
 
     local fragments = M.get_fragments_from_buf_headings(bufnr)
+
+    -- Convert to fragments to GFM style
+    local gfm_fragments = {}
+    for _, fragment in ipairs(fragments) do
+        table.insert(gfm_fragments, M.convert_text_to_gfm(fragment.text))
+    end
+
     local buf_exists = false
     for _,v in ipairs(M.buf_fragments) do
         if v.buf_num == bufnr then
             buf_exists = true
             -- Check if the fragments have changed
             if v.parsed.fragments ~= fragments then
+                -- and update them
                 v.parsed.fragments = fragments
-                v.parsed.gfm = M.convert_fragments_to_gfm_style(fragments)
+                v.parsed.gfm = gfm_fragments
             end
             break
         end
@@ -622,7 +630,7 @@ function M.populate_buf_fragments(bufnr)
         buf_num = bufnr,
         parsed = {
             fragments = fragments,
-            gfm = M.convert_fragments_to_gfm_style(fragments)
+            gfm = gfm_fragments
         }
     }
 
@@ -652,21 +660,9 @@ function M.get_fragments_from_buf_headings(bufnr)
     return fragments
 end
 
----Convert MdnFragment table entries to GFM style and return as table
----@param fragments MdnFragments
----@return MdnFragmentsGfm
-function M.convert_fragments_to_gfm_style(fragments)
-    local gfm_fragments = {}
-    for _, fragment in ipairs(fragments) do
-        table.insert(gfm_fragments, M.convert_text_to_gfm(fragment.text))
-    end
-
-    return gfm_fragments
-end
-
 ---Find the fragment in the buf_fragments table of the specified buffer
 ---@param bufnr integer Buffer number
----@param fragment string GFM-style fragment
+---@param fragment string Fragment
 ---@return string?
 function M.find_fragment_in_buf_fragments(bufnr, fragment)
     local parsed_fragments
@@ -677,27 +673,25 @@ function M.find_fragment_in_buf_fragments(bufnr, fragment)
         end
     end
 
-    if parsed_fragments == nil then return nil end
-
-    local text
+    if parsed_fragments == nil then
+        return nil
+    end
 
     -- Check if it is a GFM style fragment
     for i, v in ipairs(parsed_fragments.gfm) do
         if v == fragment then
-            text = parsed_fragments.fragments[i].text
-            break
+            return parsed_fragments.fragments[i].text
         end
     end
 
     -- Check if it is an as-is fragment
     for _, v in ipairs(parsed_fragments.fragments) do
         if v.text == fragment then
-            text = v.text
-            break
+            return v.text
         end
     end
 
-    return text
+    return nil
 end
 
 ---Get the buffer number from the buffer list using the buffer name 
