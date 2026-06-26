@@ -216,7 +216,7 @@ function M.rename_references(opts)
     -- Change all [[WikiLink]] text to be the new name
     vim.cmd.wall({bang = true, mods = {silent = true}})
     mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
-    vim.cmd.cdo({args = {('s/%s/%s/'):format("\\[\\[" .. wldata.wikilink_nofrag, "\\[\\[" .. new_name)}, mods = {emsg_silent = true}})
+    vim.cmd.cdo({args = {('s/%s/%s/'):format("\\[\\[" .. wldata.wikilink_nofrag, "\\[\\[" .. new_name)}, mods = {emsg_silent = true, noautocmd = true}})
     vim.cmd.wall({bang = true, mods = {silent = true}})
 
     -- Get the buffer number of the renamed file if it is in the buffer list
@@ -282,7 +282,7 @@ function M.undo_rename()
 
     vim.cmd.wall({bang = true, mods = {silent = true}})
     mdn_grep("\\[\\[".. newest_filename .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
-    vim.cmd.cdo({args = {('s/%s/%s/'):format(newest_filename, newest_old_filename)}, mods = {emsg_silent = true}})
+    vim.cmd.cdo({args = {('s/%s/%s/'):format(newest_filename, newest_old_filename)}, mods = {emsg_silent = true, noautocmd = true}})
     vim.cmd.wall({bang = true, mods = {silent = true}})
 
     local ret, err = uv.fs_rename(
