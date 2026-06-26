@@ -375,7 +375,7 @@ function M.delete(opts)
         vim.notify("Mdn: WikiLink file not found so proceeding to remove text only", vim.log.levels.WARN)
     end
 
-    delete_format(mdn_wikilink_pattern, { location = locopts, move_cursor = opts.move_cursor })
+    delete_format(mdn_wikilink_pattern, { location = opts.location, move_cursor = opts.move_cursor })
 
     return deleted, wldata.wikilink_nofrag
 end
