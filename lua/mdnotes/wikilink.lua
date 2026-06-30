@@ -77,7 +77,7 @@ function M.follow(opts)
     if wldata.wikilink_nofrag ~= "" then
         local path = vim.fs.joinpath(cwd, wldata.wikilink_nofrag)
 
-        if path:sub(-3) ~= ".md" then
+        if not vim.endswith(path, ".md") then
             path = path .. ".md"
         end
 
@@ -187,7 +187,7 @@ function M.rename_references(opts)
     end
 
     -- Remove the file extension for this function
-    if wldata.wikilink_nofrag:sub(-3) == ".md" then
+    if vim.endswith(wldata.wikilink_nofrag, ".md") then
         wldata.wikilink_nofrag = wldata.wikilink_nofrag:sub(1,-4)
     end
 
@@ -347,7 +347,7 @@ function M.delete(opts)
     if wldata == nil then return false, "" end
 
     -- Append .md to guarantee a file name
-    if wldata.wikilink_nofrag:sub(-3) ~= ".md" then
+    if not vim.endswith(wldata.wikilink_nofrag, ".md") then
         found_file = wldata.wikilink_nofrag .. ".md"
     else
         found_file = wldata.wikilink_nofrag

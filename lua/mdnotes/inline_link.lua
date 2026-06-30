@@ -209,7 +209,7 @@ function M.open(opts)
     if ferror ~= nil and ferror ~= -1 then return fragment .. ", " .. ferror end
 
     -- Check if the file exists and is a Markdown file
-    if path ~= "" and uv.fs_stat(path) and path:sub(-3) == ".md" then
+    if path ~= "" and uv.fs_stat(path) and vim.endswith(path, ".md") then
         require('mdnotes').open_buf(path)
         if fragment ~= "" then
             -- Navigate to fragment
