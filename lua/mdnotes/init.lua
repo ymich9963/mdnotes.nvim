@@ -333,13 +333,14 @@ function M.get_text(opts)
     local col_end = locopts.col_end or vim.fn.getpos("'>")[3]
     local cur_col = locopts.cur_col or vim.fn.col('.')
 
-    -- If last column is selected then no text can be added
-    local last_col = vim.fn.col('$')
-    if col_end == last_col then
-        col_end = last_col - 1
+    local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
+
+    -- Limit the end column value
+    -- Visual mode and grep can give end_col values after the line ending
+    if col_end > #line then
+        col_end = #line
     end
 
-    local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
     local text = line:sub(col_start, col_end)
 
     -- This would happen by default when executing in Normal mode

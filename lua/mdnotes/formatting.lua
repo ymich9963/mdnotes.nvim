@@ -50,19 +50,12 @@ function M.insert_format(format_char, opts)
         fi2 = format_char
     end
 
-    -- Limit the end column value
-    -- Visual mode and grep can give end_col values after the line ending
-    local line_len = #(vim.api.nvim_buf_get_lines(txtdata.buffer, txtdata.lnum - 1, txtdata.lnum, false)[1])
-    if txtdata.col_end > line_len then
-        txtdata.col_end = line_len
-    end
-
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {fi1 .. txtdata.text .. fi2})
 
     if move_cursor == true then
         vim.cmd.buffer(txtdata.buffer)
-        vim.fn.cursor({txtdata.lnum, vim.fn.getcurpos()[3] + #fi1})
+        vim.fn.cursor({txtdata.lnum, vim.fn.col('.') + #fi1})
     end
 end
 

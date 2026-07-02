@@ -277,7 +277,6 @@ function M.insert(opts)
         return
     end
 
-    local cur_col = vim.fn.col('.')
     local txtdata = require('mdnotes').get_text({ location = opts.location })
 
     -- Set the line and cursor position
@@ -285,7 +284,7 @@ function M.insert(opts)
 
     if move_cursor == true then
         vim.cmd.buffer(txtdata.buffer)
-        vim.fn.cursor({txtdata.lnum, cur_col + 1})
+        vim.fn.cursor({txtdata.lnum, vim.fn.col('.') + 1})
     end
 end
 
