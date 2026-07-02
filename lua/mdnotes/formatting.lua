@@ -266,14 +266,14 @@ function M.task_list_toggle(opts)
 end
 
 ---Check if the list surrounding the origin line is valid and return its line numbers
----@param opts {same_indent: boolean?, same_indicator: boolean?, search: MdnSearchOpts?, outliner_list: boolean?}?
+---@param opts {same_indent: boolean?, same_marker: boolean?, search: MdnSearchOpts?, outliner_list: boolean?}?
 ---@return MdnSearchResult
 function M.check_list_valid(opts)
     opts = opts or {}
 
     local outliner_list = opts.outliner_list or false
     local same_indent = opts.same_indent or false
-    local same_indicator = opts.same_indicator ~= false
+    local same_marker = opts.same_marker ~= false
     local search_opts = opts.search or {}
     local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
@@ -320,7 +320,7 @@ function M.check_list_valid(opts)
         if cur_line == "" then break end
         lcontent = M.resolve_list_content(cur_line)
         if lcontent == nil then break end
-        if same_indicator == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
+        if same_marker == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
             break
         end
         if same_indent == true and lcontent.indent ~= detected_indent  then
@@ -335,7 +335,7 @@ function M.check_list_valid(opts)
         if cur_line == "" then break end
         lcontent = M.resolve_list_content(cur_line)
         if lcontent == nil then break end
-        if same_indicator == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
+        if same_marker == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
             break
         end
         if same_indent == true and lcontent.indent ~= detected_indent  then
@@ -372,7 +372,7 @@ function M.ordered_list_renumber(opts)
 
     vim.validate("silent", silent, "boolean")
 
-    local lsearch = M.check_list_valid({ search = search_opts, same_indicator = false })
+    local lsearch = M.check_list_valid({ search = search_opts, same_marker = false })
     if lsearch.valid == false then
         if silent == false then
             vim.notify("Mdn: Unable to detect a valid list", vim.log.levels.ERROR)

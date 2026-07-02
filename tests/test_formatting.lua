@@ -339,7 +339,7 @@ T['check_list_valid()'] = function()
     })
 
     child.fn.cursor(10,1)
-    ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ same_indicator = false })]])
+    ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ same_marker = false })]])
     eq(ret, {
         valid = true,
         buffer = 2,
