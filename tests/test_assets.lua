@@ -131,7 +131,7 @@ T['download_website_html()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     child.lua([[
     require('mdnotes').set_cwd()
-    return require('mdnotes.assets').download_website_html({ uri = "https://neovim.io/" })
+    return require('mdnotes.assets').download_website_html({ destination = "https://neovim.io/" })
     ]])
     eq(
         vim.fs.basename(vim.fs.find("https_neovim_io_.html", { path = './tests/test-data/files/assets' })[1]),
@@ -154,7 +154,7 @@ T['delete()'] = function()
     require('mdnotes').set_cwd()
     return {
         require('mdnotes.assets').delete({
-        uri = "assets/asset4.txt",
+        destination = "assets/asset4.txt",
         skip_input = true })
     }]])
     eq(ret[1] , true)

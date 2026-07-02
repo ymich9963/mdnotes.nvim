@@ -58,7 +58,7 @@ KEYMAPS            	             			*mdnotes-keymaps*
 The default keymaps are listed below and they can be enabled using 
 |mdnotes-default_keymaps|. They follow a `<leader>m` prefix.
 >lua
-    vim.keymap.set('n', '<leader>mgx', ':Mdn inline_link open<CR>', { buffer = true, desc = "Open inline link URI under cursor" })
+    vim.keymap.set('n', '<leader>mgx', ':Mdn inline_link open<CR>', { buffer = true, desc = "Open inline link destination under cursor" })
     vim.keymap.set('n', '<leader>mgf', ':Mdn wikilink follow<CR>', { buffer = true, desc = "Open markdown file from WikiLink" })
     vim.keymap.set('n', '<leader>mgF', ':Mdn wikilink follow_hor<CR>', { buffer = true, desc = "Open markdown file from WikiLink in a horizontal split" })
     vim.keymap.set('n', '<leader>mgrr', ':Mdn wikilink show_references<CR>', { buffer = true, desc = "Show references of link or buffer" })
@@ -203,7 +203,7 @@ date_format = `string`	 				*mdnotes-date_format*
     Format of the outputed date using |Mdn-journal_insert_entry|. See |strftime()| for
     acceptable formats.
 
-prefer_lsp = `boolean`				*mdnotes-prefer_lsp*
+prefer_lsp = `boolean`					*mdnotes-prefer_lsp*
 
     Choose whether to prefer to use the LSP functions instead of the `mdnotes`
     functions, when an LSP server is detected in the current Markdown buffer.
@@ -219,7 +219,7 @@ default_keymaps = `boolean`				*mdnotes-default_keymaps*
 
     Enable or disable the default keymaps listed in |mdnotes-keymaps|.
 
-autocmds = `boolean` or `table`			*mdnotes-autocmds*
+autocmds = `boolean` or `table`				*mdnotes-autocmds*
 
     Enable or disable the plugin's autocmds set in `plugin/mdnotes.lua`.
     Can be a boolean true/false for enabling or disabling all of them.
@@ -1062,8 +1062,8 @@ assets.download_website_html({opts})			*mdnotes.assets.download_website_html()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {uri} (`string?`)
-		URI with a valid URL to download the HTML from
+              • {destination} (`string?`)
+		destination with a valid URL to download the HTML from
               • {location} (`MdnInLineLocation?`)
 		inline text location
 
@@ -1078,8 +1078,8 @@ assets.delete()						*mdnotes.assets.delete()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {uri} (`string?`)
-		specify URI to delete
+              • {destination} (`string?`)
+		specify destination to delete
               • {skip_input} (`boolean?`, default `false`)
 		skip the input prompt
               • {location} (`MdnInLineLocation?`)
@@ -1326,14 +1326,9 @@ history.clear()						*mdnotes.history.clear()*
 
     Clear the |mdnotes.buf_history| table.
 
-inline_link.uri_website_tbl 				*mdnotes.inline_link.uri_website_tbl*
-
-    Contains the strings `https` and `http` which are used to check if the URI
-    is a website.
-
 inline_link.parse({opts})				*mdnotes.inline_link.parse()*
 
-    Get the inline link data such as the image designator, link text, link URI/destination,
+    Get the inline link data such as the image designator, link text, link destination/destination,
     and the start and end columns.
 
     Parameters: ~
@@ -1341,7 +1336,7 @@ inline_link.parse({opts})				*mdnotes.inline_link.parse()*
               • {inline_link} (`string?`)
 		specify an inline link to parse
               • {keep_pointy_brackets} (`boolean?`, default `true`)
-		whether to keep `<` and `>` surrounding a URI with spaces
+		whether to keep `<` and `>` surrounding a destination with spaces
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to parse
 	
@@ -1351,7 +1346,7 @@ inline_link.parse({opts})				*mdnotes.inline_link.parse()*
     • (`MdnInLineLinkData?`): Parsed inline link on success, `nil` on
       failure.
 
-inline_link.get_il_from_obj({ildata})				*mdnotes.inline_link.get_il_from_obj()*
+inline_link.get_il_from_obj({ildata})			*mdnotes.inline_link.get_il_from_obj()*
 
     Get a full inline link string from the given |mdnotes.MdnInlineLinkData|
     object.
@@ -1362,13 +1357,14 @@ inline_link.get_il_from_obj({ildata})				*mdnotes.inline_link.get_il_from_obj()*
     Return: ~
     • (`string`)
 
-inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_path_from_uri()*
+							*mdnotes.inline_link.get_path_from_destination*
+inline_link.get_path_from_destination({destination}, {check_valid}, {opts})
 
-    Get the path from the URI and optionally check if it links to a valid
+    Get the path from the destination and optionally check if it links to a valid
     path.
 
     Parameters: ~
-    • {uri}  (`string?`) URI
+    • {destination}  (`string?`) Inline link destination
     • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
     • {opts}  (`table?`) Optional parameters (unused)
 	
@@ -1380,14 +1376,14 @@ inline_link.get_path_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link
     Error codes:
     • `-1` : is URL
     • `-2` : file not found
+							*mdnotes.inline_link.get_fragment_from_destination()*
+inline_link.get_fragment_from_destination({destination}, {check_valid}, {opts})
 
-inline_link.get_fragment_from_uri({uri}, {check_valid}, {opts})	*mdnotes.inline_link.get_fragment_from_uri()*
-
-    Get the fragment from the URI and optionally check if it is a valid
+    Get the fragment from the destination and optionally check if it is a valid
     fragment.
 
     Parameters: ~
-    • {uri}  (`string?`) URI
+    • {destination}  (`string?`) destination
     • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
     • {opts}  (`table?`) Optional parameters (unused)
 	
@@ -1407,7 +1403,7 @@ inline_link.open({opts})				*mdnotes.inline_link.open()*
     Open inline links in the appropriate programme.
 
     Parameters: ~
-    • {uri}  (`string?`) URI
+    • {destination}  (`string?`) destination
     • {location}  (`MdnInLineLocation?`, defaults to current location) Location of the inline link
 	
     Return: ~
@@ -1415,8 +1411,8 @@ inline_link.open({opts})				*mdnotes.inline_link.open()*
       |vim.ui.open()| result on programme opening, error string on error,
       `nil` on failed |vim.ui.open()|.
 
-      Uses |mdnotes.inline_link.get_path_from_uri()| and
-      |mdnotes.inline_link.get_fragment_from_uri()| internally so it returns
+      Uses |mdnotes.inline_link.get_path_from_destination()| and
+      |mdnotes.inline_link.get_fragment_from_destination()| internally so it returns
       all their errors except `-1`.
 
 inline_link.is_image({opts}) 				*mdnotes.inline_link.is_image()*
@@ -1459,8 +1455,8 @@ inline_link.insert({opts})				*mdnotes.inline_link.insert()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {uri} (`string?`)
-		URI to insert an inline link for
+              • {destination} (`string?`)
+		destination to insert an inline link for
               • {move_cursor} (`boolean?`, default `true`)
 		place cursor where the new inline link was inserted
               • {location} (`MdnInLineLocation?`, defaults to current location)
@@ -1479,7 +1475,7 @@ inline_link.delete({opts})				*mdnotes.inline_link.delete()*
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to delete
               • {store} (`boolean?`, default `false`)
-		store deleted URI in the |quote+| register
+		store deleted destination in the |quote+| register
 
 inline_link.toggle({opts})				*mdnotes.inline_link-toggle()*
 
@@ -1489,8 +1485,8 @@ inline_link.toggle({opts})				*mdnotes.inline_link-toggle()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {uri} (`string?`)
-		URI to use
+              • {destination} (`string?`)
+		destination to use
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to toggle
 
@@ -1584,7 +1580,7 @@ journal.go_to()						*mdnotes.journal.go_to()*
     Go the journal file defined by |mdnotes-journal_file|. Used in
     |:Mdn-journal|.
 
-journal.insert_entry({opts})					*mdnotes.journal_insert_entry()*
+journal.insert_entry({opts})				*mdnotes.journal_insert_entry()*
 
     Insert a journal entry at the top of the file, which is the current date 
     along with a separator to separate the different entries. Gets used in
@@ -1678,8 +1674,8 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
 
     Return: ~
     • (`MdnTable`)
-
-table.get_table_lines({buffer}, {table_startl}, {table_endl})	*mdnotes.table.get_table_lines()*
+							*mdnotes.table.get_table_lines()*
+table.get_table_lines({buffer}, {table_startl}, {table_endl})
 
     Get the table lines in the specified buffer and line numbers.
 
@@ -1716,7 +1712,8 @@ table.get_column_locations({opts}) 			*mdnotes.table.get_column_locations()*
     Return: ~
     • (`MdnTableColLocs`) Column locations for every cell.
 
-table.convert_contents_to_complex({contents}, {col_locs})	*mdnotes.table.convert_contents_to_complex()*
+							*mdnotes.table.convert_contents_to_complex()*
+table.convert_contents_to_complex({contents}, {col_locs})
 
     Convert the table contents to provide more information (which is why it's
     called complex).
@@ -1772,7 +1769,8 @@ table.column_insert_right({opts}) 			*mdnotes.table.column_insert_righr()*
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
               • {cur_col} (`integer?`, defaults to under the cursor)
 
-table.column_move({contents}, {col_index}, {new_col_index})	*mdnotes.table.column_move()*
+							*mdnotes.table.column_move()*
+table.column_move({contents}, {col_index}, {new_col_index})
 
     Move column of {contents} at {col_index} to {new_col_index}.
 
@@ -2381,15 +2379,15 @@ MdnInlineLinkData 					*mdnotes.MdnInlineLinkData*
     Fields: ~
     • {img_char} (`'"!"'|'""'`) Inline link image character
     • {text} (`string`) Inline link text
-    • {uri} (`string`) Inline link URI or destination
+    • {destination} (`string`) Inline link destination
     • {title} (`string`) Inline link title
 
-MdnPattern 					*mdnotes.MdnPattern*
+MdnPattern 						*mdnotes.MdnPattern*
 
     Alias for a Lua pattern that returns the start and end columns,
     as well as the text.
 
-MdnPatterns 					*mdnotes.MdnPatterns*
+MdnPatterns 						*mdnotes.MdnPatterns*
 
     Patterns used throughout.
 
@@ -2401,9 +2399,9 @@ MdnPatterns 					*mdnotes.MdnPatterns*
     • {strikethrough} (`MdnPattern`) Strikethrough format indicator pattern
     • {inline_code} (`MdnPattern`) Inline code format indicator pattern
     • {autolink} (`MdnPattern`) Autolink format indicator pattern
-    • {text_uri} (`string`) Text and URI from inline link pattern
-    • {uri_title} (`string`) Title from inline link URI
-    • {uri_no_fragment} (`string`) URI only pattern
+    • {text_dest} (`string`) Text and destination from inline link pattern
+    • {dest_title} (`string`) Title from inline link destination
+    • {dest_no_fragment} (`string`) destination only pattern
     • {fragment} (`string`) Fragment only pattern
     • {wikilink_alias} (`string`) WikiLink alias
     • {unordered_list} (`string`) Unordered list pattern
@@ -2411,11 +2409,11 @@ MdnPatterns 					*mdnotes.MdnPatterns*
     • {task} (`string`) Task item pattern
     • {heading} (`string`) Heading pattern
 
-MdnTableCell 					*mdnotes.MdnTableCell*
+MdnTableCell 						*mdnotes.MdnTableCell*
 
     Alias for a `string` type for the cell contents of a table.
 
-MdnTableCellComplex 				*mdnotes.MdnTableCellComplex*
+MdnTableCellComplex 					*mdnotes.MdnTableCellComplex*
 
     More information about each cell.
 
@@ -2425,17 +2423,17 @@ MdnTableCellComplex 				*mdnotes.MdnTableCellComplex*
     • {end_col} (`integer`) Cell end position
     • {lnum} (`integer`) Line in the table
 
-MdnTableContents 				*mdnotes.MdnTableContents*
+MdnTableContents 					*mdnotes.MdnTableContents*
 
     Alias for a `table` with entries of type `table` containing
     |mdnotes.MdnTableCell| entires.
 
-MdnTableContentsComplex				*mdnotes.MdnTableContentsComplex*
+MdnTableContentsComplex					*mdnotes.MdnTableContentsComplex*
 
     Alias for a `table` with entries of type `table` containing
     |mdnotes.MdnTableCellComplex| entires.
 
-MdnTable					*mdnotes.MdnTable*
+MdnTable						*mdnotes.MdnTable*
 
     Table object.
 
@@ -2444,12 +2442,12 @@ MdnTable					*mdnotes.MdnTable*
     Fields: ~
     • {contents} (`MdnTableContents|MdnTableContentsComplex`) Table content
 
-MdnTableColLocs					*mdnotes.MdnTableColLocs*
+MdnTableColLocs						*mdnotes.MdnTableColLocs*
 
     Table column locations. Alias for a `table` with entries of type `table`
     which itself has entries of type `integer`.
 
-MdnToc						*mdnotes.MdnToc*
+MdnToc							*mdnotes.MdnToc*
 
     Table of Contents (ToC) object.
 
@@ -2459,7 +2457,7 @@ MdnToc						*mdnotes.MdnToc*
     • {lines} (`string[]`) ToC lines
     • {depth} (`integer`) Depth of ToC
 
-MdnWikiLinkData					*mdnotes.MdnWikiLinkData*
+MdnWikiLinkData						*mdnotes.MdnWikiLinkData*
 
     Data of a WikiLink.
 
@@ -2471,7 +2469,7 @@ MdnWikiLinkData					*mdnotes.MdnWikiLinkData*
     • {alias} (`string`) WikiLink alias
 
 ==============================================================================
-USING API                             		*mdnotes-using-api*
+USING API                             			*mdnotes-using-api*
 
 To use Lua LSP functionality with the Mdnotes API, you need to place the
 directory in your LSP config. Example for that is below,
@@ -2495,7 +2493,7 @@ directory in your LSP config. Example for that is below,
     })
 <
 
-	                             		*mdnotes-api-examples*
+							*mdnotes-api-examples*
 Some examples are listed below for using the API in different scenarios. If
 you want to use these as functions within the `Mdn` namespace then you would
 add them as a `{command = function}` table in |mdn-user_commands|.
@@ -2649,7 +2647,7 @@ Import a CSV file as a Markdown table,
 <
 
 ==============================================================================
-OUTLINER                                     		*mdnotes-outliner*
+OUTLINER						*mdnotes-outliner*
 
 An Outliner mode is implemented in `mdnotes` that aims to replicate behaviour
 of outliner applications such as Logseq. See the link below for an explanation

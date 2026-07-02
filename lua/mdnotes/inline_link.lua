@@ -4,16 +4,13 @@ local M = {}
 
 local uv = vim.loop or vim.uv
 
----@type table<string> URIs that indicate websites
-M.uri_website_tbl = {"https", "http"}
-
 ---@class MdnInlineLinkData: MdnInLineLocation
 ---@field img_char '"!"'|'""' Inline link image character
 ---@field text string Inline link text
----@field uri string Inline link URI or destination
+---@field destination string Inline link destination
 ---@field title string Inline link title
 
----Get the inline link data such as the image designator, link text, link URI/destination,
+---Get the inline link data such as the image designator, link text, link destination,
 ---and the start and end columns
 ---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
 ---@return MdnInlineLinkData?
@@ -37,15 +34,15 @@ function M.parse(opts)
         inline_link = txtdata.text or ""
     end
 
-    local text, uri = inline_link:match(require("mdnotes.patterns").text_uri)
-    local title = uri:match(require("mdnotes.patterns").uri_title) or ""
+    local text, destination = inline_link:match(require("mdnotes.patterns").text_dest)
+    local title = destination:match(require("mdnotes.patterns").dest_title) or ""
     if title ~= "" then
-        uri = uri:sub(1, #uri - #title - 3) -- 2 quotes and 1 space
+        destination = destination:sub(1, #destination - #title - 3) -- 2 quotes and 1 space
     end
 
-    -- Remove any < or > from uri
+    -- Remove any < or > from destination
     if keep_pointy_brackets == false then
-        uri = uri:gsub("[<>]?", "")
+        destination = destination:gsub("[<>]?", "")
     end
 
     local img_char = ""
@@ -57,7 +54,7 @@ function M.parse(opts)
     return vim.tbl_extend("keep", {
         img_char = img_char,
         text = text,
-        uri = uri,
+        destination = destination,
         title = title,
     }, txtdata)
 end
@@ -68,28 +65,28 @@ end
 function M.get_il_from_obj(ildata)
     if ildata == nil then return "" end
     if ildata.title == nil or ildata.title == "" then
-        return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.uri .. ')'
+        return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.destination .. ')'
     else
-        return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.uri .. ' "' .. ildata.title .. '")'
+        return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.destination .. ' "' .. ildata.title .. '")'
     end
 end
 
----Check and get path from the URI
----@param uri string URI to check
+---Check and get path from the destination
+---@param destination string destination to check
 ---@param check_valid boolean Whether to check if the path is to a valid file or not
 ---@param opts table?
 ---@return string path, integer? error, string? error_text
-function M.get_path_from_uri(uri, check_valid, opts)
+function M.get_path_from_destination(destination, check_valid, opts)
     local path = ""
-    if M.is_url({ uri = uri }) == true then return path, -1, "is URL" end
+    if M.is_url({ destination = destination }) == true then return path, -1, "is URL" end
 
     opts = opts or {} -- unused
 
-    vim.validate("uri", uri, "string")
+    vim.validate("destination", destination, "string")
     vim.validate("check_valid", check_valid, "boolean")
 
     local cwd =require('mdnotes').cwd
-    path = uri:match(require("mdnotes.patterns").uri_no_fragment) or ""
+    path = destination:match(require("mdnotes.patterns").dest_no_fragment) or ""
 
     if check_valid == true then
         if path ~= "" then
@@ -121,27 +118,27 @@ function M.get_path_from_uri(uri, check_valid, opts)
     return vim.fs.normalize(path), nil
 end
 
----Check and get fragment from the URI
----@param uri string URI to check
+---Check and get fragment from the destination
+---@param destination string destination to check
 ---@param check_valid boolean Whether to check if the path is to a valid file or not
 ---@param opts table?
 ---@return string? fragment, integer? error, string? error_text
-function M.get_fragment_from_uri(uri, check_valid, opts)
+function M.get_fragment_from_destination(destination, check_valid, opts)
     local fragment = ""
-    if M.is_url({ uri = uri }) == true then return fragment, -1, "is URL" end
+    if M.is_url({ destination = destination }) == true then return fragment, -1, "is URL" end
 
     opts = opts or {} -- unused
 
-    vim.validate("uri", uri, "string")
+    vim.validate("destination", destination, "string")
     vim.validate("check_valid", check_valid, "boolean")
 
-    fragment = uri:match(require("mdnotes.patterns").fragment) or ""
+    fragment = destination:match(require("mdnotes.patterns").fragment) or ""
 
     if check_valid == true then
         if fragment ~= "" then
 
             -- Need path to open file to parse sections
-            local path, err = M.get_path_from_uri(uri, true)
+            local path, err = M.get_path_from_destination(destination, true)
             if err ~= nil then
                 return fragment, -2, "invalid path: " .. path .. ", " .. err
             end
@@ -199,13 +196,13 @@ function M.open(opts)
     end
     if ildata == nil then return end
 
-    local uri = ildata.uri
-    if uri == nil then return "URI error" end
+    local destination = ildata.destination
+    if destination == nil then return "destination error" end
 
-    local path, perror = M.get_path_from_uri(uri, true)
+    local path, perror = M.get_path_from_destination(destination, true)
     if perror ~= nil and perror ~= -1 then return path .. ", " .. perror end
 
-    local fragment, ferror = M.get_fragment_from_uri(uri, true)
+    local fragment, ferror = M.get_fragment_from_destination(destination, true)
     if ferror ~= nil and ferror ~= -1 then return fragment .. ", " .. ferror end
 
     -- Check if the file exists and is a Markdown file
@@ -220,7 +217,7 @@ function M.open(opts)
         return vim.api.nvim_get_current_buf()
     end
 
-    return vim.ui.open(uri)
+    return vim.ui.open(destination)
 end
 
 ---Check if inline link is an image
@@ -247,21 +244,21 @@ function M.is_image(opts)
 end
 
 ---Check if inline link is an image
----@param opts {uri: string?, location: MdnInLineLocation}?
+---@param opts {destination: string?, location: MdnInLineLocation}?
 ---@return boolean is_url
 function M.is_url(opts)
     opts = opts or {}
 
-    local uri = opts.uri
-    if opts.location or uri == nil then
+    local destination = opts.destination
+    if opts.location or destination == nil then
         local mdn_patterns = require("mdnotes.patterns")
         local txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.inline_link, { location = opts.location })
-        _, uri = txtdata.text:match(mdn_patterns.text_uri)
+        _, destination = txtdata.text:match(mdn_patterns.text_dest)
     end
 
-    vim.validate("uri", uri, { "string", "nil" })
+    vim.validate("destination", destination, { "string", "nil" })
 
-    if uri == nil or not vim.tbl_contains(M.uri_website_tbl, uri:match("%w+")) then
+    if destination == nil or not vim.tbl_contains({"http", "https"}, destination:match("%w+")) then
         return false
     else
         return true
@@ -269,13 +266,13 @@ function M.is_url(opts)
 end
 
 ---Insert Markdown inline link with the text in the clipboard
----@param opts {uri: string?, move_cursor: boolean?, location: MdnInLineLocation}?
+---@param opts {destination: string?, move_cursor: boolean?, location: MdnInLineLocation}?
 function M.insert(opts)
     opts = opts or {}
-    local uri = opts.uri or vim.fn.getreg('+')
+    local destination = opts.destination or vim.fn.getreg('+')
     local move_cursor = opts.move_cursor ~= false
 
-    if uri == '' then
+    if destination == '' then
         vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
         return
     end
@@ -284,7 +281,7 @@ function M.insert(opts)
     local txtdata = require('mdnotes').get_text({ location = opts.location })
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. uri .. ')'})
+    vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. destination .. ')'})
 
     if move_cursor == true then
         vim.cmd.buffer(txtdata.buffer)
@@ -301,7 +298,7 @@ function M.delete(opts)
     local store = opts.store or false
     local ildata = M.parse({ location = opts.location })
 
-    if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
+    if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.text})
 
@@ -311,12 +308,12 @@ function M.delete(opts)
     end
 
     if store == true then
-        vim.fn.setreg('+', ildata.uri)
+        vim.fn.setreg('+', ildata.destination)
     end
 end
 
 ---Toggle inserting and deleting inline links
----@param opts {uri: string?, location: MdnInLineLocation?}?
+---@param opts {destination: string?, location: MdnInLineLocation?}?
 function M.toggle(opts)
     opts = opts or {}
 
@@ -324,7 +321,7 @@ function M.toggle(opts)
     if check_markdown_syntax(require("mdnotes.patterns").inline_link, { location = opts.location }) then
         M.delete({ location = opts.location, store = true })
     else
-        M.insert({ uri = opts.uri, location = opts.location })
+        M.insert({ destination = opts.destination, location = opts.location })
     end
 end
 
@@ -336,11 +333,11 @@ function M.relink(opts)
     local move_cursor = opts.move_cursor ~= false
 
     local ildata = M.parse({ location = opts.location })
-    if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
+    if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
 
     local user_input
     if new_link == nil then
-        vim.ui.input({prompt = "Relink URI: ", default = ildata.uri }, function(input) user_input = input end)
+        vim.ui.input({prompt = "Relink destination: ", default = ildata.destination }, function(input) user_input = input end)
     else
         user_input = new_link
     end
@@ -350,7 +347,7 @@ function M.relink(opts)
         return
     end
 
-    ildata.uri = user_input
+    ildata.destination = user_input
     local new_il = M.get_il_from_obj(ildata)
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
@@ -369,7 +366,7 @@ function M.rename(opts)
     local move_cursor = opts.move_cursor ~= false
 
     local ildata = M.parse({ location = opts.location })
-    if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
+    if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
 
     local user_input
     if new_name == nil then
@@ -401,16 +398,16 @@ function M.normalize(opts)
 
     local move_cursor = opts.move_cursor ~= false
     local ildata = M.parse({ location = opts.location })
-    local new_uri = ""
+    local new_destination = ""
 
-    if ildata == nil or ildata.text == nil or ildata.uri == nil then return end
+    if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
 
-    new_uri = vim.fs.normalize(ildata.uri)
-    if new_uri:match("%s") then
-        new_uri = "<" .. new_uri .. ">"
+    new_destination = vim.fs.normalize(ildata.destination)
+    if new_destination:match("%s") then
+        new_destination = "<" .. new_destination .. ">"
     end
 
-    ildata.uri = new_uri
+    ildata.destination = new_destination
     local new_il = M.get_il_from_obj(ildata)
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
@@ -433,16 +430,16 @@ function M.convert_fragment_to_gfm(opts)
 
     if ildata == nil or ildata.text == nil then return end
 
-    -- Remove any < or > from uri
-    local uri = ildata.uri:gsub("[<>]?", "")
+    -- Remove any < or > from destination
+    local destination = ildata.destination:gsub("[<>]?", "")
 
-    local fragment = uri:match(require("mdnotes.patterns").fragment) or ""
+    local fragment = destination:match(require("mdnotes.patterns").fragment) or ""
     new_fragment = convert_text_to_gfm(fragment)
 
-    local hash_location = uri:find("#") or 1
-    local new_uri = uri:sub(1, hash_location) .. new_fragment
+    local hash_location = destination:find("#") or 1
+    local new_destination = destination:sub(1, hash_location) .. new_fragment
 
-    ildata.uri = new_uri
+    ildata.destination = new_destination
     local new_il = M.get_il_from_obj(ildata)
 
     vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
@@ -462,7 +459,7 @@ function M.validate(opts)
     local silent = opts.silent or false
     local ildata = M.parse({ location = opts.location })
 
-    if ildata == nil or ildata.text == nil or ildata.uri == nil then
+    if ildata == nil or ildata.text == nil or ildata.destination == nil then
         if silent == false then
             vim.notify("Mdn: No valid inline link detected", vim.log.levels.WARN)
         end
@@ -470,7 +467,7 @@ function M.validate(opts)
         return false, "no valid inline link detected"
     end
 
-    if ildata.uri:match(" ") and not ildata.uri:match("<.+>") then
+    if ildata.destination:match(" ") and not ildata.destination:match("<.+>") then
         if silent == false then
             vim.notify("Mdn: Destinations with spaces must be enclosed with < and >. Execute ':Mdn inline_link normalize' for a quick fix", vim.log.levels.ERROR)
         end
@@ -478,9 +475,9 @@ function M.validate(opts)
         return false, "destinations with spaces must be enclosed with < and >"
     end
 
-    ildata.uri = ildata.uri:gsub("[<>]?", "")
+    ildata.destination = ildata.destination:gsub("[<>]?", "")
 
-    local _, perror = M.get_path_from_uri(ildata.uri, true)
+    local _, perror = M.get_path_from_destination(ildata.destination, true)
     if perror == -2 then
         if silent == false then
             vim.notify("Mdn: Inline link does not seem to point to a valid path", vim.log.levels.WARN)
@@ -489,7 +486,7 @@ function M.validate(opts)
         return false, "invalid path"
     end
 
-    local _, ferror = M.get_fragment_from_uri(ildata.uri, true)
+    local _, ferror = M.get_fragment_from_destination(ildata.destination, true)
     if ferror ~= nil and ferror ~= -1 then
         if silent == false then
             vim.notify("Mdn: Inline link does not seem to point to a valid fragment", vim.log.levels.WARN)
@@ -521,7 +518,7 @@ function M.go_to(opts)
 
         local sel_list = {}
         for _, v in ipairs(parsed_tbl) do
-            table.insert(sel_list, v.text .. " | " .. v.uri)
+            table.insert(sel_list, v.text .. " | " .. v.destination)
         end
 
 

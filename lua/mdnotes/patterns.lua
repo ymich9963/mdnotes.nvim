@@ -12,9 +12,9 @@ local M = {}
 ---@field strikethrough MdnPattern Strikethrough format indicator pattern
 ---@field inline_code MdnPattern Inline code format indicator pattern
 ---@field autolink MdnPattern Autolink format indicator pattern
----@field text_uri string Text and URI from inline link pattern
----@field uri_title string Title from inline link URI
----@field uri_no_fragment string URI only pattern
+---@field text_dest string Text and destination from inline link pattern
+---@field dest_title string Title from inline link destination
+---@field dest_no_fragment string destination only pattern
 ---@field fragment string Fragment only pattern
 ---@field wikilink_alias string WikiLink alias
 ---@field unordered_list string Unordered list pattern
@@ -30,9 +30,9 @@ M = {
     inline_code = "()`([^`]+)`()",
     autolink = "()<(.-)>()",
 
-    text_uri = "%[([^%]]+)%]%((.+)%)",
-    uri_title = ".+%s\"([^\"]*)\"",
-    uri_no_fragment = "^([^#]+).*",
+    text_dest = "%[([^%]]+)%]%((.+)%)",
+    dest_title = ".+%s\"([^\"]*)\"",
+    dest_no_fragment = "^([^#]+).*",
     fragment = "#([^|]*)",
     wikilink_alias = ".+|([^|]+)",
     unordered_list = "^([%s]-)([-+*])[%s](.*)",

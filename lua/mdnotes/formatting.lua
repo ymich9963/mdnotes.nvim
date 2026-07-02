@@ -460,7 +460,7 @@ function M.unformat_lines(opts)
         -- Find the text to change
         local pos_tbl = {}
         for start_pos, inline_link, end_pos in line:gmatch(mdnotes_patterns.inline_link) do
-            local inline_text, _ = inline_link:match(mdnotes_patterns.text_uri)
+            local inline_text, _ = inline_link:match(mdnotes_patterns.text_dest)
             table.insert(pos_tbl, {
                 inline_text = inline_text,
                 start_pos = vim.fn.str2nr(start_pos),

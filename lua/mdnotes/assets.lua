@@ -248,7 +248,7 @@ function M.get_used_assets(opts)
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
     local mdn_patterns = require('mdnotes.patterns')
-    local uri = ""
+    local destination = ""
     local used_assets = {}
     local temp_qflist = vim.fn.getqflist()
 
@@ -259,12 +259,12 @@ function M.get_used_assets(opts)
 
     for _, v in ipairs(assets_list) do
         for _, inline_link, _ in v.text:gmatch(mdn_patterns.inline_link) do
-            _, uri = inline_link:match(mdn_patterns.text_uri)
+            _, destination = inline_link:match(mdn_patterns.text_dest)
 
-            -- Remove any < or > from uri
-            uri = uri:gsub("[<>]?", "")
+            -- Remove any < or > from destination
+            destination = destination:gsub("[<>]?", "")
 
-            table.insert(used_assets, vim.fs.basename(uri))
+            table.insert(used_assets, vim.fs.basename(destination))
         end
     end
 
@@ -390,35 +390,34 @@ function M.unused_move(opts)
 end
 
 ---Download the the HTML of the inline link URL and place it in assets folder
----@param opts {uri: string?, location: MdnInLineLocation?}?
+---@param opts {destination: string?, location: MdnInLineLocation?}?
 ---@return string? filepath Path of downloaded file
 function M.download_website_html(opts)
     opts = opts or {}
-    local uri = opts.uri
+    local destination = opts.destination
 
     local mdn_il = require('mdnotes.inline_link')
-    if uri == nil then
-        uri = (mdn_il.parse({ location = opts.location })).uri
+    if destination == nil then
+        destination = (mdn_il.parse({ location = opts.location })).destination
     end
 
-    vim.validate("uri", uri, "string")
+    vim.validate("destination", destination, "string")
 
-    local uri_website_tbl = mdn_il.uri_website_tbl or {}
     local filename, filepath = "", ""
     local res = nil
 
     -- Notifications should alredy be outputted
-    if uri == nil then return end
+    if destination == nil then return end
 
-    if not vim.tbl_contains(uri_website_tbl, uri:match("%w+")) then
+    if not vim.tbl_contains({"http", "https"}, destination:match("%w+")) then
         vim.notify("Mdn: Detected inline link does not contain website link", vim.log.levels.ERROR)
         return nil
     end
 
-    vim.notify(("Mdn: Downloading '%s' website html..."):format(uri), vim.log.levels.INFO)
+    vim.notify(("Mdn: Downloading '%s' website html..."):format(destination), vim.log.levels.INFO)
 
     -- Create a filename of max 72 characters
-    filename = uri:gsub("[:/#?.()%[%]]+", "_") .. ".html"
+    filename = destination:gsub("[:/#?.()%[%]]+", "_") .. ".html"
 
     local cwd = require('mdnotes').cwd
     filepath = vim.fs.joinpath(cwd, M.get_assets_folder_name(), filename)
@@ -429,7 +428,7 @@ function M.download_website_html(opts)
     end
 
     vim.system(
-        {"curl", "-Ls", uri},
+        {"curl", "-Ls", destination},
         {text = true},
         function(obj)
             if obj.code == 0 then
@@ -440,7 +439,7 @@ function M.download_website_html(opts)
 
     if res then
         vim.fn.writefile(vim.split(res, "\n"), filepath)
-        vim.notify(("Mdn: Saved '%s' to '%s'"):format(uri, filepath), vim.log.levels.INFO)
+        vim.notify(("Mdn: Saved '%s' to '%s'"):format(destination, filepath), vim.log.levels.INFO)
     else
         vim.notify("Mdn: Error with request response", vim.log.levels.ERROR)
     end
@@ -449,26 +448,26 @@ function M.download_website_html(opts)
 end
 
 ---Delete the asset under the cursor
----@param opts {uri: string?, skip_input: boolean?, location: MdnInLineLocation}?
+---@param opts {destination: string?, skip_input: boolean?, location: MdnInLineLocation}?
 ---@return boolean is_deleted, string? asset_path
 function M.delete(opts)
     opts = opts or {}
-    local uri = opts.uri
+    local destination = opts.destination
     local skip_input = opts.skip_input or false
     vim.validate("skip_input", skip_input, "boolean")
 
     local mdn_il = require('mdnotes.inline_link')
 
     local ildata
-    if uri == nil then
+    if destination == nil then
         ildata = mdn_il.parse({ location = opts.location, keep_pointy_brackets = false }) or {}
-        uri = ildata.uri
-        if uri == nil then return false, nil end
+        destination = ildata.destination
+        if destination == nil then return false, nil end
     end
 
-    vim.validate("uri", uri, "string")
+    vim.validate("destination", destination, "string")
 
-    local asset_path, err = mdn_il.get_path_from_uri(uri, true)
+    local asset_path, err = mdn_il.get_path_from_destination(destination, true)
     if err ~= nil then return false, nil end
 
     local behaviour = require('mdnotes').config.asset_delete_behaviour
@@ -524,7 +523,7 @@ function M.delete(opts)
         local mdn_grep = require('mdnotes').mdn_grep
         local temp_qflist = vim.fn.getqflist()
 
-        mdn_grep(uri, cwd)
+        mdn_grep(destination, cwd)
         local assets_list = vim.fn.getqflist()
 
         for _,v in ipairs(assets_list) do

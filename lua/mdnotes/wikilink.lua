@@ -41,7 +41,7 @@ function M.parse(opts)
         _, wikilink, _ = wikilink:match(mdn_patterns.wikilink)
     end
 
-    local wikilink_no_fragment = wikilink:match(mdn_patterns.uri_no_fragment)
+    local wikilink_no_fragment = wikilink:match(mdn_patterns.dest_no_fragment)
     local fragment = wikilink:match(mdn_patterns.fragment)
     local alias = wikilink:match(mdn_patterns.wikilink_alias)
 

@@ -43,7 +43,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "",
         text = "file1",
-        uri = "tests/test-data/files/file1.md",
+        destination = "tests/test-data/files/file1.md",
         buffer = 2,
         lnum = 1,
         col_start = 1,
@@ -57,7 +57,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "",
         text = "file2",
-        uri = "tests/test-data/files/file2.md",
+        destination = "tests/test-data/files/file2.md",
         buffer = 2,
         lnum = 1,
         col_start = 41,
@@ -72,7 +72,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "",
         text = "file1",
-        uri = "tests/test-data/files/file1.md#section-2",
+        destination = "tests/test-data/files/file1.md#section-2",
         buffer = 2,
         lnum = 2,
         col_start = 1,
@@ -86,7 +86,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "",
         text = "file2",
-        uri = "tests/test-data/files/file2.md#file-2",
+        destination = "tests/test-data/files/file2.md#file-2",
         buffer = 2,
         lnum = 2,
         col_start = 51,
@@ -101,7 +101,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "!",
         text = "image1",
-        uri = "tests/test-data/images/neovim-mark-flat.svg",
+        destination = "tests/test-data/images/neovim-mark-flat.svg",
         buffer = 2,
         lnum = 3,
         col_start = 1,
@@ -115,7 +115,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "!",
         text = "image2",
-        uri = "tests/test-data/images/neovim-mark.svg",
+        destination = "tests/test-data/images/neovim-mark.svg",
         buffer = 2,
         lnum = 3,
         col_start = 56,
@@ -129,7 +129,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "",
         text = "url1",
-        uri = "https://neovim.io/",
+        destination = "https://neovim.io/",
         buffer = 2,
         lnum = 4,
         col_start = 1,
@@ -143,7 +143,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "",
         text = "url2",
-        uri = "https://neovim.io/doc/user/#Q_ct",
+        destination = "https://neovim.io/doc/user/#Q_ct",
         buffer = 2,
         lnum = 4,
         col_start = 28,
@@ -158,7 +158,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "",
         text = "section",
-        uri = "#test-section",
+        destination = "#test-section",
         buffer = 2,
         lnum = 5,
         col_start = 1,
@@ -172,7 +172,7 @@ T['parse()'] = function()
     eq(ret, {
         img_char = "",
         text = "section",
-        uri = "#test-section",
+        destination = "#test-section",
         buffer = 2,
         lnum = 6,
         col_start = 1,
@@ -183,37 +183,37 @@ T['parse()'] = function()
 end
 
 T['get_il_from_obj()'] = function()
-    local ret = child.lua([[return require('mdnotes.inline_link').get_il_from_obj({img_char = "", text = 1, uri = 2})]])
+    local ret = child.lua([[return require('mdnotes.inline_link').get_il_from_obj({img_char = "", text = 1, destination = 2})]])
     eq(ret, "[1](2)")
-    ret = child.lua([[return require('mdnotes.inline_link').get_il_from_obj({img_char = "", text = 1, uri = 2, title = 3})]])
+    ret = child.lua([[return require('mdnotes.inline_link').get_il_from_obj({img_char = "", text = 1, destination = 2, title = 3})]])
     eq(ret, "[1](2 \"3\")")
 end
 
-T['get_path_from_uri()'] = function()
-    local ret = child.lua([[return require('mdnotes.inline_link').get_path_from_uri("path/with/fragment#fragment", false)]])
+T['get_path_from_destination()'] = function()
+    local ret = child.lua([[return require('mdnotes.inline_link').get_path_from_destination("path/with/fragment#fragment", false)]])
     eq(ret, "path/with/fragment")
 
     child.cmd([[edit tests/test-data/files/file1.md]])
     local cwd = child.lua([[return require('mdnotes').cwd]])
 
-    ret = child.lua([[return require('mdnotes.inline_link').get_path_from_uri("tests/test-data/files/file1.md#section-2", true)]])
+    ret = child.lua([[return require('mdnotes.inline_link').get_path_from_destination("tests/test-data/files/file1.md#section-2", true)]])
     eq(ret, cwd .. "/file1.md")
-    ret = child.lua([[return require('mdnotes.inline_link').get_path_from_uri("#section-2", true)]])
+    ret = child.lua([[return require('mdnotes.inline_link').get_path_from_destination("#section-2", true)]])
     eq(ret, "file1.md")
 end
 
-T['get_fragment_from_uri()'] = function()
-    local ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("path/with/fragment#fragment", false)]])
+T['get_fragment_from_destination()'] = function()
+    local ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_destination("path/with/fragment#fragment", false)]])
     eq(ret, "fragment")
 
-    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("tests/test-data/files/file1.md#section-2", true)]])
+    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_destination("tests/test-data/files/file1.md#section-2", true)]])
     eq(ret, "Section 2")
 
-    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("tests/test-data/files/file1.md#Section 2", true)]])
+    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_destination("tests/test-data/files/file1.md#Section 2", true)]])
     eq(ret, "Section 2")
 
     child.cmd([[edit tests/test-data/files/file1.md]])
-    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_uri("#section-2", true)]])
+    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_destination("#section-2", true)]])
     eq(ret, "section-2")
 end
 
@@ -299,7 +299,7 @@ T['insert()'] = function()
     }
 
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.inline_link').insert({ uri = "link" })]])
+    child.lua([[require('mdnotes.inline_link').insert({ destination = "link" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](link)")
 end
@@ -322,7 +322,7 @@ T['toggle()'] = function()
 
     local buf = create_md_buffer(child, lines)
     child.lua([[
-    require('mdnotes.inline_link').toggle({ uri = "link" })
+    require('mdnotes.inline_link').toggle({ destination = "link" })
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](link)")

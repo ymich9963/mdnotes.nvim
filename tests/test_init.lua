@@ -438,7 +438,7 @@ T['parse_lines()'] = function()
             lnum = 3,
             text = "test",
             title = "",
-            uri = "link"
+            destination = "link"
         }
     })
     ret = child.lua([[return require('mdnotes').parse_lines("inline_link", { text = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
