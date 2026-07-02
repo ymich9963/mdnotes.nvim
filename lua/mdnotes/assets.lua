@@ -409,7 +409,7 @@ function M.download_website_html(opts)
     -- Notifications should alredy be outputted
     if destination == nil then return end
 
-    if not vim.tbl_contains({"http", "https"}, destination:match("%w+")) then
+    if mdn_il.is_url({ destination = destination}) == false then
         vim.notify("Mdn: Detected inline link does not contain website link", vim.log.levels.ERROR)
         return nil
     end
