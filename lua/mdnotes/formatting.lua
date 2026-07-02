@@ -2,7 +2,7 @@
 
 local M = {}
 
----@alias MdnFormatIndicators
+---@alias MdnFormatDelimiters
 ---| '"*"'
 ---| '"_"'
 ---| '"**"'
@@ -15,7 +15,7 @@ local M = {}
 ---@class MdnFormattingOpts
 ---@field location MdnInLineLocation?
 ---@field move_cursor boolean?
----@field split_fi boolean? Split formatting indicator
+---@field split_delimiter boolean? Split formatting delimiter
 
 ---@class MdnListContent
 ---@field indent string Indent of list item
@@ -27,22 +27,22 @@ local M = {}
 local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
 
 ---Insert a Markdown format
----@param format_char MdnFormatIndicators
+---@param format_char MdnFormatDelimiters
 ---@param opts MdnFormattingOpts?
 function M.insert_format(format_char, opts)
     opts = opts or {}
-    local split_fi = opts.split_fi or false
+    local split_delimiter = opts.split_delimiter or false
     local move_cursor = opts.move_cursor ~= false
 
-    vim.validate("split_fi", split_fi, "boolean")
+    vim.validate("split_delimiter", split_delimiter, "boolean")
     vim.validate("format_char", format_char, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
 
-    if split_fi == nil then split_fi = false end
+    if split_delimiter == nil then split_delimiter = false end
     local txtdata = require('mdnotes').get_text({ location = opts.location })
     local fi1, fi2 = "", ""
 
-    if split_fi == true then
+    if split_delimiter == true then
         fi1 = format_char:sub(1,#format_char / 2)
         fi2 = format_char:sub(-(#format_char / 2))
     else
@@ -98,16 +98,16 @@ end
 
 ---Toggle the emphasis Markdown formatting
 ---@param pattern MdnPattern
----@param indicator MdnFormatIndicators
+---@param delimiter MdnFormatDelimiters
 ---@param opts MdnFormattingOpts?
-function M.toggle(pattern, indicator, opts)
+function M.toggle(pattern, delimiter, opts)
     opts = opts or {}
 
     local ret = check_markdown_syntax(pattern, { location = opts.location })
     if ret == true then
         M.delete_format(pattern, { location = opts.location, move_cursor = opts.move_cursor })
     elseif ret == false then
-        M.insert_format(indicator, { location = opts.location, move_cursor = opts.move_cursor, split_fi = opts.split_fi })
+        M.insert_format(delimiter, { location = opts.location, move_cursor = opts.move_cursor, split_delimiter = opts.split_delimiter })
     end
 end
 
@@ -117,9 +117,9 @@ function M.emphasis_toggle(opts)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').emphasis
-    local indicator = require('mdnotes').config.emphasis_format
+    local delimiter = require('mdnotes').config.emphasis_format
 
-    M.toggle(pattern, indicator, opts)
+    M.toggle(pattern, delimiter, opts)
 end
 
 ---Toggle the strong Markdown formatting
@@ -128,9 +128,9 @@ function M.strong_toggle(opts)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').strong
-    local indicator = require('mdnotes').config.strong_format
+    local delimiter = require('mdnotes').config.strong_format
 
-    M.toggle(pattern, indicator, opts)
+    M.toggle(pattern, delimiter, opts)
 end
 
 ---Toggle the strikethrough Markdown formatting
@@ -139,9 +139,9 @@ function M.strikethrough_toggle(opts)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').strikethrough
-    local indicator = "~~"
+    local delimiter = "~~"
 
-    M.toggle(pattern, indicator, opts)
+    M.toggle(pattern, delimiter, opts)
 end
 
 ---Toggle the inline code Markdown formatting
@@ -150,9 +150,9 @@ function M.inline_code_toggle(opts)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').inline_code
-    local indicator = "`"
+    local delimiter = "`"
 
-    M.toggle(pattern, indicator, opts)
+    M.toggle(pattern, delimiter, opts)
 end
 
 ---Toggle the autolink Markdown formatting
@@ -161,10 +161,10 @@ function M.autolink_toggle(opts)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').autolink
-    local indicator = "<>"
-    opts.split_fi = true
+    local delimiter = "<>"
+    opts.split_delimiter = true
 
-    M.toggle(pattern, indicator, opts)
+    M.toggle(pattern, delimiter, opts)
 end
 
 ---Get a consistent table containing all data on a list item whether it is ordered or unordered

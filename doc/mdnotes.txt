@@ -514,7 +514,7 @@ subcommands are listed below.
 
 :Mdn formatting unformat_lines				*:Mdn-formatting-unformat_lines*
 
-    Unformat the current line or the selected lines. Removes format indicators
+    Unformat the current line or the selected lines. Removes format delimiters
     for strong, emphasis, strikethrough, inline code, heading, inline link,
     ordered list, unordered list, and task.
 
@@ -1111,19 +1111,19 @@ assets.view({opts}) 					*mdnotes.assets.view()*
 
 formatting.insert_format({format_char}, {opts})		*mdnotes.formatting.insert_format()*
 
-    Used internally for all formatting using format indicators. 
+    Used internally for all formatting using format delimiters. 
 
     Parameters: ~
-    • {format_char}  (`MdnFormatIndicators?`) Markdown format indicator
+    • {format_char}  (`MdnFormatDelimiters?`) Markdown format delimiter
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
-              • {split_fi} (`boolean?`, default `false`)
-		split format indicator string in half
+              • {split_delimiter} (`boolean?`, default `false`)
+		split format delimiter string in half
 
 formatting.delete_format({pattern}, {opts})		*mdnotes.formatting.delete_format()*
 
-    Used internall for removing format indicators from text.
+    Used internall for removing format delimiters from text.
 
     Parameters: ~
     • {pattern}  (`MdnPattern?`)
@@ -1133,11 +1133,11 @@ formatting.delete_format({pattern}, {opts})		*mdnotes.formatting.delete_format()
               • {move_cursor} (`boolean?`, default `true`)
 		move the cursor to the position of the deleted text
 
-formatting.toggle({pattern},{indicator},{opts})		*mdnotes.formatting.toggle()*
+formatting.toggle({pattern},{delimiter},{opts})		*mdnotes.formatting.toggle()*
 
     Parameters: ~
     • {pattern}  (`MdnPattern?`)
-    • {pattern}  (`MdnFormatIndicators?`)
+    • {pattern}  (`MdnFormatDelimiters?`)
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
@@ -1153,8 +1153,8 @@ formatting.emphasis_toggle({opts})			*mdnotes.formatting.emphasis_toggle()*
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
-              • {split_fi} (`boolean?`, default `false`)
-		split format indicator string in half
+              • {split_delimiter} (`boolean?`, default `false`)
+		split format delimiter string in half
 
 formatting.strong_toggle({opts})			*mdnotes.formatting.strong_toggle()*
 
@@ -1165,8 +1165,8 @@ formatting.strong_toggle({opts})			*mdnotes.formatting.strong_toggle()*
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
-              • {split_fi} (`boolean?`, default `false`)
-		split format indicator string in half
+              • {split_delimiter} (`boolean?`, default `false`)
+		split format delimiter string in half
 
 formatting.strikethrough_toggle({opts})			*mdnotes.formatting.strikethrough_toggle()*
 
@@ -1177,8 +1177,8 @@ formatting.strikethrough_toggle({opts})			*mdnotes.formatting.strikethrough_togg
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
-              • {split_fi} (`boolean?`, default `false`)
-		split format indicator string in half
+              • {split_delimiter} (`boolean?`, default `false`)
+		split format delimiter string in half
 
 formatting.inline_code_toggle({opts})			*mdnotes.formatting.inline_code_toggle()*
 
@@ -1189,8 +1189,8 @@ formatting.inline_code_toggle({opts})			*mdnotes.formatting.inline_code_toggle()
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
-              • {split_fi} (`boolean?`, default `false`)
-		split format indicator string in half
+              • {split_delimiter} (`boolean?`, default `false`)
+		split format delimiter string in half
 
 formatting.autolink_toggle({opts})			*mdnotes.formatting.autolink_toggle()*
 
@@ -1201,8 +1201,8 @@ formatting.autolink_toggle({opts})			*mdnotes.formatting.autolink_toggle()*
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
-              • {split_fi} (`boolean?`, default `false`)
-		split format indicator string in half
+              • {split_delimiter} (`boolean?`, default `false`)
+		split format delimiter string in half
 
 resolve_list_content({line})				*mdnotes.formatting.resolve_list_content()*
 
@@ -1235,8 +1235,8 @@ formatting.check_list_valid({opts}) 			*mdnotes.formatting.check_list_valid()*
     • {opts}  (`table?`) Optional parameters:
               • {same_indent} (`boolean?`, default `false`)
 		check for list only of the same indent level
-              • {same_indicator} (`boolean?`, default `true`)
-		check for list only of the same indicator
+              • {same_delimiter} (`boolean?`, default `true`)
+		check for list only of the same delimiter
               • {search} (`MdnSearchOpts?`)
               • {outliner_list} (`boolean?`, default `false`)
 		treat list as an outliner list
@@ -1256,7 +1256,7 @@ formatting.ordered_list_renumber({opts})		*mdnotes.formatting.ordered_list_renum
 
 formatting.unformat_lines({opts})			*mdnotes.formatting.unformat_lines()*
 
-    Unformat the current line or the selected lines. Removes format indicators
+    Unformat the current line or the selected lines. Removes format delimiters
     for strong, emphasis, strikethrough, inline code, heading, inline link,
     ordered list, unordered list, and task.
 
@@ -2274,8 +2274,8 @@ MdnConfig	 					*mdnotes.MdnConfig*
     • {asset_overwrite_behaviour} (`'"overwrite"'|'"error"'?`) Behaviour when the asset being inserted already exists
     • {asset_delete_behaviour} (`'"remove"'|'"garbage"'?`) Behaviour when the deleting an asset
     • {open_behaviour} (`'"buffer"'|'"tab"'|'"split"'|'"vsplit"'?`) Behaviour when opening buffers
-    • {strong_format} (`'"**"'|'"__"'?`) Strong format indicator
-    • {emphasis_format} (`'"*"'|'"_"'?`) Emphasis format indicator
+    • {strong_format} (`'"**"'|'"__"'?`) Strong format delimiter
+    • {emphasis_format} (`'"*"'|'"_"'?`) Emphasis format delimiter
     • {date_format} (`string?`) Date format when using journal_insert_entry(), see :h strftime()
     • {prefer_lsp} (`boolean?`) To prefer Markdown LSP functions rather than the mdnotes functions
     • {auto_list_continuation} (`boolean?`) Automatic list continuation
@@ -2345,10 +2345,10 @@ MdnAssetInsertOpts 					*mdnotes.MdnAssetInsertOpts*
     Fields: ~
     • {location} (`MdnInLineLocation?`)
 
-MdnFormatIndicators 					*mdnotes.MdnFormatIndicators*
+MdnFormatDelimiters 					*mdnotes.MdnFormatDelimiters*
 
-    Alias for the supported Markdown format indicators which are, `*`, `_`,
-    `**`, `__`, `~~`, ```, `<>`, `[[]]`.
+    Alias for the supported Markdown format delimiters which are, `*`, `_`,
+    `**`, `__`, `~~`, ````, `<>`, `[[]]`.
 
 MdnFormattingOpts 					*mdnotes.MdnFormattingOpts*
 
@@ -2357,7 +2357,7 @@ MdnFormattingOpts 					*mdnotes.MdnFormattingOpts*
     Fields: ~
     • {location} (`MdnInLineLocation?`)
     • {move_cursor} (`boolean?`) Move cursor to the specified location
-    • {split_fi} (`boolean`?) Split formatting indicator
+    • {split_delimiter} (`boolean`?) Split formatting delimiter
 
 MdnListContent						 *mdnotes.MdnListContent*
 
@@ -2394,11 +2394,11 @@ MdnPatterns 						*mdnotes.MdnPatterns*
     Fields: ~
     • {wikilink} (`MdnPattern`) WikiLink pattern
     • {inline_link} (`MdnPattern`) Inline link pattern
-    • {strong} (`MdnPattern`) Strong format indicator pattern
-    • {emphasis} (`MdnPattern`) Emphasis format indicator pattern
-    • {strikethrough} (`MdnPattern`) Strikethrough format indicator pattern
-    • {inline_code} (`MdnPattern`) Inline code format indicator pattern
-    • {autolink} (`MdnPattern`) Autolink format indicator pattern
+    • {strong} (`MdnPattern`) Strong format delimiter pattern
+    • {emphasis} (`MdnPattern`) Emphasis format delimiter pattern
+    • {strikethrough} (`MdnPattern`) Strikethrough format delimiter pattern
+    • {inline_code} (`MdnPattern`) Inline code format delimiter pattern
+    • {autolink} (`MdnPattern`) Autolink format delimiter pattern
     • {text_dest} (`string`) Text and destination from inline link pattern
     • {dest_title} (`string`) Title from inline link destination
     • {dest_no_fragment} (`string`) destination only pattern
@@ -2631,12 +2631,12 @@ Import a CSV file as a Markdown table,
 	    table.insert(table_contents, entry)
 	end
 
-	local delimeter_row = {}
+	local delimiter_row = {}
 	for _ = 1, #table_contents[1] do
-	    table.insert(delimeter_row, "---")
+	    table.insert(delimiter_row, "---")
 	end
 
-	table.insert(table_contents, 2, delimeter_row)
+	table.insert(table_contents, 2, delimiter_row)
 
 	local cur_line = vim.fn.line(".")
 	write_table({ contents = table_contents, startl = cur_line, endl = cur_line })

@@ -326,7 +326,7 @@ function M.create(opts)
     opts = opts or {}
 
     local insert_format = require('mdnotes.formatting').insert_format
-    insert_format("[[]]", { split_fi = true, location = opts.location, move_cursor = opts.move_cursor })
+    insert_format("[[]]", { split_delimiter = true, location = opts.location, move_cursor = opts.move_cursor })
 end
 
 ---Delete the current WikiLink and the associated file

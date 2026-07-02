@@ -7,11 +7,11 @@ local M = {}
 ---@class MdnPatterns
 ---@field wikilink MdnPattern WikiLink pattern
 ---@field inline_link MdnPattern Inline link pattern
----@field strong MdnPattern Strong format indicator pattern
----@field emphasis MdnPattern Emphasis format indicator pattern
----@field strikethrough MdnPattern Strikethrough format indicator pattern
----@field inline_code MdnPattern Inline code format indicator pattern
----@field autolink MdnPattern Autolink format indicator pattern
+---@field strong MdnPattern Strong format delimiter pattern
+---@field emphasis MdnPattern Emphasis format delimiter pattern
+---@field strikethrough MdnPattern Strikethrough format delimiter pattern
+---@field inline_code MdnPattern Inline code format delimiter pattern
+---@field autolink MdnPattern Autolink format delimiter pattern
 ---@field text_dest string Text and destination from inline link pattern
 ---@field dest_title string Title from inline link destination
 ---@field dest_no_fragment string destination only pattern

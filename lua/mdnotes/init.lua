@@ -67,8 +67,8 @@ M.buf_fragments = {}
 ---@field asset_overwrite_behaviour '"overwrite"'|'"error"'? Behaviour when the asset being inserted already exists
 ---@field asset_delete_behaviour '"remove"'|'"garbage"'? Behaviour when the deleting an asset
 ---@field open_behaviour '"buffer"'|'"tab"'|'"split"'|'"vsplit"'? Behaviour when opening buffers
----@field strong_format '"**"'|'"__"'? Strong format indicator
----@field emphasis_format '"*"'|'"_"'? Emphasis format indicator
+---@field strong_format '"**"'|'"__"'? Strong format delimiter
+---@field emphasis_format '"*"'|'"_"'? Emphasis format delimiter
 ---@field date_format string? Date format when using journal_insert_entry(), see :h strftime()
 ---@field prefer_lsp boolean? To prefer Markdown LSP functions rather than the mdnotes functions
 ---@field auto_list_continuation boolean? Automatic list continuation
@@ -424,9 +424,9 @@ function M.get_text_in_pattern(pattern, opts)
     }
 end
 
----Get the list item's indent level and indicator. Also increment when using ordered lists
+---Get the list item's indent level and delimiter. Also increment when using ordered lists
 ---@param inc_val integer Value to increment the list item by
----@return string indent, string list_indicator Indent of the list item and the corresponding list indicator
+---@return string indent, string list_delimiter Indent of the list item and the corresponding list delimiter
 local function get_indent_indicator(inc_val)
     local mdnotes_patterns = require('mdnotes.patterns')
     local line = vim.api.nvim_get_current_line()

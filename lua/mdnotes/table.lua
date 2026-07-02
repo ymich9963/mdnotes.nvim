@@ -53,10 +53,10 @@ function M.check_table_valid(opts)
         return { valid = false }
     end
 
-    local delimeter_row = vim.api.nvim_buf_get_lines(buffer, table_startl + 1 - 1, table_startl + 1, false)[1]
+    local delimiter_row = vim.api.nvim_buf_get_lines(buffer, table_startl + 1 - 1, table_startl + 1, false)[1]
 
     -- If it find anything other than |, :, - in delemeter row table is not valid
-    if delimeter_row:match("[^:%-|]+") then
+    if delimiter_row:match("[^:%-|]+") then
         return { valid = false }
     end
 
@@ -637,7 +637,7 @@ function M.best_fit(opts)
         end
     end
 
-    -- Add the dashes for the delimeter row
+    -- Add the dashes for the delimiter row
     local new_delimiter_row = ""
     for c, v in ipairs(tdata.contents[2]) do
         local colon1, _, colon2 = v:match("([:]?)([-]+)([:]?)")
@@ -722,21 +722,21 @@ function M.column_alignment_toggle(opts)
     local delimiter_row = tdata.contents[2][col_num]
     local new_delimiter_row = ""
 
-    -- if delimeter row is --- create :--
+    -- if delimiter row is --- create :--
     if delimiter_row:match("^[-]+$") then
         new_delimiter_row = delimiter_row:gsub("-", ":", 1)
-        -- if delimeter row is :-- create --:
+        -- if delimiter row is :-- create --:
     elseif delimiter_row:match("^:[-]+[^:]$") then
         new_delimiter_row = delimiter_row:gsub(":", "-")
         new_delimiter_row = new_delimiter_row:sub(1, -2) .. ":"
-        -- if delimeter row is --: create :-:
+        -- if delimiter row is --: create :-:
     elseif delimiter_row:match("^[^:][-]+:$") then
         new_delimiter_row = delimiter_row:gsub("-", ":", 1)
-        -- if delimeter row is :-: create ---
+        -- if delimiter row is :-: create ---
     elseif delimiter_row:match("^:[-]+:$") then
         new_delimiter_row = delimiter_row:gsub(":", "-")
     else
-        vim.notify("Mdn: Check that the table delimeter row is in the correct format", vim.log.levels.ERROR)
+        vim.notify("Mdn: Check that the table delimiter row is in the correct format", vim.log.levels.ERROR)
         return
     end
 
