@@ -1328,7 +1328,7 @@ history.clear()						*mdnotes.history.clear()*
 
 inline_link.parse({opts})				*mdnotes.inline_link.parse()*
 
-    Get the inline link data such as the image designator, link text, link destination/destination,
+    Get the inline link data such as the image designator, link text, link destination,
     and the start and end columns.
 
     Parameters: ~
