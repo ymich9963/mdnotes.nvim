@@ -51,7 +51,7 @@ M.plugin_install_dir = nil
 ---@field buf_num integer Buffer number
 ---@field fragments table<MdnFragment> 
 
----@type table<table<MdnBufFragments>>
+---@type table<MdnBufFragments>
 M.buf_fragments = {}
 
 ---Mdnotes Config Class

@@ -620,7 +620,7 @@ subcommands are listed below.
 
 :Mdn miscellaneous populate_buf_fragments		*Mdn-miscellaneous-populate_buf_fragments*
 
-   Update or populate the `buf_fragments` table containing the fragments
+   Update or populate the |mdnotes.buf_fragments| table containing the fragments
    for the current buffer. Happens automatically if its option in
    |mdnotes-autocmds is set.
 
@@ -655,6 +655,10 @@ plugin_install_dir					*mdnotes.plugin_install_dir*
 
     Install directory of the plugin. Used to access the `scripts/` folder for
     the command used to insert assets.
+
+buf_fragments						*mdnotes.buf_fragments*
+
+    Table of type |mdnotes.MdnBufFragments|.
 
 setup({opts})                                          	*mdnotes.setup()*
 
@@ -845,11 +849,11 @@ convert_text_to_gfm({text}) 				*mdnotes.convert_text_to_gfm()*
 
 populate_buf_fragments({bufnr}) 			*mdnotes.populate_buf_fragments()*
 
-    Parse the fragments in the specified buffer and update |mdnotes-buf_fragments|.
+    Parse the fragments in the specified buffer and update |mdnotes.buf_fragments|.
 
     Parameters: ~
     • {bufnr}  (`integer?` defaults to current buffer) Buffer to populate
-      `buf_fragments` with.
+      |mdnotes.buf_fragments| with.
 
 get_buf_fragments({bufnr}) 				*mdnotes.get_fragments_from_headings()*
 
@@ -865,9 +869,9 @@ get_buf_fragments({bufnr}) 				*mdnotes.get_fragments_from_headings()*
 
 find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
 
-    Find the fragment in the |mdn-buf_fragments| table of the specified
+    Find the fragment in the |mdnotes.buf_fragments| table of the specified
     buffer. Returns `nil` if the specified buffer and fragment are not
-    parsed in `buf_fragments`.
+    parsed in |mdnotes.buf_fragments|.
 
     Parameters: ~
     • {bufnr}  (`MdnFragments`) Fragments table.
@@ -1400,7 +1404,7 @@ inline_link.get_fragment_from_destination({destination}, {check_valid}, {opts})
     • `-1` : is URL
     • `-2` : invalid path: detected path and its error
     • `-3` : fragment not parsed
-    • `-4` : invalid fragment: value retrieved from |mdn-buf_fragments|.
+    • `-4` : invalid fragment: value retrieved from |mdnotes.buf_fragments|.
 
 inline_link.open({opts})				*mdnotes.inline_link.open()*
 
@@ -2250,7 +2254,7 @@ MdnFragment	 					*mdnotes.MdnFragment*
 
 MdnBufFragments	 					*mdnotes.MdnBufFragments*
 
-    Format of the |mdn.buf_fragments| table.
+    Format of the |mdnotes.buf_fragments| table.
 
     Fields: ~
     • {buf_num} (`integer`) Buffer number
