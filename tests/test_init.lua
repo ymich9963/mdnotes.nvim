@@ -199,21 +199,20 @@ T['populate_buf_fragments()'] = function()
     eq(ret, {
         {
             buf_num = buf,
-            parsed = {
-                fragments = {
-                    {
-                        hash = "#",
-                        text = "Heading 1",
-                        lnum = 1,
-                    },
-                    {
-                        hash = "##",
-                        text = "Heading 2",
-                        lnum = 4,
-                    }
+            fragments = {
+                {
+                    hash = "#",
+                    text = "Heading 1",
+                    gfm = "heading-1",
+                    lnum = 1,
                 },
-                gfm = {"heading-1", "heading-2"}
-            }
+                {
+                    hash = "##",
+                    text = "Heading 2",
+                    gfm = "heading-2",
+                    lnum = 4,
+                }
+            },
         }
     })
 
@@ -226,21 +225,20 @@ T['populate_buf_fragments()'] = function()
     eq(ret, {
         {
             buf_num = buf,
-            parsed = {
-                fragments = {
-                    {
-                        hash = "#",
-                        text = "Heading 1",
-                        lnum = 1,
-                    },
-                    {
-                        hash = "##",
-                        text = "Heading 2",
-                        lnum = 4,
-                    }
+            fragments = {
+                {
+                    hash = "#",
+                    text = "Heading 1",
+                    gfm = "heading-1",
+                    lnum = 1,
                 },
-                gfm = {"heading-1", "heading-2"}
-            }
+                {
+                    hash = "##",
+                    text = "Heading 2",
+                    gfm = "heading-2",
+                    lnum = 4,
+                }
+            },
         }
     })
 
@@ -254,16 +252,14 @@ T['populate_buf_fragments()'] = function()
     eq(ret, {
         {
             buf_num = buf,
-            parsed = {
-                fragments = {
-                    {
-                        hash = "###",
-                        text = "Heading 3",
-                        lnum = 1,
-                    },
+            fragments = {
+                {
+                    hash = "###",
+                    text = "Heading 3",
+                    gfm = "heading-3",
+                    lnum = 1,
                 },
-                gfm = {"heading-3",}
-            }
+            },
         }
     })
 
@@ -278,40 +274,37 @@ T['populate_buf_fragments()'] = function()
     eq(ret, {
         {
             buf_num = buf,
-            parsed = {
-                fragments = {
-                    {
-                        hash = "###",
-                        text = "Heading 3",
-                        lnum = 1,
-                    },
+            fragments = {
+                {
+                    hash = "###",
+                    text = "Heading 3",
+                    gfm = "heading-3",
+                    lnum = 1,
                 },
-                gfm = {"heading-3",}
-            }
+            },
         },
         {
             buf_num = new_buf,
-            parsed = {
-                fragments = {
-                    {
-                        hash = "#",
-                        text = "Heading 1",
-                        lnum = 1,
-                    },
-                    {
-                        hash = "##",
-                        text = "Heading 2",
-                        lnum = 4,
-                    }
+            fragments = {
+                {
+                    hash = "#",
+                    text = "Heading 1",
+                    gfm = "heading-1",
+                    lnum = 1,
                 },
-                gfm = {"heading-1", "heading-2"}
-            }
+                {
+                    hash = "##",
+                    text = "Heading 2",
+                    gfm = "heading-2",
+                    lnum = 4,
+                }
+            },
         }
     })
 end
 
 
-T['get_fragments_from_buf_headings()'] = function()
+T['get_buf_fragments()'] = function()
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -324,17 +317,19 @@ T['get_fragments_from_buf_headings()'] = function()
 
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
-    return require('mdnotes').get_fragments_from_buf_headings(cur_buf)
+    return require('mdnotes').get_buf_fragments(cur_buf)
     ]])
     eq(ret, {
         {
             hash = "#",
             text = "Heading 1",
+            gfm = "heading-1",
             lnum = 1,
         },
         {
             hash = "##",
             text = "Heading 2",
+            gfm = "heading-2",
             lnum = 4,
         }
     })

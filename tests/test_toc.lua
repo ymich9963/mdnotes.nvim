@@ -34,8 +34,7 @@ T['generate()'] = function()
     local buf = create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
+    require('mdnotes').populate_buf_fragments()
     return require('mdnotes.toc').generate({ write = false, depth = 1 })
     ]])
     eq(ret, {
@@ -47,8 +46,7 @@ T['generate()'] = function()
     })
 
     ret = child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
+    require('mdnotes').populate_buf_fragments()
     return require('mdnotes.toc').generate({ write = false })
     ]])
     eq(ret, {
@@ -60,8 +58,7 @@ T['generate()'] = function()
     })
 
     child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
+    require('mdnotes').populate_buf_fragments()
     require('mdnotes.toc').generate()
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)

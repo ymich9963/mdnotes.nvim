@@ -35,20 +35,17 @@ T['get_heading()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    return {require('mdnotes.heading').get_heading()}
+    require('mdnotes').populate_buf_fragments()
+    return require('mdnotes.heading').get_heading()
     ]])
-    eq(ret, {1, {hash = "#", text = "Heading 1", lnum = 1}, 2})
+    eq(ret, {hash = "#", text = "Heading 1", gfm = "heading-1", lnum = 1})
 
     child.fn.cursor(4,1)
-    ret = child.lua([[
-    return {require('mdnotes.heading').get_heading()}
-    ]])
-    eq(ret, {2, {hash = "##", text = "Heading 2", lnum = 4}, 2})
+    ret = child.lua([[ return require('mdnotes.heading').get_heading() ]])
+    eq(ret, {hash = "##", text = "Heading 2", gfm = "heading-2", lnum = 4})
 end
 
-T['goto_next()'] = function()
+T['move_to()'] = function()
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -60,43 +57,18 @@ T['goto_next()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    return {require('mdnotes.heading').goto_next()}
+    require('mdnotes').populate_buf_fragments()
+    require('mdnotes.heading').move_to(1)
     ]])
     eq(child.fn.getcurpos()[2], 4)
 
-    child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    return {require('mdnotes.heading').goto_next()}
-    ]])
+    child.lua([[ return require('mdnotes.heading').move_to(1) ]])
     eq(child.fn.getcurpos()[2], 1)
-end
 
-T['goto_previous()'] = function()
-    -- Setup test buffer
-    local lines = {
-        "# Heading 1",
-        "Text here",
-        "",
-        "## Heading 2",
-        "Text here",
-    }
-    create_md_buffer(child, lines)
-
-    child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    require('mdnotes.heading').goto_previous()
-    ]])
+    child.lua([[ return require('mdnotes.heading').move_to(-1) ]])
     eq(child.fn.getcurpos()[2], 4)
 
-    child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    require('mdnotes.heading').goto_previous()
-    ]])
+    child.lua([[ return require('mdnotes.heading').move_to(-1) ]])
     eq(child.fn.getcurpos()[2], 1)
 end
 

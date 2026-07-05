@@ -33,15 +33,14 @@ function M.generate(opts)
 
     local toc = {}
     local fragments = {}
-    local gfm_fragments = {}
     local found = false
     local buf_fragments = require('mdnotes').buf_fragments
 
     for _, v in ipairs(buf_fragments) do
         if v.buf_num == buffer then
-            fragments = v.parsed.fragments
-            gfm_fragments = v.parsed.gfm
+            fragments = v.fragments
             found = true
+            break
         end
     end
 
@@ -57,7 +56,7 @@ function M.generate(opts)
         local hash_count = select(2, fragments[i].hash:gsub("#", ""))
         if hash_count <= tonumber(depth) then
             local spaces = string.rep(" ", vim.o.shiftwidth * (hash_count - 1), "")
-            table.insert(toc, ("%s- [%s](#%s)"):format(spaces, fragments[i].text, gfm_fragments[i]))
+            table.insert(toc, ("%s- [%s](#%s)"):format(spaces, fragments[i].text, fragments[i].gfm))
         end
     end
 

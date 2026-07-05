@@ -44,16 +44,12 @@ M.plugin_install_dir = nil
 ---@class MdnFragment
 ---@field hash string The '#' present in the heading
 ---@field text string Original fragment text from the file headings
+---@field gfm string GFM style text of fragment
 ---@field lnum integer Line number of the heading
-
----@class MdnFragments
----@field fragment table<MdnFragment>
-
----@alias MdnFragmentsGfm table<string> Parsed GFM-style fragment text
 
 ---@class MdnBufFragments
 ---@field buf_num integer Buffer number
----@field parsed table<MdnFragments, MdnFragmentsGfm> 
+---@field fragments table<MdnFragment> 
 
 ---@type table<table<MdnBufFragments>>
 M.buf_fragments = {}
@@ -605,47 +601,29 @@ end
 function M.populate_buf_fragments(bufnr)
     if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
 
-    local fragments = M.get_fragments_from_buf_headings(bufnr)
+    local fragments_tbl = M.get_buf_fragments(bufnr)
 
-    -- Convert to fragments to GFM style
-    local gfm_fragments = {}
-    for _, fragment in ipairs(fragments) do
-        table.insert(gfm_fragments, M.convert_text_to_gfm(fragment.text))
-    end
-
-    local buf_exists = false
+    local exists = false
     for _,v in ipairs(M.buf_fragments) do
         if v.buf_num == bufnr then
-            buf_exists = true
-            -- Check if the fragments have changed
-            if v.parsed.fragments ~= fragments then
-                -- and update them
-                v.parsed.fragments = fragments
-                v.parsed.gfm = gfm_fragments
+            exists = true
+            if v.fragments ~= fragments_tbl then
+                v.fragments = fragments_tbl
             end
+
             break
         end
     end
 
-    local entry = {
-        buf_num = bufnr,
-        parsed = {
-            fragments = fragments,
-            gfm = gfm_fragments
-        }
-    }
-
-    if buf_exists == false then
-        table.insert(M.buf_fragments, entry)
+    if exists == false then
+        table.insert(M.buf_fragments, {buf_num = bufnr, fragments = fragments_tbl})
     end
-
-    return entry
 end
 
 ---Get fragments from the Markdown buffer headings
 ---@param bufnr integer?
----@return MdnFragments
-function M.get_fragments_from_buf_headings(bufnr)
+---@return table<MdnFragment>
+function M.get_buf_fragments(bufnr)
     if bufnr == nil then bufnr = 0 end
     local fragments = {}
     local buf_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
@@ -654,7 +632,7 @@ function M.get_fragments_from_buf_headings(bufnr)
     for lnum, line in ipairs(buf_lines) do
         local hash, text = line:match(heading_format_pattern)
         if text and hash then
-            table.insert(fragments, {hash = hash, text = text, lnum = lnum})
+            table.insert(fragments, {hash = hash, text = text, gfm = M.convert_text_to_gfm(text), lnum = lnum})
         end
     end
 
@@ -666,28 +644,23 @@ end
 ---@param fragment string Fragment
 ---@return string?
 function M.find_fragment_in_buf_fragments(bufnr, fragment)
-    local parsed_fragments
+    local fragments
     for _, v in ipairs(M.buf_fragments) do
         if v.buf_num == bufnr then
-            parsed_fragments = v.parsed
+            fragments = v.fragments
             break
         end
     end
 
-    if parsed_fragments == nil then
+    if fragments == nil then
         return nil
     end
 
     -- Check if it is a GFM style fragment
-    for i, v in ipairs(parsed_fragments.gfm) do
-        if v == fragment then
-            return parsed_fragments.fragments[i].text
-        end
-    end
-
-    -- Check if it is an as-is fragment
-    for _, v in ipairs(parsed_fragments.fragments) do
-        if v.text == fragment then
+    for _, v in pairs(fragments) do
+        if v.gfm == fragment then
+            return v.text
+        elseif v.text == fragment then
             return v.text
         end
     end
@@ -791,7 +764,7 @@ function M.statistics(opts)
         end
     end
 
-    headings = #M.get_fragments_from_buf_headings(bufnum)
+    headings = #M.get_buf_fragments(bufnum)
 
     -- NOTE: Tried to print "formatted words" but because URLs might contain
     -- `_word_` then `word` is matched in scan_lines

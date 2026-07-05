@@ -851,7 +851,7 @@ populate_buf_fragments({bufnr}) 			*mdnotes.populate_buf_fragments()*
     • {bufnr}  (`integer?` defaults to current buffer) Buffer to populate
       `buf_fragments` with.
 
-get_fragments_from_headings({bufnr}) 			*mdnotes.get_fragments_from_headings()*
+get_buf_fragments({bufnr}) 				*mdnotes.get_fragments_from_headings()*
 
     Get fragments from the Markdown buffer headings. Parses each heading to
     table entries of type `MdnFragment`.
@@ -861,7 +861,7 @@ get_fragments_from_headings({bufnr}) 			*mdnotes.get_fragments_from_headings()*
       from.
 
     Return: ~
-    • (`MdnFragments`)
+    • (`table<MdnFragment>`)
 
 find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
 
@@ -1279,18 +1279,22 @@ heading.get_heading({opts}) 				*mdnotes.heading.get_heading()*
               • {lnum} (`integer?,` defaults to current line)
 
     Return: ~
-    • (`integer?`): Index of current heading in the parsed fragments. See
-      |mdnotes-buf_fragments|.
     • (`MdnFragment`)
-    • (`integer`): Total fragments in the parsed buffer
+
+heading.move_to({increment}) 				*mdnotes.heading.move_to()*
+
+    Increment an amount of headings to move to from the current heading
+
+    Parameters: ~
+    • {increment}  (`number`) Amount to increment.
 
 heading.goto_next()					*mdnotes.heading.goto_next()*
 
-      Go to the next Markdown heading.
+    Use |mdnotes.heading.move_to()| with an increment of 1.
 
 heading.goto_previous()					*mdnotes.heading.goto_previous()*
 
-   Go to the previous Markdown heading.
+    Use |mdnotes.heading.move_to()| with an increment of -1.
 
 history.buf_history					*mdnotes.history.buf_history*
 
@@ -2241,18 +2245,8 @@ MdnFragment	 					*mdnotes.MdnFragment*
     Fields: ~
     • {hash} (`string`) The '#' present in the heading
     • {text} (`string`) Original fragment text from the file headings
+    • {gfm} (`string`) GFM style text of fragment
     • {lnum} (`integer`) Line number of the heading
-
-MdnFragments	 					*mdnotes.MdnFragments*
-
-    Table containing |mdnotes.MdnFragment| entries.
-
-    Fields: ~
-    • {fragment} (`table<MdnFragment>`)
-
-MdnFragmentsGfm 					*mdnotes.MdnFragmentsGfm*
-
-    Alias for `table<string>` to signify how GFM-style fragments are stored.
 
 MdnBufFragments	 					*mdnotes.MdnBufFragments*
 
@@ -2260,7 +2254,7 @@ MdnBufFragments	 					*mdnotes.MdnBufFragments*
 
     Fields: ~
     • {buf_num} (`integer`) Buffer number
-    • {parsed} (`table<MdnFragments, MdnFragmentsGfm`)
+    • {fragments} (`table<MdnFragment>`)
 
 MdnConfig	 					*mdnotes.MdnConfig*
 

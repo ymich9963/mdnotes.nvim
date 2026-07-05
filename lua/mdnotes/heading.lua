@@ -5,36 +5,34 @@ local M = {}
 ---Get the Markdown heading that the specified line is under
 ---Defaults to current buffer and current line
 ---@param opts {bufnum: integer?, lnum: integer?}?
----@return integer? index, MdnFragment fragment, integer total_fragments
+---@return MdnFragment? fragment
 function M.get_heading(opts)
     opts = opts or {}
 
     local buf_fragments = require('mdnotes').buf_fragments
     local lnum = opts.lnum or vim.fn.line(".")
     local bufnum = opts.bufnum or vim.api.nvim_get_current_buf()
-    local fragment = {hash = "", text = "", lnum = 0}
     local index = 0
-    local parsed = nil
 
+    local fragments
     for _, v in ipairs(buf_fragments) do
         if v.buf_num == bufnum then
-            parsed = v.parsed
+            fragments = v.fragments
             break
         end
     end
 
-    if parsed == nil then
+    if fragments == nil then
         vim.notify("Mdn: Buffer not parsed", vim.log.levels.ERROR)
-        return nil, fragment, 0
+        return
     end
 
-    local total_fragments = #parsed.fragments
-
-    for j, vv in ipairs(parsed.fragments) do
+    local fragment
+    for j, vv in ipairs(fragments) do
         -- Once the header entry's lnum is more than the current
         -- it means we have to subtract 1 to get the current heading
         if vv.lnum > lnum then
-            fragment = parsed.fragments[j - 1]
+            fragment = fragments[j - 1]
             index = j - 1
             break
         end
@@ -42,11 +40,11 @@ function M.get_heading(opts)
 
     -- If there is no next heading, do this to get the last one
     if index == 0 then
-        fragment = parsed.fragments[total_fragments]
-        index = total_fragments
+        fragment = fragments[#fragments]
+        index = #fragments
     end
 
-    return index, fragment, total_fragments
+    return fragment
 end
 
 ---Resolve any index issues 
@@ -59,36 +57,43 @@ local function resolve_index(index, total)
     return index
 end
 
----Go to next Markdown heading
-function M.goto_next()
+---Increment an amount of headings to move to from the current heading
+---@param increment number Amount to increment
+function M.move_to(increment)
+    vim.validate("increment", increment, "number")
+
     local buf_fragments = require('mdnotes').buf_fragments
     local cur_buf_num = vim.api.nvim_get_current_buf()
-    local index, _, total_fragments = M.get_heading()
-    if not index then return end
+    local fragment = M.get_heading()
+    if not fragment then return end
 
+    local fragments
     for _, v in ipairs(buf_fragments) do
         if v.buf_num == cur_buf_num then
-            vim.fn.cursor(vim.fn.search(v.parsed.fragments[resolve_index(index + 1, total_fragments)].text), 1)
-            vim.api.nvim_input('zz')
+            fragments = v.fragments
             break
+        end
+    end
+
+    for i, v in ipairs(fragments) do
+        if v.text == fragment.text then
+            local new_index = resolve_index(i + increment, #fragments)
+            local search = vim.fn.search(fragments[new_index].text)
+            vim.fn.cursor(search, 1)
+            vim.api.nvim_input('zz')
+            return
         end
     end
 end
 
+---Go to next Markdown heading
+function M.goto_next()
+    M.move_to(1)
+end
+
 ---Go to previous Markdown heading
 function M.goto_previous()
-    local buf_fragments = require('mdnotes').buf_fragments
-    local cur_buf_num = vim.api.nvim_get_current_buf()
-    local index, _, total_fragments = M.get_heading()
-    if not index then return end
-
-    for _, v in ipairs(buf_fragments) do
-        if v.buf_num == cur_buf_num then
-            vim.fn.cursor(vim.fn.search(v.parsed.fragments[resolve_index(index - 1, total_fragments)].text), 1)
-            vim.api.nvim_input('zz')
-            break
-        end
-    end
+    M.move_to(-1)
 end
 
 return M
