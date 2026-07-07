@@ -409,7 +409,7 @@ function M.download_website_html(opts)
     -- Notifications should alredy be outputted
     if destination == nil then return end
 
-    if mdn_il.is_url({ destination = destination}) == false then
+    if require('mdnotes').is_url(destination) == false then
         vim.notify("Mdn: Detected inline link does not contain website link", vim.log.levels.ERROR)
         return nil
     end
@@ -467,7 +467,7 @@ function M.delete(opts)
 
     vim.validate("destination", destination, "string")
 
-    local asset_path, err = mdn_il.get_path_from_destination(destination, true)
+    local asset_path, err = require('mdnotes').get_path_from_destination(destination, true)
     if err ~= nil then return false, nil end
 
     local behaviour = require('mdnotes').config.asset_delete_behaviour

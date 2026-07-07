@@ -29,16 +29,20 @@ M = {
     strikethrough = "()~~(.-)~~()",
     inline_code = "()`([^`]+)`()",
     autolink = "()<(.-)>()",
+    reference_link = "()(%[[^%]]+%]%[[^%]]-%])()",
+
+    heading = "^([%#]+)[%s]+(.+)",
+    unordered_list = "^([%s]-)([-+*])[%s](.*)",
+    ordered_list = "^([%s]-)([%d]+)([%.%)])[%s](.*)",
+    reference_link_definition = "^%[([^%]]+)%]:%s?(.+)",
 
     text_dest = "%[([^%]]+)%]%((.+)%)",
     dest_title = ".+%s\"([^\"]*)\"",
     dest_no_fragment = "^([^#]+).*",
     fragment = "#([^|]*)",
     wikilink_alias = ".+|([^|]+)",
-    unordered_list = "^([%s]-)([-+*])[%s](.*)",
-    ordered_list = "^([%s]-)([%d]+)([%.%)])[%s](.*)",
     task = "[%s]-(%[[ xX]%])[%s]+.-",
-    heading = "^([%#]+)[%s]+(.+)",
+    text_label = "%[([^%]]+)%]%[(.-)%]",
 }
 
 return M

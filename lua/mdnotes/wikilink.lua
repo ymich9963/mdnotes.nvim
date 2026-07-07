@@ -253,6 +253,7 @@ function M.rename_references(opts)
     vim.cmd.buffer(cur_buf)
     vim.fn.setpos('.', pos)
 
+    vim.cmd.write({bang = true, mods = {silent = true}})
     vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.wikilink_nofrag, new_name), vim.log.levels.INFO)
 
     return wldata.wikilink_nofrag, new_name

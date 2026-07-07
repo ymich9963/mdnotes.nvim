@@ -7,11 +7,12 @@ vim.g.loaded_mdnotes = true
 
 local mdnotes_cwd_group = vim.api.nvim_create_augroup('mdn.cwd', { clear = true })
 local mdnotes_record_group = vim.api.nvim_create_augroup('mdn.record', { clear = true })
-local mdnotes_pop_group = vim.api.nvim_create_augroup('mdn.pop', { clear = true })
+local mdnotes_pop_frag_group = vim.api.nvim_create_augroup('mdn.pop_frag', { clear = true })
 local mdnotes_renumber_group = vim.api.nvim_create_augroup('mdn.renumber', { clear = true })
 local mdnotes_best_fit_group = vim.api.nvim_create_augroup('mdn.best_fit', { clear = true })
 local mdnotes_outliner_group = vim.api.nvim_create_augroup('mdn.outliner', { clear = true })
 local mdnotes_journal_group = vim.api.nvim_create_augroup('mdn.journal', { clear = true })
+local mdnotes_pop_rl_group = vim.api.nvim_create_augroup('mdn.pop_rl', { clear = true })
 
 -- To save the current working directory
 vim.api.nvim_create_autocmd("BufEnter", {
@@ -36,7 +37,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- Parsing fragments for :Mdn generate_toc and :Mdn inline_link open
 vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
-    group = mdnotes_pop_group,
+    group = mdnotes_pop_frag_group,
     callback = function(args)
         require('mdnotes').populate_buf_fragments(args.buf)
     end,
@@ -86,6 +87,16 @@ vim.api.nvim_create_autocmd({"BufEnter"}, {
         require("mdnotes.journal").insert_entry({ silent = true, check_file = true })
     end,
     desc = "Mdnotes automatic journal entry autocmd"
+})
+
+-- Parse reference links in current buffer
+vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
+    pattern = "*.md",
+    group = mdnotes_pop_rl_group,
+    callback = function(args)
+        require('mdnotes.reference_link').populate_buf_reference_links(args.buf)
+    end,
+    desc = "Mdnotes populating buffer reference links table autocmd"
 })
 
 local commands = nil
@@ -179,6 +190,18 @@ local get_commands = function() return {
         populate_buf_fragments = require("mdnotes").populate_buf_fragments,
         open_containing_folder = require("mdnotes").open_containing_folder,
         statistics = require("mdnotes").statistics,
+    },
+    reference_link = {
+        open = require("mdnotes.reference_link").open,
+        insert = require("mdnotes.reference_link").insert,
+        go_to_definition = require("mdnotes.reference_link").go_to_definition,
+        delete = require("mdnotes.reference_link").delete,
+        update_definition = require("mdnotes.reference_link").update_definition,
+        cleanup_definitions = require("mdnotes.reference_link").cleanup_definitions,
+        populate_buf_reference_links = require("mdnotes.reference_link").populate_buf_reference_links,
+        rename = require("mdnotes.reference_link").rename,
+        relabel = require("mdnotes.reference_link").relabel,
+        convert_from_inline = require("mdnotes.reference_link").convert_from_inline,
     },
     user = vim.deepcopy(require('mdnotes').config.user_commands, true)
 }

@@ -2,8 +2,6 @@
 
 local M = {}
 
-local uv = vim.loop or vim.uv
-
 ---@class MdnInlineLinkData: MdnInLineLocation
 ---@field img_char '"!"'|'""' Inline link image character
 ---@field text string Inline link text
@@ -46,7 +44,7 @@ function M.parse(opts)
     end
 
     local img_char = ""
-    if M.is_image({ inline_link = inline_link }) == true then
+    if M.is_image(inline_link) == true then
         img_char = "!"
     end
 
@@ -71,111 +69,6 @@ function M.get_il_from_obj(ildata)
     end
 end
 
----Check and get path from the destination
----@param destination string destination to check
----@param check_valid boolean Whether to check if the path is to a valid file or not
----@param opts table?
----@return string path, integer? error, string? error_text
-function M.get_path_from_destination(destination, check_valid, opts)
-    local path = ""
-    if M.is_url({ destination = destination }) == true then return path, -1, "is URL" end
-
-    opts = opts or {} -- unused
-
-    vim.validate("destination", destination, "string")
-    vim.validate("check_valid", check_valid, "boolean")
-
-    local cwd =require('mdnotes').cwd
-    path = destination:match(require("mdnotes.patterns").dest_no_fragment) or ""
-
-    if check_valid == true then
-        if path ~= "" then
-
-            -- Check if absolute path first
-            if uv.fs_stat(path) then
-                return vim.fs.abspath(path), nil
-            end
-
-            path = vim.fs.joinpath(cwd, path)
-
-            -- If a Markdown file exists then it is a Markdown file
-            -- GitHub does not like it when there is no .md in the inline link
-            if uv.fs_stat(path .. ".md") then
-                path = path .. ".md"
-            end
-
-            -- If the path is still not found, check if it's a URL
-            if not uv.fs_stat(path) then
-                vim.notify("Mdn: Linked file at '" .. path .. "' not found", vim.log.levels.ERROR)
-                return path, -2, "file not found"
-            end
-        else
-            -- Handle [link](#fragment)
-            path = vim.fs.basename(vim.api.nvim_buf_get_name(0))
-        end
-    end
-
-    return vim.fs.normalize(path), nil
-end
-
----Check and get fragment from the destination
----@param destination string destination to check
----@param check_valid boolean Whether to check if the path is to a valid file or not
----@param opts table?
----@return string? fragment, integer? error, string? error_text
-function M.get_fragment_from_destination(destination, check_valid, opts)
-    local fragment = ""
-    if M.is_url({ destination = destination }) == true then return fragment, -1, "is URL" end
-
-    opts = opts or {} -- unused
-
-    vim.validate("destination", destination, "string")
-    vim.validate("check_valid", check_valid, "boolean")
-
-    fragment = destination:match(require("mdnotes.patterns").fragment) or ""
-
-    if check_valid == true then
-        if fragment ~= "" then
-
-            -- Need path to open file to parse sections
-            local path, err = M.get_path_from_destination(destination, true)
-            if err ~= nil then
-                return fragment, -2, "invalid path: " .. path .. ", " .. err
-            end
-
-            local buf
-            if path ~= "" then
-                buf = vim.fn.bufadd(path)
-                vim.fn.bufload(buf)
-            else
-                -- path == "" on scratch buffers
-                buf = vim.api.nvim_get_current_buf()
-            end
-
-            require('mdnotes').populate_buf_fragments(buf)
-
-            local new_fragment = require('mdnotes').find_fragment_in_buf_fragments(buf, fragment)
-            if new_fragment == nil then
-                return fragment, -3, "fragment not parsed"
-            end
-
-            local search_ret = 0
-            vim.api.nvim_buf_call(buf, function()
-                search_ret = vim.fn.search("# " .. new_fragment)
-            end)
-
-            if search_ret == 0 then
-                vim.notify("Mdn: Invalid fragment '" .. fragment .. "'", vim.log.levels.ERROR)
-                return fragment, -4, "invalid fragment: ".. new_fragment
-            end
-
-            fragment = new_fragment
-        end
-    end
-
-    return fragment, nil
-end
-
 ---Open inline links in the appropriate programme
 ---@param opts {inline_link: string?, location: MdnInLineLocation?}?
 ---@return integer|vim.SystemObj|string?
@@ -194,74 +87,24 @@ function M.open(opts)
     else
         ildata = M.parse({ inline_link = inline_link, keep_pointy_brackets = false })
     end
-    if ildata == nil then return end
-
-    local destination = ildata.destination
-    if destination == nil then return "destination error" end
-
-    local path, perror = M.get_path_from_destination(destination, true)
-    if perror ~= nil and perror ~= -1 then return path .. ", " .. perror end
-
-    local fragment, ferror = M.get_fragment_from_destination(destination, true)
-    if ferror ~= nil and ferror ~= -1 then return fragment .. ", " .. ferror end
-
-    -- Check if the file exists and is a Markdown file
-    if path ~= "" and uv.fs_stat(path) and vim.endswith(path, ".md") then
-        require('mdnotes').open_buf(path)
-        if fragment ~= "" then
-            -- Navigate to fragment
-            vim.fn.cursor(vim.fn.search("# " .. fragment), 1)
-            vim.api.nvim_input('zz')
-        end
-
-        return vim.api.nvim_get_current_buf()
+    if ildata == nil then
+        vim.notify("Mdn: No inline link detected", vim.log.levels.ERROR)
+        return
     end
 
-    return vim.ui.open(destination)
+    return require('mdnotes').open(ildata.destination)
 end
 
 ---Check if inline link is an image
----@param opts {inline_link: string?, location: MdnInLineLocation}?
+---@param inline_link string
 ---@return boolean
-function M.is_image(opts)
-    opts = opts or {}
+function M.is_image(inline_link)
+    vim.validate("inline_link", inline_link, "string")
 
-    local inline_link = opts.inline_link
-
-    vim.validate("inline_link", inline_link, { "string", "nil" })
-
-    if opts.location or inline_link == nil then
-        local inline_link_pattern = require("mdnotes.patterns").inline_link
-        local txtdata = require('mdnotes').get_text_in_pattern(inline_link_pattern, { location = opts.location })
-        inline_link = txtdata.text or ""
-    end
-
-    if inline_link == nil or inline_link:sub(1,1) ~= "!" then
-        return false
-    else
+    if inline_link:sub(1,1) == "!" then
         return true
-    end
-end
-
----Check if inline link is an image
----@param opts {destination: string?, location: MdnInLineLocation}?
----@return boolean is_url
-function M.is_url(opts)
-    opts = opts or {}
-
-    local destination = opts.destination
-    if opts.location or destination == nil then
-        local mdn_patterns = require("mdnotes.patterns")
-        local txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.inline_link, { location = opts.location })
-        _, destination = txtdata.text:match(mdn_patterns.text_dest)
-    end
-
-    vim.validate("destination", destination, { "string", "nil" })
-
-    if destination == nil or not vim.tbl_contains({"http", "https"}, destination:match("%w+")) then
-        return false
     else
-        return true
+        return false
     end
 end
 
