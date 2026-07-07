@@ -343,7 +343,7 @@ local function process_unused_assets(action, skip_input)
             vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to %s file(s) or 'c' to cancel (default 'n'): "):format(name, text1), }, function(input)
                 user_input = input
             end)
-            vim.cmd.redraw()
+            vim.cmd.echo()
             if user_input == 'y' then
                 action_func(file_assets_path, file_unused_assets_path)
                 vim.notify(("Mdn: %s '%s'. Press any key to continue..."):format(text2, name), vim.log.levels.WARN)
@@ -365,7 +365,7 @@ local function process_unused_assets(action, skip_input)
         end
     end
 
-    vim.cmd.redraw()
+    vim.cmd.echo()
     vim.notify(("Mdn: Finished %s process"):format(text1), vim.log.levels.INFO)
 end
 
@@ -496,7 +496,7 @@ function M.delete(opts)
         vim.ui.input( { prompt = prompt, }, function(input)
             user_input = input
         end)
-        vim.cmd.redraw()
+        vim.cmd.echo()
     elseif skip_input == true then
         user_input = 'y'
     end

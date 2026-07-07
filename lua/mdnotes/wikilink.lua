@@ -357,7 +357,7 @@ function M.delete(opts)
     if uv.fs_stat(path) then
         if skip_input == false then
             vim.ui.input( { prompt = ("Mdn: Delete '%s' WikiLink and file? Type y/n (default 'n'): "):format(wldata.wikilink_nofrag), }, function(input)
-                vim.cmd.redraw()
+                vim.cmd.echo()
                 if input == 'y' then
                     vim.fs.rm(path)
                 elseif input == 'n' or '' then
