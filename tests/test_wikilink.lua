@@ -32,7 +32,7 @@ T['parse()'] = function()
 
     local ret = child.lua("return require('mdnotes.wikilink').parse()")
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         col_end = 24,
         col_start = 1,
         cur_col = 1,
@@ -270,7 +270,7 @@ T['parse_lines()'] = function()
     local ret = child.lua([[return require('mdnotes.wikilink').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
         {
-            buffer = 2,
+            buf = 2,
             col_end = 9,
             col_start = 1,
             cur_col = 5,

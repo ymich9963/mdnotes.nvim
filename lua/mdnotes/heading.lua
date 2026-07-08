@@ -4,19 +4,19 @@ local M = {}
 
 ---Get the Markdown heading that the specified line is under
 ---Defaults to current buffer and current line
----@param opts {bufnum: integer?, lnum: integer?}?
+---@param opts {buf: integer?, lnum: integer?}?
 ---@return MdnFragment? fragment
 function M.get_heading(opts)
     opts = opts or {}
 
     local buf_fragments = require('mdnotes').buf_fragments
     local lnum = opts.lnum or vim.fn.line(".")
-    local bufnum = opts.bufnum or vim.api.nvim_get_current_buf()
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
     local index = 0
 
     local fragments
     for _, v in ipairs(buf_fragments) do
-        if v.buf_num == bufnum then
+        if v.buf == buf then
             fragments = v.fragments
             break
         end
@@ -63,13 +63,13 @@ function M.move_to(increment)
     vim.validate("increment", increment, "number")
 
     local buf_fragments = require('mdnotes').buf_fragments
-    local cur_buf_num = vim.api.nvim_get_current_buf()
+    local cur_buf = vim.api.nvim_get_current_buf()
     local fragment = M.get_heading()
     if not fragment then return end
 
     local fragments
     for _, v in ipairs(buf_fragments) do
-        if v.buf_num == cur_buf_num then
+        if v.buf == cur_buf then
             fragments = v.fragments
             break
         end

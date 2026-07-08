@@ -122,7 +122,7 @@ function M.show_references(opts)
         -- If wikilink pattern isn't detected use current file name
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
         wldata = {
-            buffer = vim.api.nvim_get_current_buf(),
+            buf = vim.api.nvim_get_current_buf(),
             wikilink_nofrag = cur_file_basename:gsub(".md$",""),
             fragment = "",
             alias = "",
@@ -141,7 +141,7 @@ function M.show_references(opts)
         return qflist
     end
 
-    vim.cmd("buffer " .. wldata.buffer)
+    vim.cmd("buffer " .. wldata.buf)
     vim.fn.setpos('.', cur_pos)
     vim.cmd.copen()
 
@@ -396,10 +396,10 @@ function M.normalize(opts)
         new_wikilink = new_wikilink .. '#' .. wldata.fragment
     end
 
-    vim.api.nvim_buf_set_text(wldata.buffer, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {"[[" .. new_wikilink .. "]]"})
+    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {"[[" .. new_wikilink .. "]]"})
 
     if move_cursor == true then
-        vim.cmd.buffer(wldata.buffer)
+        vim.cmd.buffer(wldata.buf)
         vim.fn.cursor({wldata.lnum, wldata.cur_col})
     end
 end
@@ -477,15 +477,15 @@ function M.get_wl_from_obj(wldata)
 end
 
 ---Go to WikiLink
----@param opts {wikilink: string?, buffer: number?}?
+---@param opts {wikilink: string?, buf: number?}?
 function M.go_to(opts)
     opts = opts or {}
 
     local wl = opts.wikilink
-    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
 
     if wl == nil then
-        local parsed_tbl = require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$"), buffer = buffer }, silent = true})
+        local parsed_tbl = require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
         if parsed_tbl == nil then
             vim.notify("Mdn: No WikiLinks in current file to go to", vim.log.levels.ERROR)
             return
@@ -521,7 +521,7 @@ function M.parse_lines(opts)
     opts = opts or {}
 
     local locopts = opts.location or {}
-    local buffer = locopts.buffer or vim.api.nvim_get_current_buf()
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
     local str = opts.str or false
@@ -529,13 +529,13 @@ function M.parse_lines(opts)
     local pattern = require('mdnotes.patterns').wikilink
     local scan_lines = require('mdnotes').scan_lines
 
-    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buffer = buffer }, silent = true})
+    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
     if scanned_lines == nil then return nil end
 
     local parsed_tbl = {}
     for _, item in ipairs(scanned_lines) do
         for _, cols in ipairs(item.cols) do
-            local data = M.parse({ location = {buffer = buffer, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
+            local data = M.parse({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
             if str == true then
                 table.insert(parsed_tbl, M.get_wl_from_obj(data))
             else

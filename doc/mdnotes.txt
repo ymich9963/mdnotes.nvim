@@ -713,7 +713,7 @@ open_buf({buf}, {opts})					*mdnotes.open_buf()*
     |mdnotes-open_cmd|.
 
     Parameters: ~
-    • {buffer}  (`integer|string`)
+    • {buf}  (`integer|string`)
     • {opts}  (`table?`) Optional parameters:
               • {hor} (`boolean?` default `false`)
 		open buffer in a horizontal split.
@@ -847,34 +847,34 @@ convert_text_to_gfm({text}) 				*mdnotes.convert_text_to_gfm()*
     Return: ~
     • (`string`): Converted text
 
-populate_buf_fragments({bufnr}) 			*mdnotes.populate_buf_fragments()*
+populate_buf_fragments({buf}) 			*mdnotes.populate_buf_fragments()*
 
     Parse the fragments in the specified buffer and update |mdnotes.buf_fragments|.
 
     Parameters: ~
-    • {bufnr}  (`integer?` defaults to current buffer) Buffer to populate
+    • {buf}  (`integer?` defaults to current buffer) Buffer to populate
       |mdnotes.buf_fragments| with.
 
-get_buf_fragments({bufnr}) 				*mdnotes.get_fragments_from_headings()*
+get_buf_fragments({buf}) 				*mdnotes.get_fragments_from_headings()*
 
     Get fragments from the Markdown buffer headings. Parses each heading to
     table entries of type `MdnFragment`.
     
     Parameters: ~
-    • {bufnr}  (`integer?` defaults to current buffer) Buffer to get fragments
+    • {buf}  (`integer?` defaults to current buffer) Buffer to get fragments
       from.
 
     Return: ~
     • (`table<MdnFragment>`)
 
-find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
+find_fragment_in_buf_fragments({buf}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
 
     Find the fragment in the |mdnotes.buf_fragments| table of the specified
     buffer. Returns `nil` if the specified buffer and fragment are not
     parsed in |mdnotes.buf_fragments|.
 
     Parameters: ~
-    • {bufnr}  (`MdnFragments`) Fragments table.
+    • {buf}  (`MdnFragments`) Fragments table.
     • {fragment}  (`string`) Fragment to search for.
 
     Return: ~
@@ -905,13 +905,13 @@ scan_lines({pattern}, {opts})				*mdnotes.scan_lines()*
 
 statistics({opts})					*mdnotes.statistics()*
 
-    Return statistics for {buffer}. Uses |wordcount()| internally alond with
+    Return statistics for {buf}. Uses |wordcount()| internally alond with
     |mdnotes.scan_lines()|.
 
     Parameters: ~
     • {pattern}  (`MdnPattern`)
     • {opts}  (`table?`) Optional parameters:
-              • {buffer} (`number?` defaults to current buffer)
+              • {buf} (`number?` defaults to current buffer)
 		buffer number
               • {silent} (`boolean?`, default `false`)
 		silence notifications
@@ -1294,13 +1294,13 @@ history.current_index					*mdnotes.history.current_index*
 
     Current index being pointed to in the |mdnotes.buf_history| table. 
 
-history.record_buf({bufnr}) 				*mdnotes.history.record_buf()*
+history.record_buf({buf}) 				*mdnotes.history.record_buf()*
 
     Record {buffernr} to buffer history. Defaults to current buffer. Used in
     the `record_buf` autocmd in |mdnotes-autocmds|.
 
     Parameters: ~
-    • {bufnr}  (`integer?`, default current buffer) Buffer number
+    • {buf}  (`integer?`, default current buffer) Buffer number
 
 history.go_back()					*mdnotes.history.go_back()*
 
@@ -1555,7 +1555,7 @@ inline_link.go_to({opts})				*mdnotes.inline_link.go_to()*
     • {opts}  (`table?`) Optional parameters:
               • {inline_link} (`string?`)
 		inline link to go to
-              • {buffer} (`buffer?`, defaults to current buffer)
+              • {buf} (`buffer?`, defaults to current buffer)
 		buffer to use for parsing its inline links
 
 inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
@@ -1671,7 +1671,7 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
     • {rows} (`integer|string`)
     • {columns} (`integer|string`)
     • {opts} (`table?`) Optional parameters:
-              • {buffer} (`integer?`, defaults to current buffer)
+              • {buf} (`integer?`, defaults to current buffer)
 		buffer to write the table to
               • {lnum} (`integer?`, defaults to current line)
 		line number to insert the table at
@@ -1681,12 +1681,12 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
     Return: ~
     • (`MdnTable`)
 							*mdnotes.table.get_table_lines()*
-table.get_table_lines({buffer}, {table_startl}, {table_endl})
+table.get_table_lines({buf}, {table_startl}, {table_endl})
 
     Get the table lines in the specified buffer and line numbers.
 
     Parameters: ~
-    • {buffer}  (`integer?`)
+    • {buf}  (`integer?`)
     • {table_startl}  (`integer?`)
     • {table_endl}  (`table?`) Optional parameters:
 
@@ -1969,14 +1969,14 @@ toc.generate({opts})					*mdnotes.toc.generate()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {buffer} (`integer?`, defaults to current buffer)
+              • {buf} (`integer?`, defaults to current buffer)
 		buffer number to generate ToC for
               • {lnum} (`integer?`, defaults to current line)
-		line number to write the ToC to in {buffer}
+		line number to write the ToC to in {buf}
               • {depth} (`integer?`, defaults to |mdnotes-toc_depth|)
 		depth of the ToC
               • {write} (`boolean?`, default `true`)
-		write to the specified {buffer} and {line}
+		write to the specified {buf} and {line}
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
@@ -2015,7 +2015,7 @@ toc.update({opts})					*mdnotes.toc.update()*
               • {depth} (`integer?`, defaults to |mdnotes-toc_depth|)
 		depth of the ToC
               • {write} (`boolean?`, default `true`)
-		write to the specified {buffer} and {line}
+		write to the specified {buf} and {line}
               • {silent} (`boolean?`, default `false`)
 		silence notifications
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
@@ -2188,7 +2188,7 @@ wikilink.go_to({opts})					*mdnotes.wikilink.go_to()*
     • {opts}  (`table?`) Optional parameters:
               • {wikilink} (`string?`)
 		WikiLink to go to
-              • {buffer} (`buffer?`, defaults to current buffer)
+              • {buf} (`buffer?`, defaults to current buffer)
 		buffer to use for parsing its WikiLinks
 
 wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
@@ -2212,7 +2212,7 @@ MdnInLineLocation 					*mdnotes.MdnInLineLocation*
     Used for locating in-line Markdown elements.
 
     Fields: ~
-    • {buffer} (`integer?`) Buffer number
+    • {buf} (`integer?`) Buffer number
     • {lnum} (`integer?`) Line number
     • {col_start} (`integer?`) Start column of text
     • {col_end} (`integer?`) End column of text
@@ -2223,7 +2223,7 @@ MdnMultiLineLocation 					*mdnotes.MdnMultiLineLocation*
     Used for locating multi-line Markdown elements.
 
     Fields: ~
-    • {buffer} (`integer?`) Buffer number
+    • {buf} (`integer?`) Buffer number
     • {startl} (`integer?`) Start line number
     • {endl} (`integer?`) End line number
 
@@ -2232,7 +2232,7 @@ MdnSearchOpts	 					*mdnotes.MdnSearchOpts*
     Options for searching for a valid multi-line Markdown element.
 
     Fields: ~
-    • {buffer} (`integer?`) Buffer number
+    • {buf} (`integer?`) Buffer number
     • {origin_lnum} (`integer?`) Line number between the lower and upper limits
     • {upper_limit_lnum} (`integer?`) Higher line number limit of search
     • {lower_limit_lnum} (`integer?`) Lower line number limit of search
@@ -2243,7 +2243,7 @@ MdnSearchResult	 					*mdnotes.MdnSearchResult*
 
     Fields: ~
     • {valid} (`boolean?`) Is search item valid
-    • {buffer} (`table?`) Buffer number
+    • {buf} (`table?`) Buffer number
     • {startl} (`integer?`) Start line of the item
     • {endl} (`integer?`) End line of the item
 
@@ -2271,7 +2271,7 @@ MdnBufFragments	 					*mdnotes.MdnBufFragments*
     Format of the |mdnotes.buf_fragments| table.
 
     Fields: ~
-    • {buf_num} (`integer`) Buffer number
+    • {buf} (`integer`) Buffer number
     • {fragments} (`table<MdnFragment>`)
 
 MdnConfig	 					*mdnotes.MdnConfig*

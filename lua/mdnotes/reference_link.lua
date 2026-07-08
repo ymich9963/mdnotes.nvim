@@ -42,11 +42,11 @@ function M.parse(opts)
     }, txtdata)
 end
 
----@param bufnr integer?
-function M.get_buf_reference_link_entries(bufnr)
-    if bufnr == nil then bufnr = 0 end
+---@param buf integer?
+function M.get_buf_reference_link_entries(buf)
+    if buf == nil then buf = 0 end
     local reference_links = {}
-    local buf_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local rl_entry_pattern = require('mdnotes.patterns').reference_link_entry
 
     for lnum, line in ipairs(buf_lines) do

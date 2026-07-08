@@ -231,9 +231,9 @@ function M.insert(opts)
     end
 
     if txtdata.text == "" then
-        vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.cur_col - 1, txtdata.lnum - 1, txtdata.cur_col - 1, {asset_il.inline_link})
+        vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.cur_col - 1, txtdata.lnum - 1, txtdata.cur_col - 1, {asset_il.inline_link})
     else
-        vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {("%s[%s](%s)"):format(asset_il.img_char, txtdata.text, asset_il.asset_path)})
+        vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {("%s[%s](%s)"):format(asset_il.img_char, txtdata.text, asset_il.asset_path)})
     end
 end
 
@@ -533,7 +533,7 @@ function M.delete(opts)
                     col_start = v.col,
                 }})
                 if il == nil then return is_deleted, asset_path end
-                vim.api.nvim_buf_set_text(il.buffer, il.lnum - 1, il.col_start - 1, il.lnum - 1, il.col_end - 1, {il.text})
+                vim.api.nvim_buf_set_text(il.buf, il.lnum - 1, il.col_start - 1, il.lnum - 1, il.col_end - 1, {il.text})
             end)
         end
 

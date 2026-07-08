@@ -39,7 +39,7 @@ T['generate()'] = function()
     ]])
     eq(ret, {
         contents = { "- [Heading 1](#heading-1)" },
-        buffer = 2,
+        buf = 2,
         depth = 1,
         startl = 1,
         endl = 1
@@ -51,7 +51,7 @@ T['generate()'] = function()
     ]])
     eq(ret, {
         contents = { "- [Heading 1](#heading-1)", "    - [Heading 2](#heading-2)" },
-        buffer = 2,
+        buf = 2,
         depth = 4,
         startl = 1,
         endl = 2
@@ -83,7 +83,7 @@ T['check_toc_valid()'] = function()
 
     local ret = child.lua([[ return require('mdnotes.toc').check_toc_valid() ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         endl = 2,
         startl = 1,
         valid = true
@@ -103,7 +103,7 @@ T['parse()'] = function()
         depth = 2,
         startl = 1,
         endl = 2,
-        buffer = 2
+        buf = 2
     })
 end
 
@@ -133,7 +133,7 @@ T['update()'] = function()
         depth = 2,
         startl = 1,
         endl = 3,
-        buffer = 2
+        buf = 2
     })
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {

@@ -9,11 +9,11 @@ local M = {}
 local check_markdown_lsp_cur_buf = function() return require('mdnotes').check_markdown_lsp_cur_buf() end
 
 ---Generate Table of Contents (ToC)
----@param opts { buffer: integer?, lnum: integer?, write: boolean?, depth: integer?, silent: boolean?}?
+---@param opts { buf: integer?, lnum: integer?, write: boolean?, depth: integer?, silent: boolean?}?
 ---@return MdnToc? toc
 function M.generate(opts)
     opts = opts or {}
-    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
     local lnum = opts.lnum or vim.fn.line('.')
     local depth = opts.depth or require('mdnotes').config.toc_depth
     local write = opts.write ~= false
@@ -37,7 +37,7 @@ function M.generate(opts)
     local buf_fragments = require('mdnotes').buf_fragments
 
     for _, v in ipairs(buf_fragments) do
-        if v.buf_num == buffer then
+        if v.buf == buf then
             fragments = v.fragments
             found = true
             break
@@ -46,7 +46,7 @@ function M.generate(opts)
 
     if found == false then
         if silent == false then
-            vim.notify("Mdn: Parsed fragments for buffer '" .. buffer .. "' not found", vim.log.levels.ERROR)
+            vim.notify("Mdn: Parsed fragments for buffer '" .. buf .. "' not found", vim.log.levels.ERROR)
         end
 
         return nil
@@ -61,7 +61,7 @@ function M.generate(opts)
     end
 
     if write == true then
-        vim.api.nvim_buf_set_lines(buffer, lnum - 1, lnum - 1, false, toc)
+        vim.api.nvim_buf_set_lines(buf, lnum - 1, lnum - 1, false, toc)
     end
 
     return {
@@ -69,7 +69,7 @@ function M.generate(opts)
         depth = depth,
         startl = lnum,
         endl = lnum + #toc - 1,
-        buffer = buffer
+        buf = buf
     }
 end
 
@@ -82,7 +82,7 @@ function M.check_toc_valid(opts)
     local search_opts = opts.search or {}
     vim.validate("search_opts", search_opts, "table")
 
-    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
     local lower_limit_lnum = search_opts.upper_limit_lnum or 1
     local upper_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
@@ -93,7 +93,7 @@ function M.check_toc_valid(opts)
     local il_parse = require('mdnotes.inline_link').parse
 
     for i = origin_lnum, lower_limit_lnum, -1 do
-        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         local lcontent = resolve_list_content(cur_line)
         if lcontent == nil then break end
         if lcontent.text == "" then break end
@@ -107,7 +107,7 @@ function M.check_toc_valid(opts)
     end
 
     for i = origin_lnum, upper_limit_lnum do
-        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         local lcontent = resolve_list_content(cur_line)
         if lcontent == nil then break end
         if lcontent.text == "" then break end
@@ -122,7 +122,7 @@ function M.check_toc_valid(opts)
 
     return {
         valid = true,
-        buffer = buffer,
+        buf = buf,
         startl = toc_startl,
         endl = toc_endl,
     }
@@ -137,7 +137,7 @@ function M.parse(opts)
     local search_opts = opts.search or {}
     vim.validate("search_opts", search_opts, "table")
 
-    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
     local silent = opts.silent or false
 
     vim.validate("silent", silent, "boolean")
@@ -151,7 +151,7 @@ function M.parse(opts)
         return
     end
 
-    local toc_lines = vim.api.nvim_buf_get_lines(buffer, tocsearch.startl - 1, tocsearch.endl, false)
+    local toc_lines = vim.api.nvim_buf_get_lines(buf, tocsearch.startl - 1, tocsearch.endl, false)
     if vim.tbl_isempty(toc_lines) then
         if silent == false then
             vim.notify("Mdn: Error parsing ToC", vim.log.levels.ERROR)
@@ -185,7 +185,7 @@ function M.parse(opts)
         depth = depth,
         startl = tocsearch.startl,
         endl = tocsearch.endl,
-        buffer = buffer
+        buf = buf
     }
 end
 
@@ -204,7 +204,7 @@ function M.update(opts)
         return
     end
 
-    vim.api.nvim_buf_set_lines(tocdata.buffer, tocdata.startl - 1, tocdata.endl, false, {})
+    vim.api.nvim_buf_set_lines(tocdata.buf, tocdata.startl - 1, tocdata.endl, false, {})
 
     local depth = opts.depth or tocdata.depth
 

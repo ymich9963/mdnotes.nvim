@@ -46,7 +46,7 @@ function M.indent(opts)
     local move_cursor = opts.move_cursor ~= false
     local searchopts = opts.search or {}
     local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true, search = searchopts })
-    local lines = vim.api.nvim_buf_get_lines(lsearch.buffer, lsearch.startl - 1, lsearch.endl, false) or {}
+    local lines = vim.api.nvim_buf_get_lines(lsearch.buf, lsearch.startl - 1, lsearch.endl, false) or {}
     local cur_lnum = searchopts.origin_lnum or vim.fn.line('.')
     local new_lines = {}
 
@@ -54,10 +54,10 @@ function M.indent(opts)
         table.insert(new_lines, (" "):rep(vim.o.shiftwidth) .. line)
     end
 
-    vim.api.nvim_buf_set_lines(lsearch.buffer, cur_lnum - 1, cur_lnum - 1 + #new_lines, false, new_lines)
+    vim.api.nvim_buf_set_lines(lsearch.buf, cur_lnum - 1, cur_lnum - 1 + #new_lines, false, new_lines)
 
     if move_cursor == true then
-        vim.cmd.buffer(lsearch.buffer)
+        vim.cmd.buffer(lsearch.buf)
         vim.fn.cursor({cur_lnum, vim.fn.col('.') + vim.o.shiftwidth - 1})
     end
 end
@@ -70,7 +70,7 @@ function M.unindent(opts)
     local move_cursor = opts.move_cursor ~= false
     local searchopts = opts.search or {}
     local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true, search = opts.search })
-    local lines = vim.api.nvim_buf_get_lines(lsearch.buffer, lsearch.startl - 1, lsearch.endl, false) or {}
+    local lines = vim.api.nvim_buf_get_lines(lsearch.buf, lsearch.startl - 1, lsearch.endl, false) or {}
     local cur_lnum = searchopts.origin_lnum or vim.fn.line('.')
     local new_lines = {}
 
@@ -80,7 +80,7 @@ function M.unindent(opts)
         table.insert(new_lines, line:sub(vim.o.shiftwidth + 1))
     end
 
-    vim.api.nvim_buf_set_lines(lsearch.buffer, cur_lnum - 1, cur_lnum - 1 + #new_lines, false, new_lines)
+    vim.api.nvim_buf_set_lines(lsearch.buf, cur_lnum - 1, cur_lnum - 1 + #new_lines, false, new_lines)
 
     if move_cursor == true then
         local new_col = vim.fn.col('.') - vim.o.shiftwidth - 1
@@ -88,7 +88,7 @@ function M.unindent(opts)
         -- If indenting from a column close to the start
         if new_col < 1 then new_col = 1 end
 
-        vim.cmd.buffer(lsearch.buffer)
+        vim.cmd.buffer(lsearch.buf)
         vim.fn.cursor({cur_lnum, new_col})
     end
 end

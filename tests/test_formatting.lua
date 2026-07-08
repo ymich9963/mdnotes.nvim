@@ -315,7 +315,7 @@ T['check_list_valid()'] = function()
     local ret = child.lua([[return require('mdnotes.formatting').check_list_valid()]])
     eq(ret, {
         valid = true,
-        buffer = 2,
+        buf = 2,
         startl = 1,
         endl = 8
     })
@@ -324,7 +324,7 @@ T['check_list_valid()'] = function()
     ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ outliner_list = true })]])
     eq(ret, {
         valid = true,
-        buffer = 2,
+        buf = 2,
         startl = 2,
         endl = 4
     })
@@ -333,7 +333,7 @@ T['check_list_valid()'] = function()
     ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ same_indent = true })]])
     eq(ret, {
         valid = true,
-        buffer = 2,
+        buf = 2,
         startl = 5,
         endl = 6
     })
@@ -342,7 +342,7 @@ T['check_list_valid()'] = function()
     ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ same_marker = false })]])
     eq(ret, {
         valid = true,
-        buffer = 2,
+        buf = 2,
         startl = 10,
         endl = 15
     })

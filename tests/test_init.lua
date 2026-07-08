@@ -74,14 +74,14 @@ T['get_text()'] = function()
 
     local ret = child.lua([[
     return require('mdnotes').get_text({ location = {
-        buffer = vim.api.nvim_get_current_buf(),
+        buf = vim.api.nvim_get_current_buf(),
         lnum = 2,
         col_start = 1,
         col_end = 5,
     } })
     ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         lnum = 2,
         col_start = 1,
         col_end = 5,
@@ -91,14 +91,14 @@ T['get_text()'] = function()
 
     ret = child.lua([[
     return require('mdnotes').get_text({ location = {
-        buffer = vim.api.nvim_get_current_buf(),
+        buf = vim.api.nvim_get_current_buf(),
         lnum = 3,
         col_start = 1,
         col_end = 1,
     } })
     ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         lnum = 3,
         col_start = 1,
         col_end = 5,
@@ -117,14 +117,14 @@ T['get_text_in_pattern()'] = function()
     local ret = child.lua([[
     local pattern = require('mdnotes.patterns').emphasis
     return require('mdnotes').get_text_in_pattern(pattern, { location = {
-        buffer = vim.api.nvim_get_current_buf(),
+        buf = vim.api.nvim_get_current_buf(),
         lnum = 2,
         col_start = 1,
         col_end = 5,
     } })
     ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         lnum = 2,
         col_start = 1,
         col_end = 5,
@@ -135,14 +135,14 @@ T['get_text_in_pattern()'] = function()
     ret = child.lua([[
     local pattern = require('mdnotes.patterns').emphasis
     return require('mdnotes').get_text_in_pattern(pattern, { location = {
-        buffer = vim.api.nvim_get_current_buf(),
+        buf = vim.api.nvim_get_current_buf(),
         lnum = 1,
         col_start = 1,
         col_end = 1,
     } })
     ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         lnum = 1,
         col_start = 1,
         col_end = 8,
@@ -198,7 +198,7 @@ T['populate_buf_fragments()'] = function()
     ]])
     eq(ret, {
         {
-            buf_num = buf,
+            buf = buf,
             fragments = {
                 {
                     hash = "#",
@@ -224,7 +224,7 @@ T['populate_buf_fragments()'] = function()
     ]])
     eq(ret, {
         {
-            buf_num = buf,
+            buf = buf,
             fragments = {
                 {
                     hash = "#",
@@ -251,7 +251,7 @@ T['populate_buf_fragments()'] = function()
     ]])
     eq(ret, {
         {
-            buf_num = buf,
+            buf = buf,
             fragments = {
                 {
                     hash = "###",
@@ -273,7 +273,7 @@ T['populate_buf_fragments()'] = function()
     ]])
     eq(ret, {
         {
-            buf_num = buf,
+            buf = buf,
             fragments = {
                 {
                     hash = "###",
@@ -284,7 +284,7 @@ T['populate_buf_fragments()'] = function()
             },
         },
         {
-            buf_num = new_buf,
+            buf = new_buf,
             fragments = {
                 {
                     hash = "#",
