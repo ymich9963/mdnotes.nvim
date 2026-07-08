@@ -413,46 +413,4 @@ T['statistics()'] = function()
     end
 end
 
-T['parse_lines()'] = function()
-    local lines = {
-        "# Heading",
-        "",
-        "[test](link)",
-        "[[test]]",
-    }
-    create_md_buffer(child, lines)
-
-    local ret = child.lua([[return require('mdnotes').parse_lines("inline_link", { location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {
-        {
-            buffer = 2,
-            col_end = 13,
-            col_start = 1,
-            cur_col = 7,
-            img_char = "",
-            lnum = 3,
-            text = "test",
-            title = "",
-            destination = "link"
-        }
-    })
-    ret = child.lua([[return require('mdnotes').parse_lines("inline_link", { text = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {"[test](link)"})
-
-    ret = child.lua([[return require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {
-        {
-            buffer = 2,
-            col_end = 9,
-            col_start = 1,
-            cur_col = 5,
-            lnum = 4,
-            text = "test",
-            wikilink_nofrag = "test"
-        }
-    })
-    ret = child.lua([[return require('mdnotes').parse_lines("wikilink", { text = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {"[[test]]"})
-end
-
 return T

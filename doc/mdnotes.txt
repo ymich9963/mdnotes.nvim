@@ -920,24 +920,6 @@ statistics({opts})					*mdnotes.statistics()*
     • (`table`) Table containing statistics. Current values are bytes,
       characters, words, lines, inline links, WikiLinks, and headings
 
-parse_lines({item_type}, {opts})			*mdnotes.parse_lines()*
-
-    Parse the items in the specified lines (defaults to current line).
-    Currently only compatible with inline links and WikiLinks.
-
-    Parameters: ~
-    • {item_type}  (`"inline_link"` or `"wikilink"`)
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`)
-		inline text location
-              • {text} (`boolean?`, default `false`)
-		return object text instead of objects
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
-
-    Return: ~
-    • (`table<MdnWikiLinkData>|table<MdnInlineLinkData?`)
-
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
     Resolve the assets path from |mdnotes-assets_path|.
@@ -1576,6 +1558,22 @@ inline_link.go_to({opts})				*mdnotes.inline_link.go_to()*
               • {buffer} (`buffer?`, defaults to current buffer)
 		buffer to use for parsing its inline links
 
+inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
+
+    Parse the inline links in the specified lines (defaults to current line).
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnMultiLineLocation?`)
+		inline text location
+              • {str} (`boolean?`, default `false`)
+		return object as strings instead of objects
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table<MdnInlineLinkData?`)
+
 journal.get_journal_file()				*mdnotes.journal.get_journal_file()*
 
     Resolve the journal file name from |mdnotes-journal_file|.
@@ -2192,6 +2190,22 @@ wikilink.go_to({opts})					*mdnotes.wikilink.go_to()*
 		WikiLink to go to
               • {buffer} (`buffer?`, defaults to current buffer)
 		buffer to use for parsing its WikiLinks
+
+wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
+
+    Parse the WikiLinks in the specified lines (defaults to current line).
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnMultiLineLocation?`)
+		inline text location
+              • {str} (`boolean?`, default `false`)
+		return object as strings instead of objects
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table<MdnWikiLinkData?`)
 
 MdnInLineLocation 					*mdnotes.MdnInLineLocation*
 

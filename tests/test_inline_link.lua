@@ -375,4 +375,30 @@ T['convert_fragment_to_gfm()'] = function()
     eq(lines[2], "[test](File#fragment-to-gfm)")
 end
 
+T['parse_lines()'] = function()
+    local lines = {
+        "# Heading",
+        "",
+        "[test](link)",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[return require('mdnotes.inline_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {
+        {
+            buffer = 2,
+            col_end = 13,
+            col_start = 1,
+            cur_col = 7,
+            img_char = "",
+            lnum = 3,
+            text = "test",
+            title = "",
+            destination = "link"
+        }
+    })
+    ret = child.lua([[return require('mdnotes.inline_link').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {"[test](link)"})
+end
+
 return T

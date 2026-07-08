@@ -259,5 +259,28 @@ T['get_wl_from_obj()'] = function()
     eq(ret, "[[test#frag]]")
 end
 
+T['parse_lines()'] = function()
+    local lines = {
+        "# Heading",
+        "",
+        "[[test]]",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[return require('mdnotes.wikilink').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {
+        {
+            buffer = 2,
+            col_end = 9,
+            col_start = 1,
+            cur_col = 5,
+            lnum = 3,
+            text = "test",
+            wikilink_nofrag = "test"
+        }
+    })
+    ret = child.lua([[return require('mdnotes.wikilink').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {"[[test]]"})
+end
 
 return T
