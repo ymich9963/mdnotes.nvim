@@ -68,9 +68,11 @@ function M.follow(opts)
 
     local wldata = M.parse({ wikilink = wikilink, location = opts.location })
     if wldata == nil then
-        vim.notify("Mdn: No WikiLink under the cursor was detected", vim.log.levels.ERROR)
-        return
+        wikilink = M.get_wl_from_picker()
+        wldata = M.parse({ wikilink = wikilink, location = opts.location })
     end
+
+    if wldata == nil then return end
 
     local cwd = require('mdnotes').cwd
 
@@ -90,18 +92,18 @@ function M.follow(opts)
     end
 end
 
----Follow the WikiLink under the cursor and split horizontally
----@param opts {location: MdnInLineLocation?}?
+---Follow the WikiLink and split horizontally
+---@param opts {wikilink: string?, location: MdnInLineLocation?}?
 function M.follow_hor(opts)
     opts = opts or {}
-    M.follow({ location = opts.location, hor = true})
+    M.follow({ wikilink = opts.wikilink, location = opts.location, hor = true})
 end
 
----Follow the WikiLink under the cursor and split vertically
----@param opts {location: MdnInLineLocation?}?
+---Follow the WikiLink and split vertically
+---@param opts {wikilink: string?, location: MdnInLineLocation?}?
 function M.follow_vert(opts)
     opts = opts or {}
-    M.follow({ location = opts.location, vert = true})
+    M.follow({ wikilink = opts.wikilink, location = opts.location, vert = true})
 end
 
 ---Show the references to the current WikiLink under the cursor
@@ -477,41 +479,33 @@ function M.get_wl_from_obj(wldata)
 end
 
 ---Go to WikiLink
----@param opts {wikilink: string?, buf: number?}?
-function M.go_to(opts)
-    opts = opts or {}
+---@param buf integer?
+function M.get_wl_from_picker(buf)
+    if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
-    local wl = opts.wikilink
-    local buf = opts.buf or vim.api.nvim_get_current_buf()
-
-    if wl == nil then
-        local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
-        if parsed_tbl == nil then
-            vim.notify("Mdn: No WikiLinks in current file to go to", vim.log.levels.ERROR)
-            return
-        end
-
-        local sel_list = {}
-        for _, v in ipairs(parsed_tbl) do
-            table.insert(sel_list, M.get_wl_from_obj(v):sub(3, -3))
-        end
-
-        local wl_index = nil
-        vim.ui.select(sel_list, {
-            prompt = "Select a WikiLink to go to",
-        }, function (_, idx)
-            wl_index = idx
-        end)
-
-        if wl_index == nil then
-            return
-        end
-
-        wl = M.get_wl_from_obj(parsed_tbl[wl_index])
+    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+    if parsed_tbl == nil then
+        vim.notify("Mdn: No WikiLinks in current file to go to", vim.log.levels.ERROR)
+        return
     end
 
-    M.follow({ wikilink = wl })
-    vim.notify(("Mdn: Opening '%s'"):format(wl), vim.log.levels.INFO)
+    local sel_list = {}
+    for _, v in ipairs(parsed_tbl) do
+        table.insert(sel_list, M.get_wl_from_obj(v):sub(3, -3))
+    end
+
+    local wl_index = nil
+    vim.ui.select(sel_list, {
+        prompt = "Select a WikiLink to go to",
+    }, function (_, idx)
+        wl_index = idx
+    end)
+
+    if wl_index == nil then
+        return
+    end
+
+    return M.get_wl_from_obj(parsed_tbl[wl_index])
 end
 
 ---Parse the WikiLinks in the specified lines

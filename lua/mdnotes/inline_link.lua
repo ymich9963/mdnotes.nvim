@@ -188,12 +188,19 @@ function M.open(opts)
 
     local ildata
 
-    -- Overwrite if location is given
-    if opts.location ~= nil or inline_link == nil then
+    -- Prefer to use the inline link parameter
+    if inline_link == nil then
         ildata = M.parse({ keep_pointy_brackets = false, location = opts.location })
     else
         ildata = M.parse({ inline_link = inline_link, keep_pointy_brackets = false })
     end
+
+    -- If no inline link under cursor and no inline link was given, open picker
+    if ildata == nil then
+        inline_link = M.get_il_from_picker()
+        ildata = M.parse({ inline_link = inline_link, keep_pointy_brackets = false })
+    end
+
     if ildata == nil then return end
 
     local destination = ildata.destination
@@ -499,43 +506,33 @@ function M.validate(opts)
     return true, "valid"
 end
 
----Go to inline link
----@param opts {inline_link: string?, buf: number?}?
-function M.go_to(opts)
-    opts = opts or {}
+---Open a picker to get the inline link from
+function M.get_il_from_picker(buf)
+    if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
-    local il = opts.inline_link
-    local buf = opts.buf or vim.api.nvim_get_current_buf()
-
-    if il == nil then
-        local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
-        if parsed_tbl == nil then
-            vim.notify("Mdn: No inline links in current file to go to", vim.log.levels.ERROR)
-            return
-        end
-
-        local sel_list = {}
-        for _, v in ipairs(parsed_tbl) do
-            table.insert(sel_list, v.text .. " | " .. v.destination)
-        end
-
-
-        local il_index = nil
-        vim.ui.select(sel_list, {
-            prompt = "Select an inline link to go to",
-        }, function (_, idx)
-            il_index = idx
-        end)
-
-        if il_index == nil then
-            return
-        end
-
-        il = M.get_il_from_obj(parsed_tbl[il_index])
+    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+    if parsed_tbl == nil then
+        vim.notify("Mdn: No inline links in current file to go to", vim.log.levels.ERROR)
+        return
     end
 
-    M.open({inline_link = il})
-    vim.notify(("Mdn: Opening '%s'"):format(il), vim.log.levels.INFO)
+    local sel_list = {}
+    for _, v in ipairs(parsed_tbl) do
+        table.insert(sel_list, v.text .. " | " .. v.destination)
+    end
+
+    local il_index = nil
+    vim.ui.select(sel_list, {
+        prompt = "Select an inline link to go to",
+    }, function (_, idx)
+        il_index = idx
+    end)
+
+    if il_index == nil then
+        return
+    end
+
+    return M.get_il_from_obj(parsed_tbl[il_index])
 end
 
 ---Parse the inline links in the specified lines

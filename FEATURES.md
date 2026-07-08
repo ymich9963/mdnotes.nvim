@@ -2,25 +2,24 @@
 All the features of `mdnotes` and their associated commands are listed and categorised below.
 
 ## 🔗 Inline Links
-- Open inline links to files and URLs with `:Mdn inline_link open`.
+- Open inline links to files and URLs with `:Mdn inline_link open [inline_link]`. Hover over an inline link to open. Optionally specify an `[inline_link]` through autocomplete, or through the provided picker.
 - Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link and saves it to be used later with the same command.
 - Rename the link text with `:Mdn inline_link rename`. 
 - Re-link the inline link with `:Mdn inline_link relink`. 
 - Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths. 
 - Validate an inline link without opening it by executing `:Mdn inline_link validate`. This ensures that your inline link has a valid destination.
 - Convert an inline link with a fragment to a [GFM-style fragment](https://github.github.com/gfm/#example-510) with `Mdn inline_link convert_fragment_to_gfm`. Useful when using LSP auto-completion and you want to create valid Markdown links on GitHub.
-- Go to an inline link in the current buffer with `:Mdn inline_link go_to` or specify it using `:Mdn inline_link go_to [inline_link]`. Defaults to Neovim picker.
 
 ## 🖇️ WikiLinks
 - Create a WikiLink by highlighting or hovering over a word and executing `:Mdn wikilink create`.
-- Open WikiLinks with `:Mdn wikilink follow/_hor/_vert`. Use the `_hor/_vert` variations of the command to open WikiLinks in a horizontal or vertical split.
+- Open WikiLinks with `:Mdn wikilink follow/_hor/_vert [wikilink]`. Use the `_hor/_vert` variations of the command to open WikiLinks in a horizontal or vertical split. Hover over a WikiLink to open. Optionally specify a `[wikilink]` through autocomplete, or through the provided picker.
+
 - Rename link references and the file itself using `:Mdn wikilink rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn wikilink show_references`. Also show references of the current buffer when not hovering over a Wikilink.
 - Undo the most recent reference rename with `:Mdn wikilink undo_rename`. **Only** available when `prefer_lsp = false`.
 - Delete the WikiLink under the cursor with `:Mdn wikilink delete`. 
 - Normalize your WikiLink path with `:Mdn wikilink normalize`. 
 - Find orphan pages (pages with no references) in current directory with `:Mdn wikilink find_orphans`. 
-- Go to a WikiLink in the current buffer with `:Mdn wikilink go_to` or specify it using `:Mdn wikilink go_to [wikilink]`. Defaults to Neovim picker.
 
 ## 👩‍💼 Asset Management
 - Insert an image or file from clipboard using `:Mdn assets insert` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.

@@ -118,7 +118,6 @@ local get_commands = function() return {
         delete = require("mdnotes.wikilink").delete,
         normalize = require("mdnotes.wikilink").normalize,
         find_orphans = require("mdnotes.wikilink").find_orphans,
-        go_to = require("mdnotes.wikilink").go_to,
     },
     table = {
         create = require("mdnotes.table").create,
@@ -162,7 +161,6 @@ local get_commands = function() return {
         normalize = require("mdnotes.inline_link").normalize,
         validate = require("mdnotes.inline_link").validate,
         convert_fragment_to_gfm = require("mdnotes.inline_link").convert_fragment_to_gfm,
-        go_to = require("mdnotes.inline_link").go_to,
     },
     toc = {
         generate = require("mdnotes.toc").generate,
@@ -222,9 +220,9 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         local asset = concat_arg(args)
         local asset_path = vim.fs.joinpath(require('mdnotes').cwd, asset)
         func({ asset = asset, file_path = asset_path, process_file = false })
-    elseif func == commands.inline_link.go_to then
+    elseif func == commands.inline_link.open then
         func({ inline_link = concat_arg(args) })
-    elseif func == commands.wikilink.go_to then
+    elseif func == commands.wikilink.follow or func == commands.wikilink.follow_hor or func == commands.wikilink.follow_vert then
         func({ wikilink = concat_arg(args) })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
@@ -271,7 +269,7 @@ end,
             end
 
             if command == "inline_link" then
-                if subcmd == "go_to" then
+                if subcmd == "open" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
                     end, require('mdnotes.inline_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
@@ -280,7 +278,7 @@ end,
             end
 
             if command == "wikilink" then
-                if subcmd == "go_to" then
+                if subcmd == "follow" or subcmd == "follow_vert" or subcmd == "follow_hor" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
                     end, require('mdnotes.wikilink').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}

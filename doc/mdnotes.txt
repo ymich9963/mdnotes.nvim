@@ -325,9 +325,22 @@ subcommands are listed below.
 	- Child
 	- Child
 	
-:Mdn wikilink follow 					*:Mdn-wikilink-follow*
+:Mdn wikilink follow {wikilink}				*:Mdn-wikilink-follow*
 
-    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
+    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor.
+
+    If {wikilink} is not specified, a dialogue will appear prompting you to
+    select which WikiLink to go to. If invoking |'wildchar'| (`<Tab>` by
+    default) to autocomplete the {wikilink} then a list of the available links
+    will be given.
+
+:Mdn wikilink follow_hor 				*:Mdn-wikilink-follow_hor*
+
+    Same as `:Mdn wikilink follow` but opens in a horizontal split.
+
+:Mdn wikilink follow_vert 				*:Mdn-wikilink-follow_vert*
+
+    Same as `:Mdn wikilink follow` but opens in a vertical split.
 
 :Mdn wikilink create 					*:Mdn-wikilink-create*
 
@@ -361,14 +374,6 @@ subcommands are listed below.
 :Mdn wikilink find_orphans				*:Mdn-wikilink-find_orphans*
 
     Show orphan pages (pages with no references) in current directory.
-
-:Mdn wikilink go_to {wikilink}				*:Mdn-wikilink-go_to*
-
-    Go to WikiLinks in current buffer without hovering over them. If
-    {wikilink} is not specified, a dialogue will appear prompting you to
-    select which WikiLink to go to. If invoking |'wildchar'| (`<Tab>` by
-    default) to autocomplete the {wikilink} then a list of the available links
-    will be given.
 
 :Mdn assets insert {asset}				*:Mdn-assets-insert_image*
 
@@ -436,9 +441,14 @@ subcommands are listed below.
 
     Clear the history of visited Markdown buffers.
 
-:Mdn inline_link open					*:Mdn-inline_link-open*
+:Mdn inline_link open {inline_link}	 		*:Mdn-inline_link-open*
 
-    Opens the asset under the cursor with |vim.ui.open()|.
+    Opens the inline link under the cursor with |vim.ui.open()|.
+
+    If {inline_link} is not specified, a dialogue will appear prompting you to
+    select which inline link to go to. If invoking |'wildchar'| (`<Tab>` by
+    default) to autocomplete the {inline_link} then a list of the available links
+    will be given.
 
 :Mdn inline_link toggle					*:Mdn-inline_link-toggle*
 
@@ -469,14 +479,6 @@ subcommands are listed below.
     Convert an inline link with a fragment to a GFM-style fragment. Useful when
     using LSP auto-completion and you want to create valid Markdown links on
     GitHub.
-
-:Mdn inline_link go_to {inline_link}			*:Mdn-inline_link-go_to*
-
-    Go to inline links in current buffer without hovering over them. If
-    {inline_link} is not specified, a dialogue will appear prompting you to
-    select which inline link to go to. If invoking |'wildchar'| (`<Tab>` by
-    default) to autocomplete the {inline_link} then a list of the available links
-    will be given.
 
 :Mdn formatting strong_toggle				*:Mdn-formatting-strong_toggle*
 
@@ -1545,19 +1547,6 @@ inline_link.validate({opts})				*mdnotes.inline_link.validate()*
     Return: ~
     • (`boolean`): `true` if valid and `false` when invalid
 
-inline_link.go_to({opts})				*mdnotes.inline_link.go_to()*
-
-    Go to the specified {inline_link}. If no inline link is provided then a
-    prompt with |vim.ui.select()| is used to select one of the detected inline
-    links in the current buffer.
-
-    Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {inline_link} (`string?`)
-		inline link to go to
-              • {buf} (`buffer?`, defaults to current buffer)
-		buffer to use for parsing its inline links
-
 inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
 
     Parse the inline links in the specified lines (defaults to current line).
@@ -2069,6 +2058,8 @@ wikilink.follow_hor({opts})				*mdnotes.wikilink.follow_hor()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
+              • {wikilink} (`string?`)
+		specify WikiLink to follow
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
 
@@ -2079,6 +2070,8 @@ wikilink.follow_vert({opts})				*mdnotes.wikilink.follow_vert()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
+              • {wikilink} (`string?`)
+		specify WikiLink to follow
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
 
@@ -2177,19 +2170,6 @@ wikilink.get_orphans({opts}) 				*mdnotes.wikilink.get_orphans()*
 wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
 
     Show orphan pages (pages with no references) in current directory.
-
-wikilink.go_to({opts})					*mdnotes.wikilink.go_to()*
-
-    Go to the specified {wikilink}. If no WikiLink is provided then a prompt
-    with |vim.ui.select()| is used to select one of the detected WikiLinks in
-    the current buffer.
-
-    Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {wikilink} (`string?`)
-		WikiLink to go to
-              • {buf} (`buffer?`, defaults to current buffer)
-		buffer to use for parsing its WikiLinks
 
 wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 
