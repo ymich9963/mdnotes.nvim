@@ -245,6 +245,7 @@ T['get_orphans()'] = function()
         "file4.md",
         "file6.md",
         "file7.md",
+        "greptest.md",
     })
 end
 

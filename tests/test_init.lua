@@ -22,6 +22,47 @@ local T = new_set({
     },
 })
 
+T['mdn_grep()'] = function()
+    child.cmd([[
+    edit tests/test-data/files/greptest.md
+    cd tests/test-data/files
+    ]])
+
+    child.lua([[ require('mdnotes').mdn_grep("greptest", ".") ]])
+
+    if child.o.grepprg == "internal" then
+        eq(child.fn.getqflist(), { {
+            bufnr = 1,
+            col = 1,
+            end_col = 9,
+            end_lnum = 4,
+            lnum = 4,
+            module = "",
+            nr = 0,
+            pattern = "",
+            text = "greptest",
+            type = "",
+            valid = 1,
+            vcol = 0
+        } })
+    else
+        eq(child.fn.getqflist(), { {
+            bufnr = 1,
+            col = 1,
+            end_col = 0,
+            end_lnum = 0,
+            lnum = 4,
+            module = "",
+            nr = -1,
+            pattern = "",
+            text = "greptest",
+            type = "",
+            valid = 1,
+            vcol = 0
+        } })
+    end
+end
+
 T['check_markdown_syntax()'] = function()
     local lines = {
         "*emphasis* emphasis",
@@ -157,7 +198,7 @@ T['get_files_in_cwd()'] = function()
     require('mdnotes').set_cwd()
     return require('mdnotes').get_files_in_cwd({ extension = ".md" })
     ]])
-    eq(ret, {"file1.md", "file2.md", "file3.md", "file4.md", "file5.md", "file6.md", "file7.md"})
+    eq(ret, {"file1.md", "file2.md", "file3.md", "file4.md", "file5.md", "file6.md", "file7.md", "greptest.md"})
 
     ret = child.lua([[
     return require('mdnotes').get_files_in_cwd({ hidden = false, fs_type = "directory"})

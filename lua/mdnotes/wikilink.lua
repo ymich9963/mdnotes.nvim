@@ -143,7 +143,7 @@ function M.show_references(opts)
         return qflist
     end
 
-    vim.cmd("buffer " .. wldata.buf)
+    vim.cmd.buffer(wldata.buf)
     vim.fn.setpos('.', cur_pos)
     vim.cmd.copen()
 
