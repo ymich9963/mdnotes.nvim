@@ -1,7 +1,4 @@
-# Link Test
-
-## Inline Links
-
+# Inline Link
 URL
 [link](https://github.com/ymic9963/mdnotes.nvim)
 
@@ -22,6 +19,4 @@ GFM-style fragment
 
 Normalize and convert to GFM
 [link](formatting#Inline Code)
-
-## Images
 
