@@ -274,7 +274,7 @@ end,
                 if subcmd == "go_to" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
-                    end, require('mdnotes').parse_lines("inline_link", { location = {startl = 1, endl = vim.fn.line("$") }, text = true, silent = true }) or {}
+                    end, require('mdnotes.inline_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
                     )
                 end
             end
@@ -283,7 +283,7 @@ end,
                 if subcmd == "go_to" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
-                    end, require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$") }, text = true, silent = true }) or {}
+                    end, require('mdnotes.wikilink').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
                     )
                 end
             end

@@ -485,7 +485,7 @@ function M.go_to(opts)
     local buf = opts.buf or vim.api.nvim_get_current_buf()
 
     if wl == nil then
-        local parsed_tbl = require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+        local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
         if parsed_tbl == nil then
             vim.notify("Mdn: No WikiLinks in current file to go to", vim.log.levels.ERROR)
             return

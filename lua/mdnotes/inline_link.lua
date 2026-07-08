@@ -508,7 +508,7 @@ function M.go_to(opts)
     local buf = opts.buf or vim.api.nvim_get_current_buf()
 
     if il == nil then
-        local parsed_tbl = require('mdnotes').parse_lines("inline_link", { location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+        local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
         if parsed_tbl == nil then
             vim.notify("Mdn: No inline links in current file to go to", vim.log.levels.ERROR)
             return
