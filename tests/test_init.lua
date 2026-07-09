@@ -22,6 +22,47 @@ local T = new_set({
     },
 })
 
+T['mdn_grep()'] = function()
+    child.cmd([[
+    edit tests/test-data/files/greptest.md
+    cd tests/test-data/files
+    ]])
+
+    child.lua([[ require('mdnotes').mdn_grep("greptest", ".") ]])
+
+    if child.o.grepprg == "internal" then
+        eq(child.fn.getqflist(), { {
+            bufnr = 1,
+            col = 1,
+            end_col = 9,
+            end_lnum = 4,
+            lnum = 4,
+            module = "",
+            nr = 0,
+            pattern = "",
+            text = "greptest",
+            type = "",
+            valid = 1,
+            vcol = 0
+        } })
+    else
+        eq(child.fn.getqflist(), { {
+            bufnr = 1,
+            col = 1,
+            end_col = 0,
+            end_lnum = 0,
+            lnum = 4,
+            module = "",
+            nr = -1,
+            pattern = "",
+            text = "greptest",
+            type = "",
+            valid = 1,
+            vcol = 0
+        } })
+    end
+end
+
 T['check_markdown_syntax()'] = function()
     local lines = {
         "*emphasis* emphasis",
@@ -74,14 +115,14 @@ T['get_text()'] = function()
 
     local ret = child.lua([[
     return require('mdnotes').get_text({ location = {
-        buffer = vim.api.nvim_get_current_buf(),
+        buf = vim.api.nvim_get_current_buf(),
         lnum = 2,
         col_start = 1,
         col_end = 5,
     } })
     ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         lnum = 2,
         col_start = 1,
         col_end = 5,
@@ -91,14 +132,14 @@ T['get_text()'] = function()
 
     ret = child.lua([[
     return require('mdnotes').get_text({ location = {
-        buffer = vim.api.nvim_get_current_buf(),
+        buf = vim.api.nvim_get_current_buf(),
         lnum = 3,
         col_start = 1,
         col_end = 1,
     } })
     ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         lnum = 3,
         col_start = 1,
         col_end = 5,
@@ -117,14 +158,14 @@ T['get_text_in_pattern()'] = function()
     local ret = child.lua([[
     local pattern = require('mdnotes.patterns').emphasis
     return require('mdnotes').get_text_in_pattern(pattern, { location = {
-        buffer = vim.api.nvim_get_current_buf(),
+        buf = vim.api.nvim_get_current_buf(),
         lnum = 2,
         col_start = 1,
         col_end = 5,
     } })
     ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         lnum = 2,
         col_start = 1,
         col_end = 5,
@@ -135,14 +176,14 @@ T['get_text_in_pattern()'] = function()
     ret = child.lua([[
     local pattern = require('mdnotes.patterns').emphasis
     return require('mdnotes').get_text_in_pattern(pattern, { location = {
-        buffer = vim.api.nvim_get_current_buf(),
+        buf = vim.api.nvim_get_current_buf(),
         lnum = 1,
         col_start = 1,
         col_end = 1,
     } })
     ]])
     eq(ret, {
-        buffer = 2,
+        buf = 2,
         lnum = 1,
         col_start = 1,
         col_end = 8,
@@ -157,7 +198,7 @@ T['get_files_in_cwd()'] = function()
     require('mdnotes').set_cwd()
     return require('mdnotes').get_files_in_cwd({ extension = ".md" })
     ]])
-    eq(ret, {"file1.md", "file2.md", "file3.md", "file4.md", "file5.md", "file6.md", "file7.md"})
+    eq(ret, {"file1.md", "file2.md", "file3.md", "file4.md", "file5.md", "file6.md", "file7.md", "greptest.md"})
 
     ret = child.lua([[
     return require('mdnotes').get_files_in_cwd({ hidden = false, fs_type = "directory"})
@@ -198,7 +239,7 @@ T['populate_buf_fragments()'] = function()
     ]])
     eq(ret, {
         {
-            buf_num = buf,
+            buf = buf,
             fragments = {
                 {
                     hash = "#",
@@ -224,7 +265,7 @@ T['populate_buf_fragments()'] = function()
     ]])
     eq(ret, {
         {
-            buf_num = buf,
+            buf = buf,
             fragments = {
                 {
                     hash = "#",
@@ -251,7 +292,7 @@ T['populate_buf_fragments()'] = function()
     ]])
     eq(ret, {
         {
-            buf_num = buf,
+            buf = buf,
             fragments = {
                 {
                     hash = "###",
@@ -273,7 +314,7 @@ T['populate_buf_fragments()'] = function()
     ]])
     eq(ret, {
         {
-            buf_num = buf,
+            buf = buf,
             fragments = {
                 {
                     hash = "###",
@@ -284,7 +325,7 @@ T['populate_buf_fragments()'] = function()
             },
         },
         {
-            buf_num = new_buf,
+            buf = new_buf,
             fragments = {
                 {
                     hash = "#",
@@ -411,48 +452,6 @@ T['statistics()'] = function()
             headings = 1
         })
     end
-end
-
-T['parse_lines()'] = function()
-    local lines = {
-        "# Heading",
-        "",
-        "[test](link)",
-        "[[test]]",
-    }
-    create_md_buffer(child, lines)
-
-    local ret = child.lua([[return require('mdnotes').parse_lines("inline_link", { location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {
-        {
-            buffer = 2,
-            col_end = 13,
-            col_start = 1,
-            cur_col = 7,
-            img_char = "",
-            lnum = 3,
-            text = "test",
-            title = "",
-            destination = "link"
-        }
-    })
-    ret = child.lua([[return require('mdnotes').parse_lines("inline_link", { text = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {"[test](link)"})
-
-    ret = child.lua([[return require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {
-        {
-            buffer = 2,
-            col_end = 9,
-            col_start = 1,
-            cur_col = 5,
-            lnum = 4,
-            text = "test",
-            wikilink_nofrag = "test"
-        }
-    })
-    ret = child.lua([[return require('mdnotes').parse_lines("wikilink", { text = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {"[[test]]"})
 end
 
 return T

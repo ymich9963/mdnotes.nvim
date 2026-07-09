@@ -109,14 +109,14 @@ function M.insert(opts)
     local txtdata = require('mdnotes').get_text({ location = opts.location })
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end - 1, {'[' .. txtdata.text .. '][]'})
-    vim.api.nvim_buf_set_lines(txtdata.buffer, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[' .. txtdata.text .. ']: ' ..  destination})
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end - 1, {'[' .. txtdata.text .. '][]'})
+    vim.api.nvim_buf_set_lines(txtdata.buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[' .. txtdata.text .. ']: ' ..  destination})
 
     -- Update buf_reference_links
-    M.populate_buf_reference_links(txtdata.buffer)
+    M.populate_buf_reference_links(txtdata.buf)
 
     if move_cursor == true then
-        vim.cmd.buffer(txtdata.buffer)
+        vim.cmd.bufferfer(txtdata.buf)
         vim.fn.cursor({txtdata.lnum, vim.fn.col('.') + 1})
     end
 end
@@ -143,13 +143,13 @@ function M.go_to_definition(opts)
 
     local rldata = M.parse({ location = opts.location })
     if rldata == nil or rldata.text == nil or rldata.label == nil then return end
-    local rldef = M.get_rl_definition(rldata.label, rldata.buffer)
+    local rldef = M.get_rl_definition(rldata.label, rldata.buf)
     if rldef == nil then
         vim.notify("Mdn: No definition found for label '" .. rldata.label .. "'", vim.log.levels.ERROR)
         return
     end
 
-    vim.cmd.buffer(rldata.buffer)
+    vim.cmd.buffer(rldata.buf)
     vim.fn.cursor({rldef.lnum, 1})
 end
 
@@ -163,10 +163,10 @@ function M.delete(opts)
 
     if rldata == nil or rldata.text == nil or rldata.label == nil then return end
 
-    vim.api.nvim_buf_set_text(rldata.buffer, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {rldata.text})
+    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {rldata.text})
 
     if move_cursor == true then
-        vim.cmd.buffer(rldata.buffer)
+        vim.cmd.buffer(rldata.buf)
         vim.fn.cursor({vim.fn.line('.'), rldata.col_start - 1})
     end
 end
@@ -189,7 +189,7 @@ function M.update_definition(opts)
     local rldata = M.parse({ location = opts.location })
     if rldata == nil or rldata.text == nil or rldata.label == nil then return end
 
-    local rldef = M.get_rl_definition(rldata.label, rldata.buffer)
+    local rldef = M.get_rl_definition(rldata.label, rldata.buf)
     if rldef == nil then
         vim.notify("Mdn: No definition found for label '" .. rldata.label .. "'", vim.log.levels.ERROR)
         return
@@ -235,10 +235,10 @@ function M.update_definition(opts)
     end
     rldef.destination = input_destination
 
-    vim.api.nvim_buf_set_lines(rldata.buffer, rldef.lnum - 1, rldef.lnum, false, {M.get_rl_definition_from_obj(rldef)})
+    vim.api.nvim_buf_set_lines(rldata.buf, rldef.lnum - 1, rldef.lnum, false, {M.get_rl_definition_from_obj(rldef)})
 
     vim.cmd.wall({bang = true, mods = {silent = true, noautocmd = true}})
-    M.populate_buf_reference_links(rldata.buffer)
+    M.populate_buf_reference_links(rldata.buf)
     vim.fn.setpos('.', cur_pos)
 end
 
@@ -247,7 +247,7 @@ function M.cleanup_definitions(bufnr)
 
     local rl_tbl = M.get_buf_reference_link_definitions(bufnr)
     if rl_tbl == nil then
-        vim.notify("Mdn: No reference links found in buffer", vim.log.levels.ERROR)
+        vim.notify("Mdn: No reference links found in buf", vim.log.levels.ERROR)
         return
     end
 
@@ -297,10 +297,10 @@ function M.rename(opts)
     rldata.text = user_input
     local new_rl = M.get_rl_from_obj(rldata)
 
-    vim.api.nvim_buf_set_text(rldata.buffer, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {new_rl})
+    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {new_rl})
 
     if move_cursor == true then
-        vim.cmd.buffer(rldata.buffer)
+        vim.cmd.buffer(rldata.buf)
         vim.fn.cursor({rldata.lnum, rldata.col_start})
     end
 end
@@ -330,10 +330,10 @@ function M.relabel(opts)
     rldata.label = user_input
     local new_rl = M.get_rl_from_obj(rldata)
 
-    vim.api.nvim_buf_set_text(rldata.buffer, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {new_rl})
+    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {new_rl})
 
     if move_cursor == true then
-        vim.cmd.buffer(rldata.buffer)
+        vim.cmd.buffer(rldata.buf)
         vim.fn.cursor({rldata.lnum, rldata.col_start})
     end
 end
@@ -361,9 +361,9 @@ function M.open(opts)
         return
     end
 
-    local rldef = M.get_rl_definition(rldata.label, rldata.buffer)
+    local rldef = M.get_rl_definition(rldata.label, rldata.buf)
     if rldef == nil then
-        vim.notify("Mdn: No definition found for label '" .. rldata.label .. "'. If you can confirm it exists, try writing the buffer or parse definitions manually with ':Mdn reference_link populate_buf_reference_links'", vim.log.levels.ERROR)
+        vim.notify("Mdn: No definition found for label '" .. rldata.label .. "'. If you can confirm it exists, try writing the buf or parse definitions manually with ':Mdn reference_link populate_buf_reference_links'", vim.log.levels.ERROR)
         return
     end
 
@@ -378,14 +378,14 @@ function M.convert_from_inline(opts)
     if ildata == nil or ildata.text == nil then return end
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {'[' .. ildata.text .. '][]'})
-    vim.api.nvim_buf_set_lines(ildata.buffer, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[' .. ildata.text .. ']: ' ..  ildata.destination})
+    vim.api.nvim_buf_set_text(ildata.buf, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {'[' .. ildata.text .. '][]'})
+    vim.api.nvim_buf_set_lines(ildata.buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[' .. ildata.text .. ']: ' ..  ildata.destination})
 
     -- Update buf_reference_links
-    M.populate_buf_reference_links(ildata.buffer)
+    M.populate_buf_reference_links(ildata.buf)
 
     if move_cursor == true then
-        vim.cmd.buffer(ildata.buffer)
+        vim.cmd.buffer(ildata.buf)
         vim.fn.cursor({ildata.lnum, vim.fn.col('.') + 1})
     end
 end

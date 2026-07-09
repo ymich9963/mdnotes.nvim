@@ -44,7 +44,7 @@ T['parse()'] = function()
         img_char = "",
         text = "file1",
         destination = "tests/test-data/files/file1.md",
-        buffer = 2,
+        buf = 2,
         lnum = 1,
         col_start = 1,
         col_end = 40,
@@ -58,7 +58,7 @@ T['parse()'] = function()
         img_char = "",
         text = "file2",
         destination = "tests/test-data/files/file2.md",
-        buffer = 2,
+        buf = 2,
         lnum = 1,
         col_start = 41,
         col_end = 80,
@@ -73,7 +73,7 @@ T['parse()'] = function()
         img_char = "",
         text = "file1",
         destination = "tests/test-data/files/file1.md#section-2",
-        buffer = 2,
+        buf = 2,
         lnum = 2,
         col_start = 1,
         col_end = 50,
@@ -87,7 +87,7 @@ T['parse()'] = function()
         img_char = "",
         text = "file2",
         destination = "tests/test-data/files/file2.md#file-2",
-        buffer = 2,
+        buf = 2,
         lnum = 2,
         col_start = 51,
         col_end = 97,
@@ -102,7 +102,7 @@ T['parse()'] = function()
         img_char = "!",
         text = "image1",
         destination = "tests/test-data/images/neovim-mark-flat.svg",
-        buffer = 2,
+        buf = 2,
         lnum = 3,
         col_start = 1,
         col_end = 55,
@@ -116,7 +116,7 @@ T['parse()'] = function()
         img_char = "!",
         text = "image2",
         destination = "tests/test-data/images/neovim-mark.svg",
-        buffer = 2,
+        buf = 2,
         lnum = 3,
         col_start = 56,
         col_end = 105,
@@ -130,7 +130,7 @@ T['parse()'] = function()
         img_char = "",
         text = "url1",
         destination = "https://neovim.io/",
-        buffer = 2,
+        buf = 2,
         lnum = 4,
         col_start = 1,
         col_end = 27,
@@ -144,7 +144,7 @@ T['parse()'] = function()
         img_char = "",
         text = "url2",
         destination = "https://neovim.io/doc/user/#Q_ct",
-        buffer = 2,
+        buf = 2,
         lnum = 4,
         col_start = 28,
         col_end = 68,
@@ -159,7 +159,7 @@ T['parse()'] = function()
         img_char = "",
         text = "section",
         destination = "#test-section",
-        buffer = 2,
+        buf = 2,
         lnum = 5,
         col_start = 1,
         col_end = 25,
@@ -173,7 +173,7 @@ T['parse()'] = function()
         img_char = "",
         text = "section",
         destination = "#test-section",
-        buffer = 2,
+        buf = 2,
         lnum = 6,
         col_start = 1,
         col_end = 33,
@@ -373,6 +373,32 @@ T['convert_fragment_to_gfm()'] = function()
     child.lua([[require('mdnotes.inline_link').convert_fragment_to_gfm()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[2], "[test](File#fragment-to-gfm)")
+end
+
+T['parse_lines()'] = function()
+    local lines = {
+        "# Heading",
+        "",
+        "[test](link)",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[return require('mdnotes.inline_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {
+        {
+            buf = 2,
+            col_end = 13,
+            col_start = 1,
+            cur_col = 7,
+            img_char = "",
+            lnum = 3,
+            text = "test",
+            title = "",
+            destination = "link"
+        }
+    })
+    ret = child.lua([[return require('mdnotes.inline_link').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {"[test](link)"})
 end
 
 return T

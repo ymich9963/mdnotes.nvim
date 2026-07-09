@@ -5,26 +5,26 @@ local M = {}
 local uv = vim.loop or vim.uv
 
 ---@class MdnInLineLocation
----@field buffer integer? Buffer number
+---@field buf integer? Buffer number
 ---@field lnum integer? Line number
 ---@field col_start integer? Start column of text
 ---@field col_end integer? End column of text
 ---@field cur_col integer? Set the current cursor position on the line
 
 ---@class MdnMultiLineLocation
----@field buffer integer? Buffer number
+---@field buf integer? Buffer number
 ---@field startl integer? Start line
 ---@field endl integer? End line
 
 ---@class MdnSearchOpts
----@field buffer integer?
+---@field buf integer?
 ---@field origin_lnum integer? Line number between the lower and upper limits
 ---@field lower_limit_lnum integer? Lower line number limit of search
 ---@field upper_limit_lnum integer? Higher line number limit of search
 
 ---@class MdnSearchResult
 ---@field valid boolean Is the search item valid
----@field buffer integer? Buffer number
+---@field buf integer? Buffer number
 ---@field startl integer? Start line of the item
 ---@field endl integer? End line of the item
 
@@ -50,7 +50,7 @@ M.plugin_install_dir = nil
 ---@field lnum integer Line number of the heading
 
 ---@class MdnBufFragments
----@field buf_num integer Buffer number
+---@field buf integer Buffer number
 ---@field fragments table<MdnFragment> 
 
 ---@type table<MdnBufFragments>
@@ -286,11 +286,11 @@ function M.check_markdown_syntax(pattern, opts)
 
     local entire_line = opts.entire_line or false
     local locopts = opts.location or {}
-    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local lnum = locopts.lnum or vim.fn.line('.')
     local cur_col = locopts.cur_col or vim.fn.col('.')
 
-    local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
+    local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
     local cols_tbl = {}
 
     for start_pos, text, end_pos in line:gmatch(pattern) do
@@ -330,13 +330,13 @@ function M.get_text(opts)
     opts = opts or {}
     local locopts = opts.location or {}
 
-    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local lnum = locopts.lnum or vim.fn.line('.')
     local col_start = locopts.col_start or vim.fn.getpos("'<")[3]
     local col_end = locopts.col_end or vim.fn.getpos("'>")[3]
     local cur_col = locopts.cur_col or vim.fn.col('.')
 
-    local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
+    local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
 
     -- Limit the end column value
     -- Visual mode and grep can give end_col values after the line ending
@@ -348,7 +348,7 @@ function M.get_text(opts)
 
     -- This would happen by default when executing in Normal mode
     if col_start == col_end then
-        vim.api.nvim_buf_call(bufnum, function()
+        vim.api.nvim_buf_call(buf, function()
             -- Ensure cursor is at the correct spot
             vim.fn.cursor(lnum, cur_col)
 
@@ -374,7 +374,7 @@ function M.get_text(opts)
     vim.fn.setpos("'>", {0,1,1,0})
 
     return {
-        buffer = bufnum,
+        buf = buf,
         lnum = lnum,
         col_start = col_start,
         col_end = col_end,
@@ -394,7 +394,7 @@ function M.get_text_in_pattern(pattern, opts)
     vim.validate("pattern", pattern, "string")
 
     local locopts = opts.location or {}
-    local bufnum = locopts.buffer or vim.api.nvim_get_current_buf()
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local lnum = locopts.lnum or vim.fn.line('.')
     local col_start = locopts.col_start or -1
     local col_end = locopts.col_end or -1
@@ -404,7 +404,7 @@ function M.get_text_in_pattern(pattern, opts)
         cur_col = vim.fn.col('.')
     end
 
-    local line = vim.api.nvim_buf_get_lines(bufnum, lnum - 1, lnum, false)[1]
+    local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
 
     local found_text = ""
     for start_pos, search_text, end_pos in line:gmatch(pattern) do
@@ -419,7 +419,7 @@ function M.get_text_in_pattern(pattern, opts)
     end
 
     return {
-        buffer = bufnum,
+        buf = buf,
         lnum = lnum,
         col_start = col_start,
         col_end = col_end,
@@ -604,15 +604,15 @@ function M.convert_text_to_gfm(text)
 end
 
 ---Parse the fragments in the specified buffer and update buf_fragments
----@param bufnr integer? Buffer number to parse the fragments
-function M.populate_buf_fragments(bufnr)
-    if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
+---@param buf integer? Buffer number to parse the fragments
+function M.populate_buf_fragments(buf)
+    if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
-    local fragments_tbl = M.get_buf_fragments(bufnr)
+    local fragments_tbl = M.get_buf_fragments(buf)
 
     local exists = false
     for _,v in ipairs(M.buf_fragments) do
-        if v.buf_num == bufnr then
+        if v.buf == buf then
             exists = true
             if v.fragments ~= fragments_tbl then
                 v.fragments = fragments_tbl
@@ -623,17 +623,17 @@ function M.populate_buf_fragments(bufnr)
     end
 
     if exists == false then
-        table.insert(M.buf_fragments, {buf_num = bufnr, fragments = fragments_tbl})
+        table.insert(M.buf_fragments, {buf = buf, fragments = fragments_tbl})
     end
 end
 
 ---Get fragments from the Markdown buffer headings
----@param bufnr integer?
+---@param buf integer?
 ---@return table<MdnFragment>
-function M.get_buf_fragments(bufnr)
-    if bufnr == nil then bufnr = 0 end
+function M.get_buf_fragments(buf)
+    if buf == nil then buf = 0 end
     local fragments = {}
-    local buf_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local heading_format_pattern = require('mdnotes.patterns').heading
 
     for lnum, line in ipairs(buf_lines) do
@@ -647,13 +647,13 @@ function M.get_buf_fragments(bufnr)
 end
 
 ---Find the fragment in the buf_fragments table of the specified buffer
----@param bufnr integer Buffer number
+---@param buf integer Buffer number
 ---@param fragment string Fragment
 ---@return string?
-function M.find_fragment_in_buf_fragments(bufnr, fragment)
+function M.find_fragment_in_buf_fragments(buf, fragment)
     local fragments
     for _, v in ipairs(M.buf_fragments) do
-        if v.buf_num == bufnr then
+        if v.buf == buf then
             fragments = v.fragments
             break
         end
@@ -681,10 +681,10 @@ function M.get_buf_from_buf_list(bufname)
     local buf_list = vim.api.nvim_list_bufs()
     local ret = nil
 
-    for _, bufnum in ipairs(buf_list) do
-        local filename = vim.fs.basename(vim.api.nvim_buf_get_name(bufnum))
+    for _, buf in ipairs(buf_list) do
+        local filename = vim.fs.basename(vim.api.nvim_buf_get_name(buf))
         if filename == bufname then
-            ret = bufnum
+            ret = buf
             break
         end
     end
@@ -704,19 +704,19 @@ function M.scan_lines(pattern, opts)
     opts = opts or {}
 
     local locopts = opts.location or {}
-    local buffer = locopts.buffer or vim.api.nvim_get_current_buf()
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
     local silent = opts.silent ~= false
 
-    vim.validate("buffer", buffer, "number")
+    vim.validate("buf", buf, "number")
     vim.validate("silent", silent, "boolean")
     vim.validate("startl", startl, "number")
     vim.validate("endl", endl, "number")
 
     local scan_tbl = {}
     for lnum = startl, endl do
-        local valid, cols_tbl = M.check_markdown_syntax(pattern, {entire_line = true, location = {lnum = lnum, bufnum = buffer}})
+        local valid, cols_tbl = M.check_markdown_syntax(pattern, {entire_line = true, location = {lnum = lnum, buf = buf}})
         if valid == true then
             table.insert(scan_tbl, {lnum = lnum, cols = cols_tbl})
         end
@@ -730,12 +730,12 @@ function M.scan_lines(pattern, opts)
 end
 
 ---File statistics
----@param opts {buffer: number?, silent: boolean?}?
+---@param opts {buf: number?, silent: boolean?}?
 ---@return table statistics
 function M.statistics(opts)
     opts = opts or {}
 
-    local bufnum = opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
     local silent = opts.silent ~= false
     local bytes = 0
     local chars = 0
@@ -746,7 +746,7 @@ function M.statistics(opts)
     local headings = 0
 
     local fn_wordcount
-    vim.api.nvim_buf_call(bufnum, function()
+    vim.api.nvim_buf_call(buf, function()
         fn_wordcount = vim.fn.wordcount()
     end)
     local last_lnum = vim.fn.line('$')
@@ -757,21 +757,21 @@ function M.statistics(opts)
     words = fn_wordcount.words
     lines = last_lnum
 
-    local ils_ret = M.scan_lines(mdn_patterns.inline_link, { location = { startl = 1, endl = last_lnum, buffer = bufnum } }) or {}
+    local ils_ret = M.scan_lines(mdn_patterns.inline_link, { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
     for _, ret in pairs(ils_ret or {}) do
         if ret.cols ~= nil then
             ils = ils + #ret.cols
         end
     end
 
-    local wls_ret = M.scan_lines(mdn_patterns.wikilink, { location = { startl = 1, endl = last_lnum, buffer = bufnum } }) or {}
+    local wls_ret = M.scan_lines(mdn_patterns.wikilink, { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
     for _, ret in pairs(wls_ret) do
         if ret.cols ~= nil then
             wls = wls + #ret.cols
         end
     end
 
-    headings = #M.get_buf_fragments(bufnum)
+    headings = #M.get_buf_fragments(buf)
 
     -- NOTE: Tried to print "formatted words" but because URLs might contain
     -- `_word_` then `word` is matched in scan_lines
@@ -797,53 +797,6 @@ function M.statistics(opts)
         wls = wls,
         headings = headings,
     }
-end
-
----Parse the items in the specified lines
----Currently only compatible with inline links and WikiLinks
----@param item_type '"inline_link"'|'"wikilink"' Markdown item type to parse
----@param opts {location: MdnMultiLineLocation?, text: boolean?, silent: boolean?}?
----@return table<MdnWikiLinkData>|table<MdnInlineLinkData>?
-function M.parse_lines(item_type, opts)
-    opts = opts or {}
-
-    local locopts = opts.location or {}
-    local buffer = locopts.buffer or vim.api.nvim_get_current_buf()
-    local startl = locopts.startl or vim.fn.line('.')
-    local endl = locopts.endl or vim.fn.line('.')
-    local text = opts.text or false
-
-    local pattern = ""
-    local parse = function() end
-    local conv = function() end
-    if item_type == "inline_link" then
-        pattern = require('mdnotes.patterns').inline_link
-        parse = require('mdnotes.inline_link').parse
-        conv = require('mdnotes.inline_link').get_il_from_obj
-    elseif item_type == 'wikilink' then
-        pattern = require('mdnotes.patterns').wikilink
-        parse = require('mdnotes.wikilink').parse
-        conv = require('mdnotes.wikilink').get_wl_from_obj
-    else
-        return nil
-    end
-
-    local scan_lines = M.scan_lines(pattern, { location = {startl = startl, endl = endl, buffer = buffer }, silent = true})
-    if scan_lines == nil then return nil end
-
-    local parsed_tbl = {}
-    for _, item in ipairs(scan_lines) do
-        for _, cols in ipairs(item.cols) do
-            local data = parse({ location = {buffer = buffer, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
-            if text == true then
-                table.insert(parsed_tbl, conv(data))
-            else
-                table.insert(parsed_tbl, data)
-            end
-        end
-    end
-
-    return parsed_tbl
 end
 
 ---Check if destination is a URL

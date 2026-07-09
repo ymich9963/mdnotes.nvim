@@ -68,9 +68,11 @@ function M.follow(opts)
 
     local wldata = M.parse({ wikilink = wikilink, location = opts.location })
     if wldata == nil then
-        vim.notify("Mdn: No WikiLink under the cursor was detected", vim.log.levels.ERROR)
-        return
+        wikilink = M.get_wl_from_picker()
+        wldata = M.parse({ wikilink = wikilink, location = opts.location })
     end
+
+    if wldata == nil then return end
 
     local cwd = require('mdnotes').cwd
 
@@ -90,18 +92,18 @@ function M.follow(opts)
     end
 end
 
----Follow the WikiLink under the cursor and split horizontally
----@param opts {location: MdnInLineLocation?}?
+---Follow the WikiLink and split horizontally
+---@param opts {wikilink: string?, location: MdnInLineLocation?}?
 function M.follow_hor(opts)
     opts = opts or {}
-    M.follow({ location = opts.location, hor = true})
+    M.follow({ wikilink = opts.wikilink, location = opts.location, hor = true})
 end
 
----Follow the WikiLink under the cursor and split vertically
----@param opts {location: MdnInLineLocation?}?
+---Follow the WikiLink and split vertically
+---@param opts {wikilink: string?, location: MdnInLineLocation?}?
 function M.follow_vert(opts)
     opts = opts or {}
-    M.follow({ location = opts.location, vert = true})
+    M.follow({ wikilink = opts.wikilink, location = opts.location, vert = true})
 end
 
 ---Show the references to the current WikiLink under the cursor
@@ -122,7 +124,7 @@ function M.show_references(opts)
         -- If wikilink pattern isn't detected use current file name
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
         wldata = {
-            buffer = vim.api.nvim_get_current_buf(),
+            buf = vim.api.nvim_get_current_buf(),
             wikilink_nofrag = cur_file_basename:gsub(".md$",""),
             fragment = "",
             alias = "",
@@ -141,7 +143,7 @@ function M.show_references(opts)
         return qflist
     end
 
-    vim.cmd("buffer " .. wldata.buffer)
+    vim.cmd.buffer(wldata.buf)
     vim.fn.setpos('.', cur_pos)
     vim.cmd.copen()
 
@@ -358,7 +360,7 @@ function M.delete(opts)
     if uv.fs_stat(path) then
         if skip_input == false then
             vim.ui.input( { prompt = ("Mdn: Delete '%s' WikiLink and file? Type y/n (default 'n'): "):format(wldata.wikilink_nofrag), }, function(input)
-                vim.cmd.redraw()
+                vim.cmd.echo()
                 if input == 'y' then
                     vim.fs.rm(path)
                 elseif input == 'n' or '' then
@@ -397,10 +399,10 @@ function M.normalize(opts)
         new_wikilink = new_wikilink .. '#' .. wldata.fragment
     end
 
-    vim.api.nvim_buf_set_text(wldata.buffer, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {"[[" .. new_wikilink .. "]]"})
+    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {"[[" .. new_wikilink .. "]]"})
 
     if move_cursor == true then
-        vim.cmd.buffer(wldata.buffer)
+        vim.cmd.buffer(wldata.buf)
         vim.fn.cursor({wldata.lnum, wldata.cur_col})
     end
 end
@@ -478,41 +480,66 @@ function M.get_wl_from_obj(wldata)
 end
 
 ---Go to WikiLink
----@param opts {wikilink: string?, buffer: number?}?
-function M.go_to(opts)
-    opts = opts or {}
+---@param buf integer?
+function M.get_wl_from_picker(buf)
+    if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
-    local wl = opts.wikilink
-    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
-
-    if wl == nil then
-        local parsed_tbl = require('mdnotes').parse_lines("wikilink", { location = {startl = 1, endl = vim.fn.line("$"), buffer = buffer }, silent = true})
-        if parsed_tbl == nil then
-            vim.notify("Mdn: No WikiLinks in current file to go to", vim.log.levels.ERROR)
-            return
-        end
-
-        local sel_list = {}
-        for _, v in ipairs(parsed_tbl) do
-            table.insert(sel_list, M.get_wl_from_obj(v):sub(3, -3))
-        end
-
-        local wl_index = nil
-        vim.ui.select(sel_list, {
-            prompt = "Select a WikiLink to go to",
-        }, function (_, idx)
-            wl_index = idx
-        end)
-
-        if wl_index == nil then
-            return
-        end
-
-        wl = M.get_wl_from_obj(parsed_tbl[wl_index])
+    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+    if parsed_tbl == nil then
+        vim.notify("Mdn: No WikiLinks in current file to go to", vim.log.levels.ERROR)
+        return
     end
 
-    M.follow({ wikilink = wl })
-    vim.notify(("Mdn: Opening '%s'"):format(wl), vim.log.levels.INFO)
+    local sel_list = {}
+    for _, v in ipairs(parsed_tbl) do
+        table.insert(sel_list, M.get_wl_from_obj(v):sub(3, -3))
+    end
+
+    local wl_index = nil
+    vim.ui.select(sel_list, {
+        prompt = "Select a WikiLink to go to",
+    }, function (_, idx)
+        wl_index = idx
+    end)
+
+    if wl_index == nil then
+        return
+    end
+
+    return M.get_wl_from_obj(parsed_tbl[wl_index])
+end
+
+---Parse the WikiLinks in the specified lines
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?}?
+---@return table<MdnWikiLinkData>?
+function M.parse_lines(opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+    local str = opts.str or false
+
+    local pattern = require('mdnotes.patterns').wikilink
+    local scan_lines = require('mdnotes').scan_lines
+
+    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
+    if scanned_lines == nil then return nil end
+
+    local parsed_tbl = {}
+    for _, item in ipairs(scanned_lines) do
+        for _, cols in ipairs(item.cols) do
+            local data = M.parse({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
+            if str == true then
+                table.insert(parsed_tbl, M.get_wl_from_obj(data))
+            else
+                table.insert(parsed_tbl, data)
+            end
+        end
+    end
+
+    return parsed_tbl
 end
 
 return M

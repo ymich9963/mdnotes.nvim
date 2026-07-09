@@ -64,7 +64,7 @@ T['write_table()'] = function()
     }
 
     require('mdnotes.table').write_table({
-        buffer = 0,
+        buf = 0,
         startl = 1,
         endl = #table_content,
         contents = table_content

@@ -231,9 +231,9 @@ function M.insert(opts)
     end
 
     if txtdata.text == "" then
-        vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.cur_col - 1, txtdata.lnum - 1, txtdata.cur_col - 1, {asset_il.inline_link})
+        vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.cur_col - 1, txtdata.lnum - 1, txtdata.cur_col - 1, {asset_il.inline_link})
     else
-        vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {("%s[%s](%s)"):format(asset_il.img_char, txtdata.text, asset_il.asset_path)})
+        vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {("%s[%s](%s)"):format(asset_il.img_char, txtdata.text, asset_il.asset_path)})
     end
 end
 
@@ -343,7 +343,7 @@ local function process_unused_assets(action, skip_input)
             vim.ui.input( { prompt = ("Mdn: File '%s' not linked anywhere. Type y/n/a(ll) to %s file(s) or 'c' to cancel (default 'n'): "):format(name, text1), }, function(input)
                 user_input = input
             end)
-            vim.cmd.redraw()
+            vim.cmd.echo()
             if user_input == 'y' then
                 action_func(file_assets_path, file_unused_assets_path)
                 vim.notify(("Mdn: %s '%s'. Press any key to continue..."):format(text2, name), vim.log.levels.WARN)
@@ -365,7 +365,7 @@ local function process_unused_assets(action, skip_input)
         end
     end
 
-    vim.cmd.redraw()
+    vim.cmd.echo()
     vim.notify(("Mdn: Finished %s process"):format(text1), vim.log.levels.INFO)
 end
 
@@ -496,7 +496,7 @@ function M.delete(opts)
         vim.ui.input( { prompt = prompt, }, function(input)
             user_input = input
         end)
-        vim.cmd.redraw()
+        vim.cmd.echo()
     elseif skip_input == true then
         user_input = 'y'
     end
@@ -533,7 +533,7 @@ function M.delete(opts)
                     col_start = v.col,
                 }})
                 if il == nil then return is_deleted, asset_path end
-                vim.api.nvim_buf_set_text(il.buffer, il.lnum - 1, il.col_start - 1, il.lnum - 1, il.col_end - 1, {il.text})
+                vim.api.nvim_buf_set_text(il.buf, il.lnum - 1, il.col_start - 1, il.lnum - 1, il.col_end - 1, {il.text})
             end)
         end
 

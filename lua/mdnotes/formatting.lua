@@ -51,10 +51,10 @@ function M.insert_format(format_char, opts)
     end
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {fi1 .. txtdata.text .. fi2})
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {fi1 .. txtdata.text .. fi2})
 
     if move_cursor == true then
-        vim.cmd.buffer(txtdata.buffer)
+        vim.cmd.buffer(txtdata.buf)
         vim.fn.cursor({txtdata.lnum, vim.fn.col('.') + #fi1})
     end
 end
@@ -70,7 +70,7 @@ function M.delete_format(pattern, opts)
     vim.validate("move_cursor", move_cursor, "boolean")
 
     local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = opts.location})
-    local line = vim.api.nvim_buf_get_lines(txtdata.buffer, txtdata.lnum - 1, txtdata.lnum, false)[1]
+    local line = vim.api.nvim_buf_get_lines(txtdata.buf, txtdata.lnum - 1, txtdata.lnum, false)[1]
 
     -- Find the character count change before the cursor
     -- since only those characters change its position
@@ -81,10 +81,10 @@ function M.delete_format(pattern, opts)
     if new_col_pos < 0 then new_col_pos = 0 end
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end - 1, {txtdata.text})
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end - 1, {txtdata.text})
 
     if move_cursor == true then
-        vim.cmd.buffer(txtdata.buffer)
+        vim.cmd.buffer(txtdata.buf)
         vim.fn.cursor({txtdata.lnum, new_col_pos})
     end
 end
@@ -202,12 +202,12 @@ function M.task_list_toggle(opts)
     opts = opts or {}
 
     local locopts = opts.location or {}
-    local buffer = locopts.buffer or 0
+    local buf = locopts.buf or 0
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
     local silent = opts.silent or false
 
-    vim.validate("buffer", buffer, "number")
+    vim.validate("buf", buf, "number")
     vim.validate("silent", silent, "boolean")
     vim.validate("startl", startl, "number")
     vim.validate("endl", endl, "number")
@@ -215,7 +215,7 @@ function M.task_list_toggle(opts)
     local mdnotes_patterns = require('mdnotes.patterns')
     local new_lines = {}
     local new_text = ""
-    local lines = vim.api.nvim_buf_get_lines(buffer, startl - 1, endl, false)
+    local lines = vim.api.nvim_buf_get_lines(buf, startl - 1, endl, false)
 
     local cur_col = vim.fn.col('.')
     for i, line in ipairs(lines) do
@@ -255,7 +255,7 @@ function M.task_list_toggle(opts)
         vim.fn.cursor(startl, cur_col)
     end
 
-    vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, new_lines)
+    vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, new_lines)
 end
 
 ---Check if the list surrounding the origin line is valid and return its line numbers
@@ -268,13 +268,13 @@ function M.check_list_valid(opts)
     local same_indent = opts.same_indent or false
     local same_marker = opts.same_marker ~= false
     local search_opts = opts.search or {}
-    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
     local lower_limit_lnum = search_opts.upper_limit_lnum or 1
     local upper_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
 
     -- Get the origin line's list content
-    local origin_line = vim.api.nvim_buf_get_lines(buffer, origin_lnum - 1, origin_lnum, false)[1]
+    local origin_line = vim.api.nvim_buf_get_lines(buf, origin_lnum - 1, origin_lnum, false)[1]
     local lcontent = M.resolve_list_content(origin_line)
     if lcontent == nil or lcontent.marker == nil or lcontent.separator == nil then
         return { valid = false }
@@ -290,7 +290,7 @@ function M.check_list_valid(opts)
     if outliner_list == true then
         list_endl = origin_lnum
         for i = origin_lnum, upper_limit_lnum do
-            local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+            local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
             lcontent = M.resolve_list_content(cur_line)
             if lcontent == nil then break end
             if lcontent.indent == detected_indent and i > origin_lnum then break end
@@ -301,7 +301,7 @@ function M.check_list_valid(opts)
 
         return {
             valid = true,
-            buffer = buffer,
+            buf = buf,
             startl = origin_lnum,
             endl = list_endl,
         }
@@ -309,7 +309,7 @@ function M.check_list_valid(opts)
 
     -- Find where list starts
     for i = origin_lnum, lower_limit_lnum, -1 do
-        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         if cur_line == "" then break end
         lcontent = M.resolve_list_content(cur_line)
         if lcontent == nil then break end
@@ -324,7 +324,7 @@ function M.check_list_valid(opts)
 
     -- Find where the list ends
     for i = origin_lnum, upper_limit_lnum do
-        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         if cur_line == "" then break end
         lcontent = M.resolve_list_content(cur_line)
         if lcontent == nil then break end
@@ -340,7 +340,7 @@ function M.check_list_valid(opts)
     if list_startl == 0 and list_endl == 0 then
         return {
             valid = false,
-            buffer = buffer,
+            buf = buf,
             startl = list_startl,
             endl = list_endl,
         }
@@ -348,7 +348,7 @@ function M.check_list_valid(opts)
 
     return {
         valid = true,
-        buffer = buffer,
+        buf = buf,
         startl = list_startl,
         endl = list_endl,
     }
@@ -361,7 +361,7 @@ function M.ordered_list_renumber(opts)
     local silent = opts.silent or false
     local search_opts = opts.search or {}
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
-    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
 
     vim.validate("silent", silent, "boolean")
 
@@ -373,7 +373,7 @@ function M.ordered_list_renumber(opts)
         return
     end
 
-    local line = vim.api.nvim_buf_get_lines(buffer, origin_lnum - 1, origin_lnum, false)[1]
+    local line = vim.api.nvim_buf_get_lines(buf, origin_lnum - 1, origin_lnum, false)[1]
     local lcontent = M.resolve_list_content(line)
     if lcontent == nil then
         if silent == false then
@@ -390,7 +390,7 @@ function M.ordered_list_renumber(opts)
     end
 
     -- Get list
-    local list_lines = vim.api.nvim_buf_get_lines(buffer, lsearch.startl - 1, lsearch.endl, false)
+    local list_lines = vim.api.nvim_buf_get_lines(buf, lsearch.startl - 1, lsearch.endl, false)
 
     local new_list_lines = {}
     local cur_number = 1
@@ -406,7 +406,7 @@ function M.ordered_list_renumber(opts)
         table.insert(new_list_lines, lcontent.indent .. lcontent.marker .. lcontent.separator .. " " .. lcontent.text)
     end
 
-    vim.api.nvim_buf_set_lines(buffer, lsearch.startl - 1, lsearch.endl, false, new_list_lines)
+    vim.api.nvim_buf_set_lines(buf, lsearch.startl - 1, lsearch.endl, false, new_list_lines)
 end
 
 ---Remove Markdown formatting from the selected lines
@@ -415,12 +415,12 @@ function M.unformat_lines(opts)
     opts = opts or {}
 
     local locopts = opts.location or {}
-    local buffer = locopts.buffer or 0
+    local buf = locopts.buf or 0
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
     local silent = opts.silent or false
 
-    vim.validate("buffer", buffer, "number")
+    vim.validate("buf", buf, "number")
     vim.validate("silent", silent, "boolean")
     vim.validate("startl", startl, "number")
     vim.validate("endl", endl, "number")
@@ -441,7 +441,7 @@ function M.unformat_lines(opts)
         mdnotes_patterns.inline_code,
     }
 
-    local lines = vim.api.nvim_buf_get_lines(buffer, startl - 1, endl, false)
+    local lines = vim.api.nvim_buf_get_lines(buf, startl - 1, endl, false)
 
     -- Remove certain characters first
     for _, line in ipairs(lines) do
@@ -506,7 +506,7 @@ function M.unformat_lines(opts)
         end
     end
 
-    vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, lines)
+    vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, lines)
 end
 
 return M

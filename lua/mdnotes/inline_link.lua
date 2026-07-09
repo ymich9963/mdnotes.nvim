@@ -81,18 +81,22 @@ function M.open(opts)
 
     local ildata
 
-    -- Overwrite if location is given
-    if opts.location ~= nil or inline_link == nil then
+    -- Prefer to use the inline link parameter
+    if inline_link == nil then
         ildata = M.parse({ keep_pointy_brackets = false, location = opts.location })
     else
         ildata = M.parse({ inline_link = inline_link, keep_pointy_brackets = false })
     end
+
+    -- If no inline link under cursor and no inline link was given, open picker
     if ildata == nil then
-        vim.notify("Mdn: No inline link detected", vim.log.levels.ERROR)
-        return
+        inline_link = M.get_il_from_picker()
+        ildata = M.parse({ inline_link = inline_link, keep_pointy_brackets = false })
     end
 
-    return require('mdnotes').open(ildata.destination)
+    if ildata == nil then return end
+
+    require('mdnotes').open(ildata.destination)
 end
 
 ---Check if inline link is an image
@@ -123,10 +127,10 @@ function M.insert(opts)
     local txtdata = require('mdnotes').get_text({ location = opts.location })
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buffer, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. destination .. ')'})
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. destination .. ')'})
 
     if move_cursor == true then
-        vim.cmd.buffer(txtdata.buffer)
+        vim.cmd.buffer(txtdata.buf)
         vim.fn.cursor({txtdata.lnum, vim.fn.col('.') + 1})
     end
 end
@@ -142,10 +146,10 @@ function M.delete(opts)
 
     if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.text})
+    vim.api.nvim_buf_set_text(ildata.buf, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {ildata.text})
 
     if move_cursor == true then
-        vim.cmd.buffer(ildata.buffer)
+        vim.cmd.buffer(ildata.buf)
         vim.fn.cursor({vim.fn.line('.'), ildata.col_start - 1})
     end
 
@@ -192,10 +196,10 @@ function M.relink(opts)
     ildata.destination = user_input
     local new_il = M.get_il_from_obj(ildata)
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
+    vim.api.nvim_buf_set_text(ildata.buf, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
 
     if move_cursor == true then
-        vim.cmd.buffer(ildata.buffer)
+        vim.cmd.buffer(ildata.buf)
         vim.fn.cursor({ildata.lnum, ildata.col_start})
     end
 end
@@ -225,10 +229,10 @@ function M.rename(opts)
     ildata.text = user_input
     local new_il = M.get_il_from_obj(ildata)
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
+    vim.api.nvim_buf_set_text(ildata.buf, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
 
     if move_cursor == true then
-        vim.cmd.buffer(ildata.buffer)
+        vim.cmd.buffer(ildata.buf)
         vim.fn.cursor({ildata.lnum, ildata.col_start})
     end
 end
@@ -252,10 +256,10 @@ function M.normalize(opts)
     ildata.destination = new_destination
     local new_il = M.get_il_from_obj(ildata)
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
+    vim.api.nvim_buf_set_text(ildata.buf, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
 
     if move_cursor == true then
-        vim.cmd.buffer(ildata.buffer)
+        vim.cmd.buffer(ildata.buf)
         vim.fn.cursor({ildata.lnum, ildata.col_start})
     end
 end
@@ -284,10 +288,10 @@ function M.convert_fragment_to_gfm(opts)
     ildata.destination = new_destination
     local new_il = M.get_il_from_obj(ildata)
 
-    vim.api.nvim_buf_set_text(ildata.buffer, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
+    vim.api.nvim_buf_set_text(ildata.buf, ildata.lnum - 1, ildata.col_start - 1, ildata.lnum - 1, ildata.col_end - 1, {new_il})
 
     if move_cursor == true then
-        vim.cmd.buffer(ildata.buffer)
+        vim.cmd.buffer(ildata.buf)
         vim.fn.cursor({ildata.lnum, ildata.col_start})
     end
 end
@@ -342,43 +346,66 @@ function M.validate(opts)
     return true, "valid"
 end
 
----Go to inline link
----@param opts {inline_link: string?, buffer: number?}?
-function M.go_to(opts)
-    opts = opts or {}
+---Open a picker to get the inline link from
+function M.get_il_from_picker(buf)
+    if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
-    local il = opts.inline_link
-    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
-
-    if il == nil then
-        local parsed_tbl = require('mdnotes').parse_lines("inline_link", { location = {startl = 1, endl = vim.fn.line("$"), buffer = buffer }, silent = true})
-        if parsed_tbl == nil then
-            vim.notify("Mdn: No inline links in current file to go to", vim.log.levels.ERROR)
-            return
-        end
-
-        local sel_list = {}
-        for _, v in ipairs(parsed_tbl) do
-            table.insert(sel_list, v.text .. " | " .. v.destination)
-        end
-
-
-        local il_index = nil
-        vim.ui.select(sel_list, {
-            prompt = "Select an inline link to go to",
-        }, function (_, idx)
-            il_index = idx
-        end)
-
-        if il_index == nil then
-            return
-        end
-
-        il = M.get_il_from_obj(parsed_tbl[il_index])
+    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+    if parsed_tbl == nil then
+        vim.notify("Mdn: No inline links in current file to go to", vim.log.levels.ERROR)
+        return
     end
 
-    M.open({inline_link = il})
-    vim.notify(("Mdn: Opening '%s'"):format(il), vim.log.levels.INFO)
+    local sel_list = {}
+    for _, v in ipairs(parsed_tbl) do
+        table.insert(sel_list, v.text .. " | " .. v.destination)
+    end
+
+    local il_index = nil
+    vim.ui.select(sel_list, {
+        prompt = "Select an inline link to go to",
+    }, function (_, idx)
+        il_index = idx
+    end)
+
+    if il_index == nil then
+        return
+    end
+
+    return M.get_il_from_obj(parsed_tbl[il_index])
+end
+
+---Parse the inline links in the specified lines
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?}?
+---@return table<MdnInlineLinkData>?
+function M.parse_lines(opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+    local str = opts.str or false
+
+    local pattern = require('mdnotes.patterns').inline_link
+    local scan_lines = require('mdnotes').scan_lines
+
+    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
+    if scanned_lines == nil then return nil end
+
+    local parsed_tbl = {}
+    for _, item in ipairs(scanned_lines) do
+        for _, cols in ipairs(item.cols) do
+            local data = M.parse({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
+            if str == true then
+                table.insert(parsed_tbl, M.get_il_from_obj(data))
+            else
+                table.insert(parsed_tbl, data)
+            end
+        end
+    end
+
+    return parsed_tbl
 end
 
 return M

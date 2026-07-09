@@ -27,7 +27,7 @@ function M.check_table_valid(opts)
     local search_opts = opts.search or {}
     vim.validate("search_opts", search_opts, "table")
 
-    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
     local lower_limit_lnum = search_opts.upper_limit_lnum or 1
     local upper_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
@@ -41,7 +41,7 @@ function M.check_table_valid(opts)
     end
 
     for i = origin_lnum, lower_limit_lnum, -1 do
-        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         local count = select(2, cur_line:gsub("|", ""))
         if count < 2 then
             break
@@ -53,7 +53,7 @@ function M.check_table_valid(opts)
         return { valid = false }
     end
 
-    local delimiter_row = vim.api.nvim_buf_get_lines(buffer, table_startl + 1 - 1, table_startl + 1, false)[1]
+    local delimiter_row = vim.api.nvim_buf_get_lines(buf, table_startl + 1 - 1, table_startl + 1, false)[1]
 
     -- If it find anything other than |, :, - in delemeter row table is not valid
     if delimiter_row:match("[^:%-|]+") then
@@ -61,7 +61,7 @@ function M.check_table_valid(opts)
     end
 
     for i = origin_lnum, upper_limit_lnum do
-        local cur_line = vim.api.nvim_buf_get_lines(buffer, i - 1, i, false)[1]
+        local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         local count = select(2, cur_line:gsub("|", ""))
         if count < 2 then
             break
@@ -79,7 +79,7 @@ function M.check_table_valid(opts)
 
     return {
         valid = true,
-        buffer = buffer,
+        buf = buf,
         startl = table_startl,
         endl = table_endl,
     }
@@ -91,12 +91,12 @@ end
 function M.write_table(opts)
     opts = opts or {}
 
-    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
     local startl = opts.startl or vim.fn.line('.')
     local endl = opts.endl or vim.fn.line('.')
     local contents = opts.contents or {""}
 
-    vim.validate("buffer", buffer, "number")
+    vim.validate("buf", buf, "number")
     vim.validate("startl", startl, "number")
     vim.validate("endl", endl, "number")
     vim.validate("contents", contents, "table")
@@ -116,13 +116,13 @@ function M.write_table(opts)
         table.insert(table_formatted, "|" .. table.concat(v, "|"))
     end
 
-    vim.api.nvim_buf_set_lines(buffer, startl - 1, endl, false, table_formatted)
+    vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, table_formatted)
 end
 
 ---Create a table with r rows and c columns
 ---@param rows integer|string
 ---@param columns integer|string
----@param opts {buffer: integer?, lnum: integer?, write: boolean?}?
+---@param opts {buf: integer?, lnum: integer?, write: boolean?}?
 ---@return MdnTable?
 function M.create(rows, columns, opts)
     if rows == nil or columns == nil then
@@ -131,7 +131,7 @@ function M.create(rows, columns, opts)
     end
 
     opts = opts or {}
-    local buffer = opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
     local lnum = opts.lnum or vim.fn.line('.')
     local write = opts.write ~= false
 
@@ -164,31 +164,31 @@ function M.create(rows, columns, opts)
     new_table[2] = header_row
 
     if write == true then
-        M.write_table({ buffer = buffer, startl = lnum, endl = lnum, contents = new_table })
+        M.write_table({ buf = buf, startl = lnum, endl = lnum, contents = new_table })
     end
 
     return {
         contents = new_table,
-        buffer = buffer,
+        buf = buf,
         startl = lnum,
         endl = lnum + #new_table - 1
     }
 end
 
 ---Get the table lines in the specified line numbers
----@param buffer integer
+---@param buf integer
 ---@param table_startl integer
 ---@param table_endl integer
 ---@return MdnTableContents?
-function M.get_table_lines(buffer, table_startl, table_endl)
-    buffer = buffer or vim.api.nvim_get_current_buf()
+function M.get_table_lines(buf, table_startl, table_endl)
+    buf = buf or vim.api.nvim_get_current_buf()
 
-    vim.validate("buffer", buffer, "number")
+    vim.validate("buf", buf, "number")
     vim.validate("table_startl", table_startl, "number")
     vim.validate("table_endl", table_endl, "number")
 
     local table_lines = {}
-    local lines = vim.api.nvim_buf_get_lines(buffer, table_startl - 1, table_endl, false)
+    local lines = vim.api.nvim_buf_get_lines(buf, table_startl - 1, table_endl, false)
 
     -- Trim whitespace
     for r, v in ipairs(lines) do
@@ -222,7 +222,7 @@ function M.parse(opts)
     local search_opts = opts.search or {}
     vim.validate("search_opts", search_opts, "table")
 
-    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
     local silent = opts.silent or false
 
     vim.validate("silent", silent, "boolean")
@@ -236,7 +236,7 @@ function M.parse(opts)
         return
     end
 
-    local table_lines = M.get_table_lines(search_opts.buffer, tsearch.startl, tsearch.endl) or {}
+    local table_lines = M.get_table_lines(search_opts.buf, tsearch.startl, tsearch.endl) or {}
     if vim.tbl_isempty(table_lines) then
         if silent == false then
             vim.notify("Mdn: Error parsing table", vim.log.levels.ERROR)
@@ -249,7 +249,7 @@ function M.parse(opts)
         contents = table_lines,
         startl = tsearch.startl,
         endl = tsearch.endl,
-        buffer = buffer
+        buf = buf
     }
 end
 
@@ -261,7 +261,7 @@ function M.get_column_locations(opts)
     local search_opts = opts.search or {}
     vim.validate("search_opts", search_opts, "table")
 
-    local buffer = search_opts.buffer or vim.api.nvim_get_current_buf()
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
 
     -- Fence post problem, all tables will have n+1 '|' characters with n being the text    
     local tsearch = M.check_table_valid({ search = opts.search })
@@ -270,7 +270,7 @@ function M.get_column_locations(opts)
         return
     end
 
-    local table_lines = vim.api.nvim_buf_get_lines(buffer, tsearch.startl - 1, tsearch.endl, false)
+    local table_lines = vim.api.nvim_buf_get_lines(buf, tsearch.startl - 1, tsearch.endl, false)
     local col_locations_table = {}
     local col_locations_line = {}
 

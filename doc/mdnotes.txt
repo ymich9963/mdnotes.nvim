@@ -325,9 +325,22 @@ subcommands are listed below.
 	- Child
 	- Child
 	
-:Mdn wikilink follow 					*:Mdn-wikilink-follow*
+:Mdn wikilink follow {wikilink}				*:Mdn-wikilink-follow*
 
-    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor. 
+    Open the Wikilink (e.g. `[[link]]` or `[[link#fragment]]`) under the cursor.
+
+    If {wikilink} is not specified, a dialogue will appear prompting you to
+    select which WikiLink to go to. If invoking |'wildchar'| (`<Tab>` by
+    default) to autocomplete the {wikilink} then a list of the available links
+    will be given.
+
+:Mdn wikilink follow_hor 				*:Mdn-wikilink-follow_hor*
+
+    Same as `:Mdn wikilink follow` but opens in a horizontal split.
+
+:Mdn wikilink follow_vert 				*:Mdn-wikilink-follow_vert*
+
+    Same as `:Mdn wikilink follow` but opens in a vertical split.
 
 :Mdn wikilink create 					*:Mdn-wikilink-create*
 
@@ -361,14 +374,6 @@ subcommands are listed below.
 :Mdn wikilink find_orphans				*:Mdn-wikilink-find_orphans*
 
     Show orphan pages (pages with no references) in current directory.
-
-:Mdn wikilink go_to {wikilink}				*:Mdn-wikilink-go_to*
-
-    Go to WikiLinks in current buffer without hovering over them. If
-    {wikilink} is not specified, a dialogue will appear prompting you to
-    select which WikiLink to go to. If invoking |'wildchar'| (`<Tab>` by
-    default) to autocomplete the {wikilink} then a list of the available links
-    will be given.
 
 :Mdn assets insert {asset}				*:Mdn-assets-insert_image*
 
@@ -436,9 +441,14 @@ subcommands are listed below.
 
     Clear the history of visited Markdown buffers.
 
-:Mdn inline_link open					*:Mdn-inline_link-open*
+:Mdn inline_link open {inline_link}	 		*:Mdn-inline_link-open*
 
-    Opens the asset under the cursor with |vim.ui.open()|.
+    Opens the inline link under the cursor with |vim.ui.open()|.
+
+    If {inline_link} is not specified, a dialogue will appear prompting you to
+    select which inline link to go to. If invoking |'wildchar'| (`<Tab>` by
+    default) to autocomplete the {inline_link} then a list of the available links
+    will be given.
 
 :Mdn inline_link toggle					*:Mdn-inline_link-toggle*
 
@@ -469,14 +479,6 @@ subcommands are listed below.
     Convert an inline link with a fragment to a GFM-style fragment. Useful when
     using LSP auto-completion and you want to create valid Markdown links on
     GitHub.
-
-:Mdn inline_link go_to {inline_link}			*:Mdn-inline_link-go_to*
-
-    Go to inline links in current buffer without hovering over them. If
-    {inline_link} is not specified, a dialogue will appear prompting you to
-    select which inline link to go to. If invoking |'wildchar'| (`<Tab>` by
-    default) to autocomplete the {inline_link} then a list of the available links
-    will be given.
 
 :Mdn formatting strong_toggle				*:Mdn-formatting-strong_toggle*
 
@@ -713,7 +715,7 @@ open_buf({buf}, {opts})					*mdnotes.open_buf()*
     |mdnotes-open_cmd|.
 
     Parameters: ~
-    • {buffer}  (`integer|string`)
+    • {buf}  (`integer|string`)
     • {opts}  (`table?`) Optional parameters:
               • {hor} (`boolean?` default `false`)
 		open buffer in a horizontal split.
@@ -847,34 +849,34 @@ convert_text_to_gfm({text}) 				*mdnotes.convert_text_to_gfm()*
     Return: ~
     • (`string`): Converted text
 
-populate_buf_fragments({bufnr}) 			*mdnotes.populate_buf_fragments()*
+populate_buf_fragments({buf}) 			*mdnotes.populate_buf_fragments()*
 
     Parse the fragments in the specified buffer and update |mdnotes.buf_fragments|.
 
     Parameters: ~
-    • {bufnr}  (`integer?` defaults to current buffer) Buffer to populate
+    • {buf}  (`integer?` defaults to current buffer) Buffer to populate
       |mdnotes.buf_fragments| with.
 
-get_buf_fragments({bufnr}) 				*mdnotes.get_fragments_from_headings()*
+get_buf_fragments({buf}) 				*mdnotes.get_fragments_from_headings()*
 
     Get fragments from the Markdown buffer headings. Parses each heading to
     table entries of type `MdnFragment`.
     
     Parameters: ~
-    • {bufnr}  (`integer?` defaults to current buffer) Buffer to get fragments
+    • {buf}  (`integer?` defaults to current buffer) Buffer to get fragments
       from.
 
     Return: ~
     • (`table<MdnFragment>`)
 
-find_fragment_in_buf_fragments({bufnr}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
+find_fragment_in_buf_fragments({buf}, {fragment}) 	*mdnotes.get_fragment_from_buf_fragments()*
 
     Find the fragment in the |mdnotes.buf_fragments| table of the specified
     buffer. Returns `nil` if the specified buffer and fragment are not
     parsed in |mdnotes.buf_fragments|.
 
     Parameters: ~
-    • {bufnr}  (`MdnFragments`) Fragments table.
+    • {buf}  (`MdnFragments`) Fragments table.
     • {fragment}  (`string`) Fragment to search for.
 
     Return: ~
@@ -905,13 +907,13 @@ scan_lines({pattern}, {opts})				*mdnotes.scan_lines()*
 
 statistics({opts})					*mdnotes.statistics()*
 
-    Return statistics for {buffer}. Uses |wordcount()| internally alond with
+    Return statistics for {buf}. Uses |wordcount()| internally alond with
     |mdnotes.scan_lines()|.
 
     Parameters: ~
     • {pattern}  (`MdnPattern`)
     • {opts}  (`table?`) Optional parameters:
-              • {buffer} (`number?` defaults to current buffer)
+              • {buf} (`number?` defaults to current buffer)
 		buffer number
               • {silent} (`boolean?`, default `false`)
 		silence notifications
@@ -919,24 +921,6 @@ statistics({opts})					*mdnotes.statistics()*
     Return: ~
     • (`table`) Table containing statistics. Current values are bytes,
       characters, words, lines, inline links, WikiLinks, and headings
-
-parse_lines({item_type}, {opts})			*mdnotes.parse_lines()*
-
-    Parse the items in the specified lines (defaults to current line).
-    Currently only compatible with inline links and WikiLinks.
-
-    Parameters: ~
-    • {item_type}  (`"inline_link"` or `"wikilink"`)
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`)
-		inline text location
-              • {text} (`boolean?`, default `false`)
-		return object text instead of objects
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
-
-    Return: ~
-    • (`table<MdnWikiLinkData>|table<MdnInlineLinkData?`)
 
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
@@ -1312,13 +1296,13 @@ history.current_index					*mdnotes.history.current_index*
 
     Current index being pointed to in the |mdnotes.buf_history| table. 
 
-history.record_buf({bufnr}) 				*mdnotes.history.record_buf()*
+history.record_buf({buf}) 				*mdnotes.history.record_buf()*
 
     Record {buffernr} to buffer history. Defaults to current buffer. Used in
     the `record_buf` autocmd in |mdnotes-autocmds|.
 
     Parameters: ~
-    • {bufnr}  (`integer?`, default current buffer) Buffer number
+    • {buf}  (`integer?`, default current buffer) Buffer number
 
 history.go_back()					*mdnotes.history.go_back()*
 
@@ -1563,18 +1547,21 @@ inline_link.validate({opts})				*mdnotes.inline_link.validate()*
     Return: ~
     • (`boolean`): `true` if valid and `false` when invalid
 
-inline_link.go_to({opts})				*mdnotes.inline_link.go_to()*
+inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
 
-    Go to the specified {inline_link}. If no inline link is provided then a
-    prompt with |vim.ui.select()| is used to select one of the detected inline
-    links in the current buffer.
+    Parse the inline links in the specified lines (defaults to current line).
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {inline_link} (`string?`)
-		inline link to go to
-              • {buffer} (`buffer?`, defaults to current buffer)
-		buffer to use for parsing its inline links
+              • {location} (`MdnMultiLineLocation?`)
+		inline text location
+              • {str} (`boolean?`, default `false`)
+		return object as strings instead of objects
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table<MdnInlineLinkData?`)
 
 journal.get_journal_file()				*mdnotes.journal.get_journal_file()*
 
@@ -1673,7 +1660,7 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
     • {rows} (`integer|string`)
     • {columns} (`integer|string`)
     • {opts} (`table?`) Optional parameters:
-              • {buffer} (`integer?`, defaults to current buffer)
+              • {buf} (`integer?`, defaults to current buffer)
 		buffer to write the table to
               • {lnum} (`integer?`, defaults to current line)
 		line number to insert the table at
@@ -1683,12 +1670,12 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
     Return: ~
     • (`MdnTable`)
 							*mdnotes.table.get_table_lines()*
-table.get_table_lines({buffer}, {table_startl}, {table_endl})
+table.get_table_lines({buf}, {table_startl}, {table_endl})
 
     Get the table lines in the specified buffer and line numbers.
 
     Parameters: ~
-    • {buffer}  (`integer?`)
+    • {buf}  (`integer?`)
     • {table_startl}  (`integer?`)
     • {table_endl}  (`table?`) Optional parameters:
 
@@ -1971,14 +1958,14 @@ toc.generate({opts})					*mdnotes.toc.generate()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {buffer} (`integer?`, defaults to current buffer)
+              • {buf} (`integer?`, defaults to current buffer)
 		buffer number to generate ToC for
               • {lnum} (`integer?`, defaults to current line)
-		line number to write the ToC to in {buffer}
+		line number to write the ToC to in {buf}
               • {depth} (`integer?`, defaults to |mdnotes-toc_depth|)
 		depth of the ToC
               • {write} (`boolean?`, default `true`)
-		write to the specified {buffer} and {line}
+		write to the specified {buf} and {line}
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
@@ -2017,7 +2004,7 @@ toc.update({opts})					*mdnotes.toc.update()*
               • {depth} (`integer?`, defaults to |mdnotes-toc_depth|)
 		depth of the ToC
               • {write} (`boolean?`, default `true`)
-		write to the specified {buffer} and {line}
+		write to the specified {buf} and {line}
               • {silent} (`boolean?`, default `false`)
 		silence notifications
               • {search} (`MdnSearchOpts?`, defaults to under the cursor)
@@ -2071,6 +2058,8 @@ wikilink.follow_hor({opts})				*mdnotes.wikilink.follow_hor()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
+              • {wikilink} (`string?`)
+		specify WikiLink to follow
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
 
@@ -2081,6 +2070,8 @@ wikilink.follow_vert({opts})				*mdnotes.wikilink.follow_vert()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
+              • {wikilink} (`string?`)
+		specify WikiLink to follow
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
 
@@ -2180,25 +2171,28 @@ wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
 
     Show orphan pages (pages with no references) in current directory.
 
-wikilink.go_to({opts})					*mdnotes.wikilink.go_to()*
+wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 
-    Go to the specified {wikilink}. If no WikiLink is provided then a prompt
-    with |vim.ui.select()| is used to select one of the detected WikiLinks in
-    the current buffer.
+    Parse the WikiLinks in the specified lines (defaults to current line).
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {wikilink} (`string?`)
-		WikiLink to go to
-              • {buffer} (`buffer?`, defaults to current buffer)
-		buffer to use for parsing its WikiLinks
+              • {location} (`MdnMultiLineLocation?`)
+		inline text location
+              • {str} (`boolean?`, default `false`)
+		return object as strings instead of objects
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table<MdnWikiLinkData?`)
 
 MdnInLineLocation 					*mdnotes.MdnInLineLocation*
 
     Used for locating in-line Markdown elements.
 
     Fields: ~
-    • {buffer} (`integer?`) Buffer number
+    • {buf} (`integer?`) Buffer number
     • {lnum} (`integer?`) Line number
     • {col_start} (`integer?`) Start column of text
     • {col_end} (`integer?`) End column of text
@@ -2209,7 +2203,7 @@ MdnMultiLineLocation 					*mdnotes.MdnMultiLineLocation*
     Used for locating multi-line Markdown elements.
 
     Fields: ~
-    • {buffer} (`integer?`) Buffer number
+    • {buf} (`integer?`) Buffer number
     • {startl} (`integer?`) Start line number
     • {endl} (`integer?`) End line number
 
@@ -2218,7 +2212,7 @@ MdnSearchOpts	 					*mdnotes.MdnSearchOpts*
     Options for searching for a valid multi-line Markdown element.
 
     Fields: ~
-    • {buffer} (`integer?`) Buffer number
+    • {buf} (`integer?`) Buffer number
     • {origin_lnum} (`integer?`) Line number between the lower and upper limits
     • {upper_limit_lnum} (`integer?`) Higher line number limit of search
     • {lower_limit_lnum} (`integer?`) Lower line number limit of search
@@ -2229,7 +2223,7 @@ MdnSearchResult	 					*mdnotes.MdnSearchResult*
 
     Fields: ~
     • {valid} (`boolean?`) Is search item valid
-    • {buffer} (`table?`) Buffer number
+    • {buf} (`table?`) Buffer number
     • {startl} (`integer?`) Start line of the item
     • {endl} (`integer?`) End line of the item
 
@@ -2257,7 +2251,7 @@ MdnBufFragments	 					*mdnotes.MdnBufFragments*
     Format of the |mdnotes.buf_fragments| table.
 
     Fields: ~
-    • {buf_num} (`integer`) Buffer number
+    • {buf} (`integer`) Buffer number
     • {fragments} (`table<MdnFragment>`)
 
 MdnConfig	 					*mdnotes.MdnConfig*
