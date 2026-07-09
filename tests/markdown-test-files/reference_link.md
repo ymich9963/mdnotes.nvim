@@ -8,5 +8,10 @@
 [test][mdnotes]
 [test][mdnotes]
 
+[test][]
+[test][]
+[test][]
+
 [mdnotes]: https://github.com/ymic9963/mdnotes.nvim
-[neovim]: www.neovim.io
+[neovim]: https://www.neovim.io
+[test]: https://test.org

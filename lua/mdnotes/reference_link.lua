@@ -8,7 +8,7 @@ local M = {}
 ---@field lnum integer Reference link definition line number
 
 ---@class MdnBufReferenceLinks
----@field buf_num integer Buffer number
+---@field buf integer Buffer number
 ---@field reference_links table<MdnReferenceLinkDefinition>
 
 ---@type table<MdnBufReferenceLinks>
@@ -54,32 +54,40 @@ function M.parse(opts)
     }, txtdata)
 end
 
----@param bufnr integer?
+---@param opts {buf: integer?, only_labels: boolean?}?
 ---@return table<MdnReferenceLinkDefinition>?
-function M.get_buf_reference_link_definitions(bufnr)
-    if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
+function M.get_buf_reference_link_definitions(opts)
+    opts = opts or {}
+
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
+    local only_labels = opts.only_labels or false
+
     local reference_links = {}
-    local buf_lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+    local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local rl_def_pattern = require('mdnotes.patterns').reference_link_definition
 
     for lnum, line in ipairs(buf_lines) do
         local label, destination = line:match(rl_def_pattern)
         if label and destination then
-            table.insert(reference_links, {label = label, destination = destination, lnum = lnum})
+            if only_labels == false then
+                table.insert(reference_links, {label = label, destination = destination, lnum = lnum})
+            else
+                table.insert(reference_links, label)
+            end
         end
     end
 
     return reference_links
 end
 
-function M.populate_buf_reference_links(bufnr)
-    if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
+function M.populate_buf_reference_links(buf)
+    if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
-    local rl_tbl = M.get_buf_reference_link_definitions(bufnr)
+    local rl_tbl = M.get_buf_reference_link_definitions({ buf = buf })
 
     local exists = false
     for _,v in ipairs(M.buf_reference_links) do
-        if v.buf_num == bufnr then
+        if v.buf == buf then
             exists = true
             if v.reference_links ~= rl_tbl then
                 v.reference_links = rl_tbl
@@ -90,42 +98,49 @@ function M.populate_buf_reference_links(bufnr)
     end
 
     if exists == false then
-        table.insert(M.buf_reference_links, {buf_num = bufnr, reference_links = rl_tbl})
+        table.insert(M.buf_reference_links, {buf = buf, reference_links = rl_tbl})
     end
 end
 
 ---Insert Markdown inline link with the text in the clipboard
----@param opts {destination: string?, move_cursor: boolean?, location: MdnInLineLocation}?
+---@param opts {label: string?, destination: string?, move_cursor: boolean?, location: MdnInLineLocation}?
 function M.insert(opts)
     opts = opts or {}
     local destination = opts.destination or vim.fn.getreg('+')
     local move_cursor = opts.move_cursor ~= false
 
-    if destination == '' then
+    local rldef = M.get_rl_definition(opts.label)
+    if destination == '' and rldef ~= nil then
         vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
         return
     end
 
     local txtdata = require('mdnotes').get_text({ location = opts.location })
 
-    -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end - 1, {'[' .. txtdata.text .. '][]'})
-    vim.api.nvim_buf_set_lines(txtdata.buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[' .. txtdata.text .. ']: ' ..  destination})
+    local link_label = opts.label or ""
+    local def_label = opts.label or txtdata.text
+
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '][' .. link_label .. ']'})
+
+    if rldef == nil then
+        vim.api.nvim_buf_set_lines(txtdata.buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[' .. def_label .. ']: ' ..  destination})
+    end
 
     -- Update buf_reference_links
     M.populate_buf_reference_links(txtdata.buf)
 
     if move_cursor == true then
-        vim.cmd.bufferfer(txtdata.buf)
+        vim.cmd.buffer(txtdata.buf)
         vim.fn.cursor({txtdata.lnum, vim.fn.col('.') + 1})
     end
 end
 
-function M.get_rl_definition(label, bufnr)
-    if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
+function M.get_rl_definition(label, buf)
+    if label == nil then return end
+    if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
     for _, v in pairs(M.buf_reference_links) do
-        if v.buf_num == bufnr then
+        if v.buf == buf then
             for _, vv in pairs(v.reference_links) do
                 if vv.label == label then
                     return vv
@@ -187,7 +202,10 @@ function M.update_definition(opts)
     local new_destination = opts.new_destination
 
     local rldata = M.parse({ location = opts.location })
-    if rldata == nil or rldata.text == nil or rldata.label == nil then return end
+    if rldata == nil or rldata.text == nil or rldata.label == nil then
+        vim.notify("Mdn: No reference link found for parsing", vim.log.levels.ERROR)
+        return
+    end
 
     local rldef = M.get_rl_definition(rldata.label, rldata.buf)
     if rldef == nil then
@@ -195,7 +213,11 @@ function M.update_definition(opts)
         return
     end
 
-    local cur_pos = vim.fn.getpos('.')
+    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = rldata.buf }, silent = true})
+    if parsed_tbl == nil then
+        vim.notify("Mdn: No reference links in current buffer", vim.log.levels.ERROR)
+        return
+    end
 
     -- Get input for label
     local input_label
@@ -204,7 +226,6 @@ function M.update_definition(opts)
     else
         input_label = new_label
     end
-
     if input_label == nil then
         vim.cmd.echo() -- clear cmdline
         vim.notify("Mdn: Please enter valid text", vim.log.levels.ERROR)
@@ -218,50 +239,53 @@ function M.update_definition(opts)
     else
         input_destination = new_destination
     end
-
     if input_destination == "" or input_destination == nil then
         vim.cmd.echo() -- clear cmdline
         vim.notify("Mdn: Please enter valid text", vim.log.levels.ERROR)
         return
     end
 
-    -- Execute changes
-    vim.cmd.s({args = {"/\\[" .. rldef.label .. "\\]/\\[" .. input_label .. "\\]/g"}, range={1, vim.fn.line("$")}, mods = {emsg_silent = true, noautocmd = true}})
+    -- Execute changes for reference links
+    for _, v in pairs(parsed_tbl) do
+        if v.label == rldata.label then
+            v.label = input_label
+            vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {M.get_rl_from_obj(v)})
+        end
+    end
 
+    -- Execute changes in reference link definition
     if input_label == "" then
         rldef.label = rldata.text
     else
         rldef.label = input_label
     end
     rldef.destination = input_destination
-
     vim.api.nvim_buf_set_lines(rldata.buf, rldef.lnum - 1, rldef.lnum, false, {M.get_rl_definition_from_obj(rldef)})
 
     vim.cmd.wall({bang = true, mods = {silent = true, noautocmd = true}})
     M.populate_buf_reference_links(rldata.buf)
-    vim.fn.setpos('.', cur_pos)
 end
 
-function M.cleanup_definitions(bufnr)
-    if bufnr == nil then bufnr = vim.api.nvim_get_current_buf() end
+function M.cleanup_definitions(buf)
+    if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
-    local rl_tbl = M.get_buf_reference_link_definitions(bufnr)
+    local rl_tbl = M.get_buf_reference_link_definitions({ buf = buf })
     if rl_tbl == nil then
         vim.notify("Mdn: No reference links found in buf", vim.log.levels.ERROR)
         return
     end
 
-    vim.api.nvim_buf_call(bufnr, function()
+    vim.api.nvim_buf_call(buf, function()
         for _, v in pairs(rl_tbl) do
             local search_ret = vim.fn.search("\\[" .. v.label .. "\\]", "n")
             if search_ret ==  v.lnum then
-                vim.api.nvim_buf_set_lines(bufnr, v.lnum - 1, v.lnum, false, {})
+                vim.api.nvim_buf_set_lines(buf, v.lnum - 1, v.lnum, false, {})
             end
         end
     end)
 
     vim.cmd.wall({bang = true, mods = {silent = true, noautocmd = true}})
-    M.populate_buf_reference_links(bufnr)
+    M.populate_buf_reference_links(buf)
 end
 
 ---Get an reference link string from an MdnReferenceLinkData object
@@ -269,7 +293,11 @@ end
 ---@return string reference_link
 function M.get_rl_from_obj(rldata)
     if rldata == nil then return "" end
-    return '[' .. rldata.text .. '][' .. rldata.label .. ']'
+    if rldata.text == rldata.label then
+        return '[' .. rldata.text .. '][]'
+    else
+        return '[' .. rldata.text .. '][' .. rldata.label .. ']'
+    end
 end
 
 ---Rename reference link but do NOT update definition
@@ -388,6 +416,39 @@ function M.convert_from_inline(opts)
         vim.cmd.buffer(ildata.buf)
         vim.fn.cursor({ildata.lnum, vim.fn.col('.') + 1})
     end
+end
+
+---Parse the reference links in the specified lines
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?}?
+---@return table<MdnReferenceLinkData>?
+function M.parse_lines(opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+    local str = opts.str or false
+
+    local pattern = require('mdnotes.patterns').reference_link
+    local scan_lines = require('mdnotes').scan_lines
+
+    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
+    if scanned_lines == nil then return nil end
+
+    local parsed_tbl = {}
+    for _, item in ipairs(scanned_lines) do
+        for _, cols in ipairs(item.cols) do
+            local data = M.parse({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
+            if str == true then
+                table.insert(parsed_tbl, M.get_rl_from_obj(data))
+            else
+                table.insert(parsed_tbl, data)
+            end
+        end
+    end
+
+    return parsed_tbl
 end
 
 return M

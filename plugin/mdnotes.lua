@@ -247,6 +247,8 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func({ inline_link = concat_arg(args) })
     elseif func == commands.wikilink.follow or func == commands.wikilink.follow_hor or func == commands.wikilink.follow_vert then
         func({ wikilink = concat_arg(args) })
+    elseif func == commands.reference_link.insert then
+        func({ label = concat_arg(args) })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif command == commands.user then
@@ -308,6 +310,16 @@ end,
                     )
                 end
             end
+
+            if command == "reference_link" then
+                if subcmd == "insert" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.reference_link').get_buf_reference_link_definitions({only_labels = true}) or {}
+                    )
+                end
+            end
+
         end
     end,
     desc = "Mdnotes main command",
