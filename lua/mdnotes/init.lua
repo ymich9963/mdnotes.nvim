@@ -819,7 +819,7 @@ end
 ---@return string path, integer? error, string? error_text
 function M.get_path_from_destination(destination, check_valid, opts)
     local path = ""
-    if require('mdnotes').is_url(destination) == true then return path, -1, "is URL" end
+    if M.is_url(destination) == true then return path, -1, "is URL" end
 
     opts = opts or {} -- unused
 
@@ -866,7 +866,7 @@ end
 ---@return string? fragment, integer? error, string? error_text
 function M.get_fragment_from_destination(destination, check_valid, opts)
     local fragment = ""
-    if require('mdnotes').is_url(destination) == true then return fragment, -1, "is URL" end
+    if M.is_url(destination) == true then return fragment, -1, "is URL" end
 
     opts = opts or {} -- unused
 

@@ -404,8 +404,8 @@ T['scan_lines()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local pattern = require('mdnotes.patterns')
-    return require('mdnotes').scan_lines(pattern.inline_link, { location = { startl = 1, endl = 3}})
+    local pattern = require('mdnotes.patterns').inline_link
+    return require('mdnotes').scan_lines(pattern, { location = { startl = 1, endl = 3}})
     ]])
 
     eq(ret, {
@@ -452,6 +452,41 @@ T['statistics()'] = function()
             headings = 1
         })
     end
+end
+
+T['is_url()'] = function()
+    local ret = child.lua([[return require('mdnotes').is_url("link")]])
+    eq(ret, false)
+    ret = child.lua([[return require('mdnotes').is_url("https://test")]])
+    eq(ret, true)
+end
+
+T['get_path_from_destination()'] = function()
+    local ret = child.lua([[return require('mdnotes').get_path_from_destination("path/with/fragment#fragment", false)]])
+    eq(ret, "path/with/fragment")
+
+    child.cmd([[edit tests/test-data/files/file1.md]])
+    local cwd = child.lua([[return require('mdnotes').cwd]])
+
+    ret = child.lua([[return require('mdnotes').get_path_from_destination("tests/test-data/files/file1.md#section-2", true)]])
+    eq(ret, cwd .. "/file1.md")
+    ret = child.lua([[return require('mdnotes').get_path_from_destination("#section-2", true)]])
+    eq(ret, "file1.md")
+end
+
+T['get_fragment_from_destination()'] = function()
+    local ret = child.lua([[return require('mdnotes').get_fragment_from_destination("path/with/fragment#fragment", false)]])
+    eq(ret, "fragment")
+
+    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("tests/test-data/files/file1.md#section-2", true)]])
+    eq(ret, "Section 2")
+
+    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("tests/test-data/files/file1.md#Section 2", true)]])
+    eq(ret, "Section 2")
+
+    child.cmd([[edit tests/test-data/files/file1.md]])
+    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("#section-2", true)]])
+    eq(ret, "section-2")
 end
 
 return T

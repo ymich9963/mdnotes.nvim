@@ -922,6 +922,73 @@ statistics({opts})					*mdnotes.statistics()*
     • (`table`) Table containing statistics. Current values are bytes,
       characters, words, lines, inline links, WikiLinks, and headings
 
+is_url({destination}) 					*mdnotes.is_url()*
+
+    Check if an inline link destination is a URL.
+
+    Parameters: ~
+    • {destination}  (`string`)
+
+    Return: ~
+    • (`boolean`) `true` if it is a URL and `false` if not.
+
+							*mdnotes.get_path_from_destination*
+get_path_from_destination({destination}, {check_valid}, {opts})
+
+    Get the path from the destination and optionally check if it links to a valid
+    path.
+
+    Parameters: ~
+    • {destination}  (`string?`) Inline link destination
+    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
+    • {opts}  (`table?`) Optional parameters (unused)
+	
+    Return: ~
+    • (`string`): Extracted path
+    • (`integer?`): On failure, an error code
+    • (`string?`): On failure, text describing the error
+
+    Error codes:
+    • `-1` : is URL
+    • `-2` : file not found
+							*mdnotes.get_fragment_from_destination()*
+get_fragment_from_destination({destination}, {check_valid}, {opts})
+
+    Get the fragment from the destination and optionally check if it is a valid
+    fragment.
+
+    Parameters: ~
+    • {destination}  (`string?`) destination
+    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
+    • {opts}  (`table?`) Optional parameters (unused)
+	
+    Return: ~
+    • (`string`): Extracted fragment
+    • (`integer?`): On failure, an error code
+    • (`string?`): On failure, text describing the error
+
+    Error codes:
+    • `-1` : is URL
+    • `-2` : invalid path: detected path and its error
+    • `-3` : fragment not parsed
+    • `-4` : invalid fragment: value retrieved from |mdnotes.buf_fragments|.
+
+open({destination})					*mdnotes.open()*
+
+    Handle the opening of the {destination} in the appropriate method.
+
+    Parameters: ~
+    • {destination}  (`string?`) destination to open
+	
+    Return: ~
+    • (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
+      |vim.ui.open()| result on programme opening, error string on error,
+      `nil` on failed |vim.ui.open()|.
+
+      Uses |mdnotes.get_path_from_destination()| and
+      |mdnotes.get_fragment_from_destination()| internally so it returns
+      all their errors except `-1`.
+
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
     Resolve the assets path from |mdnotes-assets_path|.
@@ -1349,95 +1416,31 @@ inline_link.get_il_from_obj({ildata})			*mdnotes.inline_link.get_il_from_obj()*
     Return: ~
     • (`string`)
 
-							*mdnotes.inline_link.get_path_from_destination*
-inline_link.get_path_from_destination({destination}, {check_valid}, {opts})
-
-    Get the path from the destination and optionally check if it links to a valid
-    path.
-
-    Parameters: ~
-    • {destination}  (`string?`) Inline link destination
-    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
-    • {opts}  (`table?`) Optional parameters (unused)
-	
-    Return: ~
-    • (`string`): Extracted path
-    • (`integer?`): On failure, an error code
-    • (`string?`): On failure, text describing the error
-
-    Error codes:
-    • `-1` : is URL
-    • `-2` : file not found
-							*mdnotes.inline_link.get_fragment_from_destination()*
-inline_link.get_fragment_from_destination({destination}, {check_valid}, {opts})
-
-    Get the fragment from the destination and optionally check if it is a valid
-    fragment.
-
-    Parameters: ~
-    • {destination}  (`string?`) destination
-    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
-    • {opts}  (`table?`) Optional parameters (unused)
-	
-    Return: ~
-    • (`string`): Extracted fragment
-    • (`integer?`): On failure, an error code
-    • (`string?`): On failure, text describing the error
-
-    Error codes:
-    • `-1` : is URL
-    • `-2` : invalid path: detected path and its error
-    • `-3` : fragment not parsed
-    • `-4` : invalid fragment: value retrieved from |mdnotes.buf_fragments|.
-
 inline_link.open({opts})				*mdnotes.inline_link.open()*
 
-    Open inline links in the appropriate programme.
+    Open inline links in the appropriate programme. Calls |mdnotes.open()|.
 
     Parameters: ~
-    • {destination}  (`string?`) destination
-    • {location}  (`MdnInLineLocation?`, defaults to current location) Location of the inline link
+    • {opts}  (`table?`) Optional parameters:
+              • {inline_link} (`string?`)
+		inline link to get the destination from
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
 	
     Return: ~
     • (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
       |vim.ui.open()| result on programme opening, error string on error,
       `nil` on failed |vim.ui.open()|.
 
-      Uses |mdnotes.inline_link.get_path_from_destination()| and
-      |mdnotes.inline_link.get_fragment_from_destination()| internally so it returns
-      all their errors except `-1`.
-
-inline_link.is_image({opts}) 				*mdnotes.inline_link.is_image()*
+inline_link.is_image({inline_link}) 			*mdnotes.inline_link.is_image()*
 
     Check if inline link is an image.
 
     Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {inline_link} (`string?`)
-		specify an inline link to parse
-              • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+    • {inline_link} (`string?`) specify an inline link to check
 	
-    If both {inline_link} and {location} are specified, it uses {location}.
-
     Return: ~
     • (`boolean`) `true` if it is an image and `false` if not.
-
-inline_link.is_url({opts}) 				*mdnotes.inline_link.is_url()*
-
-    Check if inline link is a URL.
-
-    Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {inline_link} (`string?`)
-		specify an inline link to parse
-              • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
-	
-    If both {inline_link} and {location} are specified, it uses {location}.
-
-    Return: ~
-    • (`boolean`) `true` if it is a URL and `false` if not.
 
 inline_link.insert({opts})				*mdnotes.inline_link.insert()*
 

@@ -189,34 +189,6 @@ T['get_il_from_obj()'] = function()
     eq(ret, "[1](2 \"3\")")
 end
 
-T['get_path_from_destination()'] = function()
-    local ret = child.lua([[return require('mdnotes.inline_link').get_path_from_destination("path/with/fragment#fragment", false)]])
-    eq(ret, "path/with/fragment")
-
-    child.cmd([[edit tests/test-data/files/file1.md]])
-    local cwd = child.lua([[return require('mdnotes').cwd]])
-
-    ret = child.lua([[return require('mdnotes.inline_link').get_path_from_destination("tests/test-data/files/file1.md#section-2", true)]])
-    eq(ret, cwd .. "/file1.md")
-    ret = child.lua([[return require('mdnotes.inline_link').get_path_from_destination("#section-2", true)]])
-    eq(ret, "file1.md")
-end
-
-T['get_fragment_from_destination()'] = function()
-    local ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_destination("path/with/fragment#fragment", false)]])
-    eq(ret, "fragment")
-
-    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_destination("tests/test-data/files/file1.md#section-2", true)]])
-    eq(ret, "Section 2")
-
-    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_destination("tests/test-data/files/file1.md#Section 2", true)]])
-    eq(ret, "Section 2")
-
-    child.cmd([[edit tests/test-data/files/file1.md]])
-    ret = child.lua([[return require('mdnotes.inline_link').get_fragment_from_destination("#section-2", true)]])
-    eq(ret, "section-2")
-end
-
 T['open()'] = function()
     local lines = {
         "[file1](tests/test-data/files/file1.md) [file2](tests/test-data/files/file2.md)",
@@ -260,36 +232,14 @@ T['open()'] = function()
 
     child.cmd("buffer " .. buf)
     child.fn.cursor(5,1)
-    child.lua([[ require('mdnotes.inline_link').open() ]])
+    child.lua([[ require('mdnotes.inline_link').open()]])
     eq(child.fn.getcurpos()[2], 7)
 end
 
 T['is_image()'] = function()
-    local lines = {
-        "[text](link)",
-        "![img](link)",
-    }
-
-    create_md_buffer(child, lines)
-    local ret = child.lua([[return require('mdnotes.inline_link').is_image()]])
+    local ret = child.lua([[return require('mdnotes.inline_link').is_image("[text](link)")]])
     eq(ret, false)
-
-    child.fn.cursor(2,1)
-    ret = child.lua([[return require('mdnotes.inline_link').is_image()]])
-    eq(ret, true)
-end
-
-T['is_url()'] = function()
-    local lines = {
-        "[text](link)",
-        "[text](https://test)",
-    }
-
-    create_md_buffer(child, lines)
-    local ret = child.lua([[return require('mdnotes.inline_link').is_url()]])
-    eq(ret, false)
-    child.fn.cursor(2,1)
-    ret = child.lua([[return require('mdnotes.inline_link').is_url()]])
+    ret = child.lua([[return require('mdnotes.inline_link').is_image("![img](link)")]])
     eq(ret, true)
 end
 

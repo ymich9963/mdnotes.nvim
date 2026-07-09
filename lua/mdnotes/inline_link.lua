@@ -96,7 +96,7 @@ function M.open(opts)
 
     if ildata == nil then return end
 
-    require('mdnotes').open(ildata.destination)
+    return require('mdnotes').open(ildata.destination)
 end
 
 ---Check if inline link is an image
