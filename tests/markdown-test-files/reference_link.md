@@ -1,5 +1,4 @@
 # Reference Link
-
 [neovim][]
 [test][neovim]
 [test][neovim]
@@ -14,4 +13,4 @@
 
 [mdnotes]: https://github.com/ymic9963/mdnotes.nvim
 [neovim]: https://www.neovim.io
-[test]: https://test.org
+[test]: https://example.org

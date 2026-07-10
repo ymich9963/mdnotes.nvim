@@ -408,4 +408,26 @@ function M.parse_lines(opts)
     return parsed_tbl
 end
 
+---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?
+function M.convert_from_reference(opts)
+    opts = opts or {}
+
+    local move_cursor = opts.move_cursor ~= false
+    local rldata = require('mdnotes.reference_link').parse({ location = opts.location })
+    if rldata == nil or rldata.text == nil then return end
+
+    local rldef = require('mdnotes.reference_link').get_rl_definition(rldata.label, rldata.buf)
+    if rldef == nil then
+        vim.notify("Mdn: No definition found for label '" .. rldata.label .. "'. If you can confirm it exists, try writing the buf or parse definitions manually with ':Mdn reference_link populate_buf_reference_links'", vim.log.levels.ERROR)
+        return
+    end
+
+    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {'[' .. rldata.text .. '](' .. rldef.destination .. ')'})
+
+    if move_cursor == true then
+        vim.cmd.buffer(rldata.buf)
+        vim.fn.cursor({rldata.lnum, vim.fn.col('.') + 1})
+    end
+end
+
 return M

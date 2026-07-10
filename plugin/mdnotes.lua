@@ -172,6 +172,7 @@ local get_commands = function() return {
         normalize = require("mdnotes.inline_link").normalize,
         validate = require("mdnotes.inline_link").validate,
         convert_fragment_to_gfm = require("mdnotes.inline_link").convert_fragment_to_gfm,
+        convert_from_reference = require("mdnotes.inline_link").convert_from_reference
     },
     toc = {
         generate = require("mdnotes.toc").generate,
@@ -200,6 +201,7 @@ local get_commands = function() return {
         rename = require("mdnotes.reference_link").rename,
         relabel = require("mdnotes.reference_link").relabel,
         convert_from_inline = require("mdnotes.reference_link").convert_from_inline,
+        find_label = require("mdnotes.reference_link").find_label
     },
     user = vim.deepcopy(require('mdnotes').config.user_commands, true)
 }
@@ -247,7 +249,7 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func({ inline_link = concat_arg(args) })
     elseif func == commands.wikilink.follow or func == commands.wikilink.follow_hor or func == commands.wikilink.follow_vert then
         func({ wikilink = concat_arg(args) })
-    elseif func == commands.reference_link.insert then
+    elseif func == commands.reference_link.insert or func == commands.reference_link.find_label then
         func({ label = concat_arg(args) })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
@@ -312,7 +314,7 @@ end,
             end
 
             if command == "reference_link" then
-                if subcmd == "insert" then
+                if subcmd == "insert" or subcmd == "find_label" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
                     end, require('mdnotes.reference_link').get_buf_reference_link_definitions({only_labels = true}) or {}

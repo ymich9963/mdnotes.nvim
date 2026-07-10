@@ -70,9 +70,9 @@ function M.get_buf_reference_link_definitions(opts)
         local label, destination = line:match(rl_def_pattern)
         if label and destination then
             if only_labels == false then
-                table.insert(reference_links, {label = label, destination = destination, lnum = lnum})
+                table.insert(reference_links, {label = string.lower(label), destination = destination, lnum = lnum})
             else
-                table.insert(reference_links, label)
+                table.insert(reference_links, string.lower(label))
             end
         end
     end
@@ -142,7 +142,7 @@ function M.get_rl_definition(label, buf)
     for _, v in pairs(M.buf_reference_links) do
         if v.buf == buf then
             for _, vv in pairs(v.reference_links) do
-                if vv.label == label then
+                if vv.label == string.lower(label) then
                     return vv
                 end
             end
@@ -266,8 +266,11 @@ function M.update_definition(opts)
     M.populate_buf_reference_links(rldata.buf)
 end
 
-function M.cleanup_definitions(buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
+---@param opts {buf: integer?}?
+function M.cleanup_definitions(opts)
+    opts = opts or {}
+
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
 
     local rl_tbl = M.get_buf_reference_link_definitions({ buf = buf })
     if rl_tbl == nil then
@@ -398,6 +401,7 @@ function M.open(opts)
     return require('mdnotes').open(rldef.destination)
 end
 
+---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?
 function M.convert_from_inline(opts)
     opts = opts or {}
 
@@ -449,6 +453,48 @@ function M.parse_lines(opts)
     end
 
     return parsed_tbl
+end
+
+---@param opts {label: string?, location: MdnInLineLocation}?
+function M.find_label(opts)
+    opts = opts or {}
+
+    local label = opts.label
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+
+    if label == nil then
+        local rldata = M.parse({ location = opts.location })
+        if rldata == nil or rldata.text == nil or rldata.label == nil then
+            vim.notify("Mdn: No reference link found for parsing", vim.log.levels.ERROR)
+            return
+        end
+        label = rldata.label
+    end
+
+    local rldef = M.get_rl_definition(label, buf)
+    if rldef == nil then
+        vim.notify("Mdn: No definition found for label '" .. label .. "'", vim.log.levels.ERROR)
+        return
+    end
+
+    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+    if parsed_tbl == nil then
+        vim.notify("Mdn: No reference links in current buffer", vim.log.levels.ERROR)
+        return
+    end
+
+    local qflist = {}
+    for _, v in pairs(parsed_tbl) do
+        if v.label == label then
+            table.insert(qflist, {bufnr = v.buf, lnum = v.lnum, col = v.start_col, end_col = v.end_coa, text = v.text})
+        end
+    end
+
+    vim.fn.setqflist(qflist)
+    vim.cmd.copen()
+
+    return qflist
 end
 
 return M
