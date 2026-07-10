@@ -1,15 +1,8 @@
 # WikiLinks Test
+Test for WikiLink references [[formatting]] [[formatting]] [[formatting]]
 
-Test for WikiLink references
-[[formatting]]
-[[formatting]]
-[[formatting]]
+Test for fragment with spaces [[formatting#Inline Code]]
 
-Test for fragment with spaces
-[[formatting#Inline Code]]
+Tets for wikilink normalize [[..\markdown-test-files\formatting.md]]
 
-Tets for wikilink normalize
-[[..\markdown-test-files\formatting.md]]
-
-Other tests
-[[test.md]]
+Other tests [[test.md]]

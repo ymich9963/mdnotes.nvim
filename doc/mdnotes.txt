@@ -734,14 +734,14 @@ mdn_grep({pattern}, {path})				*mdnotes.mdn_grep()*
 check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax()*
 
     Check if the Markdown syntax under the cursor matches the {pattern} of type
-    |mdnotes-MdnPattern|. Optionally specify a location using to check
+    |mdnotes.MdnPattern|. Optionally specify a location using to check
     using the {opts} table.
 
     Parameters: ~
-    • {pattern}  (`string`) Pattern of type |mdnotes-MdnPattern|.
+    • {pattern}  (`string`) Pattern of type |mdnotes.MdnPattern|.
     • {opts}  (`table?`) Optional parameters:
-              • {location} (`table?`, default `{}`)
-		A table of type |mdnotes-MdnInLineLocation| used to specify
+              • {location} (`table?`)
+		A table of type |mdnotes.MdnInLineLocation| used to specify
 		the location of the function process.
               • {entire_line} (`boolean?`, default `false`)
 		check the entire line for valid Markdown syntax and return its 
@@ -769,29 +769,29 @@ get_text({opts})					*mdnotes.get_text()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {location} (`table?`, default `{}`)
-		A table of type |mdnotes-MdnInLineLocation| used to specify
+		A table of type |mdnotes.MdnInLineLocation| used to specify
 		the location of the function process.
 
     Return: ~
-    • (`MdnText`): See |mdnotes-MdnText|.
+    • (`MdnText`): See |mdnotes.MdnText|.
 
 
 get_text_in_pattern({pattern}, {opts}) 			*mdnotes.get_text_in_pattern*
 
     Get the text that matches the corresponding {pattern} of type
-    |mdnotes-MdnPattern| under the cursor, or at the specified location using
+    |mdnotes.MdnPattern| under the cursor, or at the specified location using
     the opts table. This function is usually used to retrieve the text
     to be formatted.
 
     Parameters: ~
-    • {pattern}  (`string`) Pattern of type |mdnotes-MdnPattern|.
+    • {pattern}  (`string`) Pattern of type |mdnotes.MdnPattern|.
     • {opts}  (`table?`) Optional parameters:
               • {location} (`table?`, default `{}`)
-		A table of type |mdnotes-MdnInLineLocation| used to specify
+		A table of type |mdnotes.MdnInLineLocation| used to specify
 		the location of the function process.
 
     Return: ~
-    • (`MdnText`): See |mdnotes-MdnText|.
+    • (`MdnText`): See |mdnotes.MdnText|.
 
 new_line_remap({key}, {expr}) 				*mdnotes.new_line_remap()*
 
@@ -799,7 +799,7 @@ new_line_remap({key}, {expr}) 				*mdnotes.new_line_remap()*
     |mdnotes-auto_list_continuation|.
 
     Parameters: ~
-    • {key}  (`string`) Pattern of type |mdnotes-MdnPattern|.
+    • {key}  (`string`) Pattern of type |mdnotes.MdnPattern|.
     • {expr}  (`boolean`) If `opts.expr` is set for |vim.keymap.set()|.
 
     Return: ~
@@ -2192,7 +2192,9 @@ wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 
 MdnInLineLocation 					*mdnotes.MdnInLineLocation*
 
-    Used for locating in-line Markdown elements.
+    Used for locating in-line Markdown elements. All values default to the
+    current values, e.g. current buffer, current line number, and current
+    columns.
 
     Fields: ~
     • {buf} (`integer?`) Buffer number
