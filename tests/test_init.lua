@@ -103,6 +103,12 @@ T['check_markdown_syntax()'] = function()
     return {require('mdnotes').check_markdown_syntax(pattern, { entire_line = true })}
     ]])
     eq(ret, {false, {}})
+
+    ret = child.lua([[
+    local pattern = require('mdnotes.patterns').emphasis
+    return {require('mdnotes').check_markdown_syntax(pattern, {location = {lnum = 2, col_start = 10, col_end = 19}})}
+    ]])
+    eq(ret, {true, {10, 20}})
 end
 
 T['get_text()'] = function()
