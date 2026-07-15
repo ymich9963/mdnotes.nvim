@@ -1490,6 +1490,8 @@ inline_link.insert({opts})				*mdnotes.inline_link.insert()*
 		place cursor where the new inline link was inserted
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to insert
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 inline_link.delete({opts})				*mdnotes.inline_link.delete()*
 
@@ -1531,6 +1533,8 @@ inline_link.relink({opts})				*mdnotes.inline_link.relink()*
 		place cursor where the new inline link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to relink
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 inline_link.rename({opts})				*mdnotes.inline_link.rename()*
 
@@ -1544,6 +1548,8 @@ inline_link.rename({opts})				*mdnotes.inline_link.rename()*
 		place cursor where the new inline link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to rename
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 inline_link.normalize({opts})				*mdnotes.inline_link.normalize()*
 

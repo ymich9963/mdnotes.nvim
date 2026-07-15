@@ -113,14 +113,18 @@ function M.is_image(inline_link)
 end
 
 ---Insert Markdown inline link with the text in the clipboard
----@param opts {destination: string?, move_cursor: boolean?, location: MdnInLineLocation}?
+---@param opts {destination: string?, move_cursor: boolean?, location: MdnInLineLocation, silent: boolean?}?
 function M.insert(opts)
     opts = opts or {}
     local destination = opts.destination or vim.fn.getreg('+')
     local move_cursor = opts.move_cursor ~= false
+    local silent = opts.silent or false
 
     if destination == '' then
-        vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
+        end
+
         return
     end
 
@@ -172,11 +176,12 @@ function M.toggle(opts)
 end
 
 ---Relink inline link
----@param opts {new_link: string?, move_cursor: boolean?, location: MdnInLineLocation?}?
+---@param opts {new_link: string?, move_cursor: boolean?, location: MdnInLineLocation?, silent: boolean?}?
 function M.relink(opts)
     opts = opts or {}
     local new_link = opts.new_link
     local move_cursor = opts.move_cursor ~= false
+    local silent = opts.silent or false
 
     local ildata = M.parse({ location = opts.location })
     if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
@@ -189,7 +194,10 @@ function M.relink(opts)
     end
 
     if user_input == "" or user_input == nil then
-        vim.notify("Mdn: Please enter valid text", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Please enter valid text", vim.log.levels.ERROR)
+        end
+
         return
     end
 
@@ -205,11 +213,12 @@ function M.relink(opts)
 end
 
 ---Rename inline link
----@param opts {new_name: string?, move_cursor: boolean?, location: MdnInLineLocation?}?
+---@param opts {new_name: string?, move_cursor: boolean?, location: MdnInLineLocation?, silent: boolean?}?
 function M.rename(opts)
     opts = opts or {}
     local new_name = opts.new_name
     local move_cursor = opts.move_cursor ~= false
+    local silent = opts.silent or false
 
     local ildata = M.parse({ location = opts.location })
     if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
@@ -222,7 +231,10 @@ function M.rename(opts)
     end
 
     if user_input == "" or user_input == nil then
-        vim.notify("Mdn: Please enter valid text", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Please enter valid text", vim.log.levels.ERROR)
+        end
+
         return
     end
 
