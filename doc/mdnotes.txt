@@ -630,6 +630,11 @@ subcommands are listed below.
 
    Open the current file's containing folder.
 
+:Mdn miscellaneous statistics				*Mdn-miscellaneous-statistics*
+
+   Show statistics of the current buffer about the bytes, characters,
+   words, lines, inline links, WikiLinks, reference links, and headings.
+
 :Mdn user						*Mdn-user*
 
    Access the user defined commands. See |mdnotes-user_commands|.
