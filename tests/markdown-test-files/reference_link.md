@@ -13,4 +13,4 @@
 
 [mdnotes]: https://github.com/ymic9963/mdnotes.nvim
 [neovim]: https://www.neovim.io
-[test]: https://example.org
+[test]: formatting.md#emphasis-italic
