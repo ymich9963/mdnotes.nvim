@@ -398,13 +398,9 @@ function M.get_text_in_pattern(pattern, opts)
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local lnum = locopts.lnum or vim.fn.line('.')
-    local col_start = locopts.col_start or -1
-    local col_end = locopts.col_end or -1
+    local col_start = locopts.col_start or vim.fn.col('.')
+    local col_end = locopts.col_end or vim.fn.col('.')
     local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
-
-    if cur_col == -1 then
-        cur_col = vim.fn.col('.')
-    end
 
     local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
 
