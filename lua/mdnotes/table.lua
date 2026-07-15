@@ -122,18 +122,22 @@ end
 ---Create a table with r rows and c columns
 ---@param rows integer|string
 ---@param columns integer|string
----@param opts {buf: integer?, lnum: integer?, write: boolean?}?
+---@param opts {buf: integer?, lnum: integer?, write: boolean?, silent: boolean?}?
 ---@return MdnTable?
 function M.create(rows, columns, opts)
-    if rows == nil or columns == nil then
-        vim.notify("Mdn: Please specify both row and column dimensions", vim.log.levels.ERROR)
-        return
-    end
-
     opts = opts or {}
     local buf = opts.buf or vim.api.nvim_get_current_buf()
     local lnum = opts.lnum or vim.fn.line('.')
     local write = opts.write ~= false
+    local silent = opts.silent or false
+
+    if rows == nil or columns == nil then
+        if silent == false then
+            vim.notify("Mdn: Please specify both row and column dimensions", vim.log.levels.ERROR)
+        end
+
+        return
+    end
 
     if type(rows) == "string" then
         rows = vim.fn.str2nr(rows)
@@ -254,10 +258,11 @@ function M.parse(opts)
 end
 
 ---Get the table column locations
----@param opts {search: MdnSearchOpts?}?
+---@param opts {search: MdnSearchOpts?, silent: boolean?}?
 ---@return MdnTableColLocs? col_locations_table Table column locations
 function M.get_column_locations(opts)
     opts = opts or {}
+    local silent = opts.silent or false
     local search_opts = opts.search or {}
     vim.validate("search_opts", search_opts, "table")
 
@@ -266,7 +271,10 @@ function M.get_column_locations(opts)
     -- Fence post problem, all tables will have n+1 '|' characters with n being the text    
     local tsearch = M.check_table_valid({ search = opts.search })
     if tsearch.valid == false then
-        vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
+        end
+
         return
     end
 
@@ -438,9 +446,11 @@ function M.column_move(contents, col_index, new_col_index)
 end
 
 ---Move current column to the left
----@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+---@param opts {search: MdnSearchOpts?, cur_col: integer?, silent: boolean?}?
 function M.column_move_left(opts)
     opts = opts or {}
+    local silent = opts.silent or false
+
     local tdata = M.parse({ search = opts.search })
 
     if tdata == nil then
@@ -459,7 +469,10 @@ function M.column_move_left(opts)
     local new_col = cur_col - 1
 
     if not M.column_move(tdata.contents, cur_col, new_col) then
-        vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
+        end
+
         return
     end
 
@@ -467,9 +480,11 @@ function M.column_move_left(opts)
 end
 
 ---Move current column to the right
----@param opts {search: MdnSearchOpts?, cur_col: integer?}?
+---@param opts {search: MdnSearchOpts?, cur_col: integer?, silent: boolean?}?
 function M.column_move_right(opts)
     opts = opts or {}
+    local silent = opts.silent or false
+
     local tdata = M.parse({ search = opts.search })
 
     if tdata == nil then
@@ -488,7 +503,10 @@ function M.column_move_right(opts)
     local new_col = cur_col + 1
 
     if not M.column_move(tdata.contents, cur_col, new_col) then
-        vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Column move exceeds table dimensions", vim.log.levels.ERROR)
+        end
+
         return
     end
 
@@ -695,11 +713,12 @@ function M.column_delete(opts)
 end
 
 ---Toggle alignment of the current column
----@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
+---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?, silent: boolean?}?
 ---@return MdnTable?
 function M.column_alignment_toggle(opts)
     opts = opts or {}
 
+    local silent = opts.silent or false
     local write = opts.write ~= false
     local tdata = opts.tdata
 
@@ -736,7 +755,10 @@ function M.column_alignment_toggle(opts)
     elseif delimiter_row:match("^:[-]+:$") then
         new_delimiter_row = delimiter_row:gsub(":", "-")
     else
-        vim.notify("Mdn: Check that the table delimiter row is in the correct format", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Check that the table delimiter row is in the correct format", vim.log.levels.ERROR)
+        end
+
         return
     end
 

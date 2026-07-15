@@ -21,11 +21,17 @@ function M.get_journal_file()
 end
 
 ---Go to journal file
-function M.go_to()
+---@param opts {silent: boolean?}?
+function M.go_to(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
     local journal_file = M.get_journal_file()
 
     if journal_file == "" then
-        vim.notify("Mdn: Please specify a journal file to use this feature", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Please specify a journal file to use this feature", vim.log.levels.ERROR)
+        end
+
         return
     end
 
