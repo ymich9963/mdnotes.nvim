@@ -931,19 +931,29 @@ assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
     Resolve the assets path from |mdnotes-assets_path|.
 
-assets.check_assets_path() 				*mdnotes.assets.check_assets_path()*
+assets.check_assets_path({opts}) 			*mdnotes.assets.check_assets_path()*
 
     Check the existance of the |mdnotes-assets_path| when inserting images or
     files.
 
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
     Return: ~
     • (`boolean`)
 
-assets.open_containing_folder() 			*mdnotes.assets.open_containing_folder()*
+assets.open_containing_folder({opts}) 			*mdnotes.assets.open_containing_folder()*
 
     Open the assets folder in the |mdnotes.cwd| specified in |mdnotes-assets_path|.
 
-assets.process_inserted_asset_file({file_path})		*mdnotes.assets.process_inserted_asset_file()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+assets.process_inserted_asset_file({file_path}, {opts})	*mdnotes.assets.process_inserted_asset_file()*
 
     Process the specified asset file path based on config options. Asset will
     be placed in your |mdnotes-assets_path| depending on |mdnotes-asset_insert_behaviour|.
@@ -951,6 +961,9 @@ assets.process_inserted_asset_file({file_path})		*mdnotes.assets.process_inserte
 
     Parameters: ~
     • {file_path}  (`string`) Path to the asset.
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`string?`): Return file name on success and `nil` on failure.
@@ -975,6 +988,8 @@ assets.get_asset_inline_link({opts})			*mdnotes.assets.get_asset_inline_link()*
 		the assets folder
 	      • {file_path}  (`string?`)
 		optional path to asset and the clipboard is used if `nil`
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`MdnAssetInlineLink?`)
@@ -1059,6 +1074,8 @@ assets.download_website_html({opts})			*mdnotes.assets.download_website_html()*
 		destination with a valid URL to download the HTML from
               • {location} (`MdnInLineLocation?`)
 		inline text location
+              • {silent} (`boolean`, default `false`)
+		silence notifications
 
     Return: ~
     • (`string?`): Path of downloaded file on success, `nil` on failure.
@@ -1098,6 +1115,8 @@ assets.view({opts}) 					*mdnotes.assets.view()*
     • {opts}  (`table?`) Optional parameters:
               • {asset} (`string?`)
 	      asset name to view
+              • {silent} (`boolean`, default `false`)
+		silence notifications
 
     Return: ~
     • (`nil`)
@@ -1297,7 +1316,7 @@ history.buf_history					*mdnotes.history.buf_history*
     previously in, the buffer history removes everything past the buffer they
     went back to, and appends the buffer they've moved forward to.
 
-history.current_index					*mdnotes.history.current_index*
+history.current_index				*mdnotes.history.current_index*
 
     Current index being pointed to in the |mdnotes.buf_history| table. 
 
@@ -1309,15 +1328,25 @@ history.record_buf({buf}) 				*mdnotes.history.record_buf()*
     Parameters: ~
     • {buf}  (`integer?`, default current buffer) Buffer number
 
-history.go_back()					*mdnotes.history.go_back()*
+history.go_back({opts})					*mdnotes.history.go_back()*
 
     Go back in the buffer history. Essentially move the index by -1. See
     |mdnotes.buf_history|.
 
-history.go_forward()					*mdnotes.history.go_forward()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+history.go_forward({opts})				*mdnotes.history.go_forward()*
 
     Go forward in the buffer history. Essentially move the index by +1. See
     |mdnotes.buf_history|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 history.clear()						*mdnotes.history.clear()*
 
@@ -1575,10 +1604,15 @@ journal.get_journal_file()				*mdnotes.journal.get_journal_file()*
     Return: ~
     • (`string`): Journal file path
 
-journal.go_to()						*mdnotes.journal.go_to()*
+journal.go_to({opts})					*mdnotes.journal.go_to()*
 
     Go the journal file defined by |mdnotes-journal_file|. Used in
     |:Mdn-journal|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 journal.insert_entry({opts})				*mdnotes.journal_insert_entry()*
 
@@ -2090,12 +2124,14 @@ wikilink.show_references({opts})			*mdnotes.wikilink.show_references()*
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`table?`): Return `qflist` using |getqflist()| on success, `nil` on
       failure.
 
-wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
+wikilink.rename_references({opts})			*mdnotes.wikilink.rename_references()*
 
     Rename the reference to a `[[WikiLink]]` and also the file pointing to that
     link.
@@ -2106,15 +2142,22 @@ wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
 		New name of the WikiLink
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`string?`): Old name on success, `nil` on failure.
     • (`string?`): New name name on success, `nil` on failure.
 
-wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
+wikilink.undo_rename({opts})				*mdnotes.wikilink.undo_rename()*
 
     Undo the most recent reference rename. Only available when 
     |mdnotes-prefer_lsp| is `false`. 
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`string?`): Old name on success, `nil` on failure.

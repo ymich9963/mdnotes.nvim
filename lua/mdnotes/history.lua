@@ -25,32 +25,48 @@ function M.record_buf(buf)
 end
 
 ---Go back in the buffer history
-function M.go_back()
+---@param opts {silent: boolean?}?
+function M.go_back(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+
     if M.current_index > 1 then
         M.current_index = M.current_index - 1
         local prev_buf = M.buf_history[M.current_index]
         if vim.api.nvim_buf_is_valid(prev_buf) then
-            vim.cmd("buffer " .. prev_buf)
+            vim.cmd.buffer(prev_buf)
         else
-            vim.notify("Mdn: Attempting to access an invalid buffer", vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify("Mdn: Attempting to access an invalid buffer", vim.log.levels.ERROR)
+            end
         end
     else
-        vim.notify("Mdn: No more buffers to go back to", vim.log.levels.WARN)
+        if silent == false then
+            vim.notify("Mdn: No more buffers to go back to", vim.log.levels.WARN)
+        end
     end
 end
 
 ---Go forward in the buffer history
-function M.go_forward()
+---@param opts {silent: boolean?}?
+function M.go_forward(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+
     if M.current_index < #M.buf_history then
         M.current_index = M.current_index + 1
         local next_buf = M.buf_history[M.current_index]
         if vim.api.nvim_buf_is_valid(next_buf) then
-            vim.cmd("buffer " .. next_buf)
+            vim.cmd.buffer(next_buf)
         else
-            vim.notify("Mdn: Attempting to access an invalid buffer", vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify("Mdn: Attempting to access an invalid buffer", vim.log.levels.ERROR)
+            end
         end
     else
-        vim.notify("Mdn: No more buffers to go forward to", vim.log.levels.WARN)
+        if silent == false then
+            vim.notify("Mdn: No more buffers to go forward to", vim.log.levels.WARN)
+        end
     end
 end
 
