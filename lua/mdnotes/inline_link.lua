@@ -341,7 +341,9 @@ function M.validate(opts)
         return false, "invalid fragment"
     end
 
-    vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
+    if silent == false then
+        vim.notify("Mdn: Valid inline link", vim.log.levels.INFO)
+    end
 
     return true, "valid"
 end

@@ -107,7 +107,7 @@ function M.follow_vert(opts)
 end
 
 ---Show the references to the current WikiLink under the cursor
----@param opts {location: MdnInLineLocation?}?
+---@param opts {location: MdnInLineLocation?, silent: boolean?}?
 ---@return table? qflist Resulting quickfix list
 function M.show_references(opts)
     if check_markdown_lsp_cur_buf() then
@@ -117,7 +117,7 @@ function M.show_references(opts)
     end
 
     opts = opts or {}
-
+    local silent = opts.silent or false
     local wldata = M.parse({ location = opts.location })
 
     if wldata == nil then
@@ -139,7 +139,10 @@ function M.show_references(opts)
 
     local qflist = vim.fn.getqflist()
     if vim.tbl_isempty(qflist) then
-        vim.notify("Mdn: No references found for '" .. wldata.wikilink_nofrag .. "'", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: No references found for '" .. wldata.wikilink_nofrag .. "'", vim.log.levels.ERROR)
+        end
+
         return qflist
     end
 
@@ -153,7 +156,7 @@ end
 ---Rename references of the WikiLink under the cursor
 ---If there is no WikiLink under the cursor, prompt to rename references to
 ---the current buffer
----@param opts {new_name: string?, location: MdnInLineLocation?}?
+---@param opts {new_name: string?, location: MdnInLineLocation?, silent: boolean?}?
 ---@return string? old_name, string|nil new_name 
 function M.rename_references(opts)
     if check_markdown_lsp_cur_buf() then
@@ -165,6 +168,7 @@ function M.rename_references(opts)
     end
 
     opts = opts or {}
+    local silent = opts.silent or false
     local new_name = opts.new_name
 
     vim.validate("new_name", new_name, { "string", "nil" })
@@ -196,7 +200,9 @@ function M.rename_references(opts)
     -- Check if it exists
     local filepath = vim.fs.normalize(vim.fs.joinpath(cwd, wldata.wikilink_nofrag .. ".md"))
     if not uv.fs_stat(filepath) then
-        vim.notify("Mdn: WikiLink does not seem to link to a valid Markdown file", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: WikiLink does not seem to link to a valid Markdown file", vim.log.levels.ERROR)
+        end
 
         return wldata.wikilink_nofrag, "invalid file"
     end
@@ -209,7 +215,9 @@ function M.rename_references(opts)
         end)
 
         if new_name == "" or new_name == nil then
-            vim.notify("Mdn: Please insert a valid name", vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify("Mdn: Please insert a valid name", vim.log.levels.ERROR)
+            end
 
             return wldata.wikilink_nofrag, "invalid name"
         end
@@ -240,7 +248,9 @@ function M.rename_references(opts)
     )
 
     if not ret then
-        vim.notify("Mdn: File rename failed", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: File rename failed", vim.log.levels.ERROR)
+        end
 
         return wldata.wikilink_nofrag, err
     end
@@ -256,21 +266,31 @@ function M.rename_references(opts)
     vim.fn.setpos('.', pos)
 
     vim.cmd.write({bang = true, mods = {silent = true}})
-    vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.wikilink_nofrag, new_name), vim.log.levels.INFO)
+
+    if silent == false then
+        vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.wikilink_nofrag, new_name), vim.log.levels.INFO)
+    end
 
     return wldata.wikilink_nofrag, new_name
 end
 
 ---Undo the most recent rename
+---@param opts {silent: boolean?}?
 ---@return string? old_name, string|nil new_name 
-function M.undo_rename()
+function M.undo_rename(opts)
     if check_markdown_lsp_cur_buf() then
         vim.notify("Mdn: 'undo_rename' is only available when your config has 'prefer_lsp = false'", vim.log.levels.ERROR)
         return
     end
 
+    opts = opts or {}
+    local silent = opts.silent or false
+
     if vim.tbl_isempty(M.new_filenames) or vim.tbl_isempty(M.old_filenames) then
-        vim.notify("Mdn: Detected no recent rename", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Detected no recent rename", vim.log.levels.ERROR)
+        end
+
         return
     end
 
@@ -293,11 +313,16 @@ function M.undo_rename()
         vim.fs.joinpath(cwd, newest_old_filename .. ".md")
     )
     if not ret then
-        vim.notify(("Mdn: Undo file rename failed"), vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify(("Mdn: Undo file rename failed"), vim.log.levels.ERROR)
+        end
+
         return nil, err
     end
 
-    vim.notify(("Mdn: Undo renaming '%s' to '%s'"):format(newest_old_filename, newest_filename), vim.log.levels.INFO)
+    if silent == false then
+        vim.notify(("Mdn: Undo renaming '%s' to '%s'"):format(newest_old_filename, newest_filename), vim.log.levels.INFO)
+    end
 
     -- Get the buffer number of the renamed file if it is in the buffer list
     local renamed_bufnum = get_buf_from_buf_list(newest_old_filename .. ".md")
@@ -453,7 +478,7 @@ function M.find_orphans()
         for _, v in pairs(orphans) do
             orphans_txt = orphans_txt .. v .. ", "
         end
-        orphans_txt = orphans_txt(1,#orphans_txt - 2)
+        orphans_txt = orphans_txt:sub(1,#orphans_txt - 2)
         vim.notify("Mdn: Found the following orphan pages: " .. orphans_txt, vim.log.levels.WARN)
     end
 end

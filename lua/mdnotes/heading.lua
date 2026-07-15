@@ -4,15 +4,17 @@ local M = {}
 
 ---Get the Markdown heading that the specified line is under
 ---Defaults to current buffer and current line
----@param opts {buf: integer?, lnum: integer?}?
+---@param opts {buf: integer?, lnum: integer?, silent: boolean?}?
 ---@return MdnFragment? fragment
 function M.get_heading(opts)
     opts = opts or {}
 
-    local buf_fragments = require('mdnotes').buf_fragments
     local lnum = opts.lnum or vim.fn.line(".")
     local buf = opts.buf or vim.api.nvim_get_current_buf()
+    local silent = opts.silent or false
+
     local index = 0
+    local buf_fragments = require('mdnotes').buf_fragments
 
     local fragments
     for _, v in ipairs(buf_fragments) do
@@ -23,7 +25,10 @@ function M.get_heading(opts)
     end
 
     if fragments == nil then
-        vim.notify("Mdn: Buffer not parsed", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Buffer not parsed", vim.log.levels.ERROR)
+        end
+
         return
     end
 
