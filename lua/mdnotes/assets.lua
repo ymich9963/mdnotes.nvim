@@ -20,16 +20,26 @@ function M.get_assets_folder_name()
 end
 
 ---Check if assets path is available and if it exists
-function M.check_assets_path()
+---@param opts {silent: boolean?}?
+function M.check_assets_path(opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+
     local mdnotes_assets_path = M.get_assets_folder_name()
     local cwd = require('mdnotes').cwd
     if mdnotes_assets_path == "" then
-        vim.notify("Mdn: Please specify assets path to use this feature", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Please specify assets path to use this feature", vim.log.levels.ERROR)
+        end
+
         return false
     end
 
     if vim.fn.isdirectory(vim.fs.joinpath(cwd, mdnotes_assets_path)) == 0 then
-        vim.notify("Mdn: Assets path '".. mdnotes_assets_path .. "' in '" .. cwd .. "' doesn't exist - change path or create it", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Assets path '".. mdnotes_assets_path .. "' in '" .. cwd .. "' doesn't exist - change path or create it", vim.log.levels.ERROR)
+        end
+
         return false
     end
 
@@ -37,8 +47,9 @@ function M.check_assets_path()
 end
 
 ---Open assets folder
-function M.open_containing_folder()
-    if M.check_assets_path() == false then return end
+---@param opts {silent: boolean?}?
+function M.open_containing_folder(opts)
+    if M.check_assets_path(opts) == false then return end
     local cwd = require('mdnotes').cwd
     vim.ui.open(vim.fs.joinpath(cwd, M.get_assets_folder_name()))
 end
@@ -68,8 +79,12 @@ end
 
 ---Process the specified asset file path based on config options
 ---@param file_path string File path of asset file
+---@param opts {silent: boolean?}? File path of asset file
 ---@return string? file_name Return file name on success
-function M.process_inserted_asset_file(file_path)
+function M.process_inserted_asset_file(file_path, opts)
+    opts = opts or {}
+    local silent = opts.silent or false
+
     vim.validate("file_path", file_path, "string")
 
     local mdnotes_assets_path = M.get_assets_folder_name()
@@ -79,7 +94,10 @@ function M.process_inserted_asset_file(file_path)
     -- Check overwrite behaviour
     if uv.fs_stat(vim.fs.joinpath(mdnotes_assets_path, file_name)) then
         if mdnotes_config.asset_overwrite_behaviour == "error" then
-            vim.notify(("Mdn: File you are trying to place into your assets already exists"), vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify(("Mdn: File you are trying to place into your assets already exists"), vim.log.levels.ERROR)
+            end
+
             return nil
         elseif mdnotes_config.asset_overwrite_behaviour == "overwrite" then
             -- Do nothing on overwrite
@@ -89,18 +107,26 @@ function M.process_inserted_asset_file(file_path)
     -- Check insert behaviour
     if mdnotes_config.asset_insert_behaviour == "copy" then
         if not uv.fs_copyfile(file_path, vim.fs.joinpath(mdnotes_assets_path, file_name)) then
-            vim.notify(("Mdn: File copy failed"), vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify(("Mdn: File copy failed"), vim.log.levels.ERROR)
+            end
+
             return nil
         end
 
         vim.notify(('Mdn: Copied "%s" to your assets folder at "%s"'):format(file_path, mdnotes_assets_path), vim.log.levels.INFO)
     elseif mdnotes_config.asset_insert_behaviour == "move" then
         if not uv.fs_rename(file_path, vim.fs.joinpath(mdnotes_assets_path, file_name)) then
-            vim.notify(("Mdn: File move failed."), vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify(("Mdn: File move failed."), vim.log.levels.ERROR)
+            end
+
             return nil
         end
 
-        vim.notify(('Mdn: Moved "%s" to your assets folder at "%s"'):format(file_path, mdnotes_assets_path), vim.log.levels.INFO)
+        if silent == false then
+            vim.notify(('Mdn: Moved "%s" to your assets folder at "%s"'):format(file_path, mdnotes_assets_path), vim.log.levels.INFO)
+        end
     end
 
     return file_name
@@ -132,6 +158,7 @@ end
 ---@class MdnGetAssetInlineLinkOpts
 ---@field process_file boolean? Process the file according to the plugin config
 ---@field file_path string? Optional file_path to generate the inline link for
+---@field silent boolean?
 
 ---@class MdnAssetInlineLink
 ---@field inline_link string? Entire inline link with the asset path
@@ -147,6 +174,7 @@ function M.get_asset_inline_link(opts)
 
     local process_file = opts.process_file ~= false
     local file_path = opts.file_path
+    local silent = opts.silent or false
 
     vim.validate("process_file", process_file, "boolean")
     vim.validate("file_path", file_path, { "string", "nil" })
@@ -166,17 +194,26 @@ function M.get_asset_inline_link(opts)
         end
 
         if vim.tbl_isempty(file_paths) then
-            vim.notify("Mdn: Error when trying to read clipboard. Output of command: '" .. cmd_stdout .. '"', vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify("Mdn: Error when trying to read clipboard. Output of command: '" .. cmd_stdout .. '"', vim.log.levels.ERROR)
+            end
+
             return
         end
 
         if #file_paths > 1 then
-            vim.notify('Mdn: Too many files paths detected, please copy only one file', vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify('Mdn: Too many files paths detected, please copy only one file', vim.log.levels.ERROR)
+            end
+
             return
         end
 
         if file_paths[1] == nil then
-            vim.notify('Mdn: No file paths found in clipboard', vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify('Mdn: No file paths found in clipboard', vim.log.levels.ERROR)
+            end
+
             return
         end
 
@@ -390,11 +427,12 @@ function M.unused_move(opts)
 end
 
 ---Download the the HTML of the inline link URL and place it in assets folder
----@param opts {destination: string?, location: MdnInLineLocation?}?
+---@param opts {destination: string?, location: MdnInLineLocation?, silent: boolean?}?
 ---@return string? filepath Path of downloaded file
 function M.download_website_html(opts)
     opts = opts or {}
     local destination = opts.destination
+    local silent = opts.silent or false
 
     local mdn_il = require('mdnotes.inline_link')
     if destination == nil then
@@ -409,12 +447,17 @@ function M.download_website_html(opts)
     -- Notifications should alredy be outputted
     if destination == nil then return end
 
-    if mdn_il.is_url({ destination = destination}) == false then
-        vim.notify("Mdn: Detected inline link does not contain website link", vim.log.levels.ERROR)
+    if require('mdnotes').is_url(destination) == false then
+        if silent == false then
+            vim.notify("Mdn: Detected inline link does not contain website link", vim.log.levels.ERROR)
+        end
+
         return nil
     end
 
-    vim.notify(("Mdn: Downloading '%s' website html..."):format(destination), vim.log.levels.INFO)
+    if silent == false then
+        vim.notify(("Mdn: Downloading '%s' website html..."):format(destination), vim.log.levels.INFO)
+    end
 
     -- Create a filename of max 72 characters
     filename = destination:gsub("[:/#?.()%[%]]+", "_") .. ".html"
@@ -423,7 +466,10 @@ function M.download_website_html(opts)
     filepath = vim.fs.joinpath(cwd, M.get_assets_folder_name(), filename)
 
     if vim.fn.executable('curl') ~= 1 then
-        vim.notify("Mdn: The 'curl' utility was not detected", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: The 'curl' utility was not detected", vim.log.levels.ERROR)
+        end
+
         return nil
     end
 
@@ -439,9 +485,13 @@ function M.download_website_html(opts)
 
     if res then
         vim.fn.writefile(vim.split(res, "\n"), filepath)
-        vim.notify(("Mdn: Saved '%s' to '%s'"):format(destination, filepath), vim.log.levels.INFO)
+        if silent == false then
+            vim.notify(("Mdn: Saved '%s' to '%s'"):format(destination, filepath), vim.log.levels.INFO)
+        end
     else
-        vim.notify("Mdn: Error with request response", vim.log.levels.ERROR)
+        if silent == false then
+            vim.notify("Mdn: Error with request response", vim.log.levels.ERROR)
+        end
     end
 
     return filepath
@@ -467,7 +517,7 @@ function M.delete(opts)
 
     vim.validate("destination", destination, "string")
 
-    local asset_path, err = mdn_il.get_path_from_destination(destination, true)
+    local asset_path, err = require('mdnotes').get_path_from_destination(destination, true)
     if err ~= nil then return false, nil end
 
     local behaviour = require('mdnotes').config.asset_delete_behaviour
@@ -562,17 +612,20 @@ function M.get_asset_list()
 end
 
 ---View asset
----@param opts {asset: string?}?
+---@param opts {asset: string?, silent: boolean}?
 function M.view(opts)
     opts = opts or {}
     local asset = opts.asset
+    local silent = opts.silent or false
     local cwd = require('mdnotes').cwd
     local assets_path = vim.fs.joinpath(cwd, M.get_assets_folder_name())
 
     if asset == nil then
         local assets_list = M.get_asset_list()
         if vim.tbl_isempty(assets_list) then
-            vim.notify(("Mdn: No assets to view in '%s'"):format(assets_path), vim.log.levels.ERROR)
+            if silent == false then
+                vim.notify(("Mdn: No assets to view in '%s'"):format(assets_path), vim.log.levels.ERROR)
+            end
             return
         end
         vim.ui.select(assets_list, {
@@ -588,7 +641,10 @@ function M.view(opts)
 
     local chosen_asset_path = vim.fs.joinpath(assets_path, asset)
     vim.ui.open(chosen_asset_path)
-    vim.notify(("Mdn: Viewing asset at '%s'"):format(chosen_asset_path), vim.log.levels.INFO)
+
+    if silent == false then
+        vim.notify(("Mdn: Viewing asset at '%s'"):format(chosen_asset_path), vim.log.levels.INFO)
+    end
 end
 
 return M

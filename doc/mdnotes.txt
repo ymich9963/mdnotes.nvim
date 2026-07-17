@@ -630,6 +630,11 @@ subcommands are listed below.
 
    Open the current file's containing folder.
 
+:Mdn miscellaneous statistics				*Mdn-miscellaneous-statistics*
+
+   Show statistics of the current buffer about the bytes, characters,
+   words, lines, inline links, WikiLinks, reference links, and headings.
+
 :Mdn user						*Mdn-user*
 
    Access the user defined commands. See |mdnotes-user_commands|.
@@ -922,23 +927,100 @@ statistics({opts})					*mdnotes.statistics()*
     • (`table`) Table containing statistics. Current values are bytes,
       characters, words, lines, inline links, WikiLinks, and headings
 
+is_url({destination}) 					*mdnotes.is_url()*
+
+    Check if an inline link destination is a URL.
+
+    Parameters: ~
+    • {destination}  (`string`)
+
+    Return: ~
+    • (`boolean`) `true` if it is a URL and `false` if not.
+
+							*mdnotes.get_path_from_destination*
+get_path_from_destination({destination}, {check_valid}, {opts})
+
+    Get the path from the destination and optionally check if it links to a valid
+    path.
+
+    Parameters: ~
+    • {destination}  (`string?`) Inline link destination
+    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
+    • {opts}  (`table?`) Optional parameters (unused)
+	
+    Return: ~
+    • (`string`): Extracted path
+    • (`integer?`): On failure, an error code
+    • (`string?`): On failure, text describing the error
+
+    Error codes:
+    • `-1` : is URL
+    • `-2` : file not found
+							*mdnotes.get_fragment_from_destination()*
+get_fragment_from_destination({destination}, {check_valid}, {opts})
+
+    Get the fragment from the destination and optionally check if it is a valid
+    fragment.
+
+    Parameters: ~
+    • {destination}  (`string?`) destination
+    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
+    • {opts}  (`table?`) Optional parameters (unused)
+	
+    Return: ~
+    • (`string`): Extracted fragment
+    • (`integer?`): On failure, an error code
+    • (`string?`): On failure, text describing the error
+
+    Error codes:
+    • `-1` : is URL
+    • `-2` : invalid path: detected path and its error
+    • `-3` : fragment not parsed
+    • `-4` : invalid fragment: value retrieved from |mdnotes.buf_fragments|.
+
+open({destination})					*mdnotes.open()*
+
+    Handle the opening of the {destination} in the appropriate method.
+
+    Parameters: ~
+    • {destination}  (`string?`) destination to open
+	
+    Return: ~
+    • (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
+      |vim.ui.open()| result on programme opening, error string on error,
+      `nil` on failed |vim.ui.open()|.
+
+      Uses |mdnotes.get_path_from_destination()| and
+      |mdnotes.get_fragment_from_destination()| internally so it returns
+      all their errors except `-1`.
+
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
     Resolve the assets path from |mdnotes-assets_path|.
 
-assets.check_assets_path() 				*mdnotes.assets.check_assets_path()*
+assets.check_assets_path({opts}) 			*mdnotes.assets.check_assets_path()*
 
     Check the existance of the |mdnotes-assets_path| when inserting images or
     files.
 
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
     Return: ~
     • (`boolean`)
 
-assets.open_containing_folder() 			*mdnotes.assets.open_containing_folder()*
+assets.open_containing_folder({opts}) 			*mdnotes.assets.open_containing_folder()*
 
     Open the assets folder in the |mdnotes.cwd| specified in |mdnotes-assets_path|.
 
-assets.process_inserted_asset_file({file_path})		*mdnotes.assets.process_inserted_asset_file()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+assets.process_inserted_asset_file({file_path}, {opts})	*mdnotes.assets.process_inserted_asset_file()*
 
     Process the specified asset file path based on config options. Asset will
     be placed in your |mdnotes-assets_path| depending on |mdnotes-asset_insert_behaviour|.
@@ -946,6 +1028,9 @@ assets.process_inserted_asset_file({file_path})		*mdnotes.assets.process_inserte
 
     Parameters: ~
     • {file_path}  (`string`) Path to the asset.
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`string?`): Return file name on success and `nil` on failure.
@@ -970,6 +1055,8 @@ assets.get_asset_inline_link({opts})			*mdnotes.assets.get_asset_inline_link()*
 		the assets folder
 	      • {file_path}  (`string?`)
 		optional path to asset and the clipboard is used if `nil`
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`MdnAssetInlineLink?`)
@@ -1054,6 +1141,8 @@ assets.download_website_html({opts})			*mdnotes.assets.download_website_html()*
 		destination with a valid URL to download the HTML from
               • {location} (`MdnInLineLocation?`)
 		inline text location
+              • {silent} (`boolean`, default `false`)
+		silence notifications
 
     Return: ~
     • (`string?`): Path of downloaded file on success, `nil` on failure.
@@ -1093,6 +1182,8 @@ assets.view({opts}) 					*mdnotes.assets.view()*
     • {opts}  (`table?`) Optional parameters:
               • {asset} (`string?`)
 	      asset name to view
+              • {silent} (`boolean`, default `false`)
+		silence notifications
 
     Return: ~
     • (`nil`)
@@ -1292,7 +1383,7 @@ history.buf_history					*mdnotes.history.buf_history*
     previously in, the buffer history removes everything past the buffer they
     went back to, and appends the buffer they've moved forward to.
 
-history.current_index					*mdnotes.history.current_index*
+history.current_index				*mdnotes.history.current_index*
 
     Current index being pointed to in the |mdnotes.buf_history| table. 
 
@@ -1304,15 +1395,25 @@ history.record_buf({buf}) 				*mdnotes.history.record_buf()*
     Parameters: ~
     • {buf}  (`integer?`, default current buffer) Buffer number
 
-history.go_back()					*mdnotes.history.go_back()*
+history.go_back({opts})					*mdnotes.history.go_back()*
 
     Go back in the buffer history. Essentially move the index by -1. See
     |mdnotes.buf_history|.
 
-history.go_forward()					*mdnotes.history.go_forward()*
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+history.go_forward({opts})				*mdnotes.history.go_forward()*
 
     Go forward in the buffer history. Essentially move the index by +1. See
     |mdnotes.buf_history|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 history.clear()						*mdnotes.history.clear()*
 
@@ -1335,7 +1436,7 @@ inline_link.parse({opts})				*mdnotes.inline_link.parse()*
     If both {inline_link} and {location} are specified, it uses {location}.
 
     Return: ~
-    • (`MdnInLineLinkData?`): Parsed inline link on success, `nil` on
+    • (`MdnInlineLinkData?`): Parsed inline link on success, `nil` on
       failure.
 
 inline_link.get_il_from_obj({ildata})			*mdnotes.inline_link.get_il_from_obj()*
@@ -1349,95 +1450,31 @@ inline_link.get_il_from_obj({ildata})			*mdnotes.inline_link.get_il_from_obj()*
     Return: ~
     • (`string`)
 
-							*mdnotes.inline_link.get_path_from_destination*
-inline_link.get_path_from_destination({destination}, {check_valid}, {opts})
-
-    Get the path from the destination and optionally check if it links to a valid
-    path.
-
-    Parameters: ~
-    • {destination}  (`string?`) Inline link destination
-    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
-    • {opts}  (`table?`) Optional parameters (unused)
-	
-    Return: ~
-    • (`string`): Extracted path
-    • (`integer?`): On failure, an error code
-    • (`string?`): On failure, text describing the error
-
-    Error codes:
-    • `-1` : is URL
-    • `-2` : file not found
-							*mdnotes.inline_link.get_fragment_from_destination()*
-inline_link.get_fragment_from_destination({destination}, {check_valid}, {opts})
-
-    Get the fragment from the destination and optionally check if it is a valid
-    fragment.
-
-    Parameters: ~
-    • {destination}  (`string?`) destination
-    • {check_valid}  (`boolean?`) Whether to check if it links to a valid path
-    • {opts}  (`table?`) Optional parameters (unused)
-	
-    Return: ~
-    • (`string`): Extracted fragment
-    • (`integer?`): On failure, an error code
-    • (`string?`): On failure, text describing the error
-
-    Error codes:
-    • `-1` : is URL
-    • `-2` : invalid path: detected path and its error
-    • `-3` : fragment not parsed
-    • `-4` : invalid fragment: value retrieved from |mdnotes.buf_fragments|.
-
 inline_link.open({opts})				*mdnotes.inline_link.open()*
 
-    Open inline links in the appropriate programme.
+    Open inline links in the appropriate programme. Calls |mdnotes.open()|.
 
     Parameters: ~
-    • {destination}  (`string?`) destination
-    • {location}  (`MdnInLineLocation?`, defaults to current location) Location of the inline link
+    • {opts}  (`table?`) Optional parameters:
+              • {inline_link} (`string?`)
+		inline link to get the destination from
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
 	
     Return: ~
     • (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
       |vim.ui.open()| result on programme opening, error string on error,
       `nil` on failed |vim.ui.open()|.
 
-      Uses |mdnotes.inline_link.get_path_from_destination()| and
-      |mdnotes.inline_link.get_fragment_from_destination()| internally so it returns
-      all their errors except `-1`.
-
-inline_link.is_image({opts}) 				*mdnotes.inline_link.is_image()*
+inline_link.is_image({inline_link}) 			*mdnotes.inline_link.is_image()*
 
     Check if inline link is an image.
 
     Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {inline_link} (`string?`)
-		specify an inline link to parse
-              • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+    • {inline_link} (`string?`) specify an inline link to check
 	
-    If both {inline_link} and {location} are specified, it uses {location}.
-
     Return: ~
     • (`boolean`) `true` if it is an image and `false` if not.
-
-inline_link.is_url({opts}) 				*mdnotes.inline_link.is_url()*
-
-    Check if inline link is a URL.
-
-    Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {inline_link} (`string?`)
-		specify an inline link to parse
-              • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
-	
-    If both {inline_link} and {location} are specified, it uses {location}.
-
-    Return: ~
-    • (`boolean`) `true` if it is a URL and `false` if not.
 
 inline_link.insert({opts})				*mdnotes.inline_link.insert()*
 
@@ -1453,6 +1490,8 @@ inline_link.insert({opts})				*mdnotes.inline_link.insert()*
 		place cursor where the new inline link was inserted
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to insert
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 inline_link.delete({opts})				*mdnotes.inline_link.delete()*
 
@@ -1494,6 +1533,8 @@ inline_link.relink({opts})				*mdnotes.inline_link.relink()*
 		place cursor where the new inline link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to relink
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 inline_link.rename({opts})				*mdnotes.inline_link.rename()*
 
@@ -1507,6 +1548,8 @@ inline_link.rename({opts})				*mdnotes.inline_link.rename()*
 		place cursor where the new inline link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to rename
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 inline_link.normalize({opts})				*mdnotes.inline_link.normalize()*
 
@@ -1570,10 +1613,15 @@ journal.get_journal_file()				*mdnotes.journal.get_journal_file()*
     Return: ~
     • (`string`): Journal file path
 
-journal.go_to()						*mdnotes.journal.go_to()*
+journal.go_to({opts})					*mdnotes.journal.go_to()*
 
     Go the journal file defined by |mdnotes-journal_file|. Used in
     |:Mdn-journal|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
 journal.insert_entry({opts})				*mdnotes.journal_insert_entry()*
 
@@ -1624,6 +1672,253 @@ patterns						*mdnotes.patterns*
     formats at the current cursor position. The patterns must return start
     and end cursor positions (e.g. `"()~~(.-)~~()"`). See `MdnPatterns`.
 
+reference_link.buf_reference_link_defintions 		*mdnotes.reference_link.buf_reference_link_defintions*
+
+    Table of type |mdnotes.MdnBufReferenceLinkDefintions|.
+
+reference_link.parse({opts})		 		*mdnotes.reference_link.parse()*
+
+    Get the reference link data such as the link text, link label, and
+    the start and end columns.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {inline_link} (`string?`)
+		specify an inline link to parse
+              • {keep_pointy_brackets} (`boolean?`, default `true`)
+		whether to keep `<` and `>` surrounding a destination with spaces
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+	
+    Return: ~
+    • (`MdnReferenceLinkData?`): Parsed inline link on success, `nil` on
+      failure.
+
+							*mdnotes.reference_link.get_buf_reference_link_definitions()*
+reference_link.get_buf_reference_link_definitions({opts})
+
+    Get the reference link definitions on the specified buffer.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {buf} (`integer?`, defaults to current buffer)
+		buffer to write the table to
+              • {only_labels} (`boolean?`, default `false`)
+		whether to only the labels and not the full object
+	
+    Return: ~
+    • (`table<MdnReferenceLinkDefinition|string>?`) 
+
+							*mdnotes.reference_link.populate_buf_reference_link_definitions()*
+reference_link.populate_buf_reference_link_definitions({buf})
+
+    Parse the reference link definitions in the specified buffer
+    and update |mdnotes.buf_reference_link_definitions|.
+
+    Parameters: ~
+    • {buf} (`integer?`, defaults to current buffer)
+
+reference_link.insert({opts})		 		*mdnotes.reference_link.insert()*
+
+    Insert a reference link from the clipboard using the currently highlighted
+    text or the word under cursor. Uses the |quote+| register to paste from
+    clipboard. Default behaviour is to use a collapsed reference link.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {label} (`string?`)
+		specify a reference link label to use
+              • {destination} (`string?`)
+		specify a reference link destination to use
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.get_rl_definition({label}, {buf})	*mdnotes.reference_link.get_rl_definition()*
+
+    Get the |mdnotes.MdnReferenceLinkDefinition| object for {label} in {buf}.
+
+    Parameters: ~
+    • {buf} (`integer?`, defaults to current buffer)
+    • {label} (`string`)
+
+    Return: ~
+    • (`MdnReferenceLinkDefinition`) 
+
+reference_link.go_to_definition({opts})			*mdnotes.reference_link.go_to_definition()*
+
+    Go to reference link definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {label} (`string?`)
+		specify a reference link label to use
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.delete({opts})		 		*mdnotes.reference_link.delete()*
+
+    Delete reference link and leave the text.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+
+reference_link.get_rl_definition_from_obj({rldef})	*mdnotes.reference_link.get_rl_definition_from_obj()*
+
+    Get a reference link definition string from the given
+    |mdnotes.MdnReferenceLinkDefinition| object.
+
+    Parameters: ~
+    • {rldef}  (`MdnReferenceLinkDefinition?`) Reference link definition object
+
+    Return: ~
+    • (`string`)
+
+reference_link.update_definition({opts})		*mdnotes.reference_link.update_definition()*
+
+    Update reference link definition label and destination. Uses
+    |vim.ui.input()| to get the values unless the new values are
+    specified and `skip_input = true`.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {label} (`string?`)
+		which label definition to update
+              • {new_label} (`string?`)
+		new label to use
+              • {new_destination} (`string?`)
+		new destination to use
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {skip_input} (`boolean?`, default `false`)
+		skip the input prompt
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.cleanup_definitions({opts})		*mdnotes.reference_link.cleanup_definitions()*
+
+    Cleanup unused reference link definitions.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {buf} (`integer?`, defaults to current buffer)
+		buffer to write the table to
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.get_rl_from_obj({rldata})		*mdnotes.reference_link.get_rl_from_obj()*
+
+    Get an reference link string from an MdnReferenceLinkData object.
+
+    Parameters: ~
+    • {rldata}  (`MdnReferenceLinkData?`) Reference link object
+
+    Return: ~
+    • (`string`)
+
+reference_link.rename({opts})				*mdnotes.reference_link.rename()*
+
+    Rename reference link but do not update definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {new_name} (`string?`)
+		new label to use
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.relabel({opts})				*mdnotes.reference_link.relabel()*
+    
+    Relabel reference link but do not update definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {new_label} (`string?`)
+		new label to use
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.open({opts})				*mdnotes.reference_link.open()*
+
+    Open reference links in the appropriate programme.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {reference_link} (`string?`)
+		specify a reference link to open
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.convert_from_inline({opts})		*mdnotes.reference_link.convert_from_inline()*
+
+    Convert an inline link to a reference link with its definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+
+    Return: ~
+    • (`MdnReferenceLinkData?`, `MdnReferenceLinkDefinition?`)
+
+reference_link.parse_lines({opts})			*mdnotes.reference_link.parse_lines()*
+
+    Parse the reference links in the specified lines (defaults to current line).
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnMultiLineLocation?`)
+		inline text location
+              • {str} (`boolean?`, default `false`)
+		return object as strings instead of objects
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table<MdnReferenceLinkData>?`)
+
+reference_link.find_label({opts})			*mdnotes.reference_link.find_label()*
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {label} (`string?`)
+		which label definition to update
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table`): qflist
+
+reference_link.get_rl_from_picker({buf})		*mdnotes.reference_link.get_rl_from_picker()*
+
+    Parameters: ~
+    • {buf} (`string`, defaults to current buffer)
+
+    Return: ~
+    • (`string`)
 
 table.check_table_valid({opts}) 			*mdnotes.table.check_table_valid()*
 
@@ -2085,12 +2380,14 @@ wikilink.show_references({opts})			*mdnotes.wikilink.show_references()*
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`table?`): Return `qflist` using |getqflist()| on success, `nil` on
       failure.
 
-wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
+wikilink.rename_references({opts})			*mdnotes.wikilink.rename_references()*
 
     Rename the reference to a `[[WikiLink]]` and also the file pointing to that
     link.
@@ -2101,15 +2398,22 @@ wikilink.rename_references()				*mdnotes.wikilink.rename_references()*
 		New name of the WikiLink
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`string?`): Old name on success, `nil` on failure.
     • (`string?`): New name name on success, `nil` on failure.
 
-wikilink.undo_rename()					*mdnotes.wikilink.undo_rename()*
+wikilink.undo_rename({opts})				*mdnotes.wikilink.undo_rename()*
 
     Undo the most recent reference rename. Only available when 
     |mdnotes-prefer_lsp| is `false`. 
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
     • (`string?`): Old name on success, `nil` on failure.
@@ -2293,6 +2597,7 @@ MdnAutocmdsConfig	 				*mdnotes.MdnAutocmdsConfig*
     • {table_best_fit} (`boolean`) |mdnotes.table.best_fit()| autocmd for tables
     • {outliner_state} (`boolean`) autocmd for Outliner mode state notification
     • {journal_insert_entry} (`boolean`) autocmd for inserting a journal entry on opening the journal file
+    • {populate_buf_reference_link_definitions} (`boolean`) |mdnotes.reference_link.populate_buf_reference_link_defintions| autocmd for reference links
 
 MdnGetFilesInCwdOpts 					*mdnotes.MdnGetFilesInCwdOpts*
 
@@ -2402,6 +2707,33 @@ MdnPatterns 						*mdnotes.MdnPatterns*
     • {ordered_list} (`string`) Ordered list pattern
     • {task} (`string`) Task item pattern
     • {heading} (`string`) Heading pattern
+
+MdnReferenceLinkDefinition				*mdnotes.MdnReferenceLinkDefinition*
+
+    Reference link defintion object.
+
+    Fields: ~
+    • {label} (`string`) Reference link label
+    • {destination} (`string`) Reference link destination
+    • {lnum} (`string`) Reference link defintion line number
+
+MdnBufReferenceLinkDefinitions				*mdnotes.MdnBufReferenceLinkDefinitions*
+
+    Reference link definition objects per buffer.
+
+    Fields: ~
+    • {buf} (`integer`) Buffer number
+    • {definitions} (`table<MdnReferenceLinkDefinition>`) Table of reference defintion objects
+
+MdnReferenceLinkData 					*mdnotes.MdnReferenceLinkData*
+
+    Data object of a reference link.
+
+    Inherits from |mdnotes.MdnInLineLocation|.
+
+    Fields: ~
+    • {text} (`string`) Reference link text
+    • {label} (`string`) Reference link label
 
 MdnTableCell 						*mdnotes.MdnTableCell*
 

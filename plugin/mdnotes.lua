@@ -7,11 +7,12 @@ vim.g.loaded_mdnotes = true
 
 local mdnotes_cwd_group = vim.api.nvim_create_augroup('mdn.cwd', { clear = true })
 local mdnotes_record_group = vim.api.nvim_create_augroup('mdn.record', { clear = true })
-local mdnotes_pop_group = vim.api.nvim_create_augroup('mdn.pop', { clear = true })
+local mdnotes_pop_frag_group = vim.api.nvim_create_augroup('mdn.pop_frag', { clear = true })
 local mdnotes_renumber_group = vim.api.nvim_create_augroup('mdn.renumber', { clear = true })
 local mdnotes_best_fit_group = vim.api.nvim_create_augroup('mdn.best_fit', { clear = true })
 local mdnotes_outliner_group = vim.api.nvim_create_augroup('mdn.outliner', { clear = true })
 local mdnotes_journal_group = vim.api.nvim_create_augroup('mdn.journal', { clear = true })
+local mdnotes_pop_rl_group = vim.api.nvim_create_augroup('mdn.pop_rl', { clear = true })
 
 -- To save the current working directory
 vim.api.nvim_create_autocmd("BufEnter", {
@@ -36,7 +37,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
 -- Parsing fragments for :Mdn generate_toc and :Mdn inline_link open
 vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
-    group = mdnotes_pop_group,
+    group = mdnotes_pop_frag_group,
     callback = function(args)
         require('mdnotes').populate_buf_fragments(args.buf)
     end,
@@ -86,6 +87,16 @@ vim.api.nvim_create_autocmd({"BufEnter"}, {
         require("mdnotes.journal").insert_entry({ silent = true, check_file = true })
     end,
     desc = "Mdnotes automatic journal entry autocmd"
+})
+
+-- Parse reference links in current buffer
+vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
+    pattern = "*.md",
+    group = mdnotes_pop_rl_group,
+    callback = function(args)
+        require('mdnotes.reference_link').populate_buf_reference_link_definitions(args.buf)
+    end,
+    desc = "Mdnotes populating buffer reference links table autocmd"
 })
 
 local commands = nil
@@ -161,6 +172,7 @@ local get_commands = function() return {
         normalize = require("mdnotes.inline_link").normalize,
         validate = require("mdnotes.inline_link").validate,
         convert_fragment_to_gfm = require("mdnotes.inline_link").convert_fragment_to_gfm,
+        convert_from_reference = require("mdnotes.inline_link").convert_from_reference
     },
     toc = {
         generate = require("mdnotes.toc").generate,
@@ -177,6 +189,19 @@ local get_commands = function() return {
         populate_buf_fragments = require("mdnotes").populate_buf_fragments,
         open_containing_folder = require("mdnotes").open_containing_folder,
         statistics = require("mdnotes").statistics,
+    },
+    reference_link = {
+        open = require("mdnotes.reference_link").open,
+        insert = require("mdnotes.reference_link").insert,
+        go_to_definition = require("mdnotes.reference_link").go_to_definition,
+        delete = require("mdnotes.reference_link").delete,
+        update_definition = require("mdnotes.reference_link").update_definition,
+        cleanup_definitions = require("mdnotes.reference_link").cleanup_definitions,
+        populate_buf_reference_link_definitions = require("mdnotes.reference_link").populate_buf_reference_link_definitions,
+        rename = require("mdnotes.reference_link").rename,
+        relabel = require("mdnotes.reference_link").relabel,
+        convert_from_inline = require("mdnotes.reference_link").convert_from_inline,
+        find_label = require("mdnotes.reference_link").find_label
     },
     user = vim.deepcopy(require('mdnotes').config.user_commands, true)
 }
@@ -224,6 +249,10 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func({ inline_link = concat_arg(args) })
     elseif func == commands.wikilink.follow or func == commands.wikilink.follow_hor or func == commands.wikilink.follow_vert then
         func({ wikilink = concat_arg(args) })
+    elseif func == commands.reference_link.open then
+        func({ reference_link = concat_arg(args) })
+    elseif func == commands.reference_link.insert or func == commands.reference_link.find_label then
+        func({ label = concat_arg(args) })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif command == commands.user then
@@ -285,6 +314,22 @@ end,
                     )
                 end
             end
+
+            if command == "reference_link" then
+                if subcmd == "open" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.reference_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
+                    )
+                end
+                if subcmd == "insert" or subcmd == "find_label" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.reference_link').get_buf_reference_link_definitions({only_labels = true}) or {}
+                    )
+                end
+            end
+
         end
     end,
     desc = "Mdnotes main command",

@@ -2,6 +2,8 @@
 
 local M = {}
 
+local uv = vim.loop or vim.uv
+
 ---@class MdnInLineLocation
 ---@field buf integer? Buffer number
 ---@field lnum integer? Line number
@@ -104,6 +106,7 @@ local default_config = {
 ---@field table_best_fit boolean best_fit() autocmd for tables
 ---@field outliner_state boolean autocmd for Outliner mode state notification
 ---@field journal_insert_entry boolean autocmd for inserting a journal entry on opening the journal file
+---@field populate_buf_reference_links boolean populate_buf_reference_links() autocmd reference links
 local default_autocmd_config = {
     set_cwd = true,
     record_buf = true,
@@ -111,7 +114,8 @@ local default_autocmd_config = {
     ordered_list_renumber = true,
     table_best_fit = true,
     outliner_state_notification = true,
-    journal_insert_entry = true
+    journal_insert_entry = true,
+    populate_buf_reference_links = true
 }
 
 ---Validate user config
@@ -163,7 +167,7 @@ local function resolve_autocmd_config()
         vim.api.nvim_del_augroup_by_name('mdn.record')
     end
     if M.config.autocmds.populate_buf_fragments == false then
-        vim.api.nvim_del_augroup_by_name('mdn.pop')
+        vim.api.nvim_del_augroup_by_name('mdn.pop_frag')
     end
     if M.config.autocmds.ordered_list_renumber == false then
         vim.api.nvim_del_augroup_by_name('mdn.renumber')
@@ -176,6 +180,9 @@ local function resolve_autocmd_config()
     end
     if M.config.autocmds.journal_insert_entry == false then
         vim.api.nvim_del_augroup_by_name('mdn.journal')
+    end
+    if M.config.autocmds.populate_buf_reference_links == false then
+        vim.api.nvim_del_augroup_by_name('mdn.pop_rl')
     end
 end
 
@@ -391,13 +398,9 @@ function M.get_text_in_pattern(pattern, opts)
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local lnum = locopts.lnum or vim.fn.line('.')
-    local col_start = locopts.col_start or -1
-    local col_end = locopts.col_end or -1
+    local col_start = locopts.col_start or vim.fn.col('.')
+    local col_end = locopts.col_end or vim.fn.col('.')
     local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
-
-    if cur_col == -1 then
-        cur_col = vim.fn.col('.')
-    end
 
     local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
 
@@ -738,6 +741,7 @@ function M.statistics(opts)
     local lines = 0
     local ils = 0
     local wls = 0
+    local rls = 0
     local headings = 0
 
     local fn_wordcount
@@ -766,6 +770,13 @@ function M.statistics(opts)
         end
     end
 
+    local rls_ret = M.scan_lines(mdn_patterns.reference_link, { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
+    for _, ret in pairs(rls_ret) do
+        if ret.cols ~= nil then
+            rls = rls + #ret.cols
+        end
+    end
+
     headings = #M.get_buf_fragments(buf)
 
     -- NOTE: Tried to print "formatted words" but because URLs might contain
@@ -778,8 +789,9 @@ function M.statistics(opts)
         "Lines:\t\t%s\n" ..
         "Inline links:\t%s\n" ..
         "WikiLinks:\t%s\n" ..
+        "Reference links:%s\n" ..
         "Headings:\t%s\n")
-        :format(bytes, chars, words, lines, ils, wls, headings)
+        :format(bytes, chars, words, lines, ils, wls, rls, headings)
         , vim.log.levels.INFO)
     end
 
@@ -790,8 +802,154 @@ function M.statistics(opts)
         lines = lines,
         ils = ils,
         wls = wls,
+        rls = rls,
         headings = headings,
     }
+end
+
+---Check if destination is a URL
+---@param destination string
+---@return boolean is_url
+function M.is_url(destination)
+    vim.validate("destination", destination, "string")
+
+    if vim.tbl_contains({"http", "https"}, destination:match("%w+")) then
+        return true
+    else
+        return false
+    end
+end
+
+---Check and get path from the destination
+---@param destination string destination to check
+---@param check_valid boolean Whether to check if the path is to a valid file or not
+---@param opts table?
+---@return string path, integer? error, string? error_text
+function M.get_path_from_destination(destination, check_valid, opts)
+    local path = ""
+    if M.is_url(destination) == true then return path, -1, "is URL" end
+
+    opts = opts or {} -- unused
+
+    vim.validate("destination", destination, "string")
+    vim.validate("check_valid", check_valid, "boolean")
+
+    local cwd =require('mdnotes').cwd
+    path = destination:match(require("mdnotes.patterns").dest_no_fragment) or ""
+
+    if check_valid == true then
+        if path ~= "" then
+
+            -- Check if absolute path first
+            if uv.fs_stat(path) then
+                return vim.fs.abspath(path), nil
+            end
+
+            path = vim.fs.joinpath(cwd, path)
+
+            -- If a Markdown file exists then it is a Markdown file
+            -- GitHub does not like it when there is no .md in the inline link
+            if uv.fs_stat(path .. ".md") then
+                path = path .. ".md"
+            end
+
+            -- If the path is still not found, check if it's a URL
+            if not uv.fs_stat(path) then
+                vim.notify("Mdn: Linked file at '" .. path .. "' not found", vim.log.levels.ERROR)
+                return path, -2, "file not found"
+            end
+        else
+            -- Handle [link](#fragment)
+            path = vim.fs.basename(vim.api.nvim_buf_get_name(0))
+        end
+    end
+
+    return vim.fs.normalize(path), nil
+end
+
+---Check and get fragment from the destination
+---@param destination string destination to check
+---@param check_valid boolean Whether to check if the path is to a valid file or not
+---@param opts table?
+---@return string? fragment, integer? error, string? error_text
+function M.get_fragment_from_destination(destination, check_valid, opts)
+    local fragment = ""
+    if M.is_url(destination) == true then return fragment, -1, "is URL" end
+
+    opts = opts or {} -- unused
+
+    vim.validate("destination", destination, "string")
+    vim.validate("check_valid", check_valid, "boolean")
+
+    fragment = destination:match(require("mdnotes.patterns").fragment) or ""
+
+    if check_valid == true then
+        if fragment ~= "" then
+
+            -- Need path to open file to parse sections
+            local path, err = M.get_path_from_destination(destination, true)
+            if err ~= nil then
+                return fragment, -2, "invalid path: " .. path .. ", " .. err
+            end
+
+            local buf
+            if path ~= "" then
+                buf = vim.fn.bufadd(path)
+                vim.fn.bufload(buf)
+            else
+                -- path == "" on scratch buffers
+                buf = vim.api.nvim_get_current_buf()
+            end
+
+            require('mdnotes').populate_buf_fragments(buf)
+
+            local new_fragment = require('mdnotes').find_fragment_in_buf_fragments(buf, fragment)
+            if new_fragment == nil then
+                return fragment, -3, "fragment not parsed"
+            end
+
+            local search_ret = 0
+            vim.api.nvim_buf_call(buf, function()
+                search_ret = vim.fn.search("# " .. new_fragment)
+            end)
+
+            if search_ret == 0 then
+                vim.notify("Mdn: Invalid fragment '" .. fragment .. "'", vim.log.levels.ERROR)
+                return fragment, -4, "invalid fragment: ".. new_fragment
+            end
+
+            fragment = new_fragment
+        end
+    end
+
+    return fragment, nil
+end
+
+---Open destination in the appropriate programme
+---@param destination string?
+---@return integer|vim.SystemObj|string?
+function M.open(destination)
+    if destination == nil then return "destination error" end
+
+    local path, perror = M.get_path_from_destination(destination, true)
+    if perror ~= nil and perror ~= -1 then return path .. ", " .. perror end
+
+    local fragment, ferror = M.get_fragment_from_destination(destination, true)
+    if ferror ~= nil and ferror ~= -1 then return fragment .. ", " .. ferror end
+
+    -- Check if the file exists and is a Markdown file
+    if path ~= "" and uv.fs_stat(path) and vim.endswith(path, ".md") then
+        M.open_buf(path)
+        if fragment ~= "" then
+            -- Navigate to fragment
+            vim.fn.cursor(vim.fn.search("# " .. fragment), 1)
+            vim.api.nvim_input('zz')
+        end
+
+        return vim.api.nvim_get_current_buf()
+    end
+
+    return vim.ui.open(destination)
 end
 
 return M

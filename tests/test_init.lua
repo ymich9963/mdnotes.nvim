@@ -410,8 +410,8 @@ T['scan_lines()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local pattern = require('mdnotes.patterns')
-    return require('mdnotes').scan_lines(pattern.inline_link, { location = { startl = 1, endl = 3}})
+    local pattern = require('mdnotes.patterns').inline_link
+    return require('mdnotes').scan_lines(pattern, { location = { startl = 1, endl = 3}})
     ]])
 
     eq(ret, {
@@ -432,6 +432,7 @@ T['statistics()'] = function()
         "",
         "[test](link)",
         "[[test]]",
+        "[test][link]",
     }
     create_md_buffer(child, lines)
 
@@ -439,25 +440,62 @@ T['statistics()'] = function()
 
     if vim.fn.has("win32") == 1 then
         eq(ret, {
-            bytes = 37, -- 37 on Windows, 33 on Linux
-            chars = 37, -- 37 on Windows, 33 on Linux
-            words = 4,
-            lines = 4,
+            bytes = 51, -- 37 on Windows, 33 on Linux
+            chars = 51, -- 37 on Windows, 33 on Linux
+            words = 5,
+            lines = 5,
             ils = 1,
             wls = 1,
+            rls = 1,
             headings = 1
         })
     else
         eq(ret, {
-            bytes = 33,
-            chars = 33,
-            words = 4,
-            lines = 4,
+            bytes = 46,
+            chars = 46,
+            words = 5,
+            lines = 5,
             ils = 1,
             wls = 1,
+            rls = 1,
             headings = 1
         })
     end
+end
+
+T['is_url()'] = function()
+    local ret = child.lua([[return require('mdnotes').is_url("link")]])
+    eq(ret, false)
+    ret = child.lua([[return require('mdnotes').is_url("https://test")]])
+    eq(ret, true)
+end
+
+T['get_path_from_destination()'] = function()
+    local ret = child.lua([[return require('mdnotes').get_path_from_destination("path/with/fragment#fragment", false)]])
+    eq(ret, "path/with/fragment")
+
+    child.cmd([[edit tests/test-data/files/file1.md]])
+    local cwd = child.lua([[return require('mdnotes').cwd]])
+
+    ret = child.lua([[return require('mdnotes').get_path_from_destination("tests/test-data/files/file1.md#section-2", true)]])
+    eq(ret, cwd .. "/file1.md")
+    ret = child.lua([[return require('mdnotes').get_path_from_destination("#section-2", true)]])
+    eq(ret, "file1.md")
+end
+
+T['get_fragment_from_destination()'] = function()
+    local ret = child.lua([[return require('mdnotes').get_fragment_from_destination("path/with/fragment#fragment", false)]])
+    eq(ret, "fragment")
+
+    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("tests/test-data/files/file1.md#section-2", true)]])
+    eq(ret, "Section 2")
+
+    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("tests/test-data/files/file1.md#Section 2", true)]])
+    eq(ret, "Section 2")
+
+    child.cmd([[edit tests/test-data/files/file1.md]])
+    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("#section-2", true)]])
+    eq(ret, "section-2")
 end
 
 return T

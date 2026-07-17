@@ -1,10 +1,16 @@
 # Reference Link
-
+[neovim][]
 [test][neovim]
+[test][neovim]
+
+[mdnotes][]
+[test][mdnotes]
 [test][mdnotes]
 
-[neovim][]
-[mdnotes][]
+[test][]
+[test][]
+[test][]
 
-[neovim]: www.neovim.io
 [mdnotes]: https://github.com/ymic9963/mdnotes.nvim
+[neovim]: https://www.neovim.io
+[test]: formatting.md#emphasis-italic
