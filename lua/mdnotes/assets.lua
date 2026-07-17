@@ -261,7 +261,7 @@ function M.insert(opts)
 
     opts = opts or {}
     local txtdata = require('mdnotes').get_text({ location = opts.location }) or {}
-    local asset_il = M.get_asset_inline_link({ opts })
+    local asset_il = M.get_asset_inline_link({ process_file = opts.process_file, file_path = opts.file_path })
     if asset_il == nil then
         -- Errors already outputted
         return

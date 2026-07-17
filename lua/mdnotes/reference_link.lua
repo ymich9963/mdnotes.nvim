@@ -487,7 +487,7 @@ function M.convert_from_inline(opts)
     }
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {M.get_rl_from_obj(rldata)})
+    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, ildata.col_start - 1, rldata.lnum - 1, ildata.col_end - 1, {M.get_rl_from_obj(rldata)})
     vim.api.nvim_buf_set_lines(rldata.buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {M.get_rl_definition_from_obj(rldef)})
 
     -- Update buf_reference_link_definitions
