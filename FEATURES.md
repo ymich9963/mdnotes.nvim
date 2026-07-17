@@ -2,7 +2,7 @@
 All the features of `mdnotes` and their associated commands are listed and categorised below.
 
 ## 🔗 Inline Links
-- Open inline links to files and URLs with `:Mdn inline_link open [inline_link]`. Hover over an inline link to open. Optionally specify an `[inline_link]` through autocomplete, or through the provided picker.
+- Open inline links to files and URLs with `:Mdn inline_link open {inline_link}`. Hover over an inline link to open. Optionally specify an `{inline_link}` through autocomplete, or through the provided picker.
 - Toggle inline links with `:Mdn inline_link toggle` which pastes your copied text over the selected text or word under cursor. This command also removes the inline link and saves it to be used later with the same command.
 - Rename the link text with `:Mdn inline_link rename`. 
 - Re-link the inline link with `:Mdn inline_link relink`. 
@@ -12,7 +12,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 
 ## 🖇️ WikiLinks
 - Create a WikiLink by highlighting or hovering over a word and executing `:Mdn wikilink create`.
-- Open WikiLinks with `:Mdn wikilink follow/_hor/_vert [wikilink]`. Use the `_hor/_vert` variations of the command to open WikiLinks in a horizontal or vertical split. Hover over a WikiLink to open. Optionally specify a `[wikilink]` through autocomplete, or through the provided picker.
+- Open WikiLinks with `:Mdn wikilink follow/_hor/_vert {wikilink}`. Use the `_hor/_vert` variations of the command to open WikiLinks in a horizontal or vertical split. Hover over a WikiLink to open. Optionally specify a `{wikilink}` through autocomplete, or through the provided picker.
 
 - Rename link references and the file itself using `:Mdn wikilink rename_references`. Also rename references of the current buffer when not hovering over a Wikilink.
 - Show the references of a Wikilink by hovering over the link and executing `:Mdn wikilink show_references`. Also show references of the current buffer when not hovering over a Wikilink.
@@ -23,13 +23,13 @@ All the features of `mdnotes` and their associated commands are listed and categ
 
 ## 👩‍💼 Asset Management
 - Insert an image or file from clipboard using `:Mdn assets insert` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
-- Specify an asset in your assets directory with `:Mdn assets insert [asset]` to insert it. Supports autocompletion.
+- Specify an asset in your assets directory with `:Mdn assets insert {asset}` to insert it. Supports autocompletion.
 - Use `:Mdn assets unused_delete` to easily cleanup assets that you no longer use.
 - Use `:Mdn assets unused_move` to move unused assets to a separate folder.
 - Open your assets folder using `:Mdn assets open_containing_folder`. 
 - Download website HTML to your assets folder with `:Mdn assets download_website_html`.
 - Delete the asset in the inline link under the cursor with `:Mdn assets delete`.
-- View an asset in your assets direcory with `:Mdn assets view` or specify it using `:Mdn assets view [asset]`. Currently uses the default Neovim picker.
+- View an asset in your assets direcory with `:Mdn assets view` or specify it using `:Mdn assets view {asset}`. Currently uses the default Neovim picker.
 
 ## 🫦 Tables
 - See [TABLES.md](TABLES.md) for how `mdnotes` integrates with Neovim to edit tables.
@@ -61,8 +61,8 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Browse the ToC as a location list using `:Mdn toc browse`.
 
 ## Reference Links
-- Open reference links to files and URLs with `:Mdn reference_link open [reference_link]`. Hover over an reference link to open. Optionally specify an `[reference_link]` through autocomplete, or through the provided picker.
-- Insert a reference link with the given label using `:Mdn reference_link insert [label]`. Optionally specify a `[label]` through autocomplete.
+- Open reference links to files and URLs with `:Mdn reference_link open {reference_link}`. Hover over an reference link to open. Optionally specify an `{reference_link}` through autocomplete, or through the provided picker.
+- Insert a reference link with the given label using `:Mdn reference_link insert {label}`. Optionally specify a `{label}` through autocomplete.
 - Go to reference link defintion with `:Mdn reference_link go_to_definition`.
 - Delete the reference link but keep the text and definition with `:Mdn reference_link delete`.
 - Update reference link definition information with `:Mdn reference_link update_definition`.
