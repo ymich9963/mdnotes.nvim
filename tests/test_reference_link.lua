@@ -428,7 +428,7 @@ T['parse_lines()'] = function()
     eq(ret, {"[file1][]"})
 end
 
-T['find_label()'] = function()
+T['find_label_occurences()'] = function()
     local lines = {
         "[neovim][]",
         "[test][neovim]",
@@ -450,7 +450,7 @@ T['find_label()'] = function()
 
     local ret = child.lua([[
     require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    return require('mdnotes.reference_link').find_label({label = "test"})
+    return require('mdnotes.reference_link').find_label_occurences({label = "test"})
     ]])
     eq(ret, {
         {

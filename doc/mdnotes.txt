@@ -610,6 +610,60 @@ subcommands are listed below.
 
    Go to the next Markdown heading. Wraps around.
 
+:Mdn reference_link open 				*Mdn-reference_link-open*
+
+    Opens the reference link under the cursor with |vim.ui.open()|.
+
+    If {reference_link} is not specified, a dialogue will appear prompting you to
+    select which inline link to go to. If invoking |'wildchar'| (`<Tab>` by
+    default) to autocomplete the {inline_link} then a list of the available links
+    will be given.
+
+:Mdn reference_link insert {label}			*Mdn-reference_link-insert*
+
+    Insert a reference link with the specified {label}.
+
+    Invoking |'wildchar'| (`<Tab>` by default) autocompletes the {label}
+    then a list of the available labels will be given.
+
+:Mdn reference_link go_to_definition			*Mdn-reference_link-go_to_definition*
+
+    Go to reference link definition.
+
+:Mdn reference_link delete 				*Mdn-reference_link-delete*
+
+    Delete reference link and leave the text.
+
+:Mdn reference_link update_definition 			*Mdn-reference_link-update_definition*
+
+    Update reference link definition label and destination.
+
+:Mdn reference_link cleanup_definitions 		*Mdn-reference_link-cleanup_definitions*
+
+    Cleanup unused reference link definitions.
+
+							*Mdn-reference_link-populate_buf_reference_link_definitions*
+:Mdn reference_link populate_buf_reference_link_definitions
+
+    Manually parse the reference link definitions in the specified buffer
+    and update |mdnotes.buf_reference_link_definitions|.
+
+:Mdn reference_link rename 				*Mdn-reference_link-rename*
+
+    Rename reference link but do not update definition.
+
+:Mdn reference_link relabel 				*Mdn-reference_link-relabel*
+
+    Relabel reference link but do not update definition.
+
+:Mdn reference_link convert_from_inline 		*Mdn-reference_link-convert_from_inline*
+
+    Convert an inline link to a reference link with its definition.
+
+:Mdn reference_link find_label_occurences 		*Mdn-reference_link-find_label_occurences*
+
+    Find occurences of the same label in the reference link.
+
 :Mdn miscellaneous set_cwd				*Mdn-miscellaneous-set_cwd*
 
    Set the Mdnotes cwd variable to the current working directory. Happens
@@ -1743,7 +1797,7 @@ reference_link.get_rl_definition({label}, {buf})	*mdnotes.reference_link.get_rl_
 
     Parameters: ~
     • {buf} (`integer?`, defaults to current buffer)
-    • {label} (`string`)
+    • {label} (`string`) Label to get definition for
 
     Return: ~
     • (`MdnReferenceLinkDefinition`) 
@@ -1898,7 +1952,9 @@ reference_link.parse_lines({opts})			*mdnotes.reference_link.parse_lines()*
     Return: ~
     • (`table<MdnReferenceLinkData>?`)
 
-reference_link.find_label({opts})			*mdnotes.reference_link.find_label()*
+reference_link.find_label_occurences({opts})			*mdnotes.reference_link.find_label_occurences()*
+
+    Find occurences of the same label in the reference link.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:

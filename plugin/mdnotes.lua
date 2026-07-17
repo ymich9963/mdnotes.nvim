@@ -183,13 +183,6 @@ local get_commands = function() return {
         next = require("mdnotes.heading").goto_next,
         previous = require("mdnotes.heading").goto_previous,
     },
-    miscellaneous = {
-        set_cwd = require("mdnotes").set_cwd,
-        record_buf = require("mdnotes.history").record_buf,
-        populate_buf_fragments = require("mdnotes").populate_buf_fragments,
-        open_containing_folder = require("mdnotes").open_containing_folder,
-        statistics = require("mdnotes").statistics,
-    },
     reference_link = {
         open = require("mdnotes.reference_link").open,
         insert = require("mdnotes.reference_link").insert,
@@ -201,7 +194,14 @@ local get_commands = function() return {
         rename = require("mdnotes.reference_link").rename,
         relabel = require("mdnotes.reference_link").relabel,
         convert_from_inline = require("mdnotes.reference_link").convert_from_inline,
-        find_label = require("mdnotes.reference_link").find_label
+        find_label_occurences = require("mdnotes.reference_link").find_label_occurences
+    },
+    miscellaneous = {
+        set_cwd = require("mdnotes").set_cwd,
+        record_buf = require("mdnotes.history").record_buf,
+        populate_buf_fragments = require("mdnotes").populate_buf_fragments,
+        open_containing_folder = require("mdnotes").open_containing_folder,
+        statistics = require("mdnotes").statistics,
     },
     user = vim.deepcopy(require('mdnotes').config.user_commands, true)
 }

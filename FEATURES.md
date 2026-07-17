@@ -55,10 +55,21 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Toggle through checked, unchecked, and no checkbox in a list item with `:Mdn formatting task_list_toggle`. Also works with linewise visual mode to toggle multiple tasks at a time.
 - Unformat your line(s) with `:Mdn formatting unformat_lines`. 
 
-## Table of Contents
+## 🗺️ Table of Contents
 - Generate and insert at the cursor a Table Of Contents (ToC) for the current Markdown buffer with `:Mdn toc generate`. Can also customise the depth of the ToC by changing the `toc_depth = 4` or by specifying the depth in the command e.g. `:Mdn toc generate 2`.
 - Update a ToC in-place with `:Mdn toc update`. Optionally specify the new depth with `:Mdn toc update X`.
 - Browse the ToC as a location list using `:Mdn toc browse`.
+
+## Reference Links
+- Open reference links to files and URLs with `:Mdn reference_link open [reference_link]`. Hover over an reference link to open. Optionally specify an `[reference_link]` through autocomplete, or through the provided picker.
+- Insert a reference link with the given label using `:Mdn reference_link insert [label]`. Optionally specify a `[label]` through autocomplete.
+- Go to reference link defintion with `:Mdn reference_link go_to_definition`.
+- Delete the reference link but keep the text and definition with `:Mdn reference_link delete`.
+- Update reference link definition information with `:Mdn reference_link update_definition`.
+- Cleanup unused definitions with `:Mdn reference_link cleanup_definitions`.
+- Rename or relabel a reference link with `:Mdn reference_link relink/relabel`.
+- Convert an inline link to a reference link using `:Mdn reference_link convert_from_inline`.
+- Find occurences of the reference link under the cursor using `:Mdn reference_link find_label_occurences`.
 
 ## 🧍‍♂️ Uncategorised
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling. Can also use outliner-like indentation with `:Mdn outliner indent/unindent`.

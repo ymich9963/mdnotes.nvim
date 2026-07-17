@@ -114,7 +114,14 @@ function M.insert(opts)
     local silent = opts.silent or false
 
     local rldef = M.get_rl_definition(opts.label)
-    if destination == '' and rldef ~= nil then
+    if rldef == nil then
+        if silent == false then
+            vim.notify("Mdn: No definition found for label", vim.log.levels.ERROR)
+        end
+
+        return
+    end
+    if destination == '' then
         if silent == false then
             vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
         end
@@ -143,6 +150,8 @@ function M.insert(opts)
 end
 
 ---Get the reference link definition object
+---@param label string Label to get definition for
+---@param buf integer?
 function M.get_rl_definition(label, buf)
     if buf == nil then buf = vim.api.nvim_get_current_buf() end
 
@@ -534,8 +543,9 @@ function M.parse_lines(opts)
     return parsed_tbl
 end
 
+---Find occurences of the same label in the reference link
 ---@param opts {label: string?, location: MdnInLineLocation?, silent: boolean?}?
-function M.find_label(opts)
+function M.find_label_occurences(opts)
     opts = opts or {}
 
     local label = opts.label
