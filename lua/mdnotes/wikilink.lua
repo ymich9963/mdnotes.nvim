@@ -66,10 +66,16 @@ function M.follow(opts)
     local hor = opts.hor or false
     local vert = opts.vert or false
 
-    local wldata = M.parse({ wikilink = wikilink, location = opts.location })
+    local wldata
+    if wikilink == nil then
+        wldata = M.parse({ location = opts.location })
+    else
+        wldata = M.parse({ wikilink = wikilink })
+    end
+
     if wldata == nil then
         wikilink = M.get_wl_from_picker()
-        wldata = M.parse({ wikilink = wikilink, location = opts.location })
+        wldata = M.parse({ wikilink = wikilink })
     end
 
     if wldata == nil then return end
