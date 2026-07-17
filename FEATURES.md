@@ -60,9 +60,9 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Update a ToC in-place with `:Mdn toc update`. Optionally specify the new depth with `:Mdn toc update X`.
 - Browse the ToC as a location list using `:Mdn toc browse`.
 
-## Reference Links
+## 🥂 Reference Links
 - Open reference links to files and URLs with `:Mdn reference_link open {reference_link}`. Hover over an reference link to open. Optionally specify an `{reference_link}` through autocomplete, or through the provided picker.
-- Insert a reference link with the given label using `:Mdn reference_link insert {label}`. Optionally specify a `{label}` through autocomplete.
+- Insert a reference link using the highlighted text and the link in your clipboard using `:Mdn reference_link insert {label}`. Optionally specify a `{label}` manually or through autocomplete.
 - Go to reference link defintion with `:Mdn reference_link go_to_definition`.
 - Delete the reference link but keep the text and definition with `:Mdn reference_link delete`.
 - Update reference link definition information with `:Mdn reference_link update_definition`.

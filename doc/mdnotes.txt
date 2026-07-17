@@ -621,10 +621,10 @@ subcommands are listed below.
 
 :Mdn reference_link insert {label}			*Mdn-reference_link-insert*
 
-    Insert a reference link with the specified {label}.
-
-    Invoking |'wildchar'| (`<Tab>` by default) autocompletes the {label}
-    then a list of the available labels will be given.
+    Insert a reference link optionally with the specified {label}. Invoking
+    |'wildchar'| (`<Tab>` by default) autocompletes the {label} then a list of
+    the available labels will be given. If no {label} is provided it uses the
+    highlighted text along with the text in the clipboard as the destination.
 
 :Mdn reference_link go_to_definition			*Mdn-reference_link-go_to_definition*
 

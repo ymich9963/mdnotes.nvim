@@ -114,14 +114,7 @@ function M.insert(opts)
     local silent = opts.silent or false
 
     local rldef = M.get_rl_definition(opts.label)
-    if rldef == nil then
-        if silent == false then
-            vim.notify("Mdn: No definition found for label", vim.log.levels.ERROR)
-        end
-
-        return
-    end
-    if destination == '' then
+    if destination == '' and rldef ~= nil then
         if silent == false then
             vim.notify("Mdn: Nothing detected in clipboard, \"+ register empty...", vim.log.levels.ERROR)
         end
@@ -152,8 +145,10 @@ end
 ---Get the reference link definition object
 ---@param label string Label to get definition for
 ---@param buf integer?
+---@return MdnReferenceLinkDefinition?
 function M.get_rl_definition(label, buf)
     if buf == nil then buf = vim.api.nvim_get_current_buf() end
+    if label == nil then return nil end
 
     for _, v in pairs(M.buf_reference_link_definitions) do
         if v.buf == buf then
