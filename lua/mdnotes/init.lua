@@ -855,7 +855,6 @@ function M.get_path_from_destination(destination, check_valid, opts)
 
             -- If the path is still not found, check if it's a URL
             if not uv.fs_stat(path) then
-                vim.notify("Mdn: Linked file at '" .. path .. "' not found", vim.log.levels.ERROR)
                 return path, -2, "file not found"
             end
         else
@@ -914,7 +913,6 @@ function M.get_fragment_from_destination(destination, check_valid, opts)
             end)
 
             if search_ret == 0 then
-                vim.notify("Mdn: Invalid fragment '" .. fragment .. "'", vim.log.levels.ERROR)
                 return fragment, -4, "invalid fragment: ".. new_fragment
             end
 
@@ -932,10 +930,16 @@ function M.open(destination)
     if destination == nil then return "destination error" end
 
     local path, perror = M.get_path_from_destination(destination, true)
-    if perror ~= nil and perror ~= -1 then return path .. ", " .. perror end
+    if perror ~= nil and perror ~= -1 then
+        vim.notify("Mdn: Error getting path from destination: " .. path .. ", " .. perror, vim.log.levels.ERROR)
+        return path .. ", " .. perror
+    end
 
     local fragment, ferror = M.get_fragment_from_destination(destination, true)
-    if ferror ~= nil and ferror ~= -1 then return fragment .. ", " .. ferror end
+    if ferror ~= nil and ferror ~= -1 then
+        vim.notify("Mdn: Error getting fragment from destination: " .. fragment .. ", " .. ferror, vim.log.levels.ERROR)
+        return fragment .. ", " .. ferror
+    end
 
     -- Check if the file exists and is a Markdown file
     if path ~= "" and uv.fs_stat(path) and vim.endswith(path, ".md") then
