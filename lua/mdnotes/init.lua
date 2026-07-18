@@ -937,7 +937,7 @@ function M.open(destination)
 
     local fragment, ferror = M.get_fragment_from_destination(destination, true)
     if ferror ~= nil and ferror ~= -1 then
-        vim.notify("Mdn: Error getting fragment from destination: " .. fragment .. ", " .. ferror, vim.log.levels.ERROR)
+        vim.notify("Mdn: Error getting fragment from destination: " .. fragment .. ", " .. ferror .. ". Ensure you have the correct fragment with ':Mdn miscellaneous view_fragments'", vim.log.levels.ERROR)
         return fragment .. ", " .. ferror
     end
 
@@ -954,6 +954,24 @@ function M.open(destination)
     end
 
     return vim.ui.open(destination)
+end
+
+---Pretty print buf_fragments
+function M.view_fragments()
+    local fragments = {}
+    for _, v in pairs(M.buf_fragments) do
+        if v.buf == vim.api.nvim_get_current_buf() then
+            fragments = v.fragments
+            break
+        end
+    end
+
+    local text = "\t-Heading- | -GFM Style-\n"
+    for i, v in pairs(fragments) do
+        text = text .. i .. "\t" .. v.text .. " | #" .. v.gfm .. "\n"
+    end
+
+    vim.print(text)
 end
 
 return M

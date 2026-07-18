@@ -690,6 +690,10 @@ subcommands are listed below.
    Show statistics of the current buffer about the bytes, characters,
    words, lines, inline links, WikiLinks, reference links, and headings.
 
+:Mdn miscellaneous view_fragments 			*Mdn-miscellaneous-view_fragments*
+
+    View the headings and GFM-style fragments of the current buffer.
+
 :Mdn user						*Mdn-user*
 
    Access the user defined commands. See |mdnotes-user_commands|.
@@ -1048,6 +1052,10 @@ open({destination})					*mdnotes.open()*
       Uses |mdnotes.get_path_from_destination()| and
       |mdnotes.get_fragment_from_destination()| internally so it returns
       all their errors except `-1`.
+
+view_fragments() 					*mdnotes.view_fragments()*
+
+    Pretty print |mdnotes.buf_fragments|.
 
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
