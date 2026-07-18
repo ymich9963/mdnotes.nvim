@@ -452,41 +452,61 @@ function M.get_orphans(opts)
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
     local files_cwd = require('mdnotes').get_files_in_cwd({ extension = ".md", hidden = false, fs_type = "file" })
+    local buf = vim.api.nvim_get_current_buf()
+
+    local progress = {
+      kind = "progress",
+      percent = 0,
+      source = "mdn",
+      status = "running",
+    }
 
     if silent == false then
-        vim.notify("Mdn: Searching notes for orphans...", vim.log.levels.INFO)
+        progress.id = vim.api.nvim_echo({ { "Mdn: Searching notes for orphans..." } }, false, progress)
     end
 
-    for _, file in pairs(files_cwd) do
+    for i, file in ipairs(files_cwd) do
         file = file:gsub(".md", "")
         mdn_grep("\\[\\[".. file .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
+        if vim.api.nvim_get_current_buf() ~= buf then
+            vim.cmd.buffer(buf) -- to prevent jumps while searching
+        end
         if vim.tbl_isempty(vim.fn.getqflist()) then
             count = count + 1
             table.insert(orphans, file .. ".md")
             if silent == false then
-                vim.notify("Mdn: Found " .. tostring(count) .. " orphan pages so far..." , vim.log.levels.INFO)
+                vim.cmd.redraw()
+                progress.percent = math.floor(100 * i / #files_cwd)
+                vim.api.nvim_echo({ {"Mdn: Found " .. tostring(count) .. " orphan pages so far..."} }, false, progress)
             end
         end
     end
 
+    vim.cmd.buffer(buf)
     vim.fn.setqflist(tempqf_list)
 
     return orphans
 end
 
----Show orphans on cmdline
+---Show orphans in qflist
 function M.find_orphans()
     local orphans = M.get_orphans()
     if vim.tbl_isempty(orphans) then
+        vim.cmd.redraw()
         vim.notify("Mdn: No orphan pages found", vim.log.levels.WARN)
-    else
-        local orphans_txt = ""
-        for _, v in pairs(orphans) do
-            orphans_txt = orphans_txt .. v .. ", "
-        end
-        orphans_txt = orphans_txt:sub(1,#orphans_txt - 2)
-        vim.notify("Mdn: Found the following orphan pages: " .. orphans_txt, vim.log.levels.WARN)
+        return
     end
+
+    local cwd = require('mdnotes').cwd
+    local qflist = {}
+    for _, v in pairs(orphans) do
+        table.insert(qflist, {filename = vim.fs.joinpath(cwd, v)})
+    end
+
+    vim.fn.setqflist(qflist)
+    vim.cmd.copen()
+
+    return qflist
 end
 
 ---Get an inline link string from an MdnInlineLinkData object

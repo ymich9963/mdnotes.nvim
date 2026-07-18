@@ -373,7 +373,8 @@ subcommands are listed below.
 
 :Mdn wikilink find_orphans				*:Mdn-wikilink-find_orphans*
 
-    Show orphan pages (pages with no references) in current directory.
+    Show orphan pages (pages with no references) in |mdnotes.cwd| in a 
+    |quickfix| list.
 
 :Mdn assets insert {asset}				*:Mdn-assets-insert_image*
 
@@ -2529,7 +2530,8 @@ wikilink.get_orphans({opts}) 				*mdnotes.wikilink.get_orphans()*
 
 wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
 
-    Show orphan pages (pages with no references) in current directory.
+    Show orphan pages (pages with no references) in |mdnotes.cwd| in a 
+    |quickfix| list.
 
 wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 
