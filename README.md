@@ -22,11 +22,11 @@ For a complete descriptive feature list with their associated commands, please s
 
 - Uses subcommands with opt-in default key mappings and opt-out autocmds
 - Open, toggle, rename, relink, and normalize inline links
-- Open, insert, update, and manage reference links
 - Create, follow, rename, show, delete, and find WikiLinks
 - Open inline links and follow WikiLinks without hovering over them
 - Insert, manage, view, and delete assets
 - Create, best-fit, insert/move/duplicate/align/sort columns, and insert empty rows for tables
+- Open, insert, update, and manage reference links
 - Navigate to index file or dynamic journal files
 - Sequential Markdown buffer history
 - Heading navigation

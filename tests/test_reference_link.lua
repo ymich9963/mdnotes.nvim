@@ -300,11 +300,12 @@ T['update_definition()'] = function()
     })
 end
 
-T['cleanup_definition()'] = function()
+T['cleanup()'] = function()
     local lines = {
         "[test][]",
         "[test][]",
         "[test][]",
+        "[test][what]",
         "",
         "[mdnotes]: https://github.com/ymic9963/mdnotes.nvim",
         "[neovim]: https://www.neovim.io",
@@ -314,7 +315,7 @@ T['cleanup_definition()'] = function()
 
     child.lua([[
     require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    require('mdnotes.reference_link').cleanup_definitions()
+    require('mdnotes.reference_link').cleanup()
     ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -322,6 +323,7 @@ T['cleanup_definition()'] = function()
         "[test][]",
         "[test][]",
         "[test][]",
+        "test",
         "",
         "",
         "",

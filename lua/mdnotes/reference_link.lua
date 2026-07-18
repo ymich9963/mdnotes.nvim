@@ -297,9 +297,9 @@ function M.update_definition(opts)
     M.populate_buf_reference_link_definitions(buf)
 end
 
----Cleanup unused reference link definitions
+---Cleanup unused reference links and reference link definitions
 ---@param opts {buf: integer?, silent: boolean?}?
-function M.cleanup_definitions(opts)
+function M.cleanup(opts)
     opts = opts or {}
 
     local silent = opts.silent or false
@@ -308,7 +308,7 @@ function M.cleanup_definitions(opts)
     local rldef_tbl = M.get_buf_reference_link_definitions({ buf = buf })
     if rldef_tbl == nil then
         if silent == false then
-            vim.notify("Mdn: No reference links found in buf", vim.log.levels.ERROR)
+            vim.notify("Mdn: No reference link definitions found in buffer", vim.log.levels.ERROR)
         end
 
         return
@@ -324,19 +324,32 @@ function M.cleanup_definitions(opts)
     end
 
     for _, v in pairs(rldef_tbl) do
-        local found = false
+        local found_def = false
         for _, vv in pairs(parsed_tbl) do
             if v.label == vv.label then
-                found = true
+                found_def = true
                 break
             end
         end
-        if found == false then
+        if found_def == false then
             vim.api.nvim_buf_set_lines(buf, v.lnum - 1, v.lnum, false, {""})
         end
     end
 
     M.populate_buf_reference_link_definitions(buf)
+
+    for _, v in pairs(parsed_tbl) do
+        local found_link = false
+        for _, vv in pairs(rldef_tbl) do
+            if v.label == vv.label then
+                found_link = true
+                break
+            end
+        end
+        if found_link == false then
+            vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {v.text})
+        end
+    end
 end
 
 ---Get an reference link string from an MdnReferenceLinkData object

@@ -641,7 +641,7 @@ subcommands are listed below.
 
 :Mdn reference_link cleanup_definitions 		*Mdn-reference_link-cleanup_definitions*
 
-    Cleanup unused reference link definitions.
+    Cleanup unused reference links and reference link definitions.
 
 							*Mdn-reference_link-populate_buf_reference_link_definitions*
 :Mdn reference_link populate_buf_reference_link_definitions
@@ -1867,9 +1867,9 @@ reference_link.update_definition({opts})		*mdnotes.reference_link.update_definit
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
-reference_link.cleanup_definitions({opts})		*mdnotes.reference_link.cleanup_definitions()*
+reference_link.cleanup({opts})				*mdnotes.reference_link.cleanup()*
 
-    Cleanup unused reference link definitions.
+    Cleanup unused reference links and reference link definitions.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:

@@ -66,7 +66,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Go to reference link defintion with `:Mdn reference_link go_to_definition`.
 - Delete the reference link but keep the text and definition with `:Mdn reference_link delete`.
 - Update reference link definition information with `:Mdn reference_link update_definition`.
-- Cleanup unused definitions with `:Mdn reference_link cleanup_definitions`.
+- Cleanup unused reference links and reference link definitions with `:Mdn reference_link cleanup`.
 - Rename or relabel a reference link with `:Mdn reference_link relink/relabel`.
 - Convert an inline link to a reference link using `:Mdn reference_link convert_from_inline`.
 - Find occurences of the reference link under the cursor using `:Mdn reference_link find_label_occurences`.
