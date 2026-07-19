@@ -40,5 +40,14 @@ Autolink autolink autolink
 ## Task Lists
 - [x] Task lists with all ordered and unordered lists above
 1) [X] Task lists with all ordered and unordered lists above 
-1. [ ] Task lists with all ordered and unordered lists above
+2. [ ] Task lists with all ordered and unordered lists above
 
+## Fenced Code Block
+```
+code
+code
+code
+code
+code
+code
+```

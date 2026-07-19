@@ -117,6 +117,7 @@ local get_commands = function() return {
         task_list_toggle = require("mdnotes.formatting").task_list_toggle,
         ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
         unformat_lines = require("mdnotes.formatting").unformat_lines,
+        fenced_code_block_toggle = require("mdnotes.formatting").fenced_code_block_toggle,
     },
     wikilink = {
         follow = require("mdnotes.wikilink").follow,
@@ -236,7 +237,8 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     end
 
     if func == commands.formatting.task_list_toggle
-        or func == commands.formatting.unformat_lines then
+        or func == commands.formatting.unformat_lines
+        or func == commands.formatting.fenced_code_block_toggle then
         func({ location = { startl = opts.line1, endl = opts.line2 } })
     elseif func == commands.table.create and #args > 2 then
         func(args[3], args[4])
@@ -248,11 +250,14 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func({ asset = asset, file_path = asset_path, process_file = false })
     elseif func == commands.inline_link.open then
         func({ inline_link = concat_arg(args) })
-    elseif func == commands.wikilink.follow or func == commands.wikilink.follow_hor or func == commands.wikilink.follow_vert then
+    elseif func == commands.wikilink.follow
+        or func == commands.wikilink.follow_hor
+        or func == commands.wikilink.follow_vert then
         func({ wikilink = concat_arg(args) })
     elseif func == commands.reference_link.open then
         func({ reference_link = concat_arg(args) })
-    elseif func == commands.reference_link.insert or func == commands.reference_link.find_label then
+    elseif func == commands.reference_link.insert
+        or func == commands.reference_link.find_label then
         func({ label = concat_arg(args) })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)

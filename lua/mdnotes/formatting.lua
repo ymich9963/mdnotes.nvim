@@ -509,4 +509,118 @@ function M.unformat_lines(opts)
     vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, lines)
 end
 
+---Check if there fence block in the specified search range or under the cursor
+---@param opts {search: MdnSearchOpts?}?
+---@return MdnSearchResult
+function M.check_fence_valid(pattern, opts)
+    opts = opts or {}
+
+    local search_opts = opts.search or {}
+    vim.validate("search_opts", search_opts, "table")
+
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
+    local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
+    local lower_limit_lnum = search_opts.upper_limit_lnum or 1
+    local upper_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
+
+    local fence_startl = 0
+    local fence_endl = 0
+
+    -- A file needs more than 2 lines to have a valid fenced code block
+    if upper_limit_lnum < 2 then
+        return { valid = false }
+    end
+
+    for i = origin_lnum, lower_limit_lnum, -1 do
+        local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
+        if cur_line:match(pattern) then
+            fence_startl = i
+            break
+        end
+    end
+
+    if fence_startl == 0 then
+        return { valid = false }
+    end
+
+    for i = origin_lnum, upper_limit_lnum do
+        local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
+        if cur_line:match(pattern) then
+            fence_endl = i
+            break
+        end
+    end
+
+    if fence_endl == 0 then
+        return { valid = false }
+    end
+
+    if (fence_endl - fence_startl) < 2 then
+        return { valid = false }
+    end
+
+    return {
+        valid = true,
+        buf = buf,
+        startl = fence_startl,
+        endl = fence_endl,
+    }
+end
+
+---Insert a fence
+---@param opts {location: MdnMultiLineLocation?}?
+function M.insert_fence(fence, opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+
+    vim.validate("buf", buf, "number")
+    vim.validate("startl", startl, "number")
+    vim.validate("endl", endl, "number")
+
+    vim.api.nvim_buf_set_lines(buf, endl, endl, false, {fence})
+    vim.api.nvim_buf_set_lines(buf, startl - 1, startl - 1, false, {fence})
+end
+
+---Delete a fence
+---@param opts {location: MdnMultiLineLocation?}?
+function M.delete_fence(opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+
+    vim.validate("buf", buf, "number")
+    vim.validate("startl", startl, "number")
+    vim.validate("endl", endl, "number")
+
+    vim.api.nvim_buf_set_lines(buf, endl - 1, endl, false, {})
+    vim.api.nvim_buf_set_lines(buf, startl - 1, startl, false, {})
+end
+
+---Toggle fenced code block
+---@param opts {location: MdnMultiLineLocation?}?
+function M.fenced_code_block_toggle(opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local pattern = require('mdnotes.patterns').code_fence
+    local fcbvalid = M.check_fence_valid(pattern, {search = {buf = locopts.buf}})
+    if fcbvalid.valid == true then
+        M.delete_fence({location = {
+            buf = fcbvalid.buf,
+            startl = fcbvalid.startl,
+            endl = fcbvalid.endl,
+        }})
+    else
+        M.insert_fence("```", {location = locopts})
+    end
+
+end
+
 return M

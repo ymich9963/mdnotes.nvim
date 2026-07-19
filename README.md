@@ -30,7 +30,7 @@ For a complete descriptive feature list with their associated commands, please s
 - Navigate to index file or dynamic journal files
 - Sequential Markdown buffer history
 - Heading navigation
-- Toggling strong/emphasis/inline code/strikethrough/autolink formatting
+- Toggling strong/emphasis/inline code/strikethrough/autolink/fenced code blocks formatting
 - Ordered and unordered list continuation and renumbering
 - Task list toggling
 - Unformat lines to remove any Markdown formatting

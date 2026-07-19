@@ -35,6 +35,7 @@ M = {
     unordered_list = "^([%s]-)([-+*])[%s](.*)",
     ordered_list = "^([%s]-)([%d]+)([%.%)])[%s](.*)",
     reference_link_definition = "^%[([^%]]+)%]:%s?(.+)",
+    code_fence = "^```.-",
 
     text_dest = "%[([^%]]+)%]%((.+)%)",
     dest_title = ".+%s\"([^\"]*)\"",
