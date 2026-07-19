@@ -41,7 +41,7 @@ For a complete descriptive feature list with their associated commands, please s
 - Most internal functions are exposed as an API for extensibility (`:h mdnotes-api`)
 
 ## 👽 Setup
-Supports Neovim 0.10 or later.
+Supports Neovim 0.12 or later.
 
 Using `vim.pack`,
 ```lua
