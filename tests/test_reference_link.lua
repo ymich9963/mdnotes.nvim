@@ -308,8 +308,8 @@ T['cleanup()'] = function()
         "[test][what]",
         "",
         "[mdnotes]: https://github.com/ymic9963/mdnotes.nvim",
-        "[neovim]: https://www.neovim.io",
         "[test]: https://example.org",
+        "[neovim]: https://www.neovim.io",
     }
     create_md_buffer(child, lines)
 
@@ -324,8 +324,6 @@ T['cleanup()'] = function()
         "[test][]",
         "[test][]",
         "test",
-        "",
-        "",
         "",
         "[test]: https://example.org",
     })

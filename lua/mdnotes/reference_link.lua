@@ -290,7 +290,7 @@ function M.update_definition(opts)
     else
         rldef.label = new_label or ""
     end
-    rldef.destination = new_destination
+    rldef.destination = new_destination or ""
     vim.api.nvim_buf_set_lines(buf, rldef.lnum - 1, rldef.lnum, false, {M.get_rl_definition_from_obj(rldef)})
 
     vim.cmd.wall({bang = true, mods = {silent = true, noautocmd = true}})
@@ -323,7 +323,11 @@ function M.cleanup(opts)
         return
     end
 
-    for _, v in pairs(rldef_tbl) do
+    table.sort(rldef_tbl, function(a, b)
+        return a.lnum > b.lnum
+    end)
+
+    for _, v in ipairs(rldef_tbl) do
         local found_def = false
         for _, vv in pairs(parsed_tbl) do
             if v.label == vv.label then
@@ -332,7 +336,7 @@ function M.cleanup(opts)
             end
         end
         if found_def == false then
-            vim.api.nvim_buf_set_lines(buf, v.lnum - 1, v.lnum, false, {""})
+            vim.api.nvim_buf_set_lines(buf, v.lnum - 1, v.lnum, false, {})
         end
     end
 
