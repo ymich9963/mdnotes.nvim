@@ -10,7 +10,8 @@ Markdown specifications that have influenced `mdnotes.nvim` Markdown syntax,
 - [Markdown Flavors Comparison](https://github.com/ArchieCur/MARKDOWN_FLAVORS)
 
 ## Links
-Opened with `:Mdn inline_link open`. Inserted with the `:Mdn assets insert_file/image` and `:Mdn inline_link toggle` commands. If no extension is given to `file` below, it is treated as `.md`.
+### Inline Links
+Opened with `:Mdn inline_link open`. Inserted with `:Mdn inline_link toggle` and `:Mdn assets insert_file/image`. If no extension is given to `file` below, it is treated as `.md`. Optional title is supported for all cases.
 ```
     [link](https://neovim.io)
     [link](path/to/file#fragment)
@@ -21,6 +22,16 @@ Opened with `:Mdn inline_link open`. Inserted with the `:Mdn assets insert_file/
     [link](#original-fragment)
     [link](path/to/file.extension)
     ![image](path/to/image.extension)
+    [link](destination "title")
+```
+### Reference Links
+Same rules for inline links apply to reference links. Full and collapsed reference links are supported.
+```
+    [link][]
+    [more][links]
+
+    [link]: path/to/file#fragment 
+    [links]: https://neovim.io
 ```
 ## WikiLinks
 Opened with `:Mdn wikilink follow`. Can only be filenames, so `link` can also be `link.md`.
