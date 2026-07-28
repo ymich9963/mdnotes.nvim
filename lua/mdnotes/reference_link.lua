@@ -1,4 +1,4 @@
----@module 'mdnotes.assets'
+---@module 'mdnotes.reference_link'
 
 local M = {}
 
