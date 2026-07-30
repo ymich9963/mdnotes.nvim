@@ -65,7 +65,7 @@ function M.get_buf_reference_link_definitions(opts)
 
     local reference_links = {}
     local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-    local rl_def_pattern = require('mdnotes.patterns').reference_link_definition
+    local rl_def_pattern = require('mdnotes.patterns').footnote
 
     for lnum, line in ipairs(buf_lines) do
         local label, destination = line:match(rl_def_pattern)
@@ -208,7 +208,7 @@ function M.delete(opts)
     end
 end
 
----Get an reference link definition string from an MdnReferenceLinkEntry object
+---Get a reference link definition string from an MdnReferenceLinkDefinition object
 ---@param rldef MdnReferenceLinkDefinition? Reference link definition object
 ---@return string reference_link_definition
 function M.get_rl_definition_from_obj(rldef)
@@ -616,7 +616,7 @@ function M.get_rl_from_picker(buf)
 
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
     if parsed_tbl == nil then
-        vim.notify("Mdn: No inline links in current file to go to", vim.log.levels.ERROR)
+        vim.notify("Mdn: No reference links in current file to go to", vim.log.levels.ERROR)
         return
     end
 
