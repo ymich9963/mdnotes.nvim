@@ -395,31 +395,17 @@ end
 function M.parse_lines(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
-    local buf = locopts.buf or vim.api.nvim_get_current_buf()
-    local startl = locopts.startl or vim.fn.line('.')
-    local endl = locopts.endl or vim.fn.line('.')
+    local silent = opts.silent or false
     local str = opts.str or false
-
     local pattern = require('mdnotes.patterns').inline_link
-    local scan_lines = require('mdnotes').scan_lines
+    local parse_lines = require('mdnotes').parse_lines
 
-    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
-    if scanned_lines == nil then return nil end
-
-    local parsed_tbl = {}
-    for _, item in ipairs(scanned_lines) do
-        for _, cols in ipairs(item.cols) do
-            local data = M.parse({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
-            if str == true then
-                table.insert(parsed_tbl, M.get_il_from_obj(data))
-            else
-                table.insert(parsed_tbl, data)
-            end
-        end
+    local get_func = nil
+    if str == true then
+        get_func = M.get_il_from_obj
     end
 
-    return parsed_tbl
+    return parse_lines(pattern, M.parse, {location = opts.location, silent = silent, get_func = get_func})
 end
 
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?

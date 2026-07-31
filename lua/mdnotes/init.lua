@@ -974,4 +974,33 @@ function M.view_fragments()
     vim.print(text)
 end
 
+---Parse the pattern in the specified lines
+---@param pattern string? Pattern to use
+---@param opts {location: MdnMultiLineLocation?, silent: boolean?, get_func: fun(a): string?}?
+---@return table<MdnReferenceLinkData>?
+function M.parse_lines(pattern, parse_func, opts)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+    local get_func = opts.get_func or function(a) return a end
+
+    local scan_lines = require('mdnotes').scan_lines
+
+    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
+    if scanned_lines == nil then return nil end
+
+    local parsed_tbl = {}
+    for _, item in ipairs(scanned_lines) do
+        for _, cols in ipairs(item.cols) do
+            local data = parse_func({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
+            table.insert(parsed_tbl, get_func(data))
+        end
+    end
+
+    return parsed_tbl
+end
+
 return M
