@@ -30,12 +30,14 @@ M = {
     inline_code = "()`([^`]+)`()",
     autolink = "()<(.-)>()",
     reference_link = "()(%[[^%]]+%]%[[^%]]-%])()",
+    footnote_reference = "()(%[^[^%]]+%])()",
 
     heading = "^([%#]+)[%s]+(.+)",
     unordered_list = "^([%s]-)([-+*])[%s](.*)",
     ordered_list = "^([%s]-)([%d]+)([%.%)])[%s](.*)",
     reference_link_definition = "^%[([^%]]+)%]:%s?(.+)",
     code_fence = "^```.-",
+    footnote = "^%[^([^%]]+)%]:%s?(.+)",
 
     text_dest = "%[([^%]]+)%]%((.+)%)",
     dest_title = ".+%s\"([^\"]*)\"",
@@ -44,6 +46,7 @@ M = {
     wikilink_alias = ".+|([^|]+)",
     task = "[%s]-(%[[ xX]%])[%s]+.-",
     text_label = "%[([^%]]+)%]%[(.-)%]",
+    footnote_identifier = "%[^([^%]]+)%]",
 }
 
 return M

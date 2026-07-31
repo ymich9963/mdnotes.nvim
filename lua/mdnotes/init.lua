@@ -107,6 +107,7 @@ local default_config = {
 ---@field outliner_state boolean autocmd for Outliner mode state notification
 ---@field journal_insert_entry boolean autocmd for inserting a journal entry on opening the journal file
 ---@field populate_buf_reference_links boolean populate_buf_reference_links() autocmd reference links
+---@field populate_buf_footnotes boolean populate_buf_footnotes() autocmd footnotes
 local default_autocmd_config = {
     set_cwd = true,
     record_buf = true,
@@ -115,7 +116,8 @@ local default_autocmd_config = {
     table_best_fit = true,
     outliner_state_notification = true,
     journal_insert_entry = true,
-    populate_buf_reference_links = true
+    populate_buf_reference_links = true,
+    populate_buf_footnotes = true
 }
 
 ---Validate user config
@@ -183,6 +185,9 @@ local function resolve_autocmd_config()
     end
     if M.config.autocmds.populate_buf_reference_links == false then
         vim.api.nvim_del_augroup_by_name('mdn.pop_rl')
+    end
+    if M.config.autocmds.populate_buf_footnotes == false then
+        vim.api.nvim_del_augroup_by_name('mdn.pop_f')
     end
 end
 
