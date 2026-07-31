@@ -65,7 +65,7 @@ function M.get_buf_reference_link_definitions(opts)
 
     local reference_links = {}
     local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-    local rl_def_pattern = require('mdnotes.patterns').footnote
+    local rl_def_pattern = require('mdnotes.patterns').reference_link_definition
 
     for lnum, line in ipairs(buf_lines) do
         local label, destination = line:match(rl_def_pattern)
@@ -528,31 +528,17 @@ end
 function M.parse_lines(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
-    local buf = locopts.buf or vim.api.nvim_get_current_buf()
-    local startl = locopts.startl or vim.fn.line('.')
-    local endl = locopts.endl or vim.fn.line('.')
+    local silent = opts.silent or false
     local str = opts.str or false
-
     local pattern = require('mdnotes.patterns').reference_link
-    local scan_lines = require('mdnotes').scan_lines
+    local parse_lines = require('mdnotes').parse_lines
 
-    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
-    if scanned_lines == nil then return nil end
-
-    local parsed_tbl = {}
-    for _, item in ipairs(scanned_lines) do
-        for _, cols in ipairs(item.cols) do
-            local data = M.parse({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
-            if str == true then
-                table.insert(parsed_tbl, M.get_rl_from_obj(data))
-            else
-                table.insert(parsed_tbl, data)
-            end
-        end
+    local get_func = nil
+    if str == true then
+        get_func = M.get_rl_from_obj
     end
 
-    return parsed_tbl
+    return parse_lines(pattern, M.parse, {location = opts.location, silent = silent, get_func = get_func})
 end
 
 ---Find occurences of the same label in the reference link
