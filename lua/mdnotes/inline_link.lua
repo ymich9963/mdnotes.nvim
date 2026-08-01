@@ -386,7 +386,7 @@ function M.get_il_from_picker(buf)
         return
     end
 
-    return M.get_il_from_obj(parsed_tbl[il_index])
+    return parsed_tbl[il_index].raw
 end
 
 ---Parse the inline links in the specified lines

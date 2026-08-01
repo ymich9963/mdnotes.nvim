@@ -553,7 +553,7 @@ function M.get_wl_from_picker(buf)
 
     local sel_list = {}
     for _, v in ipairs(parsed_tbl) do
-        table.insert(sel_list, M.get_wl_from_obj(v):sub(3, -3))
+        table.insert(sel_list, v.raw:sub(3, -3))
     end
 
     local wl_index = nil
@@ -567,7 +567,7 @@ function M.get_wl_from_picker(buf)
         return
     end
 
-    return M.get_wl_from_obj(parsed_tbl[wl_index])
+    return parsed_tbl[wl_index].raw
 end
 
 ---Parse the WikiLinks in the specified lines

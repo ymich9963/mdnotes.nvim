@@ -608,7 +608,7 @@ function M.get_rl_from_picker(buf)
 
     local sel_list = {}
     for _, v in ipairs(parsed_tbl) do
-        table.insert(sel_list, M.get_rl_from_obj(v))
+        table.insert(sel_list, v.raw)
     end
 
     local rl_index = nil
@@ -622,7 +622,7 @@ function M.get_rl_from_picker(buf)
         return
     end
 
-    return M.get_rl_from_obj(parsed_tbl[rl_index])
+    return parsed_tbl[rl_index].raw
 end
 
 return M
