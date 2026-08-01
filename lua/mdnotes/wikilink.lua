@@ -141,6 +141,10 @@ function M.show_references(opts)
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
 
+    if silent == false then
+        vim.notify("Mdn: Searching references for '" .. wldata.wikilink_nofrag .. "'...", vim.log.levels.INFO)
+    end
+
     mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
 
     local qflist = vim.fn.getqflist()
@@ -229,6 +233,10 @@ function M.rename_references(opts)
         end
     end
 
+    if silent == false then
+        vim.notify("Mdn: Renaming references of '" .. wldata.wikilink_nofrag .. "' to '" .. new_name .. "'", vim.log.levels.INFO)
+    end
+
     -- Change all [[WikiLink]] text to be the new name
     vim.cmd.wall({bang = true, mods = {silent = true}})
     mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
@@ -308,6 +316,10 @@ function M.undo_rename(opts)
     local cur_pos = vim.fn.getpos('.')
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
+
+    if silent == false then
+        vim.notify("Mdn: Undoing rename...", vim.log.levels.INFO)
+    end
 
     vim.cmd.wall({bang = true, mods = {silent = true}})
     mdn_grep("\\[\\[".. newest_filename .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
@@ -578,6 +590,5 @@ function M.parse_lines(opts)
 
     return parse_lines(pattern, M.parse, {location = opts.location, silent = silent, get_func = get_func})
 end
-
 
 return M

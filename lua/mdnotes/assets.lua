@@ -289,6 +289,10 @@ function M.get_used_assets(opts)
     local used_assets = {}
     local temp_qflist = vim.fn.getqflist()
 
+    if silent == false then
+        vim.notify("Mdn: Searching for used assets...", vim.log.levels.INFO)
+    end
+
     -- Grep inline links with asset paths
     local pattern = "\\]\\(<?" .. M.get_assets_folder_name() .. "/"
     mdn_grep(pattern, cwd)
@@ -320,6 +324,10 @@ function M.get_unused_assets(opts)
     opts = opts or {}
     local silent = opts.silent or false
     vim.validate("silent", silent, "boolean")
+
+    if silent == false then
+        vim.notify("Mdn: Searching for unused assets...", vim.log.levels.INFO)
+    end
 
     local assets_list = M.get_asset_list()
     local unused_assets = {}
