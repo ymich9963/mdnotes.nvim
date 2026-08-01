@@ -10,7 +10,7 @@ M.old_filenames = {}
 ---@type table<string>
 M.new_filenames = {}
 
----@class MdnWikiLinkData: MdnInLineLocation
+---@class MdnWikiLinkData: MdnText
 ---@field wikilink_nofrag string WikiLink without the fragment
 ---@field fragment string The fragment in the WikiLink
 ---@field alias string WikiLink alias
@@ -36,16 +36,15 @@ function M.parse(opts)
     if opts.location ~= nil or wikilink == nil then
         if not check_markdown_syntax(mdn_patterns.wikilink, {location = opts.location}) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.wikilink, { location = opts.location })
-        wikilink = txtdata.text
-    else
-        _, wikilink, _ = wikilink:match(mdn_patterns.wikilink)
+        wikilink = txtdata.raw or ""
     end
 
-    local wikilink_no_fragment = wikilink:match(mdn_patterns.dest_no_fragment)
-    local fragment = wikilink:match(mdn_patterns.fragment)
-    local alias = wikilink:match(mdn_patterns.wikilink_alias)
+    local wikilink_contents = wikilink:match(mdn_patterns.wikilink_contents)
+    local wikilink_no_fragment = wikilink_contents:match(mdn_patterns.dest_no_fragment)
+    local fragment = wikilink_contents:match(mdn_patterns.fragment)
+    local alias = wikilink_contents:match(mdn_patterns.wikilink_alias)
 
-    return vim.tbl_extend("keep", {
+    return vim.tbl_extend("force", {
         wikilink_nofrag = wikilink_no_fragment,
         fragment = fragment,
         alias = alias,
@@ -381,24 +380,23 @@ end
 function M.delete(opts)
     opts = opts or {}
 
+    local wldata = M.parse({ location = opts.location })
+    if wldata == nil then
+        return false, ""
+    end
+
     local skip_input = opts.skip_input or false
 
-    local found_file = ""
-    local deleted = false
-    local cwd = require('mdnotes').cwd
-    local mdn_wikilink_pattern = require('mdnotes.patterns').wikilink
-    local delete_format = require('mdnotes.formatting').delete_format
-
-    local wldata = M.parse({ location = opts.location })
-    if wldata == nil then return false, "" end
-
     -- Append .md to guarantee a file name
+    local found_file = ""
     if not vim.endswith(wldata.wikilink_nofrag, ".md") then
         found_file = wldata.wikilink_nofrag .. ".md"
     else
         found_file = wldata.wikilink_nofrag
     end
 
+    local deleted = false
+    local cwd = require('mdnotes').cwd
     local path = vim.fs.normalize(vim.fs.joinpath(cwd, found_file))
     if uv.fs_stat(path) then
         if skip_input == false then
@@ -421,7 +419,7 @@ function M.delete(opts)
         vim.notify("Mdn: WikiLink file not found so proceeding to remove text only", vim.log.levels.WARN)
     end
 
-    delete_format(mdn_wikilink_pattern, { location = opts.location, move_cursor = opts.move_cursor })
+    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {wldata.wikilink_nofrag})
 
     return deleted, wldata.wikilink_nofrag
 end

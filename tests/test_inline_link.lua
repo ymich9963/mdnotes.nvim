@@ -49,7 +49,8 @@ T['parse()'] = function()
         col_start = 1,
         col_end = 40,
         cur_col = 2,
-        title = ""
+        title = "",
+        raw = "[file1](tests/test-data/files/file1.md)",
     })
 
     child.fn.cursor(1,42)
@@ -63,7 +64,8 @@ T['parse()'] = function()
         col_start = 41,
         col_end = 80,
         cur_col = 42,
-        title = ""
+        title = "",
+        raw = "[file2](tests/test-data/files/file2.md)",
     })
 
     -- File inline links with sections
@@ -78,7 +80,8 @@ T['parse()'] = function()
         col_start = 1,
         col_end = 50,
         cur_col = 2,
-        title = ""
+        title = "",
+        raw = "[file1](tests/test-data/files/file1.md#section-2)"
     })
 
     child.fn.cursor(2,60)
@@ -92,7 +95,8 @@ T['parse()'] = function()
         col_start = 51,
         col_end = 97,
         cur_col = 60,
-        title = ""
+        title = "",
+        raw = "[file2](tests/test-data/files/file2.md#file-2)"
     })
 
     -- Inline images
@@ -107,7 +111,8 @@ T['parse()'] = function()
         col_start = 1,
         col_end = 55,
         cur_col = 2,
-        title = ""
+        title = "",
+        raw = "![image1](tests/test-data/images/neovim-mark-flat.svg)"
     })
 
     child.fn.cursor(3,60)
@@ -121,7 +126,8 @@ T['parse()'] = function()
         col_start = 56,
         col_end = 105,
         cur_col = 60,
-        title = ""
+        title = "",
+        raw = "![image2](tests/test-data/images/neovim-mark.svg)",
     })
 
     child.fn.cursor(4,2)
@@ -135,7 +141,8 @@ T['parse()'] = function()
         col_start = 1,
         col_end = 27,
         cur_col = 2,
-        title = ""
+        title = "",
+        raw = "[url1](https://neovim.io/)",
     })
 
     child.fn.cursor(4,60)
@@ -149,7 +156,8 @@ T['parse()'] = function()
         col_start = 28,
         col_end = 68,
         cur_col = 60,
-        title = ""
+        title = "",
+        raw = "[url2](https://neovim.io/doc/user/#Q_ct)",
     })
 
     -- Same file section
@@ -164,7 +172,8 @@ T['parse()'] = function()
         col_start = 1,
         col_end = 25,
         cur_col = 2,
-        title = ""
+        title = "",
+        raw = "[section](#test-section)",
     })
 
     child.fn.cursor(6,2)
@@ -178,7 +187,8 @@ T['parse()'] = function()
         col_start = 1,
         col_end = 33,
         cur_col = 2,
-        title = "title"
+        title = "title",
+        raw = "[section](#test-section \"title\")",
     })
 end
 
@@ -344,7 +354,8 @@ T['parse_lines()'] = function()
             lnum = 3,
             text = "test",
             title = "",
-            destination = "link"
+            destination = "link",
+            raw = "[test](link)"
         }
     })
     ret = child.lua([[return require('mdnotes.inline_link').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])

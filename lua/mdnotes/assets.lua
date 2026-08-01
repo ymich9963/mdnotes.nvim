@@ -267,10 +267,10 @@ function M.insert(opts)
         return
     end
 
-    if txtdata.text == "" then
+    if txtdata.raw == "" then
         vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.cur_col - 1, txtdata.lnum - 1, txtdata.cur_col - 1, {asset_il.inline_link})
     else
-        vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {("%s[%s](%s)"):format(asset_il.img_char, txtdata.text, asset_il.asset_path)})
+        vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {("%s[%s](%s)"):format(asset_il.img_char, txtdata.raw, asset_il.asset_path)})
     end
 end
 

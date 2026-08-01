@@ -133,7 +133,7 @@ T['get_text()'] = function()
         col_start = 1,
         col_end = 5,
         cur_col = 1,
-        text = "test3",
+        raw = "test3",
     })
 
     ret = child.lua([[
@@ -150,7 +150,7 @@ T['get_text()'] = function()
         col_start = 1,
         col_end = 5,
         cur_col = 1,
-        text = "test5",
+        raw = "test5",
     })
 end
 
@@ -176,7 +176,7 @@ T['get_text_in_pattern()'] = function()
         col_start = 1,
         col_end = 5,
         cur_col = 3,
-        text = "",
+        raw = "",
     })
 
     ret = child.lua([[
@@ -194,7 +194,7 @@ T['get_text_in_pattern()'] = function()
         col_start = 1,
         col_end = 8,
         cur_col = 1,
-        text = "test1",
+        raw = "test1",
     })
 end
 

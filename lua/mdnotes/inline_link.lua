@@ -2,7 +2,7 @@
 
 local M = {}
 
----@class MdnInlineLinkData: MdnInLineLocation
+---@class MdnInlineLinkData: MdnText
 ---@field img_char '"!"'|'""' Inline link image character
 ---@field text string Inline link text
 ---@field destination string Inline link destination
@@ -29,7 +29,7 @@ function M.parse(opts)
     if opts.location ~= nil or inline_link == nil then
         if not check_markdown_syntax(il_pattern, { location = opts.location }) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = opts.location })
-        inline_link = txtdata.text or ""
+        inline_link = txtdata.raw or ""
     end
 
     local text, destination = inline_link:match(require("mdnotes.patterns").text_dest)
@@ -49,7 +49,7 @@ function M.parse(opts)
     end
 
     -- Table key 'text' also exists in txtdata but does not get ovewritten with "keep" behaviour
-    return vim.tbl_extend("keep", {
+    return vim.tbl_extend("force", {
         img_char = img_char,
         text = text,
         destination = destination,
@@ -131,7 +131,7 @@ function M.insert(opts)
     local txtdata = require('mdnotes').get_text({ location = opts.location })
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '](' .. destination .. ')'})
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.raw .. '](' .. destination .. ')'})
 
     if move_cursor == true then
         vim.cmd.buffer(txtdata.buf)

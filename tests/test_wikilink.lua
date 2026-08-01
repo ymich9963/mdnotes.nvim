@@ -37,7 +37,7 @@ T['parse()'] = function()
         col_start = 1,
         cur_col = 1,
         lnum = 1,
-        text = "test#fragment|alias",
+        raw = "[[test#fragment|alias]]",
         wikilink_nofrag = "test",
         fragment = "fragment",
         alias = "alias",
@@ -276,8 +276,8 @@ T['parse_lines()'] = function()
             col_start = 1,
             cur_col = 5,
             lnum = 3,
-            text = "test",
-            wikilink_nofrag = "test"
+            raw = "[[test]]",
+            wikilink_nofrag = "test",
         }
     })
     ret = child.lua([[return require('mdnotes.wikilink').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])

@@ -22,7 +22,7 @@ local M = {}
 ---@field task string Task item pattern
 ---@field heading string Heading pattern
 M = {
-    wikilink = "()%[%[(.-)%]%]()",
+    wikilink = "()(%[%[.-%]%])()",
     inline_link = "()([!]?%[[^%]]+%]%([^%)]+%))()",
     strong = "()[%*_][%*_]([^%*_].-)[%*_][%*_]()",
     emphasis = "()[%*_]([^%*_].-)[%*_]()",
@@ -41,6 +41,7 @@ M = {
     dest_title = ".+%s\"([^\"]*)\"",
     dest_no_fragment = "^([^#]+).*",
     fragment = "#([^|]*)",
+    wikilink_contents = "%[%[(.-)%]%]",
     wikilink_alias = ".+|([^|]+)",
     task = "[%s]-(%[[ xX]%])[%s]+.-",
     text_label = "%[([^%]]+)%]%[(.-)%]",

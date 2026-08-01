@@ -2638,7 +2638,7 @@ MdnText		 					*mdnotes.MdnText*
     Inherits from |mdnotes.MdnInLineLocation|.
 
     Fields: ~
-    • {text}  (`string?`) Text in the corresponding location
+    • {raw}  (`string?`) Raw text in the corresponding location
 
 MdnFragment	 					*mdnotes.MdnFragment*
 
@@ -2771,7 +2771,7 @@ MdnInlineLinkData 					*mdnotes.MdnInlineLinkData*
 
     Data object of an inline link.
 
-    Inherits from |mdnotes.MdnInLineLocation|.
+    Inherits from |mdnotes.MdnText|.
 
     Fields: ~
     • {img_char} (`'"!"'|'""'`) Inline link image character
@@ -2827,7 +2827,7 @@ MdnReferenceLinkData 					*mdnotes.MdnReferenceLinkData*
 
     Data object of a reference link.
 
-    Inherits from |mdnotes.MdnInLineLocation|.
+    Inherits from |mdnotes.MdnText|.
 
     Fields: ~
     • {text} (`string`) Reference link text
@@ -2885,7 +2885,7 @@ MdnWikiLinkData						*mdnotes.MdnWikiLinkData*
 
     Data of a WikiLink.
 
-    Inherits from |mdnotes.MdnInLineLocation|.
+    Inherits from |mdnotes.MdnText|.
 
     Fields: ~
     • {wikilink_nofrag} (`string`) WikiLink without the fragment
