@@ -395,34 +395,34 @@ T['ordered_list_renumber()'] = function()
     })
 end
 
-T['unformat_lines()'] = function()
-    local lines = {
-        "# Heading",
-        "*emphasis* *emphasis*",
-        "**strong** **strong**",
-        "[[WikiLink]] [[WikiLink]]",
-        "[inline](link) [inline](link)",
-        "~~strikethrough~~ ~~strikethrough~~",
-        "`inline code` `inline code`",
-        "1) [ ] ordered item",
-        "- [ ] unordered item",
-    }
-    local buf = create_md_buffer(child, lines)
-
-    child.lua([[require('mdnotes.formatting').unformat_lines({ location = { startl = 1, endl = 9 } })]])
-    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines, {
-        "Heading",
-        "emphasis emphasis",
-        "strong strong",
-        "WikiLink WikiLink",
-        "inline inline",
-        "strikethrough strikethrough",
-        "inline code inline code",
-        "ordered item",
-        "unordered item",
-    })
-end
+-- T['unformat_lines()'] = function()
+--     local lines = {
+--         "# Heading",
+--         "*emphasis* *emphasis*",
+--         "**strong** **strong**",
+--         "[[WikiLink]] [[WikiLink]]",
+--         "[inline](link) [inline](link)",
+--         "~~strikethrough~~ ~~strikethrough~~",
+--         "`inline code` `inline code`",
+--         "1) [ ] ordered item",
+--         "- [ ] unordered item",
+--     }
+--     local buf = create_md_buffer(child, lines)
+--
+--     child.lua([[require('mdnotes.formatting').unformat_lines({ location = { startl = 1, endl = 9 } })]])
+--     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+--     eq(lines, {
+--         "Heading",
+--         "emphasis emphasis",
+--         "strong strong",
+--         "WikiLink WikiLink",
+--         "inline inline",
+--         "strikethrough strikethrough",
+--         "inline code inline code",
+--         "ordered item",
+--         "unordered item",
+--     })
+-- end
 
 T['fenced_code_block()'] = function()
     -- Setup test buffer

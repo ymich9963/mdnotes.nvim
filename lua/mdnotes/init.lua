@@ -29,7 +29,7 @@ local uv = vim.loop or vim.uv
 ---@field endl integer? End line of the item
 
 ---@class MdnText: MdnInLineLocation
----@field text string? Text in the corresponding location
+---@field raw string? Raw text in the corresponding location
 
 ---@type MdnConfig
 M.config = {}
@@ -351,7 +351,8 @@ function M.get_text(opts)
         col_end = #line
     end
 
-    local text = line:sub(col_start, col_end)
+    -- Raw text
+    local raw = line:sub(col_start, col_end)
 
     -- This would happen by default when executing in Normal mode
     if col_start == col_end then
@@ -360,12 +361,12 @@ function M.get_text(opts)
             vim.fn.cursor(lnum, cur_col)
 
             -- Get the word under cursor and cursor position
-            text = vim.fn.expand("<cWORD>")
+            raw = vim.fn.expand("<cWORD>")
         end)
 
         -- Search for the word in the line and check if it's under the cursor
         for i = 1, #line do
-            local start_pos, end_pos = line:find(text, i, true)
+            local start_pos, end_pos = line:find(raw, i, true)
             if start_pos and end_pos then
                 if start_pos <= cur_col and end_pos >= cur_col then
                     col_start = start_pos
@@ -386,7 +387,7 @@ function M.get_text(opts)
         col_start = col_start,
         col_end = col_end,
         cur_col = cur_col,
-        text = text,
+        raw = raw,
     }
 end
 
@@ -409,12 +410,12 @@ function M.get_text_in_pattern(pattern, opts)
 
     local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
 
-    local found_text = ""
+    local found_raw_text = ""
     for start_pos, search_text, end_pos in line:gmatch(pattern) do
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
         if start_pos <= cur_col and end_pos > cur_col then
-            found_text = search_text
+            found_raw_text = search_text
             col_start = start_pos
             col_end = end_pos
             break
@@ -427,7 +428,7 @@ function M.get_text_in_pattern(pattern, opts)
         col_start = col_start,
         col_end = col_end,
         cur_col = cur_col,
-        text = found_text,
+        raw = found_raw_text,
     }
 end
 

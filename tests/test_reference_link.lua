@@ -54,6 +54,7 @@ T['parse()'] = function()
         col_start = 1,
         col_end = 11,
         cur_col = 2,
+        raw = "[neovim][]",
     })
 
     child.fn.cursor(2,2)
@@ -66,6 +67,7 @@ T['parse()'] = function()
         col_start = 1,
         col_end = 15,
         cur_col = 2,
+        raw = "[test][neovim]",
     })
 end
 
@@ -421,7 +423,8 @@ T['parse_lines()'] = function()
             cur_col = 5,
             lnum = 3,
             text = "file1",
-            label = "file1"
+            label = "file1",
+            raw = "[file1][]",
         }
     })
     ret = child.lua([[return require('mdnotes.reference_link').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])

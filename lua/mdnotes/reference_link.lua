@@ -15,7 +15,7 @@ local M = {}
 ---@type table<MdnBufReferenceLinkDefintions>
 M.buf_reference_link_definitions = {}
 
----@class MdnReferenceLinkData: MdnInLineLocation
+---@class MdnReferenceLinkData: MdnText
 ---@field text string Reference link text
 ---@field label string Reference link label
 
@@ -38,7 +38,7 @@ function M.parse(opts)
     if reference_link == nil then
         if not check_markdown_syntax(rl_pattern, { location = opts.location }) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(rl_pattern, { location = opts.location })
-        reference_link = txtdata.text or ""
+        reference_link = txtdata.raw or ""
     end
 
     local text, label = reference_link:match(require("mdnotes.patterns").text_label)
@@ -48,7 +48,7 @@ function M.parse(opts)
     end
 
     -- Table key 'text' also exists in txtdata but does not get ovewritten with "keep" behaviour
-    return vim.tbl_extend("keep", {
+    return vim.tbl_extend("force", {
         text = text,
         label = label,
     }, txtdata)
@@ -127,7 +127,7 @@ function M.insert(opts)
     local link_label = opts.label or ""
     local def_label = opts.label or txtdata.text
 
-    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.text .. '][' .. link_label .. ']'})
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {'[' .. txtdata.raw .. '][' .. link_label .. ']'})
 
     if rldef == nil then
         vim.api.nvim_buf_set_lines(txtdata.buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[' .. def_label .. ']: ' ..  destination})
@@ -608,7 +608,7 @@ function M.get_rl_from_picker(buf)
 
     local sel_list = {}
     for _, v in ipairs(parsed_tbl) do
-        table.insert(sel_list, M.get_rl_from_obj(v))
+        table.insert(sel_list, v.raw)
     end
 
     local rl_index = nil
@@ -622,7 +622,7 @@ function M.get_rl_from_picker(buf)
         return
     end
 
-    return M.get_rl_from_obj(parsed_tbl[rl_index])
+    return parsed_tbl[rl_index].raw
 end
 
 return M

@@ -10,7 +10,7 @@ M.old_filenames = {}
 ---@type table<string>
 M.new_filenames = {}
 
----@class MdnWikiLinkData: MdnInLineLocation
+---@class MdnWikiLinkData: MdnText
 ---@field wikilink_nofrag string WikiLink without the fragment
 ---@field fragment string The fragment in the WikiLink
 ---@field alias string WikiLink alias
@@ -36,16 +36,15 @@ function M.parse(opts)
     if opts.location ~= nil or wikilink == nil then
         if not check_markdown_syntax(mdn_patterns.wikilink, {location = opts.location}) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.wikilink, { location = opts.location })
-        wikilink = txtdata.text
-    else
-        _, wikilink, _ = wikilink:match(mdn_patterns.wikilink)
+        wikilink = txtdata.raw or ""
     end
 
-    local wikilink_no_fragment = wikilink:match(mdn_patterns.dest_no_fragment)
-    local fragment = wikilink:match(mdn_patterns.fragment)
-    local alias = wikilink:match(mdn_patterns.wikilink_alias)
+    local wikilink_contents = wikilink:match(mdn_patterns.wikilink_contents)
+    local wikilink_no_fragment = wikilink_contents:match(mdn_patterns.dest_no_fragment)
+    local fragment = wikilink_contents:match(mdn_patterns.fragment)
+    local alias = wikilink_contents:match(mdn_patterns.wikilink_alias)
 
-    return vim.tbl_extend("keep", {
+    return vim.tbl_extend("force", {
         wikilink_nofrag = wikilink_no_fragment,
         fragment = fragment,
         alias = alias,
@@ -141,12 +140,16 @@ function M.show_references(opts)
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
 
+    if silent == false then
+        vim.notify("Mdn: Searching references for '" .. wldata.raw:sub(3, -3) .. "'...", vim.log.levels.INFO)
+    end
+
     mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
 
     local qflist = vim.fn.getqflist()
     if vim.tbl_isempty(qflist) then
         if silent == false then
-            vim.notify("Mdn: No references found for '" .. wldata.wikilink_nofrag .. "'", vim.log.levels.ERROR)
+            vim.notify("Mdn: No references found for '" .. wldata.raw:sub(3, -3) .. "'", vim.log.levels.ERROR)
         end
 
         return qflist
@@ -229,6 +232,10 @@ function M.rename_references(opts)
         end
     end
 
+    if silent == false then
+        vim.notify("Mdn: Renaming references of '" .. wldata.raw:sub(3, -3) .. "' to '" .. new_name .. "'", vim.log.levels.INFO)
+    end
+
     -- Change all [[WikiLink]] text to be the new name
     vim.cmd.wall({bang = true, mods = {silent = true}})
     mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
@@ -274,7 +281,7 @@ function M.rename_references(opts)
     vim.cmd.write({bang = true, mods = {silent = true}})
 
     if silent == false then
-        vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.wikilink_nofrag, new_name), vim.log.levels.INFO)
+        vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.raw:sub(3, -3), new_name), vim.log.levels.INFO)
     end
 
     return wldata.wikilink_nofrag, new_name
@@ -308,6 +315,10 @@ function M.undo_rename(opts)
     local cur_pos = vim.fn.getpos('.')
     local cwd = require('mdnotes').cwd
     local mdn_grep = require('mdnotes').mdn_grep
+
+    if silent == false then
+        vim.notify("Mdn: Undoing rename...", vim.log.levels.INFO)
+    end
 
     vim.cmd.wall({bang = true, mods = {silent = true}})
     mdn_grep("\\[\\[".. newest_filename .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
@@ -369,24 +380,23 @@ end
 function M.delete(opts)
     opts = opts or {}
 
+    local wldata = M.parse({ location = opts.location })
+    if wldata == nil then
+        return false, ""
+    end
+
     local skip_input = opts.skip_input or false
 
-    local found_file = ""
-    local deleted = false
-    local cwd = require('mdnotes').cwd
-    local mdn_wikilink_pattern = require('mdnotes.patterns').wikilink
-    local delete_format = require('mdnotes.formatting').delete_format
-
-    local wldata = M.parse({ location = opts.location })
-    if wldata == nil then return false, "" end
-
     -- Append .md to guarantee a file name
+    local found_file = ""
     if not vim.endswith(wldata.wikilink_nofrag, ".md") then
         found_file = wldata.wikilink_nofrag .. ".md"
     else
         found_file = wldata.wikilink_nofrag
     end
 
+    local deleted = false
+    local cwd = require('mdnotes').cwd
     local path = vim.fs.normalize(vim.fs.joinpath(cwd, found_file))
     if uv.fs_stat(path) then
         if skip_input == false then
@@ -409,7 +419,7 @@ function M.delete(opts)
         vim.notify("Mdn: WikiLink file not found so proceeding to remove text only", vim.log.levels.WARN)
     end
 
-    delete_format(mdn_wikilink_pattern, { location = opts.location, move_cursor = opts.move_cursor })
+    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {wldata.wikilink_nofrag})
 
     return deleted, wldata.wikilink_nofrag
 end
@@ -543,7 +553,7 @@ function M.get_wl_from_picker(buf)
 
     local sel_list = {}
     for _, v in ipairs(parsed_tbl) do
-        table.insert(sel_list, M.get_wl_from_obj(v):sub(3, -3))
+        table.insert(sel_list, v.raw:sub(3, -3))
     end
 
     local wl_index = nil
@@ -557,7 +567,7 @@ function M.get_wl_from_picker(buf)
         return
     end
 
-    return M.get_wl_from_obj(parsed_tbl[wl_index])
+    return parsed_tbl[wl_index].raw
 end
 
 ---Parse the WikiLinks in the specified lines
@@ -578,6 +588,5 @@ function M.parse_lines(opts)
 
     return parse_lines(pattern, M.parse, {location = opts.location, silent = silent, get_func = get_func})
 end
-
 
 return M
