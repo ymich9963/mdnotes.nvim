@@ -141,7 +141,7 @@ function M.show_references(opts)
     local mdn_grep = require('mdnotes').mdn_grep
 
     if silent == false then
-        vim.notify("Mdn: Searching references for '" .. wldata.wikilink_nofrag .. "'...", vim.log.levels.INFO)
+        vim.notify("Mdn: Searching references for '" .. wldata.raw:sub(3, -3) .. "'...", vim.log.levels.INFO)
     end
 
     mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
@@ -149,7 +149,7 @@ function M.show_references(opts)
     local qflist = vim.fn.getqflist()
     if vim.tbl_isempty(qflist) then
         if silent == false then
-            vim.notify("Mdn: No references found for '" .. wldata.wikilink_nofrag .. "'", vim.log.levels.ERROR)
+            vim.notify("Mdn: No references found for '" .. wldata.raw:sub(3, -3) .. "'", vim.log.levels.ERROR)
         end
 
         return qflist
@@ -233,7 +233,7 @@ function M.rename_references(opts)
     end
 
     if silent == false then
-        vim.notify("Mdn: Renaming references of '" .. wldata.wikilink_nofrag .. "' to '" .. new_name .. "'", vim.log.levels.INFO)
+        vim.notify("Mdn: Renaming references of '" .. wldata.raw:sub(3, -3) .. "' to '" .. new_name .. "'", vim.log.levels.INFO)
     end
 
     -- Change all [[WikiLink]] text to be the new name
@@ -281,7 +281,7 @@ function M.rename_references(opts)
     vim.cmd.write({bang = true, mods = {silent = true}})
 
     if silent == false then
-        vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.wikilink_nofrag, new_name), vim.log.levels.INFO)
+        vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.raw:sub(3, -3), new_name), vim.log.levels.INFO)
     end
 
     return wldata.wikilink_nofrag, new_name
