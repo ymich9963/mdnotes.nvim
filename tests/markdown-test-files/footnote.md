@@ -1,9 +1,12 @@
 # Footnote
 
-This is a footnote [^1] for testing. Another one here [^2]. [^test]
+[^5] test
+
+This is a footnote [^1] for testing. Another one here [^3]. [^test]
 
 [^1]
 
-[^test]: another
-[^2]: This is the contents of the footnote
-[^1]: This is the contents of the footnote
+[^test]: footnote test
+[^3]: footnote 3
+[^1]: footnote 1
+[^4]: footnote 4

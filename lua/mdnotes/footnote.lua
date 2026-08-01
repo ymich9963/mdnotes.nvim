@@ -28,36 +28,32 @@ M.fcounter = 1
 function M.parse(opts)
     opts = opts or {}
 
-    local footnote_reference = opts.footnote_reference
+    local fref = opts.footnote_reference
     local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
 
-    vim.validate("reference_link", footnote_reference, { "string", "nil" })
+    vim.validate("reference_link", fref, { "string", "nil" })
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
 
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
-    local f_pattern = require("mdnotes.patterns").footnote_reference
+    local fref_pattern = require("mdnotes.patterns").footnote_reference
+    local f_pattern = require("mdnotes.patterns").footnote
     local txtdata = {}
 
-    if footnote_reference == nil then
-        if not check_markdown_syntax(f_pattern, { location = opts.location }) then return nil end
-        txtdata = require('mdnotes').get_text_in_pattern(f_pattern, { location = opts.location })
-        footnote_reference = txtdata.text or ""
+    if fref == nil then
+        if not check_markdown_syntax(fref_pattern, { location = opts.location }) then return nil end
+        txtdata = require('mdnotes').get_text_in_pattern(fref_pattern, { location = opts.location })
+        fref = txtdata.text or ""
+
+        -- Check if a footnote was matched instead of a footnote reference
+        local line = vim.api.nvim_buf_get_lines(txtdata.buf, txtdata.lnum - 1, txtdata.lnum, false)[1]
+        if line:match(f_pattern) then return nil end
     end
 
-    local identifier = footnote_reference:match(require("mdnotes.patterns").footnote_identifier)
-    local number = tonumber(identifier)
-    local type
-    if number ~= nil then
-        type = "numeric"
-        identifier = number
-    else
-        type = "word"
-    end
+    local identifier = fref:match(require("mdnotes.patterns").footnote_identifier)
 
     -- Table key 'text' also exists in txtdata but does not get ovewritten with "keep" behaviour
     return vim.tbl_extend("keep", {
         identifier = identifier,
-        type = type,
     }, txtdata)
 end
 
@@ -263,8 +259,8 @@ function M.update_footnote(opts)
 
     -- Execute changes for reference links
     for _, v in pairs(parsed_tbl) do
-        if v.label == identifier then
-            v.label = new_identifier
+        if v.identifier == identifier then
+            v.identifier = new_identifier
             vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {M.get_fref_from_obj(v)})
         end
     end
@@ -289,7 +285,7 @@ function M.cleanup(opts)
     local footnotes_tbl = M.get_buf_footnotes({ buf = buf })
     if footnotes_tbl == nil then
         if silent == false then
-            vim.notify("Mdn: No reference link definitions found in buffer", vim.log.levels.ERROR)
+            vim.notify("Mdn: No footnotes found in buffer", vim.log.levels.ERROR)
         end
 
         return
@@ -298,7 +294,7 @@ function M.cleanup(opts)
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
     if parsed_tbl == nil then
         if silent == false then
-            vim.notify("Mdn: No reference links in current buffer", vim.log.levels.ERROR)
+            vim.notify("Mdn: No footnote references in current buffer", vim.log.levels.ERROR)
         end
 
         return
@@ -309,32 +305,33 @@ function M.cleanup(opts)
     end)
 
     for _, v in ipairs(footnotes_tbl) do
-        local found_def = false
+        local found_f = false
         for _, vv in pairs(parsed_tbl) do
-            if v.label == vv.label then
-                found_def = true
+            if v.identifier == vv.identifier then
+                found_f = true
                 break
             end
         end
-        if found_def == false then
+        if found_f == false then
             vim.api.nvim_buf_set_lines(buf, v.lnum - 1, v.lnum, false, {})
         end
     end
 
-    M.populate_buf_footnotes(buf)
-
+    footnotes_tbl = M.get_buf_footnotes({ buf = buf }) or {}
     for _, v in pairs(parsed_tbl) do
-        local found_link = false
+        local found_fref = false
         for _, vv in pairs(footnotes_tbl) do
-            if v.label == vv.label then
-                found_link = true
+            if v.identifier == vv.identifier then
+                found_fref = true
                 break
             end
         end
-        if found_link == false then
-            vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {v.text})
+        if found_fref == false then
+            vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {})
         end
     end
+
+    M.populate_buf_footnotes(buf)
 end
 
 ---Get an reference link string from an MdnReferenceLinkData object
@@ -342,40 +339,26 @@ end
 ---@return string reference_link
 function M.get_fref_from_obj(fdata)
     if fdata == nil then return "" end
-    return '[' .. fdata.identifier .. ']'
+    return '[^' .. fdata.identifier .. ']'
 end
 
 ---Parse the reference links in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?}?
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?, no_duplicates: boolean?}?
 ---@return table<MdnReferenceLinkData>?
 function M.parse_lines(opts)
     opts = opts or {}
 
-    local locopts = opts.location or {}
-    local buf = locopts.buf or vim.api.nvim_get_current_buf()
-    local startl = locopts.startl or vim.fn.line('.')
-    local endl = locopts.endl or vim.fn.line('.')
+    local silent = opts.silent or false
     local str = opts.str or false
-
     local pattern = require('mdnotes.patterns').footnote_reference
-    local scan_lines = require('mdnotes').scan_lines
+    local parse_lines = require('mdnotes').parse_lines
 
-    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
-    if scanned_lines == nil then return nil end
-
-    local parsed_tbl = {}
-    for _, item in ipairs(scanned_lines) do
-        for _, cols in ipairs(item.cols) do
-            local data = M.parse({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
-            if str == true then
-                table.insert(parsed_tbl, M.get_fref_from_obj(data))
-            else
-                table.insert(parsed_tbl, data)
-            end
-        end
+    local get_func = nil
+    if str == true then
+        get_func = M.get_fref_from_obj
     end
 
-    return parsed_tbl
+    return parse_lines(pattern, M.parse, {location = opts.location, silent = silent, no_duplicates = opts.no_duplicates, get_func = get_func})
 end
 
 ---Find occurences of the same label in the reference link
@@ -440,7 +423,10 @@ function M.renumber(opts)
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
 
-    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+    -- Cleanup before renumbering
+    M.cleanup({buf = buf})
+
+    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true, no_duplicates = true})
     if parsed_tbl == nil then
         if silent == false then
             vim.notify("Mdn: No footnote references in current buffer", vim.log.levels.ERROR)
@@ -449,11 +435,53 @@ function M.renumber(opts)
         return
     end
 
-    for i, v in pairs(parsed_tbl) do
-        if v.type == "numeric" then
-            
+    -- Remove words
+    local parsed_numbers = {}
+    for _, v in ipairs(parsed_tbl) do
+        if tonumber(v.identifier) ~= nil then
+            table.insert(parsed_numbers, v)
         end
     end
+
+    -- Renumber references and footnotes
+    for i, v in ipairs(parsed_numbers) do
+        M.update_footnote({identifier = v.identifier, new_identifier = tostring(i), skip_input = true, silent = silent, location = opts.location })
+    end
+
+    -- Set new counter
+    M.fcounter = #parsed_numbers
+
+    -- Re-order footnotes based on new numbers
+    local footnotes_tbl = M.get_buf_footnotes({buf = buf})
+    if footnotes_tbl == nil then
+        if silent == false then
+            vim.notify("Mdn: No footnotes found in buffer", vim.log.levels.ERROR)
+        end
+
+        return
+    end
+
+    local temp_lnum = 0
+    table.sort(footnotes_tbl, function(a, b)
+        if tonumber(a.identifier) == nil or tonumber(b.identifier) == nil then
+            return false
+        end
+
+        if tonumber(a.identifier) < tonumber(b.identifier) then
+            temp_lnum = b.lnum
+            b.lnum = a.lnum
+            a.lnum = temp_lnum
+            return true
+        end
+
+        return false
+    end)
+
+    for _, v in ipairs(footnotes_tbl) do
+        vim.api.nvim_buf_set_lines(buf, v.lnum - 1, v.lnum, false, {M.get_footnote_from_obj(v)})
+    end
+
+    M.populate_buf_footnotes(buf)
 end
 
 return M

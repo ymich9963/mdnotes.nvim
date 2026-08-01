@@ -208,6 +208,15 @@ local get_commands = function() return {
         convert_from_inline = require("mdnotes.reference_link").convert_from_inline,
         find_label_occurences = require("mdnotes.reference_link").find_label_occurences
     },
+    footnote = {
+        insert = require("mdnotes.footnote").insert,
+        go_to_footnote = require("mdnotes.footnote").go_to_footnote,
+        update_footnote = require("mdnotes.footnote").update_footnote,
+        cleanup = require("mdnotes.footnote").cleanup,
+        find_footnote_references = require("mdnotes.footnote").find_footnote_references,
+        renumber = require("mdnotes.footnote").renumber,
+        populate_buf_footnotes = require("mdnotes.footnote").populate_buf_footnotes,
+    },
     miscellaneous = {
         set_cwd = require("mdnotes").set_cwd,
         record_buf = require("mdnotes.history").record_buf,

@@ -979,13 +979,29 @@ function M.view_fragments()
     vim.print(text)
 end
 
+local function is_parsed_tbl_duplicate(parsed_tbl, data)
+    if data == nil then return false end
+    if vim.tbl_contains(parsed_tbl, data) then
+        return true
+    end
+
+    for _, v in ipairs(parsed_tbl) do
+        if v.text == data.text then
+            return true
+        end
+    end
+
+    return false
+end
+
 ---Parse the pattern in the specified lines
 ---@param pattern string? Pattern to use
----@param opts {location: MdnMultiLineLocation?, silent: boolean?, get_func: fun(a): string?}?
+---@param opts {location: MdnMultiLineLocation?, silent: boolean?, no_duplicates: boolean?, get_func: fun(a): string?}?
 ---@return table<MdnReferenceLinkData>?
 function M.parse_lines(pattern, parse_func, opts)
     opts = opts or {}
 
+    local no_duplicates = opts.no_duplicates or false
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
@@ -1001,7 +1017,14 @@ function M.parse_lines(pattern, parse_func, opts)
     for _, item in ipairs(scanned_lines) do
         for _, cols in ipairs(item.cols) do
             local data = parse_func({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
-            table.insert(parsed_tbl, get_func(data))
+            data = get_func(data)
+            if no_duplicates == true then
+                if is_parsed_tbl_duplicate(parsed_tbl, data) == false then
+                    table.insert(parsed_tbl, data)
+                end
+            else
+                table.insert(parsed_tbl, data)
+            end
         end
     end
 
