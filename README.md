@@ -87,9 +87,9 @@ and specify your config using `opts = {}` or with a `setup({})` function,
     auto_list_continuation = true,  -- automatic list continuation
     default_keymaps = false,
     autocmds = true,                -- enable or disable plugin autocmds, check docs for enabling/disabling individual ones
-	table_best_fit_padding = 0,     -- add padding around cell contents when using tables_best_fit
+    table_best_fit_padding = 0,     -- add padding around cell contents when using tables_best_fit
     toc_depth = 4                   -- depth shown in the ToC
-	user_commands = {}              -- table with user commands in {command_name = function} scheme
+    user_commands = {}              -- table with user commands in {command_name = function} scheme
 }
 ```
 ### 📂 Directory Setup
@@ -142,15 +142,17 @@ vim.keymap.set("n", "<leader>mp", ":Mdn heading previous<CR>", { buffer = true, 
 vim.keymap.set("n", "<leader>mn", ":Mdn heading next<CR>", { buffer = true, desc = "Go to next Markdown heading" })
 ```
 ### 👩‍💻 Optional Settings
-Place these settings in your `<Neovim config path>/after/ftplugin/markdown.lua` file so that they are Markdown-specific. First one here is to enable wrapping only for the current Markdown buffer. 
+Place these settings in your `<Neovim config path>/after/ftplugin/markdown.lua` file so that they are Markdown-specific. 
+
+Enable wrapping only for the current Markdown buffer. 
 ```lua
 vim.wo[vim.api.nvim_get_current_win()][0].wrap = true -- Enable wrap for current .md buffer
 ```
-Second one is to disable LSP diagnostics in the current Markdown buffer.
+Disable LSP diagnostics in the current Markdown buffer.
 ```lua
 vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
 ```
-Last one here is for the glorious Neovim Windows users. Setting this keymap will allow you to use the built in `<C-x> <C-f>` file completion for WikiLinks or just for using file paths in Markdown buffers.
+This is for the glorious Neovim Windows users. Setting this keymap will allow you to use the built in `<C-x> <C-f>` file completion for WikiLinks or just for using file paths in Markdown buffers.
 ```lua
 vim.keymap.set("i", "<C-x><C-f>", "<cmd>set isfname-=[,]<CR><C-x><C-f><cmd>set isfname+=[,]<CR>",
 {
