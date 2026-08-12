@@ -42,7 +42,7 @@ function M.parse(opts)
     if fref == nil then
         if not check_markdown_syntax(fref_pattern, { location = opts.location }) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(fref_pattern, { location = opts.location })
-        fref = txtdata.text or ""
+        fref = txtdata.raw or ""
 
         -- Check if a footnote was matched instead of a footnote reference
         local line = vim.api.nvim_buf_get_lines(txtdata.buf, txtdata.lnum - 1, txtdata.lnum, false)[1]
@@ -52,7 +52,7 @@ function M.parse(opts)
     local identifier = fref:match(require("mdnotes.patterns").footnote_identifier)
 
     -- Table key 'text' also exists in txtdata but does not get ovewritten with "keep" behaviour
-    return vim.tbl_extend("keep", {
+    return vim.tbl_extend("force", {
         identifier = identifier,
     }, txtdata)
 end
@@ -122,12 +122,24 @@ function M.insert(opts)
     local identifier = opts.identifier
     local text = opts.text or ""
 
-    if identifier == nil then
-        identifier = tostring(M.fcounter)
-        M.fcounter = M.fcounter + 1
+    -- Ensure fcounter is at the correct value
+    local buf_footnotes = {}
+    for _, v in pairs(M.buf_footnotes) do
+        if v.buf == buf then
+            buf_footnotes = v.footnotes
+        end
     end
 
-    vim.api.nvim_buf_set_text(buf, lnum - 1, cur_col, lnum - 1, cur_col, {'[^' .. identifier .. ']'})
+    if M.fcounter ~= #buf_footnotes then
+        M.fcounter = #buf_footnotes
+    end
+
+    if identifier == nil then
+        M.fcounter = M.fcounter + 1
+        identifier = tostring(M.fcounter)
+    end
+
+    vim.api.nvim_buf_set_text(buf, lnum - 1, cur_col - 1, lnum - 1, cur_col - 1, {'[^' .. identifier .. ']'})
 
     if M.get_footnote(identifier, buf) == nil then
         vim.api.nvim_buf_set_lines(buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[^' .. identifier .. ']: ' ..  text})
@@ -192,7 +204,7 @@ end
 
 ---Get a footnote string from an MdnFootnote object
 ---@param footnote MdnFootnote? Footnote object
----@return string reference_link_definition
+---@return string footnote
 function M.get_footnote_from_obj(footnote)
     if footnote == nil then return "" end
     return '[^' .. footnote.identifier .. ']: ' .. footnote.text
@@ -270,11 +282,10 @@ function M.update_footnote(opts)
     footnote.text = new_text or ""
     vim.api.nvim_buf_set_lines(buf, footnote.lnum - 1, footnote.lnum, false, {M.get_footnote_from_obj(footnote)})
 
-    vim.cmd.wall({bang = true, mods = {silent = true, noautocmd = true}})
     M.populate_buf_footnotes(buf)
 end
 
----Cleanup unused footnotes and references
+---Cleanup unused footnotes and footnote references
 ---@param opts {buf: integer?, silent: boolean?}?
 function M.cleanup(opts)
     opts = opts or {}
@@ -334,15 +345,15 @@ function M.cleanup(opts)
     M.populate_buf_footnotes(buf)
 end
 
----Get an reference link string from an MdnReferenceLinkData object
----@param fdata MdnFootnoteReferenceData? Reference link object
----@return string reference_link
+---Get a footnote reference string from an MdnFootnoteReferenceData object
+---@param fdata MdnFootnoteReferenceData? Footnote reference object
+---@return string fref
 function M.get_fref_from_obj(fdata)
     if fdata == nil then return "" end
     return '[^' .. fdata.identifier .. ']'
 end
 
----Parse the reference links in the specified lines
+---Parse the footnote references in the specified lines
 ---@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?, no_duplicates: boolean?}?
 ---@return table<MdnReferenceLinkData>?
 function M.parse_lines(opts)
@@ -361,7 +372,7 @@ function M.parse_lines(opts)
     return parse_lines(pattern, M.parse, {location = opts.location, silent = silent, no_duplicates = opts.no_duplicates, get_func = get_func})
 end
 
----Find occurences of the same label in the reference link
+---Find references of the same footnote identifier
 ---@param opts {identifier: string?, location: MdnInLineLocation?, silent: boolean?}?
 function M.find_footnote_references(opts)
     opts = opts or {}
@@ -403,8 +414,8 @@ function M.find_footnote_references(opts)
 
     local qflist = {}
     for _, v in pairs(parsed_tbl) do
-        if v.label == identifier then
-            table.insert(qflist, {bufnr = v.buf, lnum = v.lnum, col = v.start_col, end_col = v.end_coa, text = v.text})
+        if v.identifier == identifier then
+            table.insert(qflist, {bufnr = v.buf, lnum = v.lnum, col = v.start_col, end_col = v.end_col, text = v.raw})
         end
     end
 
@@ -414,7 +425,7 @@ function M.find_footnote_references(opts)
     return qflist
 end
 
----Find occurences of the same label in the reference link
+---Renumber integer footnote identifiers
 ---@param opts {location: MdnInLineLocation?, silent: boolean?}?
 function M.renumber(opts)
     opts = opts or {}

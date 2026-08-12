@@ -987,7 +987,7 @@ local function is_parsed_tbl_duplicate(parsed_tbl, data)
     end
 
     for _, v in ipairs(parsed_tbl) do
-        if v.text == data.text then
+        if v.raw == data.raw then
             return true
         end
     end

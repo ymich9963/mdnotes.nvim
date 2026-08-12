@@ -2784,6 +2784,14 @@ MdnPattern 						*mdnotes.MdnPattern*
     Alias for a Lua pattern that returns the start and end columns,
     as well as the text.
 
+MdnLinePattern 						*mdnotes.MdnLinePattern*
+
+    Alias for a Lua pattern that checks an entire line.
+
+MdnSubPattern 						*mdnotes.MdnSubPattern*
+
+    Alias for a Lua pattern that checks small sub-sections of the string.
+
 MdnPatterns 						*mdnotes.MdnPatterns*
 
     Patterns used throughout.
@@ -2796,15 +2804,20 @@ MdnPatterns 						*mdnotes.MdnPatterns*
     • {strikethrough} (`MdnPattern`) Strikethrough format delimiter pattern
     • {inline_code} (`MdnPattern`) Inline code format delimiter pattern
     • {autolink} (`MdnPattern`) Autolink format delimiter pattern
-    • {text_dest} (`string`) Text and destination from inline link pattern
-    • {dest_title} (`string`) Title from inline link destination
-    • {dest_no_fragment} (`string`) destination only pattern
-    • {fragment} (`string`) Fragment only pattern
-    • {wikilink_alias} (`string`) WikiLink alias
-    • {unordered_list} (`string`) Unordered list pattern
-    • {ordered_list} (`string`) Ordered list pattern
-    • {task} (`string`) Task item pattern
-    • {heading} (`string`) Heading pattern
+    • {reference_link} (`MdnPattern`) Reference link format delimiter pattern
+    • {footnote_reference} (`MdnPattern`) Footnote reference format delimiter pattern
+    • {heading} (`MdnLinePattern`) Heading pattern
+    • {unordered_list} (`MdnLinePattern`) Unordered list pattern
+    • {ordered_list} (`MdnLinePattern`) Ordered list pattern
+    • {reference_link_definition} (`MdnLinePattern`) Reference link definition pattern
+    • {code_fence} (`MdnLinePattern`) Code fence pattern
+    • {footnote} (`MdnLinePattern`) Footnote pattern
+    • {text_dest} (`MdnSubPattern`) Text and destination from inline link pattern
+    • {dest_title} (`MdnSubPattern`) Title from inline link destination
+    • {dest_no_fragment} (`MdnSubPattern`) destination only pattern
+    • {fragment} (`MdnSubPattern`) Fragment only pattern
+    • {wikilink_alias} (`MdnSubPattern`) WikiLink alias
+    • {task} (`MdnSubPattern`) Task item pattern
 
 MdnReferenceLinkDefinition				*mdnotes.MdnReferenceLinkDefinition*
 

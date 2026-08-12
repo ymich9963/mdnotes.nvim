@@ -3,6 +3,8 @@
 local M = {}
 
 ---@alias MdnPattern string Lua pattern that returns the start and end columns, as well as the text
+---@alias MdnLinePattern string Lua pattern that checks an entire line
+---@alias MdnSubPattern string Lua pattern that checks small sub-sections of the string
 
 ---@class MdnPatterns
 ---@field wikilink MdnPattern WikiLink pattern
@@ -12,15 +14,20 @@ local M = {}
 ---@field strikethrough MdnPattern Strikethrough format delimiter pattern
 ---@field inline_code MdnPattern Inline code format delimiter pattern
 ---@field autolink MdnPattern Autolink format delimiter pattern
----@field text_dest string Text and destination from inline link pattern
----@field dest_title string Title from inline link destination
----@field dest_no_fragment string destination only pattern
----@field fragment string Fragment only pattern
----@field wikilink_alias string WikiLink alias
----@field unordered_list string Unordered list pattern
----@field ordered_list string Ordered list pattern
----@field task string Task item pattern
----@field heading string Heading pattern
+---@field reference_link MdnPattern Reference link format delimiter pattern
+---@field footnote_reference MdnPattern Footnote reference format delimiter pattern
+---@field heading MdnLinePattern Heading pattern
+---@field unordered_list MdnLinePattern Unordered list pattern
+---@field ordered_list MdnLinePattern Ordered list pattern
+---@field reference_link_definition MdnLinePattern Reference link definition pattern
+---@field code_fence MdnLinePattern Code fence pattern
+---@field footnote MdnLinePattern Footnote pattern
+---@field text_dest MdnSubPattern Text and destination from inline link pattern
+---@field dest_title MdnSubPattern Title from inline link destination
+---@field dest_no_fragment MdnSubPattern destination only pattern
+---@field fragment MdnSubPattern Fragment only pattern
+---@field wikilink_alias MdnSubPattern WikiLink alias
+---@field task MdnSubPattern Task item pattern
 M = {
     wikilink = "()(%[%[.-%]%])()",
     inline_link = "()([!]?%[[^%]]+%]%([^%)]+%))()",
