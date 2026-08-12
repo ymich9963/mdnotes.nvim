@@ -134,6 +134,7 @@ function M.show_references(opts)
             fragment = "",
             alias = "",
         }
+        wldata.raw = "[[" .. wldata.wikilink_nofrag .. "]]"
     end
 
     local cur_pos = vim.fn.getpos('.')
@@ -199,6 +200,7 @@ function M.rename_references(opts)
             fragment = "",
             alias = "",
         }
+        wldata.raw = "[[" .. wldata.wikilink_nofrag .. "]]"
     end
 
     -- Remove the file extension for this function
