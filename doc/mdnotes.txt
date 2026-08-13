@@ -273,8 +273,9 @@ user_commands = `table`		 			*mdnotes-user_commands*
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*
 
-The Mdnotes plugin uses subcommands through calling `:Mdn <sub command>`. The
-subcommands are listed below.
+The Mdnotes plugin uses subcommands through calling `:Mdn <sub command>`.The
+subcommands are listed below. Make sure to write the buffers if any command
+changes buffer contents. 
 
 :Mdn index	 	                              	*:Mdn-index*
 

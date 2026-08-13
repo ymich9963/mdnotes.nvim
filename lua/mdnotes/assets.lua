@@ -573,9 +573,6 @@ function M.delete(opts)
         vim.notify(("Mdn: Unknown input '%s'"):format(user_input), vim.log.levels.ERROR)
     end
 
-    -- Save to ensure text is most recent
-    vim.cmd.wall({bang = true, mods = {silent = true}})
-
     -- Reset the text if a location for it was found
     if is_deleted == true then
         local mdn_grep = require('mdnotes').mdn_grep

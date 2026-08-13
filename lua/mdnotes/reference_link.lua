@@ -293,7 +293,6 @@ function M.update_definition(opts)
     rldef.destination = new_destination or ""
     vim.api.nvim_buf_set_lines(buf, rldef.lnum - 1, rldef.lnum, false, {M.get_rl_definition_from_obj(rldef)})
 
-    vim.cmd.wall({bang = true, mods = {silent = true, noautocmd = true}})
     M.populate_buf_reference_link_definitions(buf)
 end
 

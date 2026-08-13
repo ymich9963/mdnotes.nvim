@@ -189,8 +189,10 @@ T['undo_rename()'] = function()
 
     ret = child.lua([[return {require('mdnotes.wikilink').undo_rename()}]])
     eq(ret, {"file555", "file55"})
+    child.lua([[vim.cmd.wall()]])
     ret = child.lua([[return {require('mdnotes.wikilink').undo_rename()}]])
     eq(ret, {"file55", "file5"})
+    child.lua([[vim.cmd.wall()]])
 end
 
 T['create()'] = function()
