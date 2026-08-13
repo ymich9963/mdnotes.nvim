@@ -1,7 +1,7 @@
 *mdnotes.txt*         Markdown Notes for Neovim (mdnotes.nvim)
 
 Authors:
-    Yiannis Michael (yimich9963)
+    Yiannis Michael (ymic9963)
                                        Type |gO| to see the table of contents.
 
 ==============================================================================
