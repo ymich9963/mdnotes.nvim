@@ -23,16 +23,14 @@ M.fcounter = 1
 ---@field identifier string Footnote identifier
 
 ---Get the footnote reference text, and the start and end columns
----@param opts {footnote_reference: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
+---@param opts {footnote_reference: string?, location: MdnInLineLocation?}?
 ---@return MdnFootnoteReferenceData?
 function M.parse(opts)
     opts = opts or {}
 
     local fref = opts.footnote_reference
-    local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
 
-    vim.validate("reference_link", fref, { "string", "nil" })
-    vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
+    vim.validate("footnote_reference", fref, { "string", "nil" })
 
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
     local fref_pattern = require("mdnotes.patterns").footnote_reference
@@ -57,14 +55,14 @@ function M.parse(opts)
     }, txtdata)
 end
 
----Get the footnotes for specified buffer
----@param opts {buf: integer?, only_labels: boolean?}?
+---Get the footnotes of the specified buffer
+---@param opts {buf: integer?, only_identifiers: boolean?}?
 ---@return table<MdnFootnote|string>?
 function M.get_buf_footnotes(opts)
     opts = opts or {}
 
     local buf = opts.buf or vim.api.nvim_get_current_buf()
-    local only_labels = opts.only_labels or false
+    local only_identifiers = opts.only_identifiers or false
 
     local footnotes = {}
     local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
@@ -73,7 +71,7 @@ function M.get_buf_footnotes(opts)
     for lnum, line in ipairs(buf_lines) do
         local identifier, text = line:match(footnote_pattern)
         if identifier and text then
-            if only_labels == false then
+            if only_identifiers == false then
                 table.insert(footnotes, {identifier = string.lower(identifier), text = text, lnum = lnum})
             else
                 table.insert(footnotes, string.lower(identifier))
@@ -134,6 +132,7 @@ function M.insert(opts)
         M.fcounter = #buf_footnotes
     end
 
+    -- Set identifier based on fcounter if not given
     if identifier == nil then
         M.fcounter = M.fcounter + 1
         identifier = tostring(M.fcounter)
@@ -176,7 +175,7 @@ end
 
 ---Go to footnote
 ---@param opts {identifier: string?, location: MdnInLineLocation?, silent: boolean?}?
-function M.go_to_footnote(opts)
+function M.go_to(opts)
     opts = opts or {}
 
     local silent = opts.silent or false
@@ -210,9 +209,9 @@ function M.get_footnote_from_obj(footnote)
     return '[^' .. footnote.identifier .. ']: ' .. footnote.text
 end
 
----Update reference link definition label and destination
+---Update footnote identifier and text
 ---@param opts {identifier:string?, new_identifier: string?, new_text: string?, location: MdnInLineLocation?, skip_input: boolean?, silent: boolean?}?
-function M.update_footnote(opts)
+function M.update(opts)
     opts = opts or {}
 
     local identifier = opts.identifier
@@ -374,7 +373,7 @@ end
 
 ---Find references of the same footnote identifier
 ---@param opts {identifier: string?, location: MdnInLineLocation?, silent: boolean?}?
-function M.find_footnote_references(opts)
+function M.find_references(opts)
     opts = opts or {}
 
     local identifier = opts.identifier
@@ -456,7 +455,7 @@ function M.renumber(opts)
 
     -- Renumber references and footnotes
     for i, v in ipairs(parsed_numbers) do
-        M.update_footnote({identifier = v.identifier, new_identifier = tostring(i), skip_input = true, silent = silent, location = opts.location })
+        M.update({identifier = v.identifier, new_identifier = tostring(i), skip_input = true, silent = silent, location = opts.location })
     end
 
     -- Set new counter

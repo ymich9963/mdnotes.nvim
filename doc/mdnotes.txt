@@ -670,6 +670,37 @@ subcommands are listed below.
 
     Find occurences of the same label in the reference link.
 
+:Mdn footnote insert {identifier}			*Mdn-footnote-insert*
+
+    Insert a reference link optionally with the specified {identifier}. Invoking
+    |'wildchar'| (`<Tab>` by default) autocompletes the {identifier} then a list of
+    the available labels will be given. If no {identifier} is provided it uses the
+    highlighted text along with the text in the clipboard as the destination.
+
+:Mdn footnote go_to	 				*Mdn-footnote-go_to*
+
+    Go to footnote.
+
+:Mdn footnote update 					*Mdn-footnote-update*
+
+    Update footnote identifier and text.
+
+:Mdn footnote cleanup 					*Mdn-footnote-cleanup*
+
+    Cleanup unused footnotes and footnote references.
+
+:Mdn footnote find_references 				*Mdn-footnote-find_references*
+
+    Find references of the same footnote identifier.
+
+:Mdn footnote renumber 					*Mdn-footnote-renumber*
+
+    Renumber integer footnote identifiers. Ignores non-numerical identifiers.
+
+:Mdn footnote populate_buf_footnotes 			*Mdn-footnote-populate_buf_footnotes*
+
+    Populate the buf_footnotes table.
+
 :Mdn miscellaneous set_cwd				*Mdn-miscellaneous-set_cwd*
 
    Set the Mdnotes cwd variable to the current working directory. Happens
@@ -1362,6 +1393,256 @@ resolve_list_content({line})				*mdnotes.formatting.resolve_list_content()*
     Return: ~
     • (`MdnListContent?`)
 
+footnote.buf_footnotes			 		*mdnotes.footnote.buf_footnotes*
+
+    Table of type |mdnotes.MdnBufFootnotes|.
+
+footnote.fcounter 					*mdnotes.footnote.fcounter*
+
+    Integer variable to store the current count of footnotes in the current
+    buffer.
+
+footnote.parse({opts})			 		*mdnotes.footnote.parse()*
+
+    Get the footnote reference text, and the start and end columns.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {footnote_reference} (`string?`)
+		specify an footnote reference to parse
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of footnote reference to parse
+	
+    Return: ~
+    • (`MdnFootnoteReferenceData?`): Parsed footnote reference on success, `nil` on
+      failure.
+
+footnote.get_buf_footnotes({opts}) 			*mdnotes.footnote.get_buf_footnotes()*
+
+    Get the footnotes of the specified buffer.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {buf} (`integer?`, defaults to current buffer)
+		buffer to write the table to
+              • {only_identifiers} (`boolean?`, default `false`)
+		whether to return only the identifiers and
+		not the full object
+	
+    Return: ~
+    • (`table<MdnFootnote|string>?`) 
+
+footnote.populate_buf_footnotes({buf}) 			*mdnotes.footnote.populate_buf_footnotes()*
+
+    Parse the footnotes in the specified buffer and update
+    |mdnotes.buf_footnotes|.
+
+    Parameters: ~
+    • {buf} (`integer?`, defaults to current buffer)
+
+reference_link.insert({opts})		 		*mdnotes.reference_link.insert()*
+
+    Insert a reference link from the clipboard using the currently highlighted
+    text or the word under cursor. Uses the |quote+| register to paste from
+    clipboard. Default behaviour is to use a collapsed reference link.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {label} (`string?`)
+		specify a reference link label to use
+              • {destination} (`string?`)
+		specify a reference link destination to use
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.get_rl_definition({label}, {buf})	*mdnotes.reference_link.get_rl_definition()*
+
+    Get the |mdnotes.MdnReferenceLinkDefinition| object for {label} in {buf}.
+
+    Parameters: ~
+    • {buf} (`integer?`, defaults to current buffer)
+    • {label} (`string`) Label to get definition for
+
+    Return: ~
+    • (`MdnReferenceLinkDefinition`) 
+
+reference_link.go_to_definition({opts})			*mdnotes.reference_link.go_to_definition()*
+
+    Go to reference link definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {label} (`string?`)
+		specify a reference link label to use
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.delete({opts})		 		*mdnotes.reference_link.delete()*
+
+    Delete reference link and leave the text.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+
+reference_link.get_rl_definition_from_obj({rldef})	*mdnotes.reference_link.get_rl_definition_from_obj()*
+
+    Get a reference link definition string from the given
+    |mdnotes.MdnReferenceLinkDefinition| object.
+
+    Parameters: ~
+    • {rldef}  (`MdnReferenceLinkDefinition?`) Reference link definition object
+
+    Return: ~
+    • (`string`)
+
+reference_link.update_definition({opts})		*mdnotes.reference_link.update_definition()*
+
+    Update reference link definition label and destination. Uses
+    |vim.ui.input()| to get the values unless the new values are
+    specified and `skip_input = true`.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {label} (`string?`)
+		which label definition to update
+              • {new_label} (`string?`)
+		new label to use
+              • {new_destination} (`string?`)
+		new destination to use
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {skip_input} (`boolean?`, default `false`)
+		skip the input prompt
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.cleanup({opts})				*mdnotes.reference_link.cleanup()*
+
+    Cleanup unused reference links and reference link definitions.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {buf} (`integer?`, defaults to current buffer)
+		buffer to write the table to
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.get_rl_from_obj({rldata})		*mdnotes.reference_link.get_rl_from_obj()*
+
+    Get an reference link string from an MdnReferenceLinkData object.
+
+    Parameters: ~
+    • {rldata}  (`MdnReferenceLinkData?`) Reference link object
+
+    Return: ~
+    • (`string`)
+
+reference_link.rename({opts})				*mdnotes.reference_link.rename()*
+
+    Rename reference link but do not update definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {new_name} (`string?`)
+		new label to use
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.relabel({opts})				*mdnotes.reference_link.relabel()*
+    
+    Relabel reference link but do not update definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {new_label} (`string?`)
+		new label to use
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.open({opts})				*mdnotes.reference_link.open()*
+
+    Open reference links in the appropriate programme.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {reference_link} (`string?`)
+		specify a reference link to open
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+reference_link.convert_from_inline({opts})		*mdnotes.reference_link.convert_from_inline()*
+
+    Convert an inline link to a reference link with its definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+
+    Return: ~
+    • (`MdnReferenceLinkData?`, `MdnReferenceLinkDefinition?`)
+
+reference_link.parse_lines({opts})			*mdnotes.reference_link.parse_lines()*
+
+    Parse the reference links in the specified lines (defaults to current line).
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnMultiLineLocation?`)
+		inline text location
+              • {str} (`boolean?`, default `false`)
+		return object as strings instead of objects
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table<MdnReferenceLinkData>?`)
+
+reference_link.find_label_occurences({opts})			*mdnotes.reference_link.find_label_occurences()*
+
+    Find occurences of the same label in the reference link.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {label} (`string?`)
+		which label definition to update
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of inline link to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table`): qflist
+
+reference_link.get_rl_from_picker({buf})		*mdnotes.reference_link.get_rl_from_picker()*
+
+    Parameters: ~
+    • {buf} (`string`, defaults to current buffer)
+
+    Return: ~
+    • (`string`)
 formatting.task_list_toggle({opts})			*mdnotes.formatting.task_list_toggle()*
 
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
@@ -1778,15 +2059,15 @@ reference_link.parse({opts})		 		*mdnotes.reference_link.parse()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {inline_link} (`string?`)
-		specify an inline link to parse
+              • {reference_link} (`string?`)
+		specify a reference link to parse
               • {keep_pointy_brackets} (`boolean?`, default `true`)
 		whether to keep `<` and `>` surrounding a destination with spaces
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
 	
     Return: ~
-    • (`MdnReferenceLinkData?`): Parsed inline link on success, `nil` on
+    • (`MdnReferenceLinkData?`): Parsed reference link on success, `nil` on
       failure.
 
 							*mdnotes.reference_link.get_buf_reference_link_definitions()*
@@ -1799,7 +2080,8 @@ reference_link.get_buf_reference_link_definitions({opts})
               • {buf} (`integer?`, defaults to current buffer)
 		buffer to write the table to
               • {only_labels} (`boolean?`, default `false`)
-		whether to only the labels and not the full object
+		whether return to only the labels and not the
+		full object
 	
     Return: ~
     • (`table<MdnReferenceLinkDefinition|string>?`) 

@@ -210,10 +210,10 @@ local get_commands = function() return {
     },
     footnote = {
         insert = require("mdnotes.footnote").insert,
-        go_to_footnote = require("mdnotes.footnote").go_to_footnote,
-        update_footnote = require("mdnotes.footnote").update_footnote,
+        go_to = require("mdnotes.footnote").go_to,
+        update = require("mdnotes.footnote").update,
         cleanup = require("mdnotes.footnote").cleanup,
-        find_footnote_references = require("mdnotes.footnote").find_footnote_references,
+        find_references = require("mdnotes.footnote").find_references,
         renumber = require("mdnotes.footnote").renumber,
         populate_buf_footnotes = require("mdnotes.footnote").populate_buf_footnotes,
     },
@@ -348,10 +348,19 @@ end,
                     end, require('mdnotes.reference_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
                     )
                 end
-                if subcmd == "insert" or subcmd == "find_label" then
+                if subcmd == "insert" or subcmd == "find_label_occurences" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
                     end, require('mdnotes.reference_link').get_buf_reference_link_definitions({only_labels = true}) or {}
+                    )
+                end
+            end
+
+            if command == "footnote" then
+                if subcmd == "insert" or subcmd == "find_footnote_references" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.footnote').get_buf_footnotes({only_labels = true}) or {}
                     )
                 end
             end

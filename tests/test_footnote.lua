@@ -167,7 +167,7 @@ T['get_footnote()'] = function()
     })
 end
 
-T['go_to_footnote()'] = function()
+T['go_to()'] = function()
     local lines = {
         "[^1]",
         "Text before [^2] and after",
@@ -179,7 +179,7 @@ T['go_to_footnote()'] = function()
 
     child.lua([[
     require('mdnotes.footnote').populate_buf_footnotes()
-    require('mdnotes.footnote').go_to_footnote({identifier = "1"})
+    require('mdnotes.footnote').go_to({identifier = "1"})
     ]])
     eq(child.fn.line("."), 4)
 end
@@ -189,7 +189,7 @@ T['get_footnote_from_obj()'] = function()
     eq(ret, "[^1]: text")
 end
 
-T['update_footnote()'] = function()
+T['update()'] = function()
     local lines = {
         "[^1]",
         "Text before [^2] and after",
@@ -201,8 +201,8 @@ T['update_footnote()'] = function()
 
     child.lua([[
     require('mdnotes.footnote').populate_buf_footnotes()
-    require('mdnotes.footnote').update_footnote({identifier = "1", new_identifier = "5", skip_input = true})
-    require('mdnotes.footnote').update_footnote({identifier = "2", new_text = "new text", skip_input = true})
+    require('mdnotes.footnote').update({identifier = "1", new_identifier = "5", skip_input = true})
+    require('mdnotes.footnote').update({identifier = "2", new_text = "new text", skip_input = true})
     ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -282,7 +282,7 @@ T['parse_lines()'] = function()
     eq(ret, {"[^1]", "[^2]", "", ""})
 end
 
-T['find_footnote_references()'] = function()
+T['find_references()'] = function()
     local lines = {
         "[^1]",
         "[^1]",
@@ -295,7 +295,7 @@ T['find_footnote_references()'] = function()
 
     local ret = child.lua([[
     require('mdnotes.footnote').populate_buf_footnotes()
-    return require('mdnotes.footnote').find_footnote_references({identifier = "1"})
+    return require('mdnotes.footnote').find_references({identifier = "1"})
     ]])
     eq(ret, {
         {
