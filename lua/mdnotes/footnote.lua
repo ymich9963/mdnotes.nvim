@@ -354,7 +354,7 @@ end
 
 ---Parse the footnote references in the specified lines
 ---@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?, no_duplicates: boolean?}?
----@return table<MdnReferenceLinkData>?
+---@return table<MdnFootnoteReferenceData>?
 function M.parse_lines(opts)
     opts = opts or {}
 
@@ -424,7 +424,7 @@ function M.find_references(opts)
     return qflist
 end
 
----Renumber integer footnote identifiers
+---Renumber integer footnote references
 ---@param opts {location: MdnInLineLocation?, silent: boolean?}?
 function M.renumber(opts)
     opts = opts or {}
