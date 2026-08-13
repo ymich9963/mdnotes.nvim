@@ -233,7 +233,7 @@ autocmds = `boolean` or `table`				*mdnotes-autocmds*
               • {record_buf} (`boolean`, default `true`)
 		autocmd for buffer history
               • {populate_buf_fragments} (`boolean`, default `true`)
-		autocmd for ToC fragments
+		autocmd for ToC and buffer fragments
               • {ordered_list_renumber} (`boolean`, default `true`)
 		autocmd for ordered lists
               • {table_best_fit} (`boolean`, default `true`)
@@ -244,6 +244,10 @@ autocmds = `boolean` or `table`				*mdnotes-autocmds*
               • {journal_insert_entry} (`boolean`, default `true`)
 		autocmd for inserting a journal entry automatically on
 		entering the journal file in |mdnotes-journal_file|.
+	      • {populate_buf_reference_link_definitions} (`boolean`, default `true`)
+		autocmd for buffer reference link definitions
+	      • {populate_buf_footnotes} (`boolean`, default `true`)
+		autocmd for buffer footnotes
 
 table_best_fit_padding = `integer`			*mdnotes-table_best_fit_padding*
 
@@ -273,9 +277,9 @@ user_commands = `table`		 			*mdnotes-user_commands*
 ==============================================================================
 COMMANDS                                         	*mdnotes-commands*
 
-The Mdnotes plugin uses subcommands through calling `:Mdn <sub command>`.The
-subcommands are listed below. Make sure to write the buffers if any command
-changes buffer contents. 
+The Mdnotes plugin uses categories and subcommands through calling
+`:Mdn <category> <subcommand>`.The commands are listed below. Make sure
+to write the buffers if any command changes buffer contents. 
 
 :Mdn index	 	                              	*:Mdn-index*
 
@@ -2922,7 +2926,8 @@ MdnAutocmdsConfig	 				*mdnotes.MdnAutocmdsConfig*
     • {table_best_fit} (`boolean`) |mdnotes.table.best_fit()| autocmd for tables
     • {outliner_state} (`boolean`) autocmd for Outliner mode state notification
     • {journal_insert_entry} (`boolean`) autocmd for inserting a journal entry on opening the journal file
-    • {populate_buf_reference_link_definitions} (`boolean`) |mdnotes.reference_link.populate_buf_reference_link_defintions| autocmd for reference links
+    • {populate_buf_reference_link_definitions} (`boolean`) |mdnotes.reference_link.populate_buf_reference_link_defintions()| autocmd for reference links
+    • {populate_buf_footnotes} (`boolean`) |mdnotes.footnote.populate_buf_footnotes()| autocmd for footnotes
 
 MdnGetFilesInCwdOpts 					*mdnotes.MdnGetFilesInCwdOpts*
 
