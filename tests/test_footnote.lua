@@ -300,12 +300,14 @@ T['find_references()'] = function()
     eq(ret, {
         {
             bufnr = 2,
-            lnum = 1,
-            text = "[^1]"
+            col = 1,
+            end_col = 5,
+            lnum = 1
         }, {
             bufnr = 2,
-            lnum = 2,
-            text = "[^1]"
+            col = 1,
+            end_col = 5,
+            lnum = 2
         }
     })
 end

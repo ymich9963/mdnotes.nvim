@@ -458,14 +458,20 @@ T['find_label_occurences()'] = function()
     eq(ret, {
         {
             bufnr = 2,
+            col = 1,
+            end_col = 9,
             lnum = 9,
             text = "test"
         }, {
             bufnr = 2,
+            col = 1,
+            end_col = 9,
             lnum = 10,
             text = "test"
         }, {
             bufnr = 2,
+            col = 1,
+            end_col = 9,
             lnum = 11,
             text = "test"
         }

@@ -583,7 +583,7 @@ function M.find_label_occurences(opts)
     local qflist = {}
     for _, v in pairs(parsed_tbl) do
         if v.label == label then
-            table.insert(qflist, {bufnr = v.buf, lnum = v.lnum, col = v.start_col, end_col = v.end_coa, text = v.text})
+            table.insert(qflist, {bufnr = v.buf, lnum = v.lnum, col = v.col_start, end_col = v.col_end, text = v.text})
         end
     end
 

@@ -413,7 +413,7 @@ function M.find_references(opts)
     local qflist = {}
     for _, v in pairs(parsed_tbl) do
         if v.identifier == identifier then
-            table.insert(qflist, {bufnr = v.buf, lnum = v.lnum, col = v.start_col, end_col = v.end_col, text = v.raw})
+            table.insert(qflist, {bufnr = v.buf, lnum = v.lnum, col = v.col_start, end_col = v.col_end, text = v.text})
         end
     end
 
