@@ -748,6 +748,7 @@ function M.statistics(opts)
     local ils = 0
     local wls = 0
     local rls = 0
+    local frefs = 0
     local headings = 0
 
     local fn_wordcount
@@ -783,6 +784,13 @@ function M.statistics(opts)
         end
     end
 
+    local frefs_ret = M.scan_lines(mdn_patterns.footnote_reference, { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
+    for _, ret in pairs(frefs_ret) do
+        if ret.cols ~= nil then
+            frefs = frefs + #ret.cols
+        end
+    end
+
     headings = #M.get_buf_fragments(buf)
 
     -- NOTE: Tried to print "formatted words" but because URLs might contain
@@ -796,8 +804,9 @@ function M.statistics(opts)
         "Inline links:\t%s\n" ..
         "WikiLinks:\t%s\n" ..
         "Reference links:%s\n" ..
+        "Footnote references:%s\n" ..
         "Headings:\t%s\n")
-        :format(bytes, chars, words, lines, ils, wls, rls, headings)
+        :format(bytes, chars, words, lines, ils, wls, rls, frefs, headings)
         , vim.log.levels.INFO)
     end
 
@@ -809,6 +818,7 @@ function M.statistics(opts)
         ils = ils,
         wls = wls,
         rls = rls,
+        frefs = frefs,
         headings = headings,
     }
 end

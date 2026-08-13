@@ -433,6 +433,7 @@ T['statistics()'] = function()
         "[test](link)",
         "[[test]]",
         "[test][link]",
+        "[^1]",
     }
     create_md_buffer(child, lines)
 
@@ -440,24 +441,26 @@ T['statistics()'] = function()
 
     if vim.fn.has("win32") == 1 then
         eq(ret, {
-            bytes = 51, -- 37 on Windows, 33 on Linux
-            chars = 51, -- 37 on Windows, 33 on Linux
-            words = 5,
-            lines = 5,
+            bytes = 57,
+            chars = 57,
+            words = 6,
+            lines = 6,
             ils = 1,
             wls = 1,
             rls = 1,
+            frefs = 1,
             headings = 1
         })
     else
         eq(ret, {
-            bytes = 46,
-            chars = 46,
-            words = 5,
-            lines = 5,
+            bytes = 52,
+            chars = 52,
+            words = 6,
+            lines = 6,
             ils = 1,
             wls = 1,
             rls = 1,
+            frefs = 1,
             headings = 1
         })
     end

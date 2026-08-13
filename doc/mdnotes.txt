@@ -724,7 +724,8 @@ subcommands are listed below.
 :Mdn miscellaneous statistics				*Mdn-miscellaneous-statistics*
 
    Show statistics of the current buffer about the bytes, characters,
-   words, lines, inline links, WikiLinks, reference links, and headings.
+   words, lines, inline links, WikiLinks, reference links, footnote
+   references, and headings.
 
 :Mdn miscellaneous view_fragments 			*Mdn-miscellaneous-view_fragments*
 
@@ -1020,7 +1021,8 @@ statistics({opts})					*mdnotes.statistics()*
 
     Return: ~
     • (`table`) Table containing statistics. Current values are bytes,
-      characters, words, lines, inline links, WikiLinks, and headings
+      characters, words, lines, inline links, WikiLinks, reference links,
+      footnote references, and headings
 
 is_url({destination}) 					*mdnotes.is_url()*
 
