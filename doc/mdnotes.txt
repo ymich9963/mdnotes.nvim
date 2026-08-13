@@ -670,6 +670,37 @@ subcommands are listed below.
 
     Find occurences of the same label in the reference link.
 
+:Mdn footnote insert {identifier}			*Mdn-footnote-insert*
+
+    Insert a footnote optionally with the specified {identifier}. Invoking
+    |'wildchar'| (`<Tab>` by default) autocompletes the {identifier} then a list of
+    the available labels will be given. If no {identifier} is provided it
+    inserts an integer identifier.
+
+:Mdn footnote go_to	 				*Mdn-footnote-go_to*
+
+    Go to footnote.
+
+:Mdn footnote update 					*Mdn-footnote-update*
+
+    Update footnote identifier and text.
+
+:Mdn footnote cleanup 					*Mdn-footnote-cleanup*
+
+    Cleanup unused footnotes and footnote references.
+
+:Mdn footnote find_references 				*Mdn-footnote-find_references*
+
+    Find references of the same footnote reference under the cursor.
+
+:Mdn footnote renumber 					*Mdn-footnote-renumber*
+
+    Renumber integer footnote identifiers. Ignores non-numerical identifiers.
+
+:Mdn footnote populate_buf_footnotes 			*Mdn-footnote-populate_buf_footnotes*
+
+    Populate the buf_footnotes table.
+
 :Mdn miscellaneous set_cwd				*Mdn-miscellaneous-set_cwd*
 
    Set the Mdnotes cwd variable to the current working directory. Happens
@@ -1362,6 +1393,190 @@ resolve_list_content({line})				*mdnotes.formatting.resolve_list_content()*
     Return: ~
     • (`MdnListContent?`)
 
+footnote.buf_footnotes			 		*mdnotes.footnote.buf_footnotes*
+
+    Table of type |mdnotes.MdnBufFootnotes|.
+
+footnote.fcounter 					*mdnotes.footnote.fcounter*
+
+    Integer variable to store the current count of footnotes in the current
+    buffer.
+
+footnote.parse({opts})			 		*mdnotes.footnote.parse()*
+
+    Get the footnote reference text, and the start and end columns.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {footnote_reference} (`string?`)
+		specify an footnote reference to parse
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of footnote reference to parse
+	
+    Return: ~
+    • (`MdnFootnoteReferenceData?`): Parsed footnote reference on success, `nil` on
+      failure.
+
+footnote.get_buf_footnotes({opts}) 			*mdnotes.footnote.get_buf_footnotes()*
+
+    Get the footnotes of the specified buffer.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {buf} (`integer?`, defaults to current buffer)
+		buffer to write the table to
+              • {only_identifiers} (`boolean?`, default `false`)
+		whether to return only the identifiers and
+		not the full object
+	
+    Return: ~
+    • (`table<MdnFootnote|string>?`) 
+
+footnote.populate_buf_footnotes({buf}) 			*mdnotes.footnote.populate_buf_footnotes()*
+
+    Parse the footnotes in the specified buffer and update
+    |mdnotes.buf_footnotes|.
+
+    Parameters: ~
+    • {buf} (`integer?`, defaults to current buffer)
+
+footnote.insert({opts})		 			*mdnotes.footnote.insert()*
+
+    Insert a footnote at the cursor. By default uses integer identifiers based
+    on |mdnotes.footnote.fcounter|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {identifier} (`string?`)
+		specify an footnote identifier to use
+              • {text} (`string?`)
+		specify footnote text
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor where the new inline link was changed
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of footnote reference to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+footnote.get_footnote({identifier}, {buf})		*mdnotes.identifier.get_footnote()*
+
+    Get the |mdnotes.MdnFootnote| object for {identifier} in {buf}.
+
+    Parameters: ~
+    • {buf} (`integer?`, defaults to current buffer)
+    • {identifier} (`string`) Identifier to get footnote for
+
+    Return: ~
+    • (`MdnFootnote`) 
+
+footnote.go_to({opts})					*mdnotes.footnote.go_to()*
+
+    Go to footnote.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {identifier} (`string?`)
+		specify an identifier to go to
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of footnote reference to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+footntoe.get_footnote_from_obj({footnote})		*mdnotes.footnote.get_footnote_from_obj()*
+
+    Get a footnote string from the given |mdnotes.MdnFootnote| object.
+
+    Parameters: ~
+    • {footnote}  (`MdnFootnote?`) Footnote object
+
+    Return: ~
+    • (`string`)
+
+footnote.update({opts})					*mdnotes.footnote.update()*
+
+    Update the footnote and the footnote reference. Uses
+    |vim.ui.input()| to get the values unless the new values are
+    specified and `skip_input = true`.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {identifier} (`string?`)
+		which identifier to update
+              • {new_identifier} (`string?`)
+		new identifier to use
+              • {new_text} (`string?`)
+		new text to use
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of footnote to parse
+              • {skip_input} (`boolean?`, default `false`)
+		skip the input prompt
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+footnote.cleanup({opts})				*mdnotes.footnote.cleanup()*
+
+    Cleanup unused footnotes and footnote references.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {buf} (`integer?`, defaults to current buffer)
+		buffer to process
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+footnote.get_fref_from_obj({fdata})			*mdnotes.footnote.get_fref_from_obj()*
+
+    Get a footnote reference string from an MdnFootnoteReferenceData object.
+
+    Parameters: ~
+    • {fdata}  (`MdnFootnoteReferenceData?`) Footnote reference object
+
+    Return: ~
+    • (`string`)
+
+footnote.parse_lines({opts})				*mdnotes.footnote.parse_lines()*
+
+    Parse the footnote references in the specified lines (defaults to current line).
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnMultiLineLocation?`)
+		multi-line location
+              • {str} (`boolean?`, default `false`)
+		return object as strings instead of objects
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table<MdnFootnoteReferenceData>?`)
+
+footnote.find_references({opts})			*mdnotes.footnote.find_references()*
+
+    Find references of the same footnote reference under the cursor.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {identifier} (`string?`)
+		which identifier to find
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of footnote reference to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
+    Return: ~
+    • (`table`): qflist
+
+footnote.renumber({opts}) 				*mdnotes.footnote.renumber()*
+
+    Renumber integer footnote references.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of footnote reference to parse
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
+
 formatting.task_list_toggle({opts})			*mdnotes.formatting.task_list_toggle()*
 
     Toggle through checked, unchecked, and no checkbox in a list item. Also works
@@ -1778,15 +1993,15 @@ reference_link.parse({opts})		 		*mdnotes.reference_link.parse()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {inline_link} (`string?`)
-		specify an inline link to parse
+              • {reference_link} (`string?`)
+		specify a reference link to parse
               • {keep_pointy_brackets} (`boolean?`, default `true`)
 		whether to keep `<` and `>` surrounding a destination with spaces
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
 	
     Return: ~
-    • (`MdnReferenceLinkData?`): Parsed inline link on success, `nil` on
+    • (`MdnReferenceLinkData?`): Parsed reference link on success, `nil` on
       failure.
 
 							*mdnotes.reference_link.get_buf_reference_link_definitions()*
@@ -1799,7 +2014,8 @@ reference_link.get_buf_reference_link_definitions({opts})
               • {buf} (`integer?`, defaults to current buffer)
 		buffer to write the table to
               • {only_labels} (`boolean?`, default `false`)
-		whether to only the labels and not the full object
+		whether return to only the labels and not the
+		full object
 	
     Return: ~
     • (`table<MdnReferenceLinkDefinition|string>?`) 
@@ -1826,9 +2042,9 @@ reference_link.insert({opts})		 		*mdnotes.reference_link.insert()*
               • {destination} (`string?`)
 		specify a reference link destination to use
               • {move_cursor} (`boolean?`, default `true`)
-		place cursor where the new inline link was changed
+		place cursor at the new reference link
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
@@ -1850,9 +2066,9 @@ reference_link.go_to_definition({opts})			*mdnotes.reference_link.go_to_definiti
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {label} (`string?`)
-		specify a reference link label to use
+		specify a reference link label to go to
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
@@ -1863,9 +2079,9 @@ reference_link.delete({opts})		 		*mdnotes.reference_link.delete()*
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {move_cursor} (`boolean?`, default `true`)
-		place cursor where the new inline link was changed
+		place cursor where the reference link was deleted
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
 
 reference_link.get_rl_definition_from_obj({rldef})	*mdnotes.reference_link.get_rl_definition_from_obj()*
 
@@ -1893,7 +2109,7 @@ reference_link.update_definition({opts})		*mdnotes.reference_link.update_definit
               • {new_destination} (`string?`)
 		new destination to use
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
               • {skip_input} (`boolean?`, default `false`)
 		skip the input prompt
               • {silent} (`boolean?`, default `false`)
@@ -1929,9 +2145,9 @@ reference_link.rename({opts})				*mdnotes.reference_link.rename()*
               • {new_name} (`string?`)
 		new label to use
               • {move_cursor} (`boolean?`, default `true`)
-		place cursor where the new inline link was changed
+		place cursor where the new reference link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
@@ -1944,9 +2160,9 @@ reference_link.relabel({opts})				*mdnotes.reference_link.relabel()*
               • {new_label} (`string?`)
 		new label to use
               • {move_cursor} (`boolean?`, default `true`)
-		place cursor where the new inline link was changed
+		place cursor where the new reference link was changed
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
@@ -1959,7 +2175,7 @@ reference_link.open({opts})				*mdnotes.reference_link.open()*
               • {reference_link} (`string?`)
 		specify a reference link to open
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
@@ -1970,9 +2186,9 @@ reference_link.convert_from_inline({opts})		*mdnotes.reference_link.convert_from
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {move_cursor} (`boolean?`, default `true`)
-		place cursor where the new inline link was changed
+		place cursor at the new reference link
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of reference link to parse
 
     Return: ~
     • (`MdnReferenceLinkData?`, `MdnReferenceLinkDefinition?`)
@@ -2002,7 +2218,7 @@ reference_link.find_label_occurences({opts})			*mdnotes.reference_link.find_labe
               • {label} (`string?`)
 		which label definition to update
               • {location} (`MdnInLineLocation?`, defaults to current location)
-		specify location of inline link to parse
+		specify location of referece link to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
@@ -2784,6 +3000,14 @@ MdnPattern 						*mdnotes.MdnPattern*
     Alias for a Lua pattern that returns the start and end columns,
     as well as the text.
 
+MdnLinePattern 						*mdnotes.MdnLinePattern*
+
+    Alias for a Lua pattern that checks an entire line.
+
+MdnSubPattern 						*mdnotes.MdnSubPattern*
+
+    Alias for a Lua pattern that checks small sub-sections of the string.
+
 MdnPatterns 						*mdnotes.MdnPatterns*
 
     Patterns used throughout.
@@ -2796,15 +3020,20 @@ MdnPatterns 						*mdnotes.MdnPatterns*
     • {strikethrough} (`MdnPattern`) Strikethrough format delimiter pattern
     • {inline_code} (`MdnPattern`) Inline code format delimiter pattern
     • {autolink} (`MdnPattern`) Autolink format delimiter pattern
-    • {text_dest} (`string`) Text and destination from inline link pattern
-    • {dest_title} (`string`) Title from inline link destination
-    • {dest_no_fragment} (`string`) destination only pattern
-    • {fragment} (`string`) Fragment only pattern
-    • {wikilink_alias} (`string`) WikiLink alias
-    • {unordered_list} (`string`) Unordered list pattern
-    • {ordered_list} (`string`) Ordered list pattern
-    • {task} (`string`) Task item pattern
-    • {heading} (`string`) Heading pattern
+    • {reference_link} (`MdnPattern`) Reference link format delimiter pattern
+    • {footnote_reference} (`MdnPattern`) Footnote reference format delimiter pattern
+    • {heading} (`MdnLinePattern`) Heading pattern
+    • {unordered_list} (`MdnLinePattern`) Unordered list pattern
+    • {ordered_list} (`MdnLinePattern`) Ordered list pattern
+    • {reference_link_definition} (`MdnLinePattern`) Reference link definition pattern
+    • {code_fence} (`MdnLinePattern`) Code fence pattern
+    • {footnote} (`MdnLinePattern`) Footnote pattern
+    • {text_dest} (`MdnSubPattern`) Text and destination from inline link pattern
+    • {dest_title} (`MdnSubPattern`) Title from inline link destination
+    • {dest_no_fragment} (`MdnSubPattern`) destination only pattern
+    • {fragment} (`MdnSubPattern`) Fragment only pattern
+    • {wikilink_alias} (`MdnSubPattern`) WikiLink alias
+    • {task} (`MdnSubPattern`) Task item pattern
 
 MdnReferenceLinkDefinition				*mdnotes.MdnReferenceLinkDefinition*
 

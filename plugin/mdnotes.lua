@@ -13,6 +13,7 @@ local mdnotes_best_fit_group = vim.api.nvim_create_augroup('mdn.best_fit', { cle
 local mdnotes_outliner_group = vim.api.nvim_create_augroup('mdn.outliner', { clear = true })
 local mdnotes_journal_group = vim.api.nvim_create_augroup('mdn.journal', { clear = true })
 local mdnotes_pop_rl_group = vim.api.nvim_create_augroup('mdn.pop_rl', { clear = true })
+local mdnotes_pop_f_group = vim.api.nvim_create_augroup('mdn.pop_f', { clear = true })
 
 -- To save the current working directory
 vim.api.nvim_create_autocmd("BufEnter", {
@@ -95,6 +96,16 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
         require('mdnotes.reference_link').populate_buf_reference_link_definitions(args.buf)
     end,
     desc = "Mdnotes populating buffer reference links table autocmd"
+})
+
+-- Parse footnotes in current buffer
+vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
+    pattern = "*.md",
+    group = mdnotes_pop_f_group,
+    callback = function(args)
+        require('mdnotes.footnote').populate_buf_footnotes(args.buf)
+    end,
+    desc = "Mdnotes populating buffer footnotes table autocmd"
 })
 
 local commands = nil
@@ -194,6 +205,15 @@ local get_commands = function() return {
         relabel = require("mdnotes.reference_link").relabel,
         convert_from_inline = require("mdnotes.reference_link").convert_from_inline,
         find_label_occurences = require("mdnotes.reference_link").find_label_occurences
+    },
+    footnote = {
+        insert = require("mdnotes.footnote").insert,
+        go_to = require("mdnotes.footnote").go_to,
+        update = require("mdnotes.footnote").update,
+        cleanup = require("mdnotes.footnote").cleanup,
+        find_references = require("mdnotes.footnote").find_references,
+        renumber = require("mdnotes.footnote").renumber,
+        populate_buf_footnotes = require("mdnotes.footnote").populate_buf_footnotes,
     },
     miscellaneous = {
         set_cwd = require("mdnotes").set_cwd,
@@ -326,10 +346,19 @@ end,
                     end, require('mdnotes.reference_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
                     )
                 end
-                if subcmd == "insert" or subcmd == "find_label" then
+                if subcmd == "insert" or subcmd == "find_label_occurences" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
                     end, require('mdnotes.reference_link').get_buf_reference_link_definitions({only_labels = true}) or {}
+                    )
+                end
+            end
+
+            if command == "footnote" then
+                if subcmd == "insert" or subcmd == "find_footnote_references" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.footnote').get_buf_footnotes({only_labels = true}) or {}
                     )
                 end
             end

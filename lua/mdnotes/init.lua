@@ -107,6 +107,7 @@ local default_config = {
 ---@field outliner_state boolean autocmd for Outliner mode state notification
 ---@field journal_insert_entry boolean autocmd for inserting a journal entry on opening the journal file
 ---@field populate_buf_reference_links boolean populate_buf_reference_links() autocmd reference links
+---@field populate_buf_footnotes boolean populate_buf_footnotes() autocmd footnotes
 local default_autocmd_config = {
     set_cwd = true,
     record_buf = true,
@@ -115,7 +116,8 @@ local default_autocmd_config = {
     table_best_fit = true,
     outliner_state_notification = true,
     journal_insert_entry = true,
-    populate_buf_reference_links = true
+    populate_buf_reference_links = true,
+    populate_buf_footnotes = true
 }
 
 ---Validate user config
@@ -183,6 +185,9 @@ local function resolve_autocmd_config()
     end
     if M.config.autocmds.populate_buf_reference_links == false then
         vim.api.nvim_del_augroup_by_name('mdn.pop_rl')
+    end
+    if M.config.autocmds.populate_buf_footnotes == false then
+        vim.api.nvim_del_augroup_by_name('mdn.pop_f')
     end
 end
 
@@ -975,13 +980,29 @@ function M.view_fragments()
     vim.print(text)
 end
 
+local function is_parsed_tbl_duplicate(parsed_tbl, data)
+    if data == nil then return false end
+    if vim.tbl_contains(parsed_tbl, data) then
+        return true
+    end
+
+    for _, v in ipairs(parsed_tbl) do
+        if v.raw == data.raw then
+            return true
+        end
+    end
+
+    return false
+end
+
 ---Parse the pattern in the specified lines
 ---@param pattern string? Pattern to use
----@param opts {location: MdnMultiLineLocation?, silent: boolean?, get_func: fun(a): string?}?
+---@param opts {location: MdnMultiLineLocation?, silent: boolean?, no_duplicates: boolean?, get_func: fun(a): string?}?
 ---@return table<MdnReferenceLinkData>?
 function M.parse_lines(pattern, parse_func, opts)
     opts = opts or {}
 
+    local no_duplicates = opts.no_duplicates or false
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
@@ -997,7 +1018,14 @@ function M.parse_lines(pattern, parse_func, opts)
     for _, item in ipairs(scanned_lines) do
         for _, cols in ipairs(item.cols) do
             local data = parse_func({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
-            table.insert(parsed_tbl, get_func(data))
+            data = get_func(data)
+            if no_duplicates == true then
+                if is_parsed_tbl_duplicate(parsed_tbl, data) == false then
+                    table.insert(parsed_tbl, data)
+                end
+            else
+                table.insert(parsed_tbl, data)
+            end
         end
     end
 
