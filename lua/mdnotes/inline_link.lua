@@ -390,12 +390,11 @@ function M.get_il_from_picker(buf)
 end
 
 ---Parse the inline links in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?}?
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?, no_duplicates: boolean?}?
 ---@return table<MdnInlineLinkData>?
 function M.parse_lines(opts)
     opts = opts or {}
 
-    local silent = opts.silent or false
     local str = opts.str or false
     local pattern = require('mdnotes.patterns').inline_link
     local parse_lines = require('mdnotes').parse_lines
@@ -405,7 +404,7 @@ function M.parse_lines(opts)
         get_func = M.get_il_from_obj
     end
 
-    return parse_lines(pattern, M.parse, {location = opts.location, silent = silent, get_func = get_func})
+    return parse_lines(pattern, M.parse, {location = opts.location, silent = opts.silent, no_duplicates = opts.no_duplicates, get_func = get_func})
 end
 
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?

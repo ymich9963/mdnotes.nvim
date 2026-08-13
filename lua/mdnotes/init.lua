@@ -1011,7 +1011,7 @@ function M.parse_lines(pattern, parse_func, opts)
 
     local scan_lines = require('mdnotes').scan_lines
 
-    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = true})
+    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = opts.silent})
     if scanned_lines == nil then return nil end
 
     local parsed_tbl = {}

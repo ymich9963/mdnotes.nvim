@@ -1546,6 +1546,8 @@ footnote.parse_lines({opts})				*mdnotes.footnote.parse_lines()*
 		return object as strings instead of objects
               • {silent} (`boolean?`, default `false`)
 		silence notifications
+              • {no_duplicates} (`boolean?`, default `false`)
+		remove duplicate entries from result
 
     Return: ~
     • (`table<MdnFootnoteReferenceData>?`)
@@ -1912,6 +1914,8 @@ inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
 		return object as strings instead of objects
               • {silent} (`boolean?`, default `false`)
 		silence notifications
+              • {no_duplicates} (`boolean?`, default `false`)
+		remove duplicate entries from result
 
     Return: ~
     • (`table<MdnInlineLinkData?`)
@@ -2205,6 +2209,8 @@ reference_link.parse_lines({opts})			*mdnotes.reference_link.parse_lines()*
 		return object as strings instead of objects
               • {silent} (`boolean?`, default `false`)
 		silence notifications
+              • {no_duplicates} (`boolean?`, default `false`)
+		remove duplicate entries from result
 
     Return: ~
     • (`table<MdnReferenceLinkData>?`)
@@ -2801,6 +2807,8 @@ wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 		return object as strings instead of objects
               • {silent} (`boolean?`, default `false`)
 		silence notifications
+              • {no_duplicates} (`boolean?`, default `false`)
+		remove duplicate entries from result
 
     Return: ~
     • (`table<MdnWikiLinkData?`)

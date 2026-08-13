@@ -358,7 +358,6 @@ end
 function M.parse_lines(opts)
     opts = opts or {}
 
-    local silent = opts.silent or false
     local str = opts.str or false
     local pattern = require('mdnotes.patterns').footnote_reference
     local parse_lines = require('mdnotes').parse_lines
@@ -368,7 +367,7 @@ function M.parse_lines(opts)
         get_func = M.get_fref_from_obj
     end
 
-    return parse_lines(pattern, M.parse, {location = opts.location, silent = silent, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines(pattern, M.parse, {location = opts.location, silent = opts.silent, no_duplicates = opts.no_duplicates, get_func = get_func})
 end
 
 ---Find references of the same footnote identifier
