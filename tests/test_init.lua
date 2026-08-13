@@ -453,8 +453,8 @@ T['statistics()'] = function()
         })
     else
         eq(ret, {
-            bytes = 52,
-            chars = 52,
+            bytes = 51,
+            chars = 51,
             words = 6,
             lines = 6,
             ils = 1,
