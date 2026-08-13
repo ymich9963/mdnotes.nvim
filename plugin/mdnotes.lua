@@ -56,12 +56,10 @@ vim.api.nvim_create_autocmd({"TextChangedI"}, {
 
 -- Automatic table best fit
 vim.api.nvim_create_autocmd({"ModeChanged"}, {
-    pattern = "i:n",
+    pattern = {"i:n", "*.md"},
     group = mdnotes_best_fit_group,
     callback = function()
-        if vim.bo.filetype == "markdown" then
-            require("mdnotes.table").best_fit({ silent = true })
-        end
+        require("mdnotes.table").best_fit({ silent = true })
     end,
     desc = "Mdnotes automatic table best fit autocmd"
 })
