@@ -140,8 +140,11 @@ function M.insert(opts)
 
     vim.api.nvim_buf_set_text(buf, lnum - 1, cur_col - 1, lnum - 1, cur_col - 1, {'[^' .. identifier .. ']'})
 
+    local footnote_inserted = false
+    local last_lnum = vim.fn.line("$")
     if M.get_footnote(identifier, buf) == nil then
-        vim.api.nvim_buf_set_lines(buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {'[^' .. identifier .. ']: ' ..  text})
+        vim.api.nvim_buf_set_lines(buf, last_lnum, last_lnum + 1, false, {'[^' .. identifier .. ']: ' ..  text})
+        footnote_inserted = true
     end
 
     -- Update buf_footnotes
@@ -149,7 +152,12 @@ function M.insert(opts)
 
     if move_cursor == true then
         vim.cmd.buffer(buf)
-        vim.fn.cursor({lnum, vim.fn.col('.') + 1})
+        if footnote_inserted == true then
+            vim.api.nvim_buf_set_mark(buf, "`", vim.fn.line("."), vim.fn.col("."))
+            vim.fn.cursor({last_lnum + 1, 5 + #identifier}) -- 5 are the '[^]: ' characters
+        else
+            vim.fn.cursor({lnum, vim.fn.col('.') + 1})
+        end
     end
 end
 
@@ -198,6 +206,7 @@ function M.go_to(opts)
     end
 
     vim.cmd.buffer(buf)
+    vim.api.nvim_buf_set_mark(buf, "`", vim.fn.line("."), vim.fn.col("."))
     vim.fn.cursor({footnote.lnum, 1})
 end
 

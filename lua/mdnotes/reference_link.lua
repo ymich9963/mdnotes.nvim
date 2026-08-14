@@ -187,6 +187,7 @@ function M.go_to_definition(opts)
     end
 
     vim.cmd.buffer(buf)
+    vim.api.nvim_buf_set_mark(buf, "`", vim.fn.line("."), vim.fn.col("."))
     vim.fn.cursor({rldef.lnum, 1})
 end
 

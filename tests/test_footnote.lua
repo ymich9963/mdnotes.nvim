@@ -133,6 +133,8 @@ T['insert()'] = function()
         "",
         "[^1]: This is footnote 1",
     })
+    local curpos = {child.fn.getpos(".")[2], child.fn.getpos(".")[3]}
+    eq(curpos, {4,6})
 
     child.fn.cursor({2,1})
     child.lua([[ require('mdnotes.footnote').insert() ]])
@@ -144,6 +146,8 @@ T['insert()'] = function()
         "[^1]: This is footnote 1",
         "[^2]: ",
     })
+    curpos = {child.fn.getpos(".")[2], child.fn.getpos(".")[3]}
+    eq(curpos, {5,6})
 end
 
 T['get_footnote()'] = function()
