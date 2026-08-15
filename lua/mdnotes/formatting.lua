@@ -412,102 +412,113 @@ end
 ---Remove Markdown formatting from the selected lines
 ---@param opts {location: MdnMultiLineLocation?, silent: boolean?}?
 function M.unformat_lines(opts)
-    -- TODO: Old implementation so temporarily disabled
-    -- opts = opts or {}
-    --
-    -- local locopts = opts.location or {}
-    -- local buf = locopts.buf or 0
-    -- local startl = locopts.startl or vim.fn.line('.')
-    -- local endl = locopts.endl or vim.fn.line('.')
-    -- local silent = opts.silent or false
-    --
-    -- vim.validate("buf", buf, "number")
-    -- vim.validate("silent", silent, "boolean")
-    -- vim.validate("startl", startl, "number")
-    -- vim.validate("endl", endl, "number")
-    --
-    -- local mdnotes_patterns = require('mdnotes.patterns')
-    --
-    -- local multi_line_patterns = {
-    --     mdnotes_patterns.heading,
-    --     mdnotes_patterns.ordered_list,
-    --     mdnotes_patterns.unordered_list,
-    -- }
-    --
-    -- local format_patterns = {
-    --     mdnotes_patterns.strong,
-    --     mdnotes_patterns.wikilink_contents,
-    --     mdnotes_patterns.emphasis,
-    --     mdnotes_patterns.strikethrough,
-    --     mdnotes_patterns.inline_code,
-    -- }
-    --
-    -- local lines = vim.api.nvim_buf_get_lines(buf, startl - 1, endl, false)
-    --
-    -- -- Remove certain characters first
-    -- for _, line in ipairs(lines) do
-    --     line = line:gsub("[^%d%a%p ]+", "")
-    -- end
-    --
-    -- -- Remove inline links
-    -- for i, line in ipairs(lines) do
-    --     -- Find the text to change
-    --     local pos_tbl = {}
-    --     for start_pos, inline_link, end_pos in line:gmatch(mdnotes_patterns.inline_link) do
-    --         local inline_text, _ = inline_link:match(mdnotes_patterns.text_dest)
-    --         table.insert(pos_tbl, {
-    --             inline_text = inline_text,
-    --             start_pos = vim.fn.str2nr(start_pos),
-    --             end_pos = vim.fn.str2nr(end_pos)
-    --         })
-    --
-    --         -- If starting from the end of the line, the column numbers don't change!
-    --         table.sort(pos_tbl, function(a,b) return a.end_pos > b.end_pos end)
-    --     end
-    --     for _, v in ipairs(pos_tbl) do
-    --         line = line:sub(1, v.start_pos - 1) .. v.inline_text .. line:sub(v.end_pos)
-    --     end
-    --     lines[i] = line
-    -- end
-    --
-    -- -- Remove format patterns like emphasis, strong, etc.
-    -- for i, line in ipairs(lines) do
-    --     for _, pattern in pairs(format_patterns) do
-    --         -- Find the text to change
-    --         local pos_tbl = {}
-    --         for start_pos, text, end_pos in line:gmatch(pattern) do
-    --             table.insert(pos_tbl, {
-    --                 inline_text = text,
-    --                 start_pos = vim.fn.str2nr(start_pos),
-    --                 end_pos = vim.fn.str2nr(end_pos)
-    --             })
-    --             table.sort(pos_tbl, function(a,b) return a.end_pos > b.end_pos end)
-    --         end
-    --         for _, v in ipairs(pos_tbl) do
-    --             line = line:sub(1, v.start_pos - 1) .. v.inline_text .. line:sub(v.end_pos)
-    --         end
-    --         lines[i] = line
-    --     end
-    -- end
-    --
-    -- -- Rest of the patterns
-    -- for i, line in ipairs(lines) do
-    --     for _, pattern in ipairs(multi_line_patterns) do
-    --         if pattern == mdnotes_patterns.heading then
-    --             local _, heading_text = line:match(pattern)
-    --             if heading_text then line = heading_text end
-    --         elseif pattern == mdnotes_patterns.ordered_list then
-    --             local _, _, _, ol_text = line:match(pattern)
-    --             if ol_text then line = ol_text:gsub(mdnotes_patterns.task, "") end
-    --         elseif pattern == mdnotes_patterns.unordered_list then
-    --             local _, _, ul_text = line:match(pattern)
-    --             if ul_text then line = ul_text:gsub(mdnotes_patterns.task, "") end
-    --         end
-    --         lines[i] = line
-    --     end
-    -- end
-    --
-    -- vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, lines)
+    opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+    local silent = opts.silent or false
+
+    vim.validate("buf", buf, "number")
+    vim.validate("silent", silent, "boolean")
+    vim.validate("startl", startl, "number")
+    vim.validate("endl", endl, "number")
+
+    local mdnotes_patterns = require('mdnotes.patterns')
+
+    local multi_line_patterns = {
+        mdnotes_patterns.heading,
+        mdnotes_patterns.ordered_list,
+        mdnotes_patterns.unordered_list,
+    }
+
+    local format_patterns = {
+        mdnotes_patterns.strong,
+        mdnotes_patterns.emphasis,
+        mdnotes_patterns.strikethrough,
+        mdnotes_patterns.inline_code,
+        mdnotes_patterns.autolink,
+    }
+
+    -- Remove footnote references
+    local f_parsed = require("mdnotes.footnote").parse_lines({location = {startl = startl, endl = endl}})
+    if f_parsed ~= nil then
+        table.sort(f_parsed, function(a, b) return a.col_start > b.col_start end)
+        for _, v in ipairs(f_parsed) do
+            vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {})
+        end
+    end
+
+    -- Remove inline links
+    local il_parsed = require("mdnotes.inline_link").parse_lines({location = {startl = startl, endl = endl}})
+    if il_parsed ~= nil then
+        table.sort(il_parsed, function(a, b) return a.col_start > b.col_start end)
+        for _, v in ipairs(il_parsed) do
+            vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {v.text})
+        end
+    end
+
+    -- Remove reference links
+    local rl_parsed = require("mdnotes.reference_link").parse_lines({location = {startl = startl, endl = endl}})
+    if rl_parsed ~= nil then
+        table.sort(rl_parsed, function(a, b) return a.col_start > b.col_start end)
+        for _, v in ipairs(rl_parsed) do
+            vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {v.text})
+        end
+    end
+
+    -- Remove WikiLinks
+    local wl_parsed = require("mdnotes.wikilink").parse_lines({location = {startl = startl, endl = endl}})
+    if wl_parsed ~= nil then
+        table.sort(wl_parsed, function(a, b) return a.col_start > b.col_start end)
+        for _, v in ipairs(wl_parsed) do
+            vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {v.wikilink_nofrag})
+        end
+    end
+
+    -- Remove format patterns
+    for _, pattern in ipairs(format_patterns) do
+        local scan_lines = require('mdnotes').scan_lines(pattern, {location = {startl = startl, endl = endl}})
+        if scan_lines ~= nil then
+            for _, v in ipairs(scan_lines) do
+                local lnum = v.lnum
+                for _, cols in ipairs(v.cols) do
+                    require('mdnotes.formatting').delete_format(pattern, { location = {
+                        col_start = cols[1],
+                        col_end = cols[2],
+                        lnum = lnum,
+                    }, move_cursor = false })
+                end
+            end
+        end
+    end
+
+    local lines = vim.api.nvim_buf_get_lines(buf, startl - 1, endl, false)
+
+    -- Remove certain characters
+    for _, line in ipairs(lines) do
+        line = line:gsub("[^%d%a%p ]+", "")
+    end
+
+    -- Rest of the patterns
+    for i, line in ipairs(lines) do
+        for _, pattern in ipairs(multi_line_patterns) do
+            if pattern == mdnotes_patterns.heading then
+                local _, heading_text = line:match(pattern)
+                if heading_text then line = heading_text end
+            elseif pattern == mdnotes_patterns.ordered_list then
+                local _, _, _, ol_text = line:match(pattern)
+                if ol_text then line = ol_text:gsub(mdnotes_patterns.task, "") end
+            elseif pattern == mdnotes_patterns.unordered_list then
+                local _, _, ul_text = line:match(pattern)
+                if ul_text then line = ul_text:gsub(mdnotes_patterns.task, "") end
+            end
+            lines[i] = line
+        end
+    end
+
+    vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, lines)
 end
 
 ---Check if there fence block in the specified search range or under the cursor
