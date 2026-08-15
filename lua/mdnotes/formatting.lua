@@ -264,14 +264,17 @@ end
 function M.check_list_valid(opts)
     opts = opts or {}
 
-    local outliner_list = opts.outliner_list or false
-    local same_indent = opts.same_indent or false
-    local same_marker = opts.same_marker ~= false
     local search_opts = opts.search or {}
+    vim.validate("search_opts", search_opts, "table")
+
     local buf = search_opts.buf or vim.api.nvim_get_current_buf()
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
     local lower_limit_lnum = search_opts.upper_limit_lnum or 1
     local upper_limit_lnum = search_opts.lower_limit_lnum or vim.fn.line('$')
+
+    local outliner_list = opts.outliner_list or false
+    local same_indent = opts.same_indent or false
+    local same_marker = opts.same_marker ~= false
 
     -- Get the origin line's list content
     local origin_line = vim.api.nvim_buf_get_lines(buf, origin_lnum - 1, origin_lnum, false)[1]
