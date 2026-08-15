@@ -121,15 +121,13 @@ function M.insert(opts)
     local text = opts.text or ""
 
     -- Ensure fcounter is at the correct value
-    local buf_footnotes = {}
-    for _, v in pairs(M.buf_footnotes) do
+    for _, v in pairs(M.get_buf_footnotes({buf = buf}) or {}) do
         if v.buf == buf then
-            buf_footnotes = v.footnotes
+            if M.fcounter ~= #v.footnotes then
+                M.fcounter = #v.footnotes
+                break
+            end
         end
-    end
-
-    if M.fcounter ~= #buf_footnotes then
-        M.fcounter = #buf_footnotes
     end
 
     -- Set identifier based on fcounter if not given
