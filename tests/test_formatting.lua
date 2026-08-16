@@ -395,45 +395,6 @@ T['ordered_list_renumber()'] = function()
     })
 end
 
-T['unformat_lines()'] = function()
-    local lines = {
-        "# Heading",
-        "*emphasis* *emphasis*",
-        "**strong** **strong**",
-        "~~strikethrough~~ ~~strikethrough~~",
-        "`inline code` `inline code`",
-        "<autolink> <autolink>",
-        "",
-        "1) [ ] ordered item",
-        "- [ ] unordered item",
-        "",
-        "[[WikiLink]] [[WikiLink]]",
-        "[inline](link) [inline](link)",
-        "[reference][link] [reference][link]",
-        "[^1] [^2]",
-    }
-    local buf = create_md_buffer(child, lines)
-
-    child.lua([[require('mdnotes.formatting').unformat_lines({ location = { startl = 1, endl = 14 } })]])
-    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines, {
-        "Heading",
-        "emphasis emphasis",
-        "strong strong",
-        "strikethrough strikethrough",
-        "inline code inline code",
-        "autolink autolink",
-        "",
-        "ordered item",
-        "unordered item",
-        "",
-        "WikiLink WikiLink",
-        "inline inline",
-        "reference reference",
-        " ",
-    })
-end
-
 T['fenced_code_block()'] = function()
     -- Setup test buffer
     local lines = {

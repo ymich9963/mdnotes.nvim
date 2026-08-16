@@ -125,7 +125,6 @@ local get_commands = function() return {
         autolink_toggle = require("mdnotes.formatting").autolink_toggle,
         task_list_toggle = require("mdnotes.formatting").task_list_toggle,
         ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
-        unformat_lines = require("mdnotes.formatting").unformat_lines,
         fenced_code_block_toggle = require("mdnotes.formatting").fenced_code_block_toggle,
     },
     wikilink = {

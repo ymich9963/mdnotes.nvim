@@ -21,19 +21,18 @@ All documentation is available with `:h mdnotes.txt`. Execute `:checkhealth mdno
 For a complete descriptive feature list with their associated commands, please see [FEATURES.md](FEATURES.md).
 
 - Uses subcommands with opt-in default key mappings and opt-out autocmds
-- Open, toggle, rename, relink, and normalize inline links
-- Create, follow, rename, show, delete, and find WikiLinks
-- Open inline links and follow WikiLinks without hovering over them
-- Insert, manage, view, and delete assets
-- Create, best-fit, insert/move/duplicate/align/sort columns, and insert empty rows for tables
-- Open, insert, update, and manage reference links
+- **Formatting**: Toggling for strong, emphasis, inline code, strikethrough, autolink, fenced code blocks
+- **Inline links**: open, toggle, rename, relink, and normalize
+- **WikiLinks**: Create, follow, rename, show, delete, and find/rename references
+- **Assets**: Insert, manage, view, and delete assets
+- **Tables**: Create, best-fit, insert/move/duplicate/align/sort columns, and insert empty rows
+- **Reference links**: Open, insert, update, manage, convert from inline links and vice versa
+- **Footnotes**: insert, update, renumber, go-to, find references, and cleanup
 - Navigate to index file or dynamic journal files
 - Sequential Markdown buffer history
 - Heading navigation
-- Toggling strong/emphasis/inline code/strikethrough/autolink/fenced code blocks formatting
 - Ordered and unordered list continuation and renumbering
 - Task list toggling
-- Unformat lines to remove any Markdown formatting
 - Generate, update, and browse Table of Contents
 - Outliner mode
 - View statistics of current buffer

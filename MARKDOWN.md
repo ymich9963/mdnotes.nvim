@@ -33,7 +33,7 @@ Same rules for inline links apply to reference links. Full and collapsed referen
     [link]: path/to/file#fragment 
     [links]: https://neovim.io
 ```
-## WikiLinks
+### WikiLinks
 Opened with `:Mdn wikilink follow`. Can only be filenames, so `link` can also be `link.md`.
 ```
     [[link]]
@@ -73,4 +73,14 @@ The GFM table specification is supported.
 |2r1c|2r2c|2r3c|
 |3r1c|3r2c|3r3c|
 ```
+## Footnotes
+Footnote support is based on [Markdown Guide's Extended Syntax](https://www.markdownguide.org/extended-syntax/#footnotes) (currently without multi-line)
+```
+This is a footnote [^1].
+And also [^this].
+
+[^1]: Footnote contents
+[^this]: More contents
+```
+
 
