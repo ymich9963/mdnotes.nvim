@@ -3141,7 +3141,7 @@ MdnWikiLinkData						*mdnotes.MdnWikiLinkData*
     Inherits from |mdnotes.MdnText|.
 
     Fields: ~
-    • {wikilink_nofrag} (`string`) WikiLink without the fragment
+    • {file} (`string`) WikiLink file
     • {fragment} (`string`) Only the fragment in the WikiLink.
     • {alias} (`string`) WikiLink alias
 
@@ -3377,7 +3377,7 @@ Remove the Markdown formatting in the selected lines (|linewise-visual|),
 	if wl_parsed ~= nil then
 	    table.sort(wl_parsed, function(a, b) return a.col_start > b.col_start end)
 	    for _, v in ipairs(wl_parsed) do
-		vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {v.wikilink_nofrag})
+		vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {v.file})
 	    end
 	end
 

@@ -38,7 +38,7 @@ T['parse()'] = function()
         cur_col = 1,
         lnum = 1,
         raw = "[[test#fragment|alias]]",
-        wikilink_nofrag = "test",
+        file = "test",
         fragment = "fragment",
         alias = "alias",
     })
@@ -252,13 +252,13 @@ T['get_orphans()'] = function()
 end
 
 T['get_wl_from_obj()'] = function()
-    local ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({wikilink_nofrag = "test", fragment = "frag", alias = "alias"})]])
+    local ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({file = "test", fragment = "frag", alias = "alias"})]])
     eq(ret, "[[test#frag|alias]]")
-    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({wikilink_nofrag = "test", fragment = "", alias = "alias"})]])
+    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({file = "test", fragment = "", alias = "alias"})]])
     eq(ret, "[[test|alias]]")
-    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({wikilink_nofrag = "test", fragment = "", alias = ""})]])
+    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({file = "test", fragment = "", alias = ""})]])
     eq(ret, "[[test]]")
-    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({wikilink_nofrag = "test", fragment = "frag"})]])
+    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({file = "test", fragment = "frag"})]])
     eq(ret, "[[test#frag]]")
 end
 
@@ -279,7 +279,7 @@ T['parse_lines()'] = function()
             cur_col = 5,
             lnum = 3,
             raw = "[[test]]",
-            wikilink_nofrag = "test",
+            file = "test",
         }
     })
     ret = child.lua([[return require('mdnotes.wikilink').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])

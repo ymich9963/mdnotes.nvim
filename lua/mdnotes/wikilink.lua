@@ -11,7 +11,7 @@ M.old_filenames = {}
 M.new_filenames = {}
 
 ---@class MdnWikiLinkData: MdnText
----@field wikilink_nofrag string WikiLink without the fragment
+---@field file string WikiLink file
 ---@field fragment string The fragment in the WikiLink
 ---@field alias string WikiLink alias
 
@@ -45,7 +45,7 @@ function M.parse(opts)
     local alias = wikilink_contents:match(mdn_patterns.wikilink_alias)
 
     return vim.tbl_extend("force", {
-        wikilink_nofrag = wikilink_no_fragment,
+        file = wikilink_no_fragment,
         fragment = fragment,
         alias = alias,
     }, txtdata)
@@ -81,8 +81,8 @@ function M.follow(opts)
 
     local cwd = require('mdnotes').cwd
 
-    if wldata.wikilink_nofrag ~= "" then
-        local path = vim.fs.joinpath(cwd, wldata.wikilink_nofrag)
+    if wldata.file ~= "" then
+        local path = vim.fs.joinpath(cwd, wldata.file)
 
         if not vim.endswith(path, ".md") then
             path = path .. ".md"
@@ -130,11 +130,11 @@ function M.show_references(opts)
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
         wldata = {
             buf = vim.api.nvim_get_current_buf(),
-            wikilink_nofrag = cur_file_basename:gsub(".md$",""),
+            file = cur_file_basename:gsub(".md$",""),
             fragment = "",
             alias = "",
         }
-        wldata.raw = "[[" .. wldata.wikilink_nofrag .. "]]"
+        wldata.raw = "[[" .. wldata.file .. "]]"
     end
 
     local cur_pos = vim.fn.getpos('.')
@@ -145,7 +145,7 @@ function M.show_references(opts)
         vim.notify("Mdn: Searching references for '" .. wldata.raw:sub(3, -3) .. "'...", vim.log.levels.INFO)
     end
 
-    mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
+    mdn_grep("\\[\\[".. wldata.file .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
 
     local qflist = vim.fn.getqflist()
     if vim.tbl_isempty(qflist) then
@@ -196,31 +196,31 @@ function M.rename_references(opts)
     if wldata == nil then
         prompt = "Rename current buffer: "
         wldata = {
-            wikilink_nofrag = vim.fs.basename(vim.api.nvim_buf_get_name(0)):match("(.+)%.[^%.]+$"),
+            file = vim.fs.basename(vim.api.nvim_buf_get_name(0)):match("(.+)%.[^%.]+$"),
             fragment = "",
             alias = "",
         }
-        wldata.raw = "[[" .. wldata.wikilink_nofrag .. "]]"
+        wldata.raw = "[[" .. wldata.file .. "]]"
     end
 
     -- Remove the file extension for this function
-    if vim.endswith(wldata.wikilink_nofrag, ".md") then
-        wldata.wikilink_nofrag = wldata.wikilink_nofrag:sub(1,-4)
+    if vim.endswith(wldata.file, ".md") then
+        wldata.file = wldata.file:sub(1,-4)
     end
 
     -- Check if it exists
-    local filepath = vim.fs.normalize(vim.fs.joinpath(cwd, wldata.wikilink_nofrag .. ".md"))
+    local filepath = vim.fs.normalize(vim.fs.joinpath(cwd, wldata.file .. ".md"))
     if not uv.fs_stat(filepath) then
         if silent == false then
             vim.notify("Mdn: WikiLink does not seem to link to a valid Markdown file", vim.log.levels.ERROR)
         end
 
-        return wldata.wikilink_nofrag, "invalid file"
+        return wldata.file, "invalid file"
     end
 
     -- Prompt for new name and check if valid
     if new_name == nil then
-        vim.ui.input({ prompt = prompt, default = wldata.wikilink_nofrag },
+        vim.ui.input({ prompt = prompt, default = wldata.file },
         function(input)
             new_name = input
         end)
@@ -230,7 +230,7 @@ function M.rename_references(opts)
                 vim.notify("Mdn: Please insert a valid name", vim.log.levels.ERROR)
             end
 
-            return wldata.wikilink_nofrag, "invalid name"
+            return wldata.file, "invalid name"
         end
     end
 
@@ -239,11 +239,11 @@ function M.rename_references(opts)
     end
 
     -- Change all [[WikiLink]] text to be the new name
-    mdn_grep("\\[\\[".. wldata.wikilink_nofrag .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
-    vim.cmd.cdo({args = {('s/%s/%s/'):format("\\[\\[" .. wldata.wikilink_nofrag, "\\[\\[" .. new_name)}, mods = {emsg_silent = true, noautocmd = true}})
+    mdn_grep("\\[\\[".. wldata.file .. "(\\.md)?(\\#.*)?\\]\\]", cwd)
+    vim.cmd.cdo({args = {('s/%s/%s/'):format("\\[\\[" .. wldata.file, "\\[\\[" .. new_name)}, mods = {emsg_silent = true, noautocmd = true}})
 
     -- Get the buffer number of the renamed file if it is in the buffer list
-    local renamed_bufnum = get_buf_from_buf_list(wldata.wikilink_nofrag .. ".md")
+    local renamed_bufnum = get_buf_from_buf_list(wldata.file .. ".md")
 
     -- If the buffer number of the renamed file is in the buffer list
     if renamed_bufnum ~= nil then
@@ -265,10 +265,10 @@ function M.rename_references(opts)
             vim.notify("Mdn: File rename failed", vim.log.levels.ERROR)
         end
 
-        return wldata.wikilink_nofrag, err
+        return wldata.file, err
     end
 
-    table.insert(M.old_filenames, wldata.wikilink_nofrag)
+    table.insert(M.old_filenames, wldata.file)
     table.insert(M.new_filenames, new_name)
 
     -- Set the qf list to what it was before the operation
@@ -284,7 +284,7 @@ function M.rename_references(opts)
         vim.notify(("Mdn: Succesfully renamed '%s' links to '%s'"):format(wldata.raw:sub(3, -3), new_name), vim.log.levels.INFO)
     end
 
-    return wldata.wikilink_nofrag, new_name
+    return wldata.file, new_name
 end
 
 ---Undo the most recent rename
@@ -387,10 +387,10 @@ function M.delete(opts)
 
     -- Append .md to guarantee a file name
     local found_file = ""
-    if not vim.endswith(wldata.wikilink_nofrag, ".md") then
-        found_file = wldata.wikilink_nofrag .. ".md"
+    if not vim.endswith(wldata.file, ".md") then
+        found_file = wldata.file .. ".md"
     else
-        found_file = wldata.wikilink_nofrag
+        found_file = wldata.file
     end
 
     local deleted = false
@@ -398,7 +398,7 @@ function M.delete(opts)
     local path = vim.fs.normalize(vim.fs.joinpath(cwd, found_file))
     if uv.fs_stat(path) then
         if skip_input == false then
-            vim.ui.input( { prompt = ("Mdn: Delete '%s' WikiLink and file? Type y/n (default 'n'): "):format(wldata.wikilink_nofrag), }, function(input)
+            vim.ui.input( { prompt = ("Mdn: Delete '%s' WikiLink and file? Type y/n (default 'n'): "):format(wldata.file), }, function(input)
                 vim.cmd.echo()
                 if input == 'y' then
                     vim.fs.rm(path)
@@ -417,9 +417,9 @@ function M.delete(opts)
         vim.notify("Mdn: WikiLink file not found so proceeding to remove text only", vim.log.levels.WARN)
     end
 
-    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {wldata.wikilink_nofrag})
+    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {wldata.file})
 
-    return deleted, wldata.wikilink_nofrag
+    return deleted, wldata.file
 end
 
 ---Normalize the WikiLink under the cursor
@@ -432,7 +432,7 @@ function M.normalize(opts)
     local wldata = M.parse({ location = opts.location })
     if wldata == nil then return end
 
-    local new_wikilink = vim.fs.normalize(wldata.wikilink_nofrag)
+    local new_wikilink = vim.fs.normalize(wldata.file)
 
     if wldata.fragment ~= nil then
         new_wikilink = new_wikilink .. '#' .. wldata.fragment
@@ -525,15 +525,15 @@ function M.get_wl_from_obj(wldata)
 
     if wldata.alias == nil or wldata.alias == "" then
         if wldata.fragment == nil or wldata.fragment == "" then
-            return "[[" .. wldata.wikilink_nofrag .. "]]"
+            return "[[" .. wldata.file .. "]]"
         else
-            return "[[" .. wldata.wikilink_nofrag .. "#" .. wldata.fragment .. "]]"
+            return "[[" .. wldata.file .. "#" .. wldata.fragment .. "]]"
         end
     else
         if wldata.fragment == nil or wldata.fragment == "" then
-            return "[[" .. wldata.wikilink_nofrag .. "|" .. wldata.alias .. "]]"
+            return "[[" .. wldata.file .. "|" .. wldata.alias .. "]]"
         else
-            return "[[" .. wldata.wikilink_nofrag .. "#" .. wldata.fragment .. "|" .. wldata.alias .. "]]"
+            return "[[" .. wldata.file .. "#" .. wldata.fragment .. "|" .. wldata.alias .. "]]"
         end
     end
 end
