@@ -120,18 +120,18 @@ function M.insert(opts)
     local identifier = opts.identifier
     local text = opts.text or ""
 
-    -- Ensure fcounter is at the correct value
-    for _, v in pairs(M.get_buf_footnotes({buf = buf}) or {}) do
-        if v.buf == buf then
-            if M.fcounter ~= #v.footnotes then
-                M.fcounter = #v.footnotes
-                break
+    if identifier == nil then
+        -- Ensure fcounter is at the correct value
+        for _, v in pairs(M.get_buf_footnotes({buf = buf}) or {}) do
+            if v.buf == buf then
+                if M.fcounter ~= #v.footnotes then
+                    M.fcounter = #v.footnotes
+                    break
+                end
             end
         end
-    end
 
-    -- Set identifier based on fcounter if not given
-    if identifier == nil then
+        -- Set identifier based on fcounter if not given
         M.fcounter = M.fcounter + 1
         identifier = tostring(M.fcounter)
     end
