@@ -71,6 +71,14 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Convert an inline link to a reference link using `:Mdn reference_link convert_from_inline`.
 - Find occurences of the reference link under the cursor using `:Mdn reference_link find_label_occurences`.
 
+## 👣 Footnotes
+- Insert a numerical footnote that iterates automatically with `:Mdn footnote insert {reference}` with an optional `{reference}` to insert that specific one.
+- Update identifier and footnote text with `:Mdn footnote update`.
+- Go to the footnote from the reference with `:Mdn footnote go_to`.
+- Find the same footprint references in the buffer with `:Mdn footnote find_references`.
+- Cleanup unused footnotes and footnote references with `:Mdn footnote cleanup`.
+- Renumber the footnotes in the buffer with `:Mdn footnote renumber`.
+
 ## 🧍‍♂️ Uncategorised
 - Implements an outliner mode by doing `:Mdn outliner_toggle`. Make sure to exit afterwards by re-toggling. Can also use outliner-like indentation with `:Mdn outliner indent/unindent`.
 - Journal entries are automatically inserted to the journal file, but can also be done manually with `:Mdn journal insert_entry`. 
