@@ -639,7 +639,8 @@ to write the buffers if any command changes buffer contents.
 
 :Mdn reference_link go_to_definition			*Mdn-reference_link-go_to_definition*
 
-    Go to reference link definition.
+    Go to reference link definition. Can use |``| to return to the previous
+    cursor position.
 
 :Mdn reference_link delete 				*Mdn-reference_link-delete*
 
@@ -680,11 +681,13 @@ to write the buffers if any command changes buffer contents.
     Insert a footnote optionally with the specified {identifier}. Invoking
     |'wildchar'| (`<Tab>` by default) autocompletes the {identifier} then a list of
     the available labels will be given. If no {identifier} is provided it
-    inserts an integer identifier.
+    inserts an integer identifier. Can use |``| to return to the previous
+    cursor position.
 
 :Mdn footnote go_to	 				*Mdn-footnote-go_to*
 
-    Go to footnote.
+    Go to footnote. Can use |``| to return to the previous
+    cursor position.
 
 :Mdn footnote update 					*Mdn-footnote-update*
 
