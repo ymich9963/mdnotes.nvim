@@ -1008,7 +1008,7 @@ end
 ---Parse the pattern in the specified lines
 ---@param pattern string? Pattern to use
 ---@param opts {location: MdnMultiLineLocation?, silent: boolean?, no_duplicates: boolean?, get_func: fun(a): string?}?
----@return table<MdnReferenceLinkData>?
+---@return table?
 function M.parse_lines(pattern, parse_func, opts)
     opts = opts or {}
 
