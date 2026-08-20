@@ -11,8 +11,8 @@ M.current_index = 0
 ---Record buffer to buffer history
 ---@param buf integer? Buffer number to record. If nil it is the current buffer
 function M.record_buf(buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
-    vim.validate("buf", buf, "number")
+    vim.validate("buf", buf, "number", true)
+    buf = buf or vim.api.nvim_get_current_buf()
     if M.current_index == 0 or M.buf_history[M.current_index] ~= buf then
         -- If the user has went back and the current buffer is not the same as the stored buffer
         -- Create a copy of the list up to the current index and then add the new buffer
@@ -27,8 +27,11 @@ end
 ---Go back in the buffer history
 ---@param opts {silent: boolean?}?
 function M.go_back(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
 
     if M.current_index > 1 then
         M.current_index = M.current_index - 1
@@ -50,8 +53,11 @@ end
 ---Go forward in the buffer history
 ---@param opts {silent: boolean?}?
 function M.go_forward(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
+
     local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
 
     if M.current_index < #M.buf_history then
         M.current_index = M.current_index + 1

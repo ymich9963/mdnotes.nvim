@@ -1024,8 +1024,6 @@ scan_lines({pattern}, {opts})				*mdnotes.scan_lines()*
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnMultiLineLocation?`)
 		inline text location
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
 
     Return: ~
     • (`table<MdnScanLines>?`)
@@ -1040,8 +1038,6 @@ statistics({opts})					*mdnotes.statistics()*
     • {opts}  (`table?`) Optional parameters:
               • {buf} (`number?` defaults to current buffer)
 		buffer number
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
 
     Return: ~
     • (`table`) Table containing statistics. Current values are bytes,
@@ -1104,7 +1100,7 @@ open({destination})					*mdnotes.open()*
     Handle the opening of the {destination} in the appropriate method.
 
     Parameters: ~
-    • {destination}  (`string?`) destination to open
+    • {destination}  (`string`) destination to open
 	
     Return: ~
     • (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
@@ -1135,8 +1131,6 @@ parse_lines({pattern}, {parse_func}, {opts})		*mdnotes.parse_lines()*
 		multi-line location
               • {str} (`boolean?`, default `false`)
 		return object as strings instead of objects
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
               • {no_duplicates} (`boolean?`, default `false`)
 		remove duplicate entries from result
 	      • {get_func} (`fun(a): any`)
@@ -1203,7 +1197,7 @@ assets.has_image_extension({file_name})			*mdnotes.assets.has_image_extension()*
     `".jpg"`, `".jpeg"`, `".png"`, `".gif"`, `".webp"`, `".tiff"`, `".bmp"`, `".svg"`, `".heic`"
 
     Parameters: ~
-    • {file_name}  (`string`) File name to check
+    • {filename}  (`string`) File name to check
 
 assets.get_asset_inline_link({opts})			*mdnotes.assets.get_asset_inline_link()*
 
@@ -1620,8 +1614,6 @@ footnote.parse_lines({opts})				*mdnotes.footnote.parse_lines()*
 		multi-line location
               • {str} (`boolean?`, default `false`)
 		return object as strings instead of objects
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
               • {no_duplicates} (`boolean?`, default `false`)
 		remove duplicate entries from result
 
@@ -1704,11 +1696,12 @@ formatting.ordered_list_renumber({opts})		*mdnotes.formatting.ordered_list_renum
 		silence notifications
               • {search} (`MdnSearchOpts?`)
 
-formatting.insert_fence({opts}) 			*mdnotes.formatting.insert_fence()*
+formatting.insert_fence({fence}, {opts}) 		*mdnotes.formatting.insert_fence()*
 
-    Insert the fences of a fenced block.
+    Insert the {fence} of a fenced block.
 
     Parameters: ~
+    • {fence}  (`string`) Fence string
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnMultiLineLocation?`)
 		inline text location
@@ -1997,8 +1990,6 @@ inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
 		inline text location
               • {str} (`boolean?`, default `false`)
 		return object as strings instead of objects
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
               • {no_duplicates} (`boolean?`, default `false`)
 		remove duplicate entries from result
 
@@ -2296,8 +2287,6 @@ reference_link.parse_lines({opts})			*mdnotes.reference_link.parse_lines()*
 		inline text location
               • {str} (`boolean?`, default `false`)
 		return object as strings instead of objects
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
               • {no_duplicates} (`boolean?`, default `false`)
 		remove duplicate entries from result
 
@@ -2375,14 +2364,14 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
     Return: ~
     • (`MdnTable`)
 							*mdnotes.table.get_table_lines()*
-table.get_table_lines({buf}, {table_startl}, {table_endl})
+table.get_table_lines({table_startl}, {table_endl}, {buf})
 
     Get the table lines in the specified buffer and line numbers.
 
     Parameters: ~
-    • {buf}  (`integer?`)
     • {table_startl}  (`integer?`)
     • {table_endl}  (`table?`) Optional parameters:
+    • {buf}  (`integer?`)
 
     Return: ~
     • (`MdnTableContents`)
@@ -2912,8 +2901,6 @@ wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 		inline text location
               • {str} (`boolean?`, default `false`)
 		return object as strings instead of objects
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
               • {no_duplicates} (`boolean?`, default `false`)
 		remove duplicate entries from result
 

@@ -26,6 +26,7 @@ M.fcounter = 1
 ---@param opts {footnote_reference: string?, location: MdnInLineLocation?}?
 ---@return MdnFootnoteReferenceData?
 function M.parse(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local fref = opts.footnote_reference
@@ -59,10 +60,14 @@ end
 ---@param opts {buf: integer?, only_identifiers: boolean?}?
 ---@return table<MdnFootnote|string>?
 function M.get_buf_footnotes(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local buf = opts.buf or vim.api.nvim_get_current_buf()
     local only_identifiers = opts.only_identifiers or false
+
+    vim.validate("buf", buf, "number")
+    vim.validate("only_identifiers", only_identifiers, "boolean")
 
     local footnotes = {}
     local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
@@ -85,7 +90,8 @@ end
 ---Populate the buf_footnotes table
 ---@param buf integer? Buffer number
 function M.populate_buf_footnotes(buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
+    vim.validate("buf", buf, "number", true)
+    buf = buf or vim.api.nvim_get_current_buf()
 
     local footnotes_tbl = M.get_buf_footnotes({ buf = buf })
 
@@ -107,18 +113,24 @@ function M.populate_buf_footnotes(buf)
 end
 
 ---Insert Markdown footnote
----@param opts {identifier: string?, text: string?, move_cursor: boolean?, location: MdnInLineLocation}?
+---@param opts {identifier: string?, text: string?, move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.insert(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
+
+    local identifier = opts.identifier
+    local move_cursor = opts.move_cursor ~= false
+    local text = opts.text or ""
+
+    vim.validate("identifier", identifier, "string", true)
+    vim.validate("move_cursor", move_cursor, "boolean")
+    vim.validate("text", text, "string")
+    vim.validate("location", opts.location, "table", true)
 
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local lnum = locopts.lnum or vim.fn.line('.')
     local cur_col = locopts.cur_col or vim.fn.col('.')
-
-    local move_cursor = opts.move_cursor ~= false
-    local identifier = opts.identifier
-    local text = opts.text or ""
 
     if identifier == nil then
         -- Ensure fcounter is at the correct value
@@ -164,8 +176,10 @@ end
 ---@param buf integer?
 ---@return MdnFootnote?
 function M.get_footnote(identifier, buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
-    if identifier == nil then return nil end
+    vim.validate("identifier", identifier, "string")
+    vim.validate("buf", buf, "number", true)
+
+    buf = buf or vim.api.nvim_get_current_buf()
 
     for _, v in pairs(M.buf_footnotes) do
         if v.buf == buf then
@@ -182,6 +196,7 @@ end
 ---Go to footnote
 ---@param opts {identifier: string?, location: MdnInLineLocation?, silent: boolean?, picker: boolean?}?
 function M.go_to(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local silent = opts.silent or false
@@ -223,6 +238,7 @@ end
 ---Update footnote identifier and text
 ---@param opts {identifier:string?, new_identifier: string?, new_text: string?, location: MdnInLineLocation?, skip_input: boolean?, silent: boolean?}?
 function M.update(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local identifier = opts.identifier
@@ -298,10 +314,14 @@ end
 ---Cleanup unused footnotes and footnote references
 ---@param opts {buf: integer?, silent: boolean?}?
 function M.cleanup(opts)
-    opts = opts or {}
+    vim.validate("opts", opts, "table", true)
 
+    opts = opts or {}
     local silent = opts.silent or false
     local buf = opts.buf or vim.api.nvim_get_current_buf()
+
+    vim.validate("buf", buf, "number")
+    vim.validate("silent", silent, "boolean")
 
     local footnotes_tbl = M.get_buf_footnotes({ buf = buf })
     if footnotes_tbl == nil then
@@ -359,14 +379,16 @@ end
 ---@param fdata MdnFootnoteReferenceData? Footnote reference object
 ---@return string fref
 function M.get_fref_from_obj(fdata)
+    vim.validate("fdata", fdata, "table", true)
     if fdata == nil then return "" end
     return '[^' .. fdata.identifier .. ']'
 end
 
 ---Parse the footnote references in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?, no_duplicates: boolean?}?
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
 ---@return table<MdnFootnoteReferenceData>?
 function M.parse_lines(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
@@ -378,12 +400,13 @@ function M.parse_lines(opts)
         get_func = M.get_fref_from_obj
     end
 
-    return parse_lines(pattern, M.parse, {location = opts.location, silent = opts.silent, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
 end
 
 ---Find references of the same footnote identifier
 ---@param opts {identifier: string?, location: MdnInLineLocation?, silent: boolean?}?
 function M.find_references(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local identifier = opts.identifier
@@ -437,6 +460,7 @@ end
 ---Renumber integer footnote references
 ---@param opts {location: MdnInLineLocation?, silent: boolean?}?
 function M.renumber(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local silent = opts.silent or false
@@ -508,6 +532,8 @@ end
 ---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
 ---@param buf integer Buffer number
 function M.picker(on_end, buf)
+    vim.validate("on_end", on_end, "function")
+    vim.validate("buf", buf, "number")
     if buf == 0 then buf = vim.api.nvim_get_current_buf() end
 
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})

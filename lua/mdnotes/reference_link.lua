@@ -25,12 +25,13 @@ M.buf_reference_link_definitions = {}
 ---@param opts {reference_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
 ---@return MdnReferenceLinkData?
 function M.parse(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local reference_link = opts.reference_link
     local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
 
-    vim.validate("reference_link", reference_link, { "string", "nil" })
+    vim.validate("reference_link", reference_link, "string", true)
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
 
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
@@ -60,6 +61,7 @@ end
 ---@param opts {buf: integer?, only_labels: boolean?}?
 ---@return table<MdnReferenceLinkDefinition|string>?
 function M.get_buf_reference_link_definitions(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local buf = opts.buf or vim.api.nvim_get_current_buf()
@@ -86,7 +88,8 @@ end
 ---Populate the buf_reference_link_defintions table
 ---@param buf integer? Buffer number
 function M.populate_buf_reference_link_definitions(buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
+    vim.validate("buf", buf, "number", true)
+    buf = buf or vim.api.nvim_get_current_buf()
 
     local rldef_table = M.get_buf_reference_link_definitions({ buf = buf })
 
@@ -110,10 +113,14 @@ end
 ---Insert Markdown reference link with the text in the clipboard
 ---@param opts {label: string?, destination: string?, move_cursor: boolean?, location: MdnInLineLocation, silent: boolean?}?
 function M.insert(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local destination = opts.destination or vim.fn.getreg('+')
     local move_cursor = opts.move_cursor ~= false
     local silent = opts.silent or false
+
+    vim.validate("silent", silent, "boolean")
 
     local rldef = M.get_rl_definition(opts.label)
     if destination == '' and rldef ~= nil then
@@ -149,8 +156,9 @@ end
 ---@param buf integer?
 ---@return MdnReferenceLinkDefinition?
 function M.get_rl_definition(label, buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
-    if label == nil then return nil end
+    vim.validate("label", label, "string")
+    vim.validate("buf", buf, "number", true)
+    buf = buf or vim.api.nvim_get_current_buf()
 
     for _, v in pairs(M.buf_reference_link_definitions) do
         if v.buf == buf then
@@ -167,6 +175,7 @@ end
 ---Go to reference link definition
 ---@param opts {label: string?, location: MdnInLineLocation?, silent: boolean?, picker: boolean?}?
 function M.go_to_definition(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local silent = opts.silent or false
@@ -200,6 +209,7 @@ end
 ---Delete Markdown reference link and leave the text
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.delete(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
@@ -219,6 +229,7 @@ end
 ---@param rldef MdnReferenceLinkDefinition? Reference link definition object
 ---@return string reference_link_definition
 function M.get_rl_definition_from_obj(rldef)
+    vim.validate("rldef", rldef, "table", true)
     if rldef == nil then return "" end
     return '[' .. rldef.label .. ']: ' .. rldef.destination
 end
@@ -226,6 +237,7 @@ end
 ---Update reference link definition label and destination
 ---@param opts {label:string?, new_label: string?, new_destination: string?, location: MdnInLineLocation?, skip_input: boolean?, silent: boolean?}?
 function M.update_definition(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local label = opts.label
@@ -306,10 +318,14 @@ end
 ---Cleanup unused reference links and reference link definitions
 ---@param opts {buf: integer?, silent: boolean?}?
 function M.cleanup(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local silent = opts.silent or false
     local buf = opts.buf or vim.api.nvim_get_current_buf()
+
+    vim.validate("silent", silent, "boolean")
+    vim.validate("buf", buf, "number")
 
     local rldef_tbl = M.get_buf_reference_link_definitions({ buf = buf })
     if rldef_tbl == nil then
@@ -366,6 +382,7 @@ end
 ---@param rldata MdnReferenceLinkData? Reference link object
 ---@return string reference_link
 function M.get_rl_from_obj(rldata)
+    vim.validate("rldata", rldata, "table", true)
     if rldata == nil then return "" end
     if rldata.text == rldata.label then
         return '[' .. rldata.text .. '][]'
@@ -377,10 +394,14 @@ end
 ---Rename reference link but do not update definition
 ---@param opts {new_name: string?, move_cursor: boolean?, location: MdnInLineLocation?, silent: boolean?}?
 function M.rename(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local new_name = opts.new_name
     local move_cursor = opts.move_cursor ~= false
     local silent = opts.silent or false
+
+    vim.validate("silent", silent, "boolean")
 
     local rldata = M.parse({ location = opts.location })
     if rldata == nil or rldata.text == nil or rldata.label == nil then return end
@@ -409,10 +430,14 @@ end
 ---Relable reference link but do not update definition
 ---@param opts {new_label: string?, move_cursor: boolean?, location: MdnInLineLocation?, silent: boolean?}?
 function M.relabel(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
+
     local new_label = opts.new_label
     local move_cursor = opts.move_cursor ~= false
     local silent = opts.silent or false
+
+    vim.validate("silent", silent, "boolean")
 
     local rldata = M.parse({ location = opts.location })
     if rldata == nil or rldata.text == nil or rldata.label == nil then return end
@@ -447,6 +472,7 @@ end
 ---@param opts {reference_link: string?, location: MdnInLineLocation?, silent: boolean?, picker: boolean?}?
 ---@return integer|vim.SystemObj|string?
 function M.open(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local reference_link = opts.reference_link
@@ -455,7 +481,9 @@ function M.open(opts)
     local silent = opts.silent or false
     local picker = opts.picker or false
 
-    vim.validate("reference_link", reference_link, {"string", "nil"})
+    vim.validate("reference_link", reference_link, "string", true)
+    vim.validate("buf", buf, "number")
+    vim.validate("silent", silent, "boolean")
 
     local rldata
 
@@ -494,6 +522,7 @@ end
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?
 ---@return MdnReferenceLinkData? rldata, MdnReferenceLinkDefinition? rldef
 function M.convert_from_inline(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
@@ -531,9 +560,10 @@ function M.convert_from_inline(opts)
 end
 
 ---Parse the reference links in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?, no_duplicates: boolean?}?
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
 ---@return table<MdnReferenceLinkData>?
 function M.parse_lines(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
@@ -545,12 +575,13 @@ function M.parse_lines(opts)
         get_func = M.get_rl_from_obj
     end
 
-    return parse_lines(pattern, M.parse, {location = opts.location, silent = opts.silent, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
 end
 
 ---Find occurences of the same label in the reference link
 ---@param opts {label: string?, location: MdnInLineLocation?, silent: boolean?}?
 function M.find_label_occurences(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local label = opts.label
@@ -605,6 +636,8 @@ end
 ---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
 ---@param buf integer Buffer number
 function M.picker(on_end, buf)
+    vim.validate("on_end", on_end, "function")
+    vim.validate("buf", buf, "number")
     if buf == 0 then buf = vim.api.nvim_get_current_buf() end
 
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})

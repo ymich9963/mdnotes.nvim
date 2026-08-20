@@ -30,12 +30,14 @@ local check_markdown_syntax = function(...) return require('mdnotes').check_mark
 ---@param format_char MdnFormatDelimiters
 ---@param opts MdnFormattingOpts?
 function M.insert_format(format_char, opts)
+    vim.validate("opts", opts, "table", true)
+    vim.validate("format_char", format_char, "string")
+
     opts = opts or {}
     local split_delimiter = opts.split_delimiter or false
     local move_cursor = opts.move_cursor ~= false
 
     vim.validate("split_delimiter", split_delimiter, "boolean")
-    vim.validate("format_char", format_char, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
 
     if split_delimiter == nil then split_delimiter = false end
@@ -63,10 +65,12 @@ end
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
 ---@param opts MdnFormattingOpts?
 function M.delete_format(pattern, opts)
+    vim.validate("pattern", pattern, "string")
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
-    vim.validate("pattern", pattern, "string")
     vim.validate("move_cursor", move_cursor, "boolean")
 
     local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = opts.location})
@@ -94,6 +98,9 @@ end
 ---@param delimiter MdnFormatDelimiters
 ---@param opts MdnFormattingOpts?
 function M.toggle(pattern, delimiter, opts)
+    vim.validate("pattern", pattern, "string")
+    vim.validate("delimiter", delimiter, "string")
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local ret = check_markdown_syntax(pattern, { location = opts.location })
@@ -107,6 +114,7 @@ end
 ---Toggle the emphasis Markdown formatting
 ---@param opts MdnFormattingOpts?
 function M.emphasis_toggle(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').emphasis
@@ -118,6 +126,7 @@ end
 ---Toggle the strong Markdown formatting
 ---@param opts MdnFormattingOpts?
 function M.strong_toggle(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').strong
@@ -129,6 +138,7 @@ end
 ---Toggle the strikethrough Markdown formatting
 ---@param opts MdnFormattingOpts?
 function M.strikethrough_toggle(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').strikethrough
@@ -140,6 +150,7 @@ end
 ---Toggle the inline code Markdown formatting
 ---@param opts MdnFormattingOpts?
 function M.inline_code_toggle(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').inline_code
@@ -151,6 +162,7 @@ end
 ---Toggle the autolink Markdown formatting
 ---@param opts MdnFormattingOpts?
 function M.autolink_toggle(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local pattern = require('mdnotes.patterns').autolink
@@ -199,14 +211,16 @@ end
 ---Toggle task list state
 ---@param opts {location: MdnMultiLineLocation?, silent: boolean?}?
 function M.task_list_toggle(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
+    local silent = opts.silent or false
     local locopts = opts.location or {}
     local buf = locopts.buf or 0
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
-    local silent = opts.silent or false
 
+    vim.validate("silent", silent, "boolean")
     vim.validate("buf", buf, "number")
     vim.validate("silent", silent, "boolean")
     vim.validate("startl", startl, "number")
@@ -262,6 +276,7 @@ end
 ---@param opts {same_indent: boolean?, same_marker: boolean?, search: MdnSearchOpts?, outliner_list: boolean?}?
 ---@return MdnSearchResult
 function M.check_list_valid(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local search_opts = opts.search or {}
@@ -360,6 +375,7 @@ end
 ---Renumber the ordered list
 ---@param opts {silent: boolean?, search: MdnSearchOpts}?
 function M.ordered_list_renumber(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
     local silent = opts.silent or false
     local search_opts = opts.search or {}
@@ -416,6 +432,7 @@ end
 ---@param opts {search: MdnSearchOpts?}?
 ---@return MdnSearchResult
 function M.check_fence_valid(pattern, opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local search_opts = opts.search or {}
@@ -471,8 +488,11 @@ function M.check_fence_valid(pattern, opts)
 end
 
 ---Insert a fence
+---@param fence string Fence text
 ---@param opts {location: MdnMultiLineLocation?}?
 function M.insert_fence(fence, opts)
+    vim.validate("fence", fence, "string")
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local locopts = opts.location or {}
@@ -491,6 +511,7 @@ end
 ---Delete a fence
 ---@param opts {location: MdnMultiLineLocation?}?
 function M.delete_fence(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local locopts = opts.location or {}
@@ -509,6 +530,7 @@ end
 ---Toggle fenced code block
 ---@param opts {location: MdnMultiLineLocation?}?
 function M.fenced_code_block_toggle(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local locopts = opts.location or {}

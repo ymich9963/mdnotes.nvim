@@ -22,11 +22,12 @@ local get_buf_from_buf_list = function(...) return require('mdnotes').get_buf_fr
 ---@param opts {wikilink: string?, location: MdnInLineLocation?}?
 ---@return MdnWikiLinkData?
 function M.parse(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local wikilink = opts.wikilink
 
-    vim.validate("wikilink", wikilink, { "string", "nil" })
+    vim.validate("wikilink", wikilink, "string", true)
 
     local mdn_patterns = require('mdnotes.patterns')
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
@@ -60,6 +61,7 @@ function M.follow(opts)
         return
     end
 
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local locopts = opts.location or {}
@@ -103,6 +105,7 @@ end
 ---Follow the WikiLink and split horizontally
 ---@param opts {wikilink: string?, location: MdnInLineLocation?, picker: boolean?}?
 function M.follow_hor(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
     M.follow({ wikilink = opts.wikilink, location = opts.location, hor = true, picker = opts.picker})
 end
@@ -110,6 +113,7 @@ end
 ---Follow the WikiLink and split vertically
 ---@param opts {wikilink: string?, location: MdnInLineLocation?, picker: boolean?}?
 function M.follow_vert(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
     M.follow({ wikilink = opts.wikilink, location = opts.location, vert = true, picker = opts.picker})
 end
@@ -124,6 +128,7 @@ function M.show_references(opts)
         return
     end
 
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
     local silent = opts.silent or false
     local wldata = M.parse({ location = opts.location })
@@ -180,11 +185,12 @@ function M.rename_references(opts)
         return
     end
 
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
     local silent = opts.silent or false
     local new_name = opts.new_name
 
-    vim.validate("new_name", new_name, { "string", "nil" })
+    vim.validate("new_name", new_name, "string", true)
 
     -- Save current position to rever back later
     local cur_buf = vim.api.nvim_get_current_buf()
@@ -299,8 +305,10 @@ function M.undo_rename(opts)
         return
     end
 
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
     local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
 
     if vim.tbl_isempty(M.new_filenames) or vim.tbl_isempty(M.old_filenames) then
         if silent == false then
@@ -369,6 +377,7 @@ end
 ---Create a WikiLink from the word under the cursor
 ---@param opts {location: MdnInLineLocation?, move_cursor: boolean?}?
 function M.create(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local insert_format = require('mdnotes.formatting').insert_format
@@ -379,6 +388,7 @@ end
 ---@param opts {location: MdnInLineLocation?, move_cursor: boolean?, skip_input: boolean?}?
 ---@return boolean deleted, string wikilink Returns whether the file was deleted and the affected WikiLink
 function M.delete(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local wldata = M.parse({ location = opts.location })
@@ -428,6 +438,7 @@ end
 ---Normalize the WikiLink under the cursor
 ---@param opts {location: MdnInLineLocation?, move_cursor: boolean?}?
 function M.normalize(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
@@ -453,9 +464,11 @@ end
 ---@param opts {silent: boolean?}?
 ---@return table<string> orphans Table of orphan pages
 function M.get_orphans(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
 
     local orphans = {}
     local tempqf_list = vim.fn.getqflist()
@@ -524,6 +537,7 @@ end
 ---@param wldata MdnWikiLinkData? Inline link object
 ---@return string wikilink
 function M.get_wl_from_obj(wldata)
+    vim.validate("wldata", wldata, "table", true)
     if wldata == nil then return "" end
 
     if wldata.alias == nil or wldata.alias == "" then
@@ -545,6 +559,8 @@ end
 ---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
 ---@param buf integer Buffer number
 function M.picker(on_end, buf)
+    vim.validate("on_end", on_end, "function")
+    vim.validate("buf", buf, "number")
     if buf == 0 then buf = vim.api.nvim_get_current_buf() end
 
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
@@ -564,9 +580,10 @@ function M.picker(on_end, buf)
 end
 
 ---Parse the WikiLinks in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?, no_duplicates: boolean?}?
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
 ---@return table<MdnWikiLinkData>?
 function M.parse_lines(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
@@ -578,7 +595,7 @@ function M.parse_lines(opts)
         get_func = M.get_wl_from_obj
     end
 
-    return parse_lines(pattern, M.parse, {location = opts.location, silent = opts.silent, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
 end
 
 return M

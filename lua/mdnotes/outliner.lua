@@ -41,6 +41,7 @@ end
 ---Indent the current parent-child list
 ---@param opts {search: MdnSearchOpts?, move_cursor: boolean?}?
 function M.indent(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
@@ -65,6 +66,7 @@ end
 ---Unindent the current parent-child list
 ---@param opts {search: MdnSearchOpts?, move_cursor: boolean?}?
 function M.unindent(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false

@@ -235,14 +235,13 @@ end
 ---@param buf integer|string
 ---@param opts {hor: boolean?, vert: boolean?}?
 function M.open_buf(buf, opts)
+    vim.validate("buf", buf, {"number", "string"})
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
+
     local hor = opts.hor or false
     local vert = opts.vert or false
-
-    vim.validate("buf", buf, {"number", "string"})
-    vim.validate("hor", hor, "boolean")
-    vim.validate("vert", vert, "boolean")
-
     if hor == true and vert == true then
         hor = false
         vert = false
@@ -272,6 +271,9 @@ end
 ---@param pattern string grep pattern
 ---@param path string File path
 function M.mdn_grep(pattern, path)
+    vim.validate("pattern", pattern, "string")
+    vim.validate("path", path, "string")
+
     if vim.o.grepprg == "internal" then
         pattern = pattern:gsub("<", "\\<")
         pattern = pattern:gsub("/", "\\/")
@@ -289,8 +291,10 @@ end
 ---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
 ---@return boolean? valid, table|table<table>? cols_tbl
 function M.check_markdown_syntax(pattern, opts)
-    opts = opts or {}
     vim.validate("pattern", pattern, "string")
+    vim.validate("opts", opts, "table", true)
+
+    opts = opts or {}
 
     local entire_line = opts.entire_line or false
     local locopts = opts.location or {}
@@ -337,6 +341,8 @@ end
 ---@param opts {location: MdnInLineLocation?}?
 ---@return MdnText
 function M.get_text(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local locopts = opts.location or {}
 
@@ -400,9 +406,9 @@ end
 ---@param opts {location: MdnInLineLocation?}?
 ---@return MdnText
 function M.get_text_in_pattern(pattern, opts)
-    opts = opts or {}
-
     vim.validate("pattern", pattern, "string")
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
 
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
@@ -532,48 +538,39 @@ end
 ---@param opts MdnGetFilesInCwdOpts?
 ---@return table<string> files Table with file names
 function M.get_files_in_cwd(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
-
-    local extension = opts.extension
-    local hidden = opts.hidden
-    local fs_type = opts.fs_type
-    local pattern = opts.pattern
-
-    vim.validate("extension", extension, {"string", "nil"})
-    vim.validate("hidden", hidden, {"boolean", "nil"})
-    vim.validate("fs_type", fs_type, {"string", "nil"})
-    vim.validate("pattern", pattern, {"string", "nil"})
 
     local cwd = require('mdnotes').cwd
     local files = {}
     local add = false
     for name, type in vim.fs.dir(cwd) do
-        if extension ~= nil then
-            if name:match("^.*(%..*)") == extension or extension == ".*" then
+        if opts.extension ~= nil then
+            if name:match("^.*(%..*)") == opts.extension or opts.extension == ".*" then
                 add = true
             else
                 add = false
             end
         end
 
-        if hidden ~= nil then
-            if name:sub(1,1) == "." and hidden == true then
+        if opts.hidden ~= nil then
+            if name:sub(1,1) == "." and opts.hidden == true then
                 add = true
             else
                 add = false
             end
         end
 
-        if fs_type ~= nil then
-            if type == fs_type or type == "all" then
+        if opts.fs_type ~= nil then
+            if type == opts.fs_type or type == "all" then
                 add = true
             else
                 add = false
             end
         end
 
-        if pattern ~= nil then
-            if name:match(pattern) then
+        if opts.pattern ~= nil then
+            if name:match(opts.pattern) then
                 add = true
             else
                 add = false
@@ -594,6 +591,8 @@ end
 ---@param text string Text for conver
 ---@return string
 function M.convert_text_to_gfm(text)
+    vim.validate("text", text, "string")
+
     -- Lowercase
     text =text:lower()
 
@@ -613,7 +612,8 @@ end
 ---Parse the fragments in the specified buffer and update buf_fragments
 ---@param buf integer? Buffer number to parse the fragments
 function M.populate_buf_fragments(buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
+    vim.validate("buf", buf, "number", true)
+    buf = buf or vim.api.nvim_get_current_buf()
 
     local fragments_tbl = M.get_buf_fragments(buf)
 
@@ -638,7 +638,9 @@ end
 ---@param buf integer?
 ---@return table<MdnFragment>
 function M.get_buf_fragments(buf)
-    if buf == nil then buf = 0 end
+    vim.validate("buf", buf, "number", true)
+    buf = buf or vim.api.nvim_get_current_buf()
+
     local fragments = {}
     local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
     local heading_format_pattern = require('mdnotes.patterns').heading
@@ -658,6 +660,9 @@ end
 ---@param fragment string Fragment
 ---@return string?
 function M.find_fragment_in_buf_fragments(buf, fragment)
+    vim.validate("buf", buf, "number")
+    vim.validate("fragment", fragment, "string")
+
     local fragments
     for _, v in ipairs(M.buf_fragments) do
         if v.buf == buf then
@@ -685,6 +690,8 @@ end
 ---Get the buffer number from the buffer list using the buffer name 
 ---@param bufname string Buffer name
 function M.get_buf_from_buf_list(bufname)
+    vim.validate("bufname", bufname, "string")
+
     local buf_list = vim.api.nvim_list_bufs()
     local ret = nil
 
@@ -705,19 +712,19 @@ end
 
 ---Scan lines for inline Markdown items
 ---@param pattern MdnPattern Pattern that also returns start and end column numbers
----@param opts {location: MdnMultiLineLocation?, silent: boolean?}?
+---@param opts {location: MdnMultiLineLocation?}?
 ---@return table<MdnScanLines>?
 function M.scan_lines(pattern, opts)
+    vim.validate("pattern", pattern, "string")
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
-    local silent = opts.silent ~= false
 
     vim.validate("buf", buf, "number")
-    vim.validate("silent", silent, "boolean")
     vim.validate("startl", startl, "number")
     vim.validate("endl", endl, "number")
 
@@ -740,10 +747,15 @@ end
 ---@param opts {buf: number?, silent: boolean?}?
 ---@return table statistics
 function M.statistics(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local buf = opts.buf or vim.api.nvim_get_current_buf()
     local silent = opts.silent ~= false
+
+    vim.validate("buf", buf, "number")
+    vim.validate("silent", silent, "boolean")
+
     local bytes = 0
     local chars = 0
     local words = 0
@@ -845,13 +857,14 @@ end
 ---@param opts table?
 ---@return string path, integer? error, string? error_text
 function M.get_path_from_destination(destination, check_valid, opts)
+    vim.validate("destination", destination, "string")
+    vim.validate("check_valid", check_valid, "boolean")
+    vim.validate("opts", opts, "table", true)
+
     local path = ""
     if M.is_url(destination) == true then return path, -1, "is URL" end
 
     opts = opts or {} -- unused
-
-    vim.validate("destination", destination, "string")
-    vim.validate("check_valid", check_valid, "boolean")
 
     local cwd =require('mdnotes').cwd
     path = destination:match(require("mdnotes.patterns").dest_no_fragment) or ""
@@ -891,13 +904,14 @@ end
 ---@param opts table?
 ---@return string? fragment, integer? error, string? error_text
 function M.get_fragment_from_destination(destination, check_valid, opts)
+    vim.validate("destination", destination, "string")
+    vim.validate("check_valid", check_valid, "boolean")
+    vim.validate("opts", opts, "table", true)
+
     local fragment = ""
     if M.is_url(destination) == true then return fragment, -1, "is URL" end
 
     opts = opts or {} -- unused
-
-    vim.validate("destination", destination, "string")
-    vim.validate("check_valid", check_valid, "boolean")
 
     fragment = destination:match(require("mdnotes.patterns").fragment) or ""
 
@@ -943,10 +957,10 @@ function M.get_fragment_from_destination(destination, check_valid, opts)
 end
 
 ---Open destination in the appropriate programme
----@param destination string?
+---@param destination string
 ---@return integer|vim.SystemObj|string?
 function M.open(destination)
-    if destination == nil then return "destination error" end
+    vim.validate("destination", destination, "string")
 
     local path, perror = M.get_path_from_destination(destination, true)
     if perror ~= nil and perror ~= -1 then
@@ -1009,10 +1023,13 @@ local function is_parsed_tbl_duplicate(parsed_tbl, data)
 end
 
 ---Parse the pattern in the specified lines
----@param pattern string? Pattern to use
----@param opts {location: MdnMultiLineLocation?, silent: boolean?, no_duplicates: boolean?, get_func: fun(a): string?}?
+---@param pattern MdnPattern Pattern to use
+---@param opts {location: MdnMultiLineLocation?, no_duplicates: boolean?, get_func: fun(a): string?}?
 ---@return table?
 function M.parse_lines(pattern, parse_func, opts)
+    vim.validate("pattern", pattern, "string")
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
 
     local no_duplicates = opts.no_duplicates or false
@@ -1022,9 +1039,7 @@ function M.parse_lines(pattern, parse_func, opts)
     local endl = locopts.endl or vim.fn.line('.')
     local get_func = opts.get_func or function(a) return a end
 
-    local scan_lines = require('mdnotes').scan_lines
-
-    local scanned_lines = scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }, silent = opts.silent})
+    local scanned_lines = M.scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }})
     if scanned_lines == nil then return nil end
 
     local parsed_tbl = {}
@@ -1049,6 +1064,10 @@ end
 ---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
 ---@param ui_opts vim.ui.select.Opts
 function M.mdn_picker(items, on_end, ui_opts)
+    vim.validate("items", items, "table")
+    vim.validate("on_end", on_end, "function")
+    vim.validate("ui_opts", ui_opts, "table")
+
     -- If it is overriden, it is assumed to be non-blocking
     if M.default_ui_select == vim.ui.select then
         local index = nil

@@ -22,8 +22,12 @@ end
 ---Check if assets path is available and if it exists
 ---@param opts {silent: boolean?}?
 function M.check_assets_path(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local silent = opts.silent or false
+
+    vim.validate("silent", silent, "boolean")
 
     local mdnotes_assets_path = M.get_assets_folder_name()
     local cwd = require('mdnotes').cwd
@@ -49,6 +53,7 @@ end
 ---Open assets folder
 ---@param opts {silent: boolean?}?
 function M.open_containing_folder(opts)
+    vim.validate("opts", opts, "table", true)
     if M.check_assets_path(opts) == false then return end
     local cwd = require('mdnotes').cwd
     vim.ui.open(vim.fs.joinpath(cwd, M.get_assets_folder_name()))
@@ -82,10 +87,13 @@ end
 ---@param opts {silent: boolean?}? File path of asset file
 ---@return string? file_name Return file name on success
 function M.process_inserted_asset_file(file_path, opts)
-    opts = opts or {}
-    local silent = opts.silent or false
-
     vim.validate("file_path", file_path, "string")
+    vim.validate("opts", opts, "table", true)
+
+    opts = opts or {}
+
+    local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
 
     local mdnotes_assets_path = M.get_assets_folder_name()
     local mdnotes_config = require('mdnotes').config
@@ -132,8 +140,9 @@ function M.process_inserted_asset_file(file_path, opts)
     return file_name
 end
 
----@param file_name string File to check the extension of
-function M.has_image_extension(file_name)
+---@param filename string File to check the extension of
+function M.has_image_extension(filename)
+    vim.validate("filename", filename, "string")
     local image_extensions = {
         ".jpg",
         ".jpeg",
@@ -146,7 +155,7 @@ function M.has_image_extension(file_name)
         ".heic"
     }
 
-    local extension = file_name:match(".*(%..*)")
+    local extension = filename:match(".*(%..*)")
 
     if vim.tbl_contains(image_extensions, extension) then
         return true
@@ -170,19 +179,20 @@ end
 ---@param opts MdnGetAssetInlineLinkOpts
 ---@return MdnAssetInlineLink?
 function M.get_asset_inline_link(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local process_file = opts.process_file ~= false
-    local file_path = opts.file_path
     local silent = opts.silent or false
 
     vim.validate("process_file", process_file, "boolean")
-    vim.validate("file_path", file_path, { "string", "nil" })
+    vim.validate("file_path", opts.file_path, "string", true)
+    vim.validate("silent", silent, "boolean")
 
     local asset_path = ""
     local file_name = nil
 
-    if file_path == nil then
+    if opts.file_path == nil then
         -- Get the file paths as a table
         local file_paths, cmd_stdout = get_file_paths_from_cb()
 
@@ -217,15 +227,15 @@ function M.get_asset_inline_link(opts)
             return
         end
 
-        file_path = vim.fs.normalize(file_paths[1])
+        opts.file_path = vim.fs.normalize(file_paths[1])
     end
 
     -- Copy/move the asset file to the assets directory
     if process_file == true then
-        file_name = M.process_inserted_asset_file(file_path)
+        file_name = M.process_inserted_asset_file(opts.file_path)
         if file_name == nil then return end
     elseif process_file == false then
-        file_name = vim.fs.basename(file_path)
+        file_name = vim.fs.basename(opts.file_path)
     end
     asset_path = vim.fs.joinpath(M.get_assets_folder_name(), file_name)
 
@@ -255,8 +265,9 @@ end
 ---@field location MdnInLineLocation?
 
 ---Insert a file as an inline link under the cursor
----@param opts MdnAssetInsertOpts
+---@param opts MdnAssetInsertOpts?
 function M.insert(opts)
+    vim.validate("opts", opts, "table", true)
     if M.check_assets_path() == false then return end
 
     opts = opts or {}
@@ -278,7 +289,10 @@ end
 ---@param opts {silent: boolean?}?
 ---@return table<string>
 function M.get_used_assets(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
+
     local silent = opts.silent or false
     vim.validate("silent", silent, "boolean")
 
@@ -321,7 +335,10 @@ end
 ---@param opts {silent: boolean?}? opts.silent: Silence notifications
 ---@return table<string>
 function M.get_unused_assets(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
+
     local silent = opts.silent or false
     vim.validate("silent", silent, "boolean")
 
@@ -417,7 +434,10 @@ end
 ---Delete unused assets
 ---@param opts {skip_input: boolean?}? opts.skip_input: Skip the user input prompt
 function M.unused_delete(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
+
     local skip_input = opts.skip_input or false
     vim.validate("skip_input", skip_input, "boolean")
 
@@ -427,7 +447,10 @@ end
 ---Move unused assets to a new folder
 ---@param opts {skip_input: boolean?}? opts.skip_input: Skip the user input prompt
 function M.unused_move(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
+
     local skip_input = opts.skip_input or false
     vim.validate("skip_input", skip_input, "boolean")
 
@@ -438,24 +461,25 @@ end
 ---@param opts {destination: string?, location: MdnInLineLocation?, silent: boolean?}?
 ---@return string? filepath Path of downloaded file
 function M.download_website_html(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
-    local destination = opts.destination
     local silent = opts.silent or false
 
-    local mdn_il = require('mdnotes.inline_link')
-    if destination == nil then
-        destination = (mdn_il.parse({ location = opts.location })).destination
-    end
+    vim.validate("destination", opts.destination, "string", true)
 
-    vim.validate("destination", destination, "string")
+    local mdn_il = require('mdnotes.inline_link')
+    if opts.destination == nil then
+        opts.destination = (mdn_il.parse({ location = opts.location })).destination
+    end
 
     local filename, filepath = "", ""
     local res = nil
 
     -- Notifications should alredy be outputted
-    if destination == nil then return end
+    if opts.destination == nil then return end
 
-    if require('mdnotes').is_url(destination) == false then
+    if require('mdnotes').is_url(opts.destination) == false then
         if silent == false then
             vim.notify("Mdn: Detected inline link does not contain website link", vim.log.levels.ERROR)
         end
@@ -464,11 +488,11 @@ function M.download_website_html(opts)
     end
 
     if silent == false then
-        vim.notify(("Mdn: Downloading '%s' website html..."):format(destination), vim.log.levels.INFO)
+        vim.notify(("Mdn: Downloading '%s' website html..."):format(opts.destination), vim.log.levels.INFO)
     end
 
     -- Create a filename of max 72 characters
-    filename = destination:gsub("[:/#?.()%[%]]+", "_") .. ".html"
+    filename = opts.destination:gsub("[:/#?.()%[%]]+", "_") .. ".html"
 
     local cwd = require('mdnotes').cwd
     filepath = vim.fs.joinpath(cwd, M.get_assets_folder_name(), filename)
@@ -482,7 +506,7 @@ function M.download_website_html(opts)
     end
 
     vim.system(
-        {"curl", "-Ls", destination},
+        {"curl", "-Ls", opts.destination},
         {text = true},
         function(obj)
             if obj.code == 0 then
@@ -494,7 +518,7 @@ function M.download_website_html(opts)
     if res then
         vim.fn.writefile(vim.split(res, "\n"), filepath)
         if silent == false then
-            vim.notify(("Mdn: Saved '%s' to '%s'"):format(destination, filepath), vim.log.levels.INFO)
+            vim.notify(("Mdn: Saved '%s' to '%s'"):format(opts.destination, filepath), vim.log.levels.INFO)
         end
     else
         if silent == false then
@@ -509,23 +533,25 @@ end
 ---@param opts {destination: string?, skip_input: boolean?, location: MdnInLineLocation}?
 ---@return boolean is_deleted, string? asset_path
 function M.delete(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
-    local destination = opts.destination
+
     local skip_input = opts.skip_input or false
     vim.validate("skip_input", skip_input, "boolean")
+    vim.validate("destination", opts.destination, "string", true)
 
     local mdn_il = require('mdnotes.inline_link')
 
     local ildata
-    if destination == nil then
+    if opts.destination == nil then
         ildata = mdn_il.parse({ location = opts.location, keep_pointy_brackets = false }) or {}
-        destination = ildata.destination
-        if destination == nil then return false, nil end
+        opts.destination = ildata.destination
+        if opts.destination == nil then return false, nil end
     end
 
-    vim.validate("destination", destination, "string")
 
-    local asset_path, err = require('mdnotes').get_path_from_destination(destination, true)
+    local asset_path, err = require('mdnotes').get_path_from_destination(opts.destination, true)
     if err ~= nil then return false, nil end
 
     local behaviour = require('mdnotes').config.asset_delete_behaviour
@@ -578,7 +604,7 @@ function M.delete(opts)
         local mdn_grep = require('mdnotes').mdn_grep
         local temp_qflist = vim.fn.getqflist()
 
-        mdn_grep(destination, cwd)
+        mdn_grep(opts.destination, cwd)
         local assets_list = vim.fn.getqflist()
 
         for _,v in ipairs(assets_list) do
@@ -619,22 +645,27 @@ end
 ---View asset
 ---@param opts {asset: string?, silent: boolean?, picker: boolean?}?
 function M.view(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
-    local asset = opts.asset
     local silent = opts.silent or false
     local picker = opts.picker or false
+
+    vim.validate("silent", silent, "boolean")
+    vim.validate("picker", picker, "boolean")
+
     local cwd = require('mdnotes').cwd
     local assets_path = vim.fs.joinpath(cwd, M.get_assets_folder_name())
 
-    if asset == nil and picker == true then
-        asset = M.picker(function(sel_obj) M.view({ asset = sel_obj }) end)
+    if opts.asset == nil and picker == true then
+        opts.asset = M.picker(function(sel_obj) M.view({ asset = sel_obj }) end)
 
-        if asset == nil then
+        if opts.asset == nil then
             return
         end
     end
 
-    local chosen_asset_path = vim.fs.joinpath(assets_path, asset)
+    local chosen_asset_path = vim.fs.joinpath(assets_path, opts.asset)
     vim.ui.open(chosen_asset_path)
 
     if silent == false then
@@ -645,6 +676,8 @@ end
 ---Open a picker to get the asset
 ---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
 function M.picker(on_end)
+    vim.validate("on_end", on_end, "function")
+
     local cwd = require('mdnotes').cwd
     local assets_path = vim.fs.joinpath(cwd, M.get_assets_folder_name())
     local assets_list = M.get_asset_list()

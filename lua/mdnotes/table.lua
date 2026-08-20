@@ -22,6 +22,7 @@ local M = {}
 ---@param opts {search: MdnSearchOpts?}?
 ---@return MdnSearchResult
 function M.check_table_valid(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local search_opts = opts.search or {}
@@ -89,6 +90,7 @@ end
 ---Use startl == endl for inserting at current line
 ---@param opts MdnTable
 function M.write_table(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local buf = opts.buf or vim.api.nvim_get_current_buf()
@@ -125,6 +127,10 @@ end
 ---@param opts {buf: integer?, lnum: integer?, write: boolean?, silent: boolean?}?
 ---@return MdnTable?
 function M.create(rows, columns, opts)
+    vim.validate("rows", rows, {"number", "string"})
+    vim.validate("columns", columns, {"number", "string"})
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local buf = opts.buf or vim.api.nvim_get_current_buf()
     local lnum = opts.lnum or vim.fn.line('.')
@@ -180,16 +186,16 @@ function M.create(rows, columns, opts)
 end
 
 ---Get the table lines in the specified line numbers
----@param buf integer
 ---@param table_startl integer
 ---@param table_endl integer
+---@param buf integer
 ---@return MdnTableContents?
-function M.get_table_lines(buf, table_startl, table_endl)
-    buf = buf or vim.api.nvim_get_current_buf()
-
-    vim.validate("buf", buf, "number")
+function M.get_table_lines(table_startl, table_endl, buf)
     vim.validate("table_startl", table_startl, "number")
     vim.validate("table_endl", table_endl, "number")
+    vim.validate("buf", buf, "number", true)
+
+    buf = buf or vim.api.nvim_get_current_buf()
 
     local table_lines = {}
     local lines = vim.api.nvim_buf_get_lines(buf, table_startl - 1, table_endl, false)
@@ -221,15 +227,16 @@ end
 ---@param opts {silent: boolean?, search: MdnSearchOpts?}?
 ---@return MdnTable?
 function M.parse(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
+    local silent = opts.silent or false
     local search_opts = opts.search or {}
+
+    vim.validate("silent", silent, "boolean")
     vim.validate("search_opts", search_opts, "table")
 
     local buf = search_opts.buf or vim.api.nvim_get_current_buf()
-    local silent = opts.silent or false
-
-    vim.validate("silent", silent, "boolean")
 
     local tsearch = M.check_table_valid({ search = search_opts })
     if tsearch.valid == false then
@@ -240,7 +247,7 @@ function M.parse(opts)
         return
     end
 
-    local table_lines = M.get_table_lines(search_opts.buf, tsearch.startl, tsearch.endl) or {}
+    local table_lines = M.get_table_lines(tsearch.startl, tsearch.endl, search_opts.buf) or {}
     if vim.tbl_isempty(table_lines) then
         if silent == false then
             vim.notify("Mdn: Error parsing table", vim.log.levels.ERROR)
@@ -261,9 +268,12 @@ end
 ---@param opts {search: MdnSearchOpts?, silent: boolean?}?
 ---@return MdnTableColLocs? col_locations_table Table column locations
 function M.get_column_locations(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local silent = opts.silent or false
     local search_opts = opts.search or {}
+    vim.validate("silent", silent, "boolean")
     vim.validate("search_opts", search_opts, "table")
 
     local buf = search_opts.buf or vim.api.nvim_get_current_buf()
@@ -298,6 +308,9 @@ end
 ---@param col_locs MdnTableColLocs
 ---@return MdnTableContentsComplex
 function M.convert_contents_to_complex(contents, col_locs)
+    vim.validate("contents", contents, "table")
+    vim.validate("col_locs", col_locs, "table")
+
     local table_complex = {}
     local table_complex_entry = {}
 
@@ -346,6 +359,9 @@ end
 ---@param opts {col_index: integer, col_data: table<string>?}?
 ---@return MdnTableContents contents 
 function M.column_insert(contents, opts)
+    vim.validate("contents", contents, "table")
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
 
     local col_index = opts.col_index or -1
@@ -381,6 +397,7 @@ end
 ---Insert column to the left of the current column
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
 function M.column_insert_left(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
     local tdata = M.parse({ search = opts.search })
 
@@ -398,13 +415,14 @@ function M.column_insert_left(opts)
     vim.validate("cur_col", cur_col, "number")
 
     M.column_insert(tdata.contents, { col_index = cur_col })
-
     M.write_table(tdata)
 end
 
 ---Insert column to the right of the current column
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?}?
 function M.column_insert_right(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local tdata = M.parse({ search = opts.search })
 
@@ -422,7 +440,6 @@ function M.column_insert_right(opts)
     vim.validate("cur_col", cur_col, "number")
 
     M.column_insert(tdata.contents, { col_index = cur_col + 1 })
-
     M.write_table(tdata)
 end
 
@@ -431,6 +448,10 @@ end
 ---@param new_col_index integer New column index
 ---@return MdnTableContents? contents
 function M.column_move(contents, col_index, new_col_index)
+    vim.validate("contents", contents, "table")
+    vim.validate("col_index", col_index, "number")
+    vim.validate("new_col_index", new_col_index, "number")
+
     if new_col_index < 1 or new_col_index > #contents[1] then
         return
     end
@@ -448,8 +469,12 @@ end
 ---Move current column to the left
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?, silent: boolean?}?
 function M.column_move_left(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local silent = opts.silent or false
+
+    vim.validate("silent", silent, "boolean")
 
     local tdata = M.parse({ search = opts.search })
 
@@ -482,8 +507,12 @@ end
 ---Move current column to the right
 ---@param opts {search: MdnSearchOpts?, cur_col: integer?, silent: boolean?}?
 function M.column_move_right(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local silent = opts.silent or false
+
+    vim.validate("silent", silent, "boolean")
 
     local tdata = M.parse({ search = opts.search })
 
@@ -517,6 +546,9 @@ end
 ---@param opts {row_index: integer?, row_data: table<MdnTableCell>?}?
 ---@return MdnTableContents contents 
 function M.row_insert(contents, opts)
+    vim.validate("contents", contents, "table")
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
 
     local row_index = opts.row_index or #contents + 1
@@ -553,9 +585,12 @@ end
 ---Insert an empty row above the current row
 ---@param opts {search: MdnSearchOpts?, lnum: integer?}?
 function M.row_insert_above(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local search_opts = opts.search or {}
     local lnum = opts.lnum or vim.fn.line('.')
+
     vim.validate("search_opts", search_opts, "table")
     vim.validate("lnum", lnum, "number")
 
@@ -569,13 +604,14 @@ function M.row_insert_above(opts)
     local cur_row = lnum - tdata.startl + 1
 
     M.row_insert(tdata.contents, { row_index = cur_row })
-
     M.write_table(tdata)
 end
 
 ---Insert an empty row below the current row
 ---@param opts {search: MdnSearchOpts?, lnum: integer?}?
 function M.row_insert_below(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local search_opts = opts.search or {}
     local lnum = opts.lnum or vim.fn.line('.')
@@ -592,7 +628,6 @@ function M.row_insert_below(opts)
     local cur_row = lnum - tdata.startl + 1
 
     M.row_insert(tdata.contents, { row_index = cur_row + 1 })
-
     M.write_table(tdata)
 end
 
@@ -600,6 +635,8 @@ end
 ---@param opts {silent: boolean?, search: MdnSearchOpts?, write: boolean?, tdata: MdnTable?}?
 ---@return MdnTable?
 function M.best_fit(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local silent = opts.silent or false
     local write = opts.write ~= true
@@ -680,8 +717,9 @@ end
 ---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
 ---@return MdnTable?
 function M.column_delete(opts)
-    opts = opts or {}
+    vim.validate("opts", opts, "table", true)
 
+    opts = opts or {}
     local write = opts.write ~= false
     local tdata = opts.tdata
 
@@ -716,8 +754,9 @@ end
 ---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?, silent: boolean?}?
 ---@return MdnTable?
 function M.column_alignment_toggle(opts)
-    opts = opts or {}
+    vim.validate("opts", opts, "table", true)
 
+    opts = opts or {}
     local silent = opts.silent or false
     local write = opts.write ~= false
     local tdata = opts.tdata
@@ -775,6 +814,8 @@ end
 ---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
 ---@return MdnTable?
 function M.column_duplicate(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local write = opts.write ~= false
     local tdata = opts.tdata
@@ -815,6 +856,8 @@ end
 ---@param contents MdnTableContents
 ---@return MdnTableContents table_columns 
 function M.get_table_columns(contents)
+    vim.validate("contents", contents, "table")
+
     local table_columns = {}
     local column = {}
     for c = 1, #contents[1] do
@@ -834,6 +877,10 @@ end
 ---@param comp fun(a, b): boolean
 ---@return MdnTableContents?
 function M.column_sort(contents, col_num, comp)
+    vim.validate("contents", contents, "table")
+    vim.validate("col_num", col_num, "number")
+    vim.validate("comp", comp, "function")
+
     local table_columns = M.get_table_columns(contents)
     local cur_column = vim.deepcopy(table_columns[col_num], true)
 
@@ -867,6 +914,8 @@ end
 
 ---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
 function M.column_sort_ascending(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local write = opts.write ~= false
     local tdata = opts.tdata
@@ -898,6 +947,8 @@ end
 
 ---@param opts {search: MdnSearchOpts?, col_num: integer?, write: boolean?, tdata: MdnTable?}?
 function M.column_sort_descending(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local write = opts.write ~= false
     local tdata = opts.tdata
@@ -931,6 +982,8 @@ end
 ---@param contents MdnTableContents
 ---@return MdnTableContents contents 
 function M.parse_columns_to_lines(contents)
+    vim.validate("contents", contents, "table")
+
     local table_lines = {}
     local row = {}
     for c = 1, #contents[1] do

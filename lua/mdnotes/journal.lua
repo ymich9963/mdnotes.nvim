@@ -23,8 +23,12 @@ end
 ---Go to journal file
 ---@param opts {silent: boolean?}?
 function M.go_to(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local silent = opts.silent or false
+    vim.validate("silent", silent, "boolean")
+
     local journal_file = M.get_journal_file()
 
     if journal_file == "" then
@@ -41,7 +45,9 @@ end
 ---Insert an entry to the journal file
 ---@param opts {silent: boolean?, check_file: boolean}?
 function M.insert_entry(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
+
     local silent = opts.silent or false
     local check_file = opts.check_file or false
 

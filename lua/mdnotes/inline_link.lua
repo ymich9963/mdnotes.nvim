@@ -15,12 +15,13 @@ local default_ui_select = require('mdnotes').default_ui_select
 ---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
 ---@return MdnInlineLinkData?
 function M.parse(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local inline_link = opts.inline_link
     local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
 
-    vim.validate("inline_link", inline_link, { "string", "nil" })
+    vim.validate("inline_link", inline_link, "string", true)
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
 
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
@@ -63,6 +64,7 @@ end
 ---@param ildata MdnInlineLinkData? Inline link object
 ---@return string inline_link
 function M.get_il_from_obj(ildata)
+    vim.validate("ildata", ildata, "table", true)
     if ildata == nil then return "" end
     if ildata.title == nil or ildata.title == "" then
         return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.destination .. ')'
@@ -75,6 +77,7 @@ end
 ---@param opts {inline_link: string?, location: MdnInLineLocation?, silent: boolean?, picker: boolean?}?
 ---@return integer|vim.SystemObj|string?
 function M.open(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local inline_link = opts.inline_link
@@ -83,7 +86,7 @@ function M.open(opts)
     local silent = opts.silent or false
     local picker = opts.picker or false
 
-    vim.validate("inline_link", inline_link, {"string", "nil"})
+    vim.validate("inline_link", inline_link, "string", true)
 
     local ildata
 
@@ -128,7 +131,9 @@ end
 ---Insert Markdown inline link with the text in the clipboard
 ---@param opts {destination: string?, move_cursor: boolean?, location: MdnInLineLocation, silent: boolean?}?
 function M.insert(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
+
     local destination = opts.destination or vim.fn.getreg('+')
     local move_cursor = opts.move_cursor ~= false
     local silent = opts.silent or false
@@ -155,6 +160,7 @@ end
 ---Delete Markdown inline link and leave the text
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation?, store: boolean?}?
 function M.delete(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
@@ -178,6 +184,7 @@ end
 ---Toggle inserting and deleting inline links
 ---@param opts {destination: string?, location: MdnInLineLocation?}?
 function M.toggle(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local check_markdown_syntax = require('mdnotes').check_markdown_syntax
@@ -191,7 +198,9 @@ end
 ---Relink inline link
 ---@param opts {new_link: string?, move_cursor: boolean?, location: MdnInLineLocation?, silent: boolean?}?
 function M.relink(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
+
     local new_link = opts.new_link
     local move_cursor = opts.move_cursor ~= false
     local silent = opts.silent or false
@@ -228,7 +237,9 @@ end
 ---Rename inline link
 ---@param opts {new_name: string?, move_cursor: boolean?, location: MdnInLineLocation?, silent: boolean?}?
 function M.rename(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
+
     local new_name = opts.new_name
     local move_cursor = opts.move_cursor ~= false
     local silent = opts.silent or false
@@ -265,6 +276,7 @@ end
 ---Normalize inline link
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.normalize(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
@@ -292,6 +304,7 @@ end
 ---Convert the fragment of the inline link under the cursor to GFM-style fragment
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.convert_fragment_to_gfm(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
@@ -325,6 +338,7 @@ end
 ---@param opts {silent: boolean?, location: MdnInLineLocation?}?
 ---@return boolean valid, string error
 function M.validate(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local silent = opts.silent or false
@@ -377,6 +391,8 @@ end
 ---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
 ---@param buf integer Buffer number
 function M.picker(on_end, buf)
+    vim.validate("on_end", on_end, "function")
+    vim.validate("buf", buf, "number")
     if buf == 0 then buf = vim.api.nvim_get_current_buf() end
 
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
@@ -396,9 +412,10 @@ function M.picker(on_end, buf)
 end
 
 ---Parse the inline links in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, silent: boolean?, no_duplicates: boolean?}?
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
 ---@return table<MdnInlineLinkData>?
 function M.parse_lines(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
@@ -410,11 +427,12 @@ function M.parse_lines(opts)
         get_func = M.get_il_from_obj
     end
 
-    return parse_lines(pattern, M.parse, {location = opts.location, silent = opts.silent, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
 end
 
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?
 function M.convert_from_reference(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false

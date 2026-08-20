@@ -12,6 +12,8 @@ local check_markdown_lsp_cur_buf = function() return require('mdnotes').check_ma
 ---@param opts { buf: integer?, lnum: integer?, write: boolean?, depth: integer?, silent: boolean?}?
 ---@return MdnToc? toc
 function M.generate(opts)
+    vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
     local buf = opts.buf or vim.api.nvim_get_current_buf()
     local lnum = opts.lnum or vim.fn.line('.')
@@ -77,8 +79,9 @@ end
 ---@param opts {search: MdnSearchOpts?}?
 ---@return MdnSearchResult
 function M.check_toc_valid(opts)
-    opts = opts or {}
+    vim.validate("opts", opts, "table", true)
 
+    opts = opts or {}
     local search_opts = opts.search or {}
     vim.validate("search_opts", search_opts, "table")
 
@@ -132,8 +135,9 @@ end
 ---@param opts {silent: boolean?, search: MdnSearchOpts?}?
 ---@return MdnToc?
 function M.parse(opts)
-    opts = opts or {}
+    vim.validate("opts", opts, "table", true)
 
+    opts = opts or {}
     local search_opts = opts.search or {}
     vim.validate("search_opts", search_opts, "table")
 
@@ -193,8 +197,9 @@ end
 ---@param opts {depth: integer?, write: boolean?, search: MdnSearchOpts?, silent: boolean?}?
 ---@return MdnToc? toc
 function M.update(opts)
-    opts = opts or {}
+    vim.validate("opts", opts, "table", true)
 
+    opts = opts or {}
     local silent = opts.silent or false
     local write = opts.write ~= false
 

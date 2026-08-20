@@ -7,6 +7,7 @@ local M = {}
 ---@param opts {buf: integer?, lnum: integer?, silent: boolean?}?
 ---@return MdnFragment? fragment
 function M.get_heading(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local lnum = opts.lnum or vim.fn.line(".")
