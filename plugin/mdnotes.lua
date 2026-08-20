@@ -264,20 +264,22 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     elseif func == commands.assets.view or func == commands.assets.insert and #args > 2 then
         local asset = concat_arg(args)
         local asset_path = vim.fs.joinpath(require('mdnotes').cwd, asset)
-        func({ asset = asset, file_path = asset_path, process_file = false })
+        func({ asset = asset, file_path = asset_path, process_file = false, picker = true })
     elseif func == commands.inline_link.open then
-        func({ inline_link = concat_arg(args) })
+        func({ inline_link = concat_arg(args), picker = true })
     elseif func == commands.wikilink.follow
         or func == commands.wikilink.follow_hor
         or func == commands.wikilink.follow_vert then
-        func({ wikilink = concat_arg(args) })
+        func({ wikilink = concat_arg(args), picker = true })
     elseif func == commands.reference_link.open then
-        func({ reference_link = concat_arg(args) })
+        func({ reference_link = concat_arg(args), picker = true })
     elseif func == commands.reference_link.insert
-        or func == commands.reference_link.find_label then
-        func({ label = concat_arg(args) })
-    elseif func == commands.footnote.insert then
-        func({ identifier = concat_arg(args) })
+        or func == commands.reference_link.find_label_occurences
+        or func == commands.reference_link.go_to_definition then
+        func({ label = concat_arg(args), picker = true })
+    elseif func == commands.footnote.insert
+        or func == commands.footnote.go_to then
+        func({ identifier = concat_arg(args), picker = true })
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif command == commands.user then
@@ -347,7 +349,7 @@ end,
                     end, require('mdnotes.reference_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
                     )
                 end
-                if subcmd == "insert" or subcmd == "find_label_occurences" then
+                if subcmd == "insert" or subcmd == "find_label_occurences" or subcmd == "go_to_definition" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
                     end, require('mdnotes.reference_link').get_buf_reference_link_definitions({only_labels = true}) or {}
@@ -356,7 +358,7 @@ end,
             end
 
             if command == "footnote" then
-                if subcmd == "insert" or subcmd == "find_references" then
+                if subcmd == "insert" or subcmd == "find_references" or subcmd == "go_to" then
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
                     end, require('mdnotes.footnote').get_buf_footnotes({only_identifiers = true}) or {}

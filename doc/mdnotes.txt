@@ -736,6 +736,26 @@ to write the buffers if any command changes buffer contents.
    Access the user defined commands. See |mdnotes-user_commands|.
 
 ==============================================================================
+PICKERS                                         	*mdnotes-pickers*
+
+Mdnotes supports all pickers that have the capability of overriding
+|vim.ui.select()|. Some may require more steps to setup than others. All
+overrides are assumed to be non-blocking.
+
+To correctly detect a picker plugin is used, place picker-related setup
+functions AFTER the `mdnotes` |setup()|. 
+
+If using `telescope.nvim`, the `telescope-ui-select.nvim` extension is
+required.
+
+If using `fzf-lua`, the `register_ui_select` function/command must be called.
+
+If using `snacks.picker`, you must override the default manually by setting
+>lua
+    vim.ui.select = Snacks.picker.select
+<
+Other pickers like, `mini.pick` work without any setup. 
+==============================================================================
 API                                     		*mdnotes-api*
 
 See |mdnotes-using-api| for using the API and some examples.
@@ -762,6 +782,10 @@ plugin_install_dir					*mdnotes.plugin_install_dir*
 buf_fragments						*mdnotes.buf_fragments*
 
     Table of type |mdnotes.MdnBufFragments|.
+
+default_ui_select 					*mdnotes.default_ui_select*		
+
+    Store the default value of |vim.ui.select()|.
 
 setup({opts})                                          	*mdnotes.setup()*
 
@@ -1121,6 +1145,17 @@ parse_lines({pattern}, {parse_func}, {opts})		*mdnotes.parse_lines()*
     Return: ~
     • (`table?`) Table content type depends on whatever type {get_func} and {parse_func} return
 
+mdn_picker({items}, {on_end}, {ui_opts})		*mdnotes.mdn_picker()*
+
+    Call a picker using |vim.ui.select()|. If the default `vim.ui.select`
+    value is overriden, it assumes it to be non-blocking, and {on_end} is
+    called at when the user makes a selection.
+
+    Parameters: ~
+    • {items}  (`table`) Items to show
+    • {on_end}  (`fun(sel_obj): any`) Callback function for when the coroutine finishes
+    • {ui_opts}  (`vim.ui.select.Opts`) |vim.ui.select.Opts|
+
 assets.get_assets_folder_name()				*mdnotes.assets.get_assets_folder_name()*
 
     Resolve the assets path from |mdnotes-assets_path|.
@@ -1311,9 +1346,20 @@ assets.view({opts}) 					*mdnotes.assets.view()*
 	      asset name to view
               • {silent} (`boolean`, default `false`)
 		silence notifications
+              • {picker} (`boolean`, default `false`)
+		show picker to select
 
     Return: ~
     • (`nil`)
+
+assets.picker({on_end})					*mdnotes.assets.picker()*
+
+    Wrapper for |mdnotes.mdn_picker()| to select assets from
+    |assets.get_asset_list()|  and call {on_end} if the default
+    picker was overriden. 
+
+    Parameters: ~
+    • {on_end}  (`fun(sel_obj): any`) Callback function for when the coroutine finishes
 
 formatting.insert_format({format_char}, {opts})		*mdnotes.formatting.insert_format()*
 
@@ -1410,7 +1456,7 @@ formatting.autolink_toggle({opts})			*mdnotes.formatting.autolink_toggle()*
               • {split_delimiter} (`boolean?`, default `false`)
 		split format delimiter string in half
 
-resolve_list_content({line})				*mdnotes.formatting.resolve_list_content()*
+formatting.resolve_list_content({line})			*mdnotes.formatting.resolve_list_content()*
 
     Get a consistent table containing all data on a list item whether it is
     ordered or unordered.
@@ -1509,8 +1555,10 @@ footnote.go_to({opts})					*mdnotes.footnote.go_to()*
 		specify location of footnote reference to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
+              • {picker} (`boolean`, default `false`)
+		show picker to select
 
-footntoe.get_footnote_from_obj({footnote})		*mdnotes.footnote.get_footnote_from_obj()*
+footnote.get_footnote_from_obj({footnote})		*mdnotes.footnote.get_footnote_from_obj()*
 
     Get a footnote string from the given |mdnotes.MdnFootnote| object.
 
@@ -1606,6 +1654,16 @@ footnote.renumber({opts}) 				*mdnotes.footnote.renumber()*
 		specify location of footnote reference to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
+
+footnote.picker({on_end}, {buf}) 				*mdnotes.footnote.picker()*
+
+    Wrapper for |mdnotes.mdn_picker()| to select a footnote reference from
+    {buf} and call {on_end} if the default picker was overriden. 
+
+    Parameters: ~
+    • {on_end}  (`fun(sel_obj): any`) Callback function for when the coroutine finishes
+    • {buf}  (`integer`) Buffer number to parse elements from. Use `0` for current
+    buffer.
 
 formatting.task_list_toggle({opts})			*mdnotes.formatting.task_list_toggle()*
 
@@ -1787,6 +1845,8 @@ inline_link.open({opts})				*mdnotes.inline_link.open()*
 		inline link to get the destination from
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of inline link to parse
+              • {picker} (`boolean`, default `false`)
+		show picker to select
 	
     Return: ~
     • (`integer|vim.SystemObj|string?`): Buffer number on new opened buffer,
@@ -1916,6 +1976,16 @@ inline_link.validate({opts})				*mdnotes.inline_link.validate()*
 
     Return: ~
     • (`boolean`): `true` if valid and `false` when invalid
+
+inline_link.picker({on_end}, {buf}) 			*mdnotes.inline_link.picker()*
+
+    Wrapper for |mdnotes.mdn_picker()| to select an inline link from
+    {buf} and call {on_end} if the default picker was overriden. 
+
+    Parameters: ~
+    • {on_end}  (`fun(sel_obj): any`) Callback function for when the coroutine finishes
+    • {buf}  (`integer`) Buffer number to parse elements from. Use `0` for current
+    buffer.
 
 inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
 
@@ -2090,6 +2160,8 @@ reference_link.go_to_definition({opts})			*mdnotes.reference_link.go_to_definiti
 		specify location of reference link to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
+              • {picker} (`boolean`, default `false`)
+		show picker to select
 
 reference_link.delete({opts})		 		*mdnotes.reference_link.delete()*
 
@@ -2197,6 +2269,8 @@ reference_link.open({opts})				*mdnotes.reference_link.open()*
 		specify location of reference link to parse
               • {silent} (`boolean?`, default `false`)
 		silence notifications
+              • {picker} (`boolean`, default `false`)
+		show picker to select
 
 reference_link.convert_from_inline({opts})		*mdnotes.reference_link.convert_from_inline()*
 
@@ -2230,7 +2304,7 @@ reference_link.parse_lines({opts})			*mdnotes.reference_link.parse_lines()*
     Return: ~
     • (`table<MdnReferenceLinkData>?`)
 
-reference_link.find_label_occurences({opts})			*mdnotes.reference_link.find_label_occurences()*
+reference_link.find_label_occurences({opts})		*mdnotes.reference_link.find_label_occurences()*
 
     Find occurences of the same label in the reference link.
 
@@ -2246,13 +2320,15 @@ reference_link.find_label_occurences({opts})			*mdnotes.reference_link.find_labe
     Return: ~
     • (`table`): qflist
 
-reference_link.get_rl_from_picker({buf})		*mdnotes.reference_link.get_rl_from_picker()*
+reference_link.picker({on_end}, {buf}) 			*mdnotes.reference_link.picker()*
+
+    Wrapper for |mdnotes.mdn_picker()| to select a reference link from
+    {buf} and call {on_end} if the default picker was overriden. 
 
     Parameters: ~
-    • {buf} (`string`, defaults to current buffer)
-
-    Return: ~
-    • (`string`)
+    • {on_end}  (`fun(sel_obj): any`) Callback function for when the coroutine finishes
+    • {buf}  (`integer`) Buffer number to parse elements from. Use `0` for current
+    buffer.
 
 table.check_table_valid({opts}) 			*mdnotes.table.check_table_valid()*
 
@@ -2679,6 +2755,8 @@ wikilink.follow({opts})					*mdnotes.wikilink.follow()*
 		open buffer in a horizontal split.
               • {vert} (`boolean?` default `false`)
 		open buffer in a vertical split.
+              • {picker} (`boolean`, default `false`)
+		show picker to select
 
 wikilink.follow_hor({opts})				*mdnotes.wikilink.follow_hor()*
 
@@ -2691,6 +2769,8 @@ wikilink.follow_hor({opts})				*mdnotes.wikilink.follow_hor()*
 		specify WikiLink to follow
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
+              • {picker} (`boolean`, default `false`)
+		show picker to select
 
 wikilink.follow_vert({opts})				*mdnotes.wikilink.follow_vert()*
 
@@ -2703,6 +2783,8 @@ wikilink.follow_vert({opts})				*mdnotes.wikilink.follow_vert()*
 		specify WikiLink to follow
               • {location} (`MdnInLineLocation?`, defaults to current location)
 		specify location of WikiLink to parse
+              • {picker} (`boolean`, default `false`)
+		show picker to select
 
 wikilink.show_references({opts})			*mdnotes.wikilink.show_references()*
 
@@ -2809,6 +2891,16 @@ wikilink.find_orphans()					*mdnotes.wikilink.find_orphans()*
 
     Show orphan pages (pages with no references) in |mdnotes.cwd| in a 
     |quickfix| list.
+
+wikilink.picker({on_end}, {buf}) 			*mdnotes.wikilink.picker()*
+
+    Wrapper for |mdnotes.mdn_picker()| to select a WikiLink from
+    {buf} and call {on_end} if the default picker was overriden. 
+
+    Parameters: ~
+    • {on_end}  (`fun(sel_obj): any`) Callback function for when the coroutine finishes
+    • {buf}  (`integer`) Buffer number to parse elements from. Use `0` for current
+    buffer.
 
 wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 

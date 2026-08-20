@@ -2,6 +2,8 @@
 
 local M = {}
 
+local default_ui_select = require('mdnotes').default_ui_select
+
 ---@class MdnInlineLinkData: MdnText
 ---@field img_char '"!"'|'""' Inline link image character
 ---@field text string Inline link text
@@ -70,12 +72,16 @@ function M.get_il_from_obj(ildata)
 end
 
 ---Open inline links in the appropriate programme
----@param opts {inline_link: string?, location: MdnInLineLocation?}?
+---@param opts {inline_link: string?, location: MdnInLineLocation?, silent: boolean?, picker: boolean?}?
 ---@return integer|vim.SystemObj|string?
 function M.open(opts)
     opts = opts or {}
 
     local inline_link = opts.inline_link
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local silent = opts.silent or false
+    local picker = opts.picker or false
 
     vim.validate("inline_link", inline_link, {"string", "nil"})
 
@@ -89,12 +95,19 @@ function M.open(opts)
     end
 
     -- If no inline link under cursor and no inline link was given, open picker
-    if ildata == nil then
-        inline_link = M.get_il_from_picker()
-        ildata = M.parse({ inline_link = inline_link, keep_pointy_brackets = false })
+    if ildata == nil and picker == true then
+        --INFO: RECURSION! I AM A GENIUS!!!
+        ildata = M.picker(function(sel_obj) M.open({ inline_link = sel_obj.raw }) end, buf)
     end
 
-    if ildata == nil then return end
+    if ildata == nil then
+        -- Notification shows when picker is shown if not default
+        if silent == false and default_ui_select == vim.ui.select then
+            vim.notify("Mdn: No inline link found", vim.log.levels.ERROR)
+        end
+
+        return
+    end
 
     return require('mdnotes').open(ildata.destination)
 end
@@ -361,32 +374,25 @@ function M.validate(opts)
 end
 
 ---Open a picker to get the inline link from
-function M.get_il_from_picker(buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
+---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
+---@param buf integer Buffer number
+function M.picker(on_end, buf)
+    if buf == 0 then buf = vim.api.nvim_get_current_buf() end
 
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
     if parsed_tbl == nil then
-        vim.notify("Mdn: No inline links in current file to go to", vim.log.levels.ERROR)
+        vim.notify("Mdn: No inline links in current file", vim.log.levels.ERROR)
         return
     end
 
-    local sel_list = {}
-    for _, v in ipairs(parsed_tbl) do
-        table.insert(sel_list, v.text .. " | " .. v.destination)
-    end
+    local ui_opts = {
+        prompt = "Select an inline link:",
+        format_item = function(item)
+            return item.text .. " | " .. item.destination
+        end,
+    }
 
-    local il_index = nil
-    vim.ui.select(sel_list, {
-        prompt = "Select an inline link to go to",
-    }, function (_, idx)
-        il_index = idx
-    end)
-
-    if il_index == nil then
-        return
-    end
-
-    return parsed_tbl[il_index].raw
+    return require('mdnotes').mdn_picker(parsed_tbl, on_end, ui_opts)
 end
 
 ---Parse the inline links in the specified lines

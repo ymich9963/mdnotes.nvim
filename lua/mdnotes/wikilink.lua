@@ -52,7 +52,7 @@ function M.parse(opts)
 end
 
 ---Follow the WikiLink under the cursor
----@param opts {wikilink: string?, location: MdnInLineLocation?, hor: boolean?, vert: boolean?}?
+---@param opts {wikilink: string?, location: MdnInLineLocation?, hor: boolean?, vert: boolean?, picker: boolean?}?
 function M.follow(opts)
     if check_markdown_lsp_cur_buf() then
         vim.lsp.buf.definition()
@@ -61,9 +61,13 @@ function M.follow(opts)
     end
 
     opts = opts or {}
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local wikilink = opts.wikilink
     local hor = opts.hor or false
     local vert = opts.vert or false
+    local picker = opts.picker or false
 
     local wldata
     if wikilink == nil then
@@ -72,9 +76,8 @@ function M.follow(opts)
         wldata = M.parse({ wikilink = wikilink })
     end
 
-    if wldata == nil then
-        wikilink = M.get_wl_from_picker()
-        wldata = M.parse({ wikilink = wikilink })
+    if wldata == nil and picker == true then
+        wldata = M.picker(function(sel_obj) M.follow({ wikilink = sel_obj.raw }) end, buf)
     end
 
     if wldata == nil then return end
@@ -98,17 +101,17 @@ function M.follow(opts)
 end
 
 ---Follow the WikiLink and split horizontally
----@param opts {wikilink: string?, location: MdnInLineLocation?}?
+---@param opts {wikilink: string?, location: MdnInLineLocation?, picker: boolean?}?
 function M.follow_hor(opts)
     opts = opts or {}
-    M.follow({ wikilink = opts.wikilink, location = opts.location, hor = true})
+    M.follow({ wikilink = opts.wikilink, location = opts.location, hor = true, picker = opts.picker})
 end
 
 ---Follow the WikiLink and split vertically
----@param opts {wikilink: string?, location: MdnInLineLocation?}?
+---@param opts {wikilink: string?, location: MdnInLineLocation?, picker: boolean?}?
 function M.follow_vert(opts)
     opts = opts or {}
-    M.follow({ wikilink = opts.wikilink, location = opts.location, vert = true})
+    M.follow({ wikilink = opts.wikilink, location = opts.location, vert = true, picker = opts.picker})
 end
 
 ---Show the references to the current WikiLink under the cursor
@@ -538,34 +541,26 @@ function M.get_wl_from_obj(wldata)
     end
 end
 
----Go to WikiLink
----@param buf integer?
-function M.get_wl_from_picker(buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
+---Open a picker to get the WikiLink
+---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
+---@param buf integer Buffer number
+function M.picker(on_end, buf)
+    if buf == 0 then buf = vim.api.nvim_get_current_buf() end
 
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
     if parsed_tbl == nil then
-        vim.notify("Mdn: No WikiLinks in current file to go to", vim.log.levels.ERROR)
+        vim.notify("Mdn: No WikiLinks in current file", vim.log.levels.ERROR)
         return
     end
 
-    local sel_list = {}
-    for _, v in ipairs(parsed_tbl) do
-        table.insert(sel_list, v.raw:sub(3, -3))
-    end
+    local ui_opts = {
+        prompt = "Select a WikiLink:",
+        format_item = function(item)
+            return item.raw:sub(3, -3)
+        end,
+    }
 
-    local wl_index = nil
-    vim.ui.select(sel_list, {
-        prompt = "Select a WikiLink to go to",
-    }, function (_, idx)
-        wl_index = idx
-    end)
-
-    if wl_index == nil then
-        return
-    end
-
-    return parsed_tbl[wl_index].raw
+    return require('mdnotes').mdn_picker(parsed_tbl, on_end, ui_opts)
 end
 
 ---Parse the WikiLinks in the specified lines

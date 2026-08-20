@@ -617,27 +617,17 @@ function M.get_asset_list()
 end
 
 ---View asset
----@param opts {asset: string?, silent: boolean}?
+---@param opts {asset: string?, silent: boolean?, picker: boolean?}?
 function M.view(opts)
     opts = opts or {}
     local asset = opts.asset
     local silent = opts.silent or false
+    local picker = opts.picker or false
     local cwd = require('mdnotes').cwd
     local assets_path = vim.fs.joinpath(cwd, M.get_assets_folder_name())
 
-    if asset == nil then
-        local assets_list = M.get_asset_list()
-        if vim.tbl_isempty(assets_list) then
-            if silent == false then
-                vim.notify(("Mdn: No assets to view in '%s'"):format(assets_path), vim.log.levels.ERROR)
-            end
-            return
-        end
-        vim.ui.select(assets_list, {
-            prompt = "Select an asset from '" .. M.get_assets_folder_name() .. "'",
-        }, function (item, _)
-            asset = item
-        end)
+    if asset == nil and picker == true then
+        asset = M.picker(function(sel_obj) M.view({ asset = sel_obj }) end)
 
         if asset == nil then
             return
@@ -650,6 +640,27 @@ function M.view(opts)
     if silent == false then
         vim.notify(("Mdn: Viewing asset at '%s'"):format(chosen_asset_path), vim.log.levels.INFO)
     end
+end
+
+---Open a picker to get the asset
+---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
+function M.picker(on_end)
+    local cwd = require('mdnotes').cwd
+    local assets_path = vim.fs.joinpath(cwd, M.get_assets_folder_name())
+    local assets_list = M.get_asset_list()
+    if vim.tbl_isempty(assets_list) then
+        vim.notify(("Mdn: No assets in '%s'"):format(assets_path), vim.log.levels.ERROR)
+        return
+    end
+
+    local ui_opts = {
+        prompt = "Select an asset:",
+        format_item = function(item)
+            return item
+        end,
+    }
+
+    return require('mdnotes').mdn_picker(assets_list, on_end, ui_opts)
 end
 
 return M

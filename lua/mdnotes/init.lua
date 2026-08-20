@@ -56,6 +56,9 @@ M.plugin_install_dir = nil
 ---@type table<MdnBufFragments>
 M.buf_fragments = {}
 
+---Store default function to check for picker override
+M.default_ui_select = vim.ui.select
+
 ---Mdnotes Config Class
 ---@class MdnConfig
 ---@field index_file string? Index file name or path
@@ -1040,6 +1043,36 @@ function M.parse_lines(pattern, parse_func, opts)
     end
 
     return parsed_tbl
+end
+
+---@param items table Items to show
+---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
+---@param ui_opts vim.ui.select.Opts
+function M.mdn_picker(items, on_end, ui_opts)
+    -- If it is overriden, it is assumed to be non-blocking
+    if M.default_ui_select == vim.ui.select then
+        local index = nil
+        vim.ui.select(items, ui_opts, function (_, idx)
+            index = idx
+        end)
+
+        if index == nil then
+            return
+        end
+
+        return items[index]
+    else
+        coroutine.wrap(function()
+            local co = coroutine.running()
+            vim.ui.select(items, ui_opts, function (_, idx)
+                coroutine.resume(co, idx)
+            end)
+
+            on_end(items[coroutine.yield()])
+        end)()
+
+        return
+    end
 end
 
 return M

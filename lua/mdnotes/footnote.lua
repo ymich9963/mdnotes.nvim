@@ -180,16 +180,20 @@ function M.get_footnote(identifier, buf)
 end
 
 ---Go to footnote
----@param opts {identifier: string?, location: MdnInLineLocation?, silent: boolean?}?
+---@param opts {identifier: string?, location: MdnInLineLocation?, silent: boolean?, picker: boolean?}?
 function M.go_to(opts)
     opts = opts or {}
 
     local silent = opts.silent or false
     local identifier = opts.identifier
+    local picker = opts.picker or false
     local buf = (opts.location or {}).buf or vim.api.nvim_get_current_buf()
 
     if identifier == nil then
         local fdata = M.parse({ location = opts.location })
+        if fdata == nil and picker == true then
+            fdata = M.picker(function(sel_obj) M.go_to({ identifier = sel_obj.identifier }) end, buf)
+        end
         if fdata == nil then return end
         identifier = fdata.identifier
     end
@@ -498,6 +502,28 @@ function M.renumber(opts)
     end
 
     M.populate_buf_footnotes(buf)
+end
+
+---Open a picker to get the footnote reference
+---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
+---@param buf integer Buffer number
+function M.picker(on_end, buf)
+    if buf == 0 then buf = vim.api.nvim_get_current_buf() end
+
+    local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
+    if parsed_tbl == nil then
+        vim.notify("Mdn: No footnote references in current file", vim.log.levels.ERROR)
+        return
+    end
+
+    local ui_opts = {
+        prompt = "Select a footnote reference:",
+        format_item = function(item)
+            return item.raw
+        end,
+    }
+
+    return require('mdnotes').mdn_picker(parsed_tbl, on_end, ui_opts)
 end
 
 return M

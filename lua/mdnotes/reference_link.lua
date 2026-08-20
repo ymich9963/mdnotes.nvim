@@ -2,6 +2,8 @@
 
 local M = {}
 
+local default_ui_select = require('mdnotes').default_ui_select
+
 ---@class MdnReferenceLinkDefinition
 ---@field label string Reference link label
 ---@field destination string Reference link destination
@@ -163,16 +165,20 @@ function M.get_rl_definition(label, buf)
 end
 
 ---Go to reference link definition
----@param opts {label: string?, location: MdnInLineLocation?, silent: boolean?}?
+---@param opts {label: string?, location: MdnInLineLocation?, silent: boolean?, picker: boolean?}?
 function M.go_to_definition(opts)
     opts = opts or {}
 
     local silent = opts.silent or false
     local label = opts.label
+    local picker = opts.picker or false
     local buf = (opts.location or {}).buf or vim.api.nvim_get_current_buf()
 
     if label == nil then
         local rldata = M.parse({ location = opts.location })
+        if rldata == nil and picker == true then
+            rldata = M.picker(function(sel_obj) M.go_to_definition({ label = sel_obj.label }) end, buf)
+        end
         if rldata == nil then return end
         label = rldata.label
     end
@@ -438,13 +444,16 @@ function M.relabel(opts)
 end
 
 ---Open reference links in the appropriate programme
----@param opts {reference_link: string?, location: MdnInLineLocation?, silent: boolean?}?
+---@param opts {reference_link: string?, location: MdnInLineLocation?, silent: boolean?, picker: boolean?}?
 ---@return integer|vim.SystemObj|string?
 function M.open(opts)
     opts = opts or {}
 
     local reference_link = opts.reference_link
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local silent = opts.silent or false
+    local picker = opts.picker or false
 
     vim.validate("reference_link", reference_link, {"string", "nil"})
 
@@ -457,26 +466,25 @@ function M.open(opts)
         rldata = M.parse({ reference_link = reference_link, keep_pointy_brackets = false })
     end
 
-    if rldata == nil then
-        reference_link = M.get_rl_from_picker()
-        rldata = M.parse({ reference_link = reference_link, keep_pointy_brackets = false })
+    if rldata == nil and picker == true then
+        rldata = M.picker(function(sel_obj) M.open({ reference_link = sel_obj.raw }) end, buf)
     end
 
     if rldata == nil then
-        if silent == false then
+        if silent == false and default_ui_select == vim.ui.select then
             vim.notify("Mdn: No reference link found", vim.log.levels.ERROR)
         end
 
-        return "err"
+        return "not ref link found"
     end
 
     local rldef = M.get_rl_definition(rldata.label, rldata.buf)
     if rldef == nil then
-        if silent == false then
+        if silent == false and default_ui_select == vim.ui.select then
             vim.notify("Mdn: No definition found for label '" .. rldata.label .. "'. If you can confirm it exists, try writing the buf or parse definitions manually with ':Mdn reference_link populate_buf_reference_link_definitions'", vim.log.levels.ERROR)
         end
 
-        return "err1"
+        return "no definition found"
     end
 
     return require('mdnotes').open(rldef.destination)
@@ -593,35 +601,26 @@ function M.find_label_occurences(opts)
     return qflist
 end
 
----Open a picker to get the inline link from
----@param buf integer? Buffer number
----@return string?
-function M.get_rl_from_picker(buf)
-    if buf == nil then buf = vim.api.nvim_get_current_buf() end
+---Open a picker to get the reference link from
+---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
+---@param buf integer Buffer number
+function M.picker(on_end, buf)
+    if buf == 0 then buf = vim.api.nvim_get_current_buf() end
 
     local parsed_tbl = M.parse_lines({ location = {startl = 1, endl = vim.fn.line("$"), buf = buf }, silent = true})
     if parsed_tbl == nil then
-        vim.notify("Mdn: No reference links in current file to go to", vim.log.levels.ERROR)
+        vim.notify("Mdn: No reference links in current file", vim.log.levels.ERROR)
         return
     end
 
-    local sel_list = {}
-    for _, v in ipairs(parsed_tbl) do
-        table.insert(sel_list, v.raw)
-    end
+    local ui_opts = {
+        prompt = "Select a reference link:",
+        format_item = function(item)
+            return item.raw
+        end,
+    }
 
-    local rl_index = nil
-    vim.ui.select(sel_list, {
-        prompt = "Select an reference link to open",
-    }, function (_, idx)
-        rl_index = idx
-    end)
-
-    if rl_index == nil then
-        return
-    end
-
-    return parsed_tbl[rl_index].raw
+    return require('mdnotes').mdn_picker(parsed_tbl, on_end, ui_opts)
 end
 
 return M
