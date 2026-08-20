@@ -88,7 +88,8 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Supports Windows eccentricities.
 - Create user commands within the `:Mdn user` namespace for better organisation.
 - See `:h mdnotes-wikilink-graphs` for a starter Python script for creating a node graph to visualise your WikiLinks.
-- View statistics of current buffer with `:Mdn miscellaneous statistics` which shows number of bytes, characters, words, lines, inline links, WikiLinks, and headings.
+- View statistics of current buffer with `:Mdn miscellaneous statistics` which shows number of bytes, characters, words, lines, inline links, reference links, footnotes, WikiLinks, and headings.
 - View current buffer headings/fragments alongside their GFM-style equivalent with `:Mdn miscellaneous view_fragments`.
+- Supports pickers that override `:h vim.ui.select()`, see `:h mdnotes-pickers`. Currently supports mini.pick, snacks.picker, telescope, and fzf-lua.
 - Exposes most internal functions to provide an API as to allow an extensible note-taking experience. See `:h mdnotes-api` for function documentation and `:h mdnotes-api-examples` for example usage.
 

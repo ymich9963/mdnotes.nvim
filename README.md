@@ -37,6 +37,7 @@ For a complete descriptive feature list with their associated commands, please s
 - Outliner mode
 - View statistics of current buffer
 - Create user commands within the plugin namespace for organisation
+- Supports multiple pickers
 - Most internal functions are exposed as an API for extensibility (`:h mdnotes-api`)
 
 ## 👽 Setup
