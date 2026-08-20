@@ -1594,12 +1594,12 @@ footnote.cleanup({opts})				*mdnotes.footnote.cleanup()*
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
-footnote.get_fref_from_obj({fdata})			*mdnotes.footnote.get_fref_from_obj()*
+footnote.get_fref_from_obj({fndata})			*mdnotes.footnote.get_fref_from_obj()*
 
     Get a footnote reference string from an MdnFootnoteReferenceData object.
 
     Parameters: ~
-    • {fdata}  (`MdnFootnoteReferenceData?`) Footnote reference object
+    • {fndata}  (`MdnFootnoteReferenceData?`) Footnote reference object
 
     Return: ~
     • (`string`)

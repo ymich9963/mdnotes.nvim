@@ -205,12 +205,12 @@ function M.go_to(opts)
     local buf = (opts.location or {}).buf or vim.api.nvim_get_current_buf()
 
     if identifier == nil then
-        local fdata = M.parse({ location = opts.location })
-        if fdata == nil and picker == true then
-            fdata = M.picker(function(sel_obj) M.go_to({ identifier = sel_obj.identifier }) end, buf)
+        local fndata = M.parse({ location = opts.location })
+        if fndata == nil and picker == true then
+            fndata = M.picker(function(sel_obj) M.go_to({ identifier = sel_obj.identifier }) end, buf)
         end
-        if fdata == nil then return end
-        identifier = fdata.identifier
+        if fndata == nil then return end
+        identifier = fndata.identifier
     end
 
     local footnote = M.get_footnote(identifier, buf)
@@ -248,17 +248,17 @@ function M.update(opts)
     local skip_input = opts.skip_input or false
     local silent = opts.silent or false
 
-    local fdata
+    local fndata
     if identifier == nil then
-        fdata = M.parse({ location = opts.location })
-        if fdata == nil or fdata.identifier == nil then
+        fndata = M.parse({ location = opts.location })
+        if fndata == nil or fndata.identifier == nil then
             if silent == false then
                 vim.notify("Mdn: No reference link found for parsing", vim.log.levels.ERROR)
             end
 
             return
         end
-        identifier = fdata.identifier
+        identifier = fndata.identifier
     end
 
     local footnote = M.get_footnote(identifier, buf)
@@ -376,12 +376,12 @@ function M.cleanup(opts)
 end
 
 ---Get a footnote reference string from an MdnFootnoteReferenceData object
----@param fdata MdnFootnoteReferenceData? Footnote reference object
+---@param fndata MdnFootnoteReferenceData? Footnote reference object
 ---@return string fref
-function M.get_fref_from_obj(fdata)
-    vim.validate("fdata", fdata, "table", true)
-    if fdata == nil then return "" end
-    return '[^' .. fdata.identifier .. ']'
+function M.get_fref_from_obj(fndata)
+    vim.validate("fndata", fndata, "table", true)
+    if fndata == nil then return "" end
+    return '[^' .. fndata.identifier .. ']'
 end
 
 ---Parse the footnote references in the specified lines
@@ -415,15 +415,15 @@ function M.find_references(opts)
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
 
     if identifier == nil then
-        local fdata = M.parse({ location = opts.location })
-        if fdata == nil or fdata.identifier == nil then
+        local fndata = M.parse({ location = opts.location })
+        if fndata == nil or fndata.identifier == nil then
             if silent == false then
                 vim.notify("Mdn: No footnote reference found for parsing", vim.log.levels.ERROR)
             end
 
             return
         end
-        identifier = fdata.identifier
+        identifier = fndata.identifier
     end
 
     local footnote = M.get_footnote(identifier, buf)
