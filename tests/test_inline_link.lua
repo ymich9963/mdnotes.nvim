@@ -15,7 +15,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup()]])
         end,
         -- This will be executed one after all tests from this set are finished
@@ -39,7 +38,7 @@ T['parse()'] = function()
 
     -- File inline links
     child.fn.cursor(1,2)
-    local ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    local ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "",
         text = "file1",
@@ -54,7 +53,7 @@ T['parse()'] = function()
     })
 
     child.fn.cursor(1,42)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "",
         text = "file2",
@@ -70,7 +69,7 @@ T['parse()'] = function()
 
     -- File inline links with sections
     child.fn.cursor(2,2)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "",
         text = "file1",
@@ -85,7 +84,7 @@ T['parse()'] = function()
     })
 
     child.fn.cursor(2,60)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "",
         text = "file2",
@@ -101,7 +100,7 @@ T['parse()'] = function()
 
     -- Inline images
     child.fn.cursor(3,2)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "!",
         text = "image1",
@@ -116,7 +115,7 @@ T['parse()'] = function()
     })
 
     child.fn.cursor(3,60)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "!",
         text = "image2",
@@ -131,7 +130,7 @@ T['parse()'] = function()
     })
 
     child.fn.cursor(4,2)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "",
         text = "url1",
@@ -146,7 +145,7 @@ T['parse()'] = function()
     })
 
     child.fn.cursor(4,60)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "",
         text = "url2",
@@ -162,7 +161,7 @@ T['parse()'] = function()
 
     -- Same file section
     child.fn.cursor(5,2)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "",
         text = "section",
@@ -177,7 +176,7 @@ T['parse()'] = function()
     })
 
     child.fn.cursor(6,2)
-    ret = child.lua([[ return require('mdnotes.inline_link').parse() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse() ]])
     eq(ret, {
         img_char = "",
         text = "section",
@@ -193,9 +192,9 @@ T['parse()'] = function()
 end
 
 T['get_il_from_obj()'] = function()
-    local ret = child.lua([[return require('mdnotes.inline_link').get_il_from_obj({img_char = "", text = 1, destination = 2})]])
+    local ret = child.lua([[return Mdn.inline_link.get_il_from_obj({img_char = "", text = 1, destination = 2})]])
     eq(ret, "[1](2)")
-    ret = child.lua([[return require('mdnotes.inline_link').get_il_from_obj({img_char = "", text = 1, destination = 2, title = 3})]])
+    ret = child.lua([[return Mdn.inline_link.get_il_from_obj({img_char = "", text = 1, destination = 2, title = 3})]])
     eq(ret, "[1](2 \"3\")")
 end
 
@@ -213,7 +212,7 @@ T['open()'] = function()
     local ret = nil
 
     child.fn.cursor(1,1)
-    ret = child.lua([[return require('mdnotes.inline_link').open()]])
+    ret = child.lua([[return Mdn.inline_link.open()]])
     eq(child.fs.normalize(child.api.nvim_buf_get_name(ret)), vim.fs.normalize(vim.fs.find("file1.md")[1]))
     lines = child.api.nvim_buf_get_lines(ret, 0, -1, false)
     eq(lines, {
@@ -226,9 +225,9 @@ T['open()'] = function()
     eq(child.fn.getcurpos()[2], 1)
 
     child.cmd("buffer " .. buf)
-    child.lua([[return require('mdnotes').set_cwd()]]) -- Autocmd does not get triggered so call manually
+    child.lua([[return Mdn.set_cwd()]]) -- Autocmd does not get triggered so call manually
     child.fn.cursor(2,1)
-    ret = child.lua([[return require('mdnotes.inline_link').open()]])
+    ret = child.lua([[return Mdn.inline_link.open()]])
     eq(child.fs.normalize(child.api.nvim_buf_get_name(ret)), vim.fs.normalize(vim.fs.find("file1.md")[1]))
     lines = child.api.nvim_buf_get_lines(ret, 0, -1, false)
     eq(lines, {
@@ -242,14 +241,14 @@ T['open()'] = function()
 
     child.cmd("buffer " .. buf)
     child.fn.cursor(5,1)
-    child.lua([[ require('mdnotes.inline_link').open()]])
+    child.lua([[ Mdn.inline_link.open()]])
     eq(child.fn.getcurpos()[2], 7)
 end
 
 T['is_image()'] = function()
-    local ret = child.lua([[return require('mdnotes.inline_link').is_image("[text](link)")]])
+    local ret = child.lua([[return Mdn.inline_link.is_image("[text](link)")]])
     eq(ret, false)
-    ret = child.lua([[return require('mdnotes.inline_link').is_image("![img](link)")]])
+    ret = child.lua([[return Mdn.inline_link.is_image("![img](link)")]])
     eq(ret, true)
 end
 
@@ -259,7 +258,7 @@ T['insert()'] = function()
     }
 
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.inline_link').insert({ destination = "link" })]])
+    child.lua([[Mdn.inline_link.insert({ destination = "link" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](link)")
 end
@@ -270,7 +269,7 @@ T['delete()'] = function()
     }
 
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.inline_link').delete()]])
+    child.lua([[Mdn.inline_link.delete()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "test")
 end
@@ -282,11 +281,11 @@ T['toggle()'] = function()
 
     local buf = create_md_buffer(child, lines)
     child.lua([[
-    require('mdnotes.inline_link').toggle({ destination = "link" })
+    Mdn.inline_link.toggle({ destination = "link" })
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](link)")
-    child.lua([[ require('mdnotes.inline_link').toggle() ]])
+    child.lua([[ Mdn.inline_link.toggle() ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "test")
 end
@@ -297,10 +296,10 @@ T['relink()/rename()'] = function()
     }
 
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.inline_link').relink({ new_link = "link2" })]])
+    child.lua([[Mdn.inline_link.relink({ new_link = "link2" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](link2)")
-    child.lua([[require('mdnotes.inline_link').rename({ new_name = "test2" })]])
+    child.lua([[Mdn.inline_link.rename({ new_name = "test2" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test2](link2)")
 end
@@ -313,7 +312,7 @@ T['normalize()'] = function()
     }
 
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.inline_link').normalize()]])
+    child.lua([[Mdn.inline_link.normalize()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](<link/ has spaces/ test>)")
 end
@@ -325,12 +324,12 @@ T['convert_fragment_to_gfm()'] = function()
     }
 
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.inline_link').convert_fragment_to_gfm()]])
+    child.lua([[Mdn.inline_link.convert_fragment_to_gfm()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test](#fragment-to-gfm)")
 
     child.fn.cursor(2,1)
-    child.lua([[require('mdnotes.inline_link').convert_fragment_to_gfm()]])
+    child.lua([[Mdn.inline_link.convert_fragment_to_gfm()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[2], "[test](File#fragment-to-gfm)")
 end
@@ -343,7 +342,7 @@ T['parse_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.inline_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.inline_link.parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -358,7 +357,7 @@ T['parse_lines()'] = function()
             raw = "[test](link)"
         }
     })
-    ret = child.lua([[return require('mdnotes.inline_link').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    ret = child.lua([[return Mdn.inline_link.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {"[test](link)"})
 end
 

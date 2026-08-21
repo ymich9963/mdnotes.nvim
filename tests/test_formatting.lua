@@ -16,7 +16,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup()]])
         end,
         -- This will be executed one after all tests from this set are finished
@@ -30,24 +29,24 @@ T['emphasis'] = function()
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
-    child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
+    child.lua([[Mdn.formatting.emphasis_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "*emphasis* emphasis")
     eq(child.fn.getcurpos()[3], 2)
 
     child.fn.cursor(1, 12)
-    child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
+    child.lua([[Mdn.formatting.emphasis_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "*emphasis* *emphasis*")
     eq(child.fn.getcurpos()[3], 13)
 
-    child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
+    child.lua([[Mdn.formatting.emphasis_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "*emphasis* emphasis")
     eq(child.fn.getcurpos()[3], 12)
 
     child.fn.cursor(1, 2)
-    child.lua([[require('mdnotes.formatting').emphasis_toggle()]])
+    child.lua([[Mdn.formatting.emphasis_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "emphasis emphasis")
     eq(child.fn.getcurpos()[3], 1)
@@ -59,25 +58,25 @@ T['strong'] = function()
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
-    child.lua([[require('mdnotes.formatting').strong_toggle()]])
+    child.lua([[Mdn.formatting.strong_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "**strong** strong")
     eq(child.fn.getcurpos()[3], 3)
 
     child.fn.cursor(1, 12)
-    child.lua([[require('mdnotes.formatting').strong_toggle()]])
+    child.lua([[Mdn.formatting.strong_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "**strong** **strong**")
     eq(child.fn.getcurpos()[3], 14)
 
     child.fn.cursor(1, 14)
-    child.lua([[require('mdnotes.formatting').strong_toggle()]])
+    child.lua([[Mdn.formatting.strong_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "**strong** strong")
     eq(child.fn.getcurpos()[3], 12)
 
     child.fn.cursor(3, 3)
-    child.lua([[require('mdnotes.formatting').strong_toggle()]])
+    child.lua([[Mdn.formatting.strong_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "strong strong")
     eq(child.fn.getcurpos()[3], 1)
@@ -89,24 +88,24 @@ T['strikethrough'] = function()
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
-    child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
+    child.lua([[Mdn.formatting.strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "~~strikethrough~~ strikethrough")
     eq(child.fn.getcurpos()[3], 3)
 
     child.fn.cursor(1, 21)
-    child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
+    child.lua([[Mdn.formatting.strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "~~strikethrough~~ ~~strikethrough~~")
     eq(child.fn.getcurpos()[3], 23)
 
-    child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
+    child.lua([[Mdn.formatting.strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "~~strikethrough~~ strikethrough")
     eq(child.fn.getcurpos()[3], 21)
 
     child.fn.cursor(1, 3)
-    child.lua([[require('mdnotes.formatting').strikethrough_toggle()]])
+    child.lua([[Mdn.formatting.strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "strikethrough strikethrough")
     eq(child.fn.getcurpos()[3], 1)
@@ -118,24 +117,24 @@ T['inline_code'] = function()
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
-    child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
+    child.lua([[Mdn.formatting.inline_code_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "`inline_code` inline_code")
     eq(child.fn.getcurpos()[3], 2)
 
     child.fn.cursor(1, 15)
-    child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
+    child.lua([[Mdn.formatting.inline_code_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "`inline_code` `inline_code`")
     eq(child.fn.getcurpos()[3], 16)
 
-    child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
+    child.lua([[Mdn.formatting.inline_code_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "`inline_code` inline_code")
     eq(child.fn.getcurpos()[3], 15)
 
     child.fn.cursor(1, 2)
-    child.lua([[require('mdnotes.formatting').inline_code_toggle()]])
+    child.lua([[Mdn.formatting.inline_code_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "inline_code inline_code")
     eq(child.fn.getcurpos()[3], 1)
@@ -147,24 +146,24 @@ T['autolink'] = function()
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
-    child.lua([[require('mdnotes.formatting').autolink_toggle()]])
+    child.lua([[Mdn.formatting.autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "<autolink> autolink")
     eq(child.fn.getcurpos()[3], 2)
 
     child.fn.cursor(1, 12)
-    child.lua([[require('mdnotes.formatting').autolink_toggle()]])
+    child.lua([[Mdn.formatting.autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "<autolink> <autolink>")
     eq(child.fn.getcurpos()[3], 13)
 
-    child.lua([[require('mdnotes.formatting').autolink_toggle()]])
+    child.lua([[Mdn.formatting.autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "<autolink> autolink")
     eq(child.fn.getcurpos()[3], 12)
 
     child.fn.cursor(1, 2)
-    child.lua([[require('mdnotes.formatting').autolink_toggle()]])
+    child.lua([[Mdn.formatting.autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "autolink autolink")
     eq(child.fn.getcurpos()[3], 1)
@@ -175,16 +174,16 @@ T['unordered_list'] = function()
         local lines = {ul_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
-        child.lua([[require('mdnotes').new_line_remap('o', false)]])
+        child.lua([[Mdn.new_line_remap('o', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {ul_indicator .. " item", ul_indicator .. " "})
 
-        child.lua([[require('mdnotes').new_line_remap('<CR>', true)]])
+        child.lua([[Mdn.new_line_remap('<CR>', true)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {ul_indicator .. " item", ul_indicator .. " "})
 
         child.api.nvim_input("<ESC>kk")
-        child.lua([[require('mdnotes').new_line_remap('O', false)]])
+        child.lua([[Mdn.new_line_remap('O', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {ul_indicator .. " ", ul_indicator .. " item", ul_indicator .. " "})
 
@@ -197,14 +196,14 @@ T['ordered_list'] = function()
         local lines = {"1" .. ol_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
-        child.lua([[require('mdnotes').new_line_remap('o', false)]])
+        child.lua([[Mdn.new_line_remap('o', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " item",
             "2" .. ol_indicator .. " "
         })
 
-        child.lua([[require('mdnotes').new_line_remap('<CR>', true)]])
+        child.lua([[Mdn.new_line_remap('<CR>', true)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " item",
@@ -212,7 +211,7 @@ T['ordered_list'] = function()
         })
 
         child.api.nvim_input("<ESC>kk")
-        child.lua([[require('mdnotes').new_line_remap('O', false)]])
+        child.lua([[Mdn.new_line_remap('O', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "0" .. ol_indicator .. " ",
@@ -229,26 +228,26 @@ T['task_list'] = function()
         local lines = {ul_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
-        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        child.lua([[Mdn.formatting.task_list_toggle()]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             ul_indicator .. " [ ] item",
         })
 
-        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        child.lua([[Mdn.formatting.task_list_toggle()]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             ul_indicator .. " [x] item",
         })
 
-        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        child.lua([[Mdn.formatting.task_list_toggle()]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             ul_indicator .. " item",
         })
 
-        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
-        child.lua([[require('mdnotes').new_line_remap('o', false)]])
+        child.lua([[Mdn.formatting.task_list_toggle()]])
+        child.lua([[Mdn.new_line_remap('o', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             ul_indicator .. " [ ] item",
@@ -262,26 +261,26 @@ T['task_list'] = function()
         local lines = {"1" .. ol_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
-        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        child.lua([[Mdn.formatting.task_list_toggle()]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " [ ] item",
         })
 
-        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        child.lua([[Mdn.formatting.task_list_toggle()]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " [x] item",
         })
 
-        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
+        child.lua([[Mdn.formatting.task_list_toggle()]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " item",
         })
 
-        child.lua([[require('mdnotes.formatting').task_list_toggle()]])
-        child.lua([[require('mdnotes').new_line_remap('o', false)]])
+        child.lua([[Mdn.formatting.task_list_toggle()]])
+        child.lua([[Mdn.new_line_remap('o', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " [ ] item",
@@ -312,7 +311,7 @@ T['check_list_valid()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.formatting').check_list_valid()]])
+    local ret = child.lua([[return Mdn.formatting.check_list_valid()]])
     eq(ret, {
         valid = true,
         buf = 2,
@@ -321,7 +320,7 @@ T['check_list_valid()'] = function()
     })
 
     child.fn.cursor(2,1)
-    ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ outliner_list = true })]])
+    ret = child.lua([[return Mdn.formatting.check_list_valid({ outliner_list = true })]])
     eq(ret, {
         valid = true,
         buf = 2,
@@ -330,7 +329,7 @@ T['check_list_valid()'] = function()
     })
 
     child.fn.cursor(5,1)
-    ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ same_indent = true })]])
+    ret = child.lua([[return Mdn.formatting.check_list_valid({ same_indent = true })]])
     eq(ret, {
         valid = true,
         buf = 2,
@@ -339,7 +338,7 @@ T['check_list_valid()'] = function()
     })
 
     child.fn.cursor(10,1)
-    ret = child.lua([[return require('mdnotes.formatting').check_list_valid({ same_marker = false })]])
+    ret = child.lua([[return Mdn.formatting.check_list_valid({ same_marker = false })]])
     eq(ret, {
         valid = true,
         buf = 2,
@@ -361,7 +360,7 @@ T['ordered_list_renumber()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.formatting').ordered_list_renumber({ silent = true })]])
+    child.lua([[Mdn.formatting.ordered_list_renumber({ silent = true })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "1. item",
@@ -384,7 +383,7 @@ T['ordered_list_renumber()'] = function()
     buf = create_md_buffer(child, lines)
 
     child.fn.cursor(2,1)
-    child.lua([[require('mdnotes.formatting').ordered_list_renumber({ silent = true })]])
+    child.lua([[Mdn.formatting.ordered_list_renumber({ silent = true })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "# Header",
@@ -403,7 +402,7 @@ T['fenced_code_block()'] = function()
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
-    child.lua([[require('mdnotes.formatting').fenced_code_block_toggle()]])
+    child.lua([[Mdn.formatting.fenced_code_block_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "```",
@@ -411,7 +410,7 @@ T['fenced_code_block()'] = function()
         "```",
     })
     child.fn.cursor(2, 1)
-    child.lua([[require('mdnotes.formatting').fenced_code_block_toggle()]])
+    child.lua([[Mdn.formatting.fenced_code_block_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "code",

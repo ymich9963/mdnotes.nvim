@@ -15,7 +15,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup({journal_file = "journal.md"})]])
         end,
         -- This will be executed one after all tests from this set are finished
@@ -26,7 +25,7 @@ local T = new_set({
 T['get_journal_file()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
-    return require('mdnotes.journal').get_journal_file()
+    return Mdn.journal.get_journal_file()
     ]])
     eq(ret, "journal.md")
 end
@@ -46,11 +45,11 @@ T['insert_entry()'] = function()
         ""
     }
 
-    child.lua([[ return require('mdnotes.journal').insert_entry({ silent = true, check_file = false }) ]])
+    child.lua([[ return Mdn.journal.insert_entry({ silent = true, check_file = false }) ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, journal_entry)
 
-    child.lua([[ return require('mdnotes.journal').insert_entry({ silent = true, check_file = false }) ]])
+    child.lua([[ return Mdn.journal.insert_entry({ silent = true, check_file = false }) ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, journal_entry)
 end

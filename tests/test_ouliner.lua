@@ -15,7 +15,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup()]])
         end,
         -- This will be executed one after all tests from this set are finished
@@ -33,7 +32,7 @@ T['indent()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[ require('mdnotes.outliner').indent() ]])
+    child.lua([[ Mdn.outliner.indent() ]])
 
     local new_lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     child.fn.cursor(1,1)
@@ -46,7 +45,7 @@ T['indent()'] = function()
 
     buf = create_md_buffer(child, lines)
     child.fn.cursor(2,1)
-    child.lua([[ require('mdnotes.outliner').indent() ]])
+    child.lua([[ Mdn.outliner.indent() ]])
     new_lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(new_lines, {
         "- item",
@@ -57,7 +56,7 @@ T['indent()'] = function()
 
     buf = create_md_buffer(child, lines)
     child.fn.cursor(3,1)
-    child.lua([[ require('mdnotes.outliner').indent() ]])
+    child.lua([[ Mdn.outliner.indent() ]])
     new_lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(new_lines, {
         "- item",
@@ -79,7 +78,7 @@ T['unindent()'] = function()
 
     local buf = create_md_buffer(child, lines)
     child.fn.cursor(1,1)
-    child.lua([[ require('mdnotes.outliner').unindent() ]])
+    child.lua([[ Mdn.outliner.unindent() ]])
     local new_lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(new_lines, {
         "- item",
@@ -90,7 +89,7 @@ T['unindent()'] = function()
 
     buf = create_md_buffer(child, lines)
     child.fn.cursor(2,1)
-    child.lua([[ require('mdnotes.outliner').unindent() ]])
+    child.lua([[ Mdn.outliner.unindent() ]])
     new_lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(new_lines, {
         "- item",
@@ -101,7 +100,7 @@ T['unindent()'] = function()
 
     buf = create_md_buffer(child, lines)
     child.fn.cursor(3,1)
-    child.lua([[ require('mdnotes.outliner').unindent() ]])
+    child.lua([[ Mdn.outliner.unindent() ]])
     new_lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(new_lines, {
         "- item",

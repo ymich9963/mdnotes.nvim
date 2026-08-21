@@ -15,7 +15,7 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
+            child.lua([[require('mdnotes').setup()]])
         end,
         -- This will be executed one after all tests from this set are finished
         post_once = child.stop,
@@ -28,7 +28,7 @@ T['mdn_grep()'] = function()
     cd tests/test-data/files
     ]])
 
-    child.lua([[ require('mdnotes').mdn_grep("greptest", ".") ]])
+    child.lua([[ Mdn.mdn_grep("greptest", ".") ]])
 
     if child.o.grepprg == "internal" then
         eq(child.fn.getqflist(), { {
@@ -73,40 +73,40 @@ T['check_markdown_syntax()'] = function()
 
     child.fn.cursor(1,1)
     local ret = child.lua([[
-    local pattern = require('mdnotes.patterns').emphasis
-    return {require('mdnotes').check_markdown_syntax(pattern)}
+    local pattern = Mdn.patterns.emphasis
+    return {Mdn.check_markdown_syntax(pattern)}
     ]])
     eq(ret, {true, {1, 11}})
 
     child.fn.cursor(2,1)
     ret = child.lua([[
-    local pattern = require('mdnotes.patterns').emphasis
-    return {require('mdnotes').check_markdown_syntax(pattern)}
+    local pattern = Mdn.patterns.emphasis
+    return {Mdn.check_markdown_syntax(pattern)}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
-    local pattern = require('mdnotes.patterns').emphasis
-    return {require('mdnotes').check_markdown_syntax(pattern, { entire_line = true })}
+    local pattern = Mdn.patterns.emphasis
+    return {Mdn.check_markdown_syntax(pattern, { entire_line = true })}
     ]])
     eq(ret, {true, {{10, 20}}})
 
     child.fn.cursor(3,1)
     ret = child.lua([[
-    local pattern = require('mdnotes.patterns').emphasis
-    return {require('mdnotes').check_markdown_syntax(pattern)}
+    local pattern = Mdn.patterns.emphasis
+    return {Mdn.check_markdown_syntax(pattern)}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
-    local pattern = require('mdnotes.patterns').emphasis
-    return {require('mdnotes').check_markdown_syntax(pattern, { entire_line = true })}
+    local pattern = Mdn.patterns.emphasis
+    return {Mdn.check_markdown_syntax(pattern, { entire_line = true })}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
-    local pattern = require('mdnotes.patterns').emphasis
-    return {require('mdnotes').check_markdown_syntax(pattern, {location = {lnum = 2, col_start = 10, col_end = 19}})}
+    local pattern = Mdn.patterns.emphasis
+    return {Mdn.check_markdown_syntax(pattern, {location = {lnum = 2, col_start = 10, col_end = 19}})}
     ]])
     eq(ret, {true, {10, 20}})
 end
@@ -120,7 +120,7 @@ T['get_text()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    return require('mdnotes').get_text({ location = {
+    return Mdn.get_text({ location = {
         buf = vim.api.nvim_get_current_buf(),
         lnum = 2,
         col_start = 1,
@@ -137,7 +137,7 @@ T['get_text()'] = function()
     })
 
     ret = child.lua([[
-    return require('mdnotes').get_text({ location = {
+    return Mdn.get_text({ location = {
         buf = vim.api.nvim_get_current_buf(),
         lnum = 3,
         col_start = 1,
@@ -162,8 +162,8 @@ T['get_text_in_pattern()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local pattern = require('mdnotes.patterns').emphasis
-    return require('mdnotes').get_text_in_pattern(pattern, { location = {
+    local pattern = Mdn.patterns.emphasis
+    return Mdn.get_text_in_pattern(pattern, { location = {
         buf = vim.api.nvim_get_current_buf(),
         lnum = 2,
         col_start = 1,
@@ -180,8 +180,8 @@ T['get_text_in_pattern()'] = function()
     })
 
     ret = child.lua([[
-    local pattern = require('mdnotes.patterns').emphasis
-    return require('mdnotes').get_text_in_pattern(pattern, { location = {
+    local pattern = Mdn.patterns.emphasis
+    return Mdn.get_text_in_pattern(pattern, { location = {
         buf = vim.api.nvim_get_current_buf(),
         lnum = 1,
         col_start = 1,
@@ -201,18 +201,18 @@ end
 T['get_files_in_cwd()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
-    require('mdnotes').set_cwd()
-    return require('mdnotes').get_files_in_cwd({ extension = ".md" })
+    Mdn.set_cwd()
+    return Mdn.get_files_in_cwd({ extension = ".md" })
     ]])
     eq(ret, {"file1.md", "file2.md", "file3.md", "file4.md", "file5.md", "file6.md", "file7.md", "greptest.md"})
 
     ret = child.lua([[
-    return require('mdnotes').get_files_in_cwd({ hidden = false, fs_type = "directory"})
+    return Mdn.get_files_in_cwd({ hidden = false, fs_type = "directory"})
     ]])
     eq(ret, {"assets"})
 
     ret = child.lua([[
-    return require('mdnotes').get_files_in_cwd({ extension = ".md", hidden = false, fs_type = "file", pattern = "^.*7.*"})
+    return Mdn.get_files_in_cwd({ extension = ".md", hidden = false, fs_type = "file", pattern = "^.*7.*"})
     ]])
     eq(ret, {"file7.md"})
 end
@@ -221,7 +221,7 @@ end
 -- https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links
 T['convert_text_to_gfm()'] = function()
     local ret = child.lua([[
-    return require('mdnotes').convert_text_to_gfm("text -/';+123    @💩")
+    return Mdn.convert_text_to_gfm("text -/';+123    @💩")
     ]])
 
     eq(ret, "text-123----")
@@ -240,8 +240,8 @@ T['populate_buf_fragments()'] = function()
 
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    return require('mdnotes').buf_fragments
+    Mdn.populate_buf_fragments(cur_buf)
+    return Mdn.buf_fragments
     ]])
     eq(ret, {
         {
@@ -266,8 +266,8 @@ T['populate_buf_fragments()'] = function()
     -- Call it again to ensure it doesn't get added
     ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    return require('mdnotes').buf_fragments
+    Mdn.populate_buf_fragments(cur_buf)
+    return Mdn.buf_fragments
     ]])
     eq(ret, {
         {
@@ -293,8 +293,8 @@ T['populate_buf_fragments()'] = function()
     child.api.nvim_buf_set_lines(buf, 0, -1, false, {"### Heading 3"})
     ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    return require('mdnotes').buf_fragments
+    Mdn.populate_buf_fragments(cur_buf)
+    return Mdn.buf_fragments
     ]])
     eq(ret, {
         {
@@ -315,8 +315,8 @@ T['populate_buf_fragments()'] = function()
 
     ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    return require('mdnotes').buf_fragments
+    Mdn.populate_buf_fragments(cur_buf)
+    return Mdn.buf_fragments
     ]])
     eq(ret, {
         {
@@ -364,7 +364,7 @@ T['get_buf_fragments()'] = function()
 
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
-    return require('mdnotes').get_buf_fragments({ buf = cur_buf })
+    return Mdn.get_buf_fragments({ buf = cur_buf })
     ]])
     eq(ret, {
         {
@@ -395,8 +395,8 @@ T['find_fragment_in_buf_fragments()'] = function()
 
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
-    require('mdnotes').populate_buf_fragments(cur_buf)
-    return require('mdnotes').find_fragment_in_buf_fragments(cur_buf, "heading-1")
+    Mdn.populate_buf_fragments(cur_buf)
+    return Mdn.find_fragment_in_buf_fragments(cur_buf, "heading-1")
     ]])
     eq(ret, "Heading 1")
 end
@@ -410,8 +410,8 @@ T['scan_lines()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local pattern = require('mdnotes.patterns').inline_link
-    return require('mdnotes').scan_lines(pattern, { location = { startl = 1, endl = 3}})
+    local pattern = Mdn.patterns.inline_link
+    return Mdn.scan_lines(pattern, { location = { startl = 1, endl = 3}})
     ]])
 
     eq(ret, {
@@ -437,7 +437,7 @@ T['statistics()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[ return require('mdnotes').statistics({ silent = true }) ]])
+    local ret = child.lua([[ return Mdn.statistics({ silent = true }) ]])
 
     if vim.fn.has("win32") == 1 then
         eq(ret, {
@@ -467,37 +467,37 @@ T['statistics()'] = function()
 end
 
 T['is_url()'] = function()
-    local ret = child.lua([[return require('mdnotes').is_url("link")]])
+    local ret = child.lua([[return Mdn.is_url("link")]])
     eq(ret, false)
-    ret = child.lua([[return require('mdnotes').is_url("https://test")]])
+    ret = child.lua([[return Mdn.is_url("https://test")]])
     eq(ret, true)
 end
 
 T['get_path_from_destination()'] = function()
-    local ret = child.lua([[return require('mdnotes').get_path_from_destination("path/with/fragment#fragment", false)]])
+    local ret = child.lua([[return Mdn.get_path_from_destination("path/with/fragment#fragment", false)]])
     eq(ret, "path/with/fragment")
 
     child.cmd([[edit tests/test-data/files/file1.md]])
-    local cwd = child.lua([[return require('mdnotes').cwd]])
+    local cwd = child.lua([[return Mdn.cwd]])
 
-    ret = child.lua([[return require('mdnotes').get_path_from_destination("tests/test-data/files/file1.md#section-2", true)]])
+    ret = child.lua([[return Mdn.get_path_from_destination("tests/test-data/files/file1.md#section-2", true)]])
     eq(ret, cwd .. "/file1.md")
-    ret = child.lua([[return require('mdnotes').get_path_from_destination("#section-2", true)]])
+    ret = child.lua([[return Mdn.get_path_from_destination("#section-2", true)]])
     eq(ret, "file1.md")
 end
 
 T['get_fragment_from_destination()'] = function()
-    local ret = child.lua([[return require('mdnotes').get_fragment_from_destination("path/with/fragment#fragment", false)]])
+    local ret = child.lua([[return Mdn.get_fragment_from_destination("path/with/fragment#fragment", false)]])
     eq(ret, "fragment")
 
-    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("tests/test-data/files/file1.md#section-2", true)]])
+    ret = child.lua([[return Mdn.get_fragment_from_destination("tests/test-data/files/file1.md#section-2", true)]])
     eq(ret, "Section 2")
 
-    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("tests/test-data/files/file1.md#Section 2", true)]])
+    ret = child.lua([[return Mdn.get_fragment_from_destination("tests/test-data/files/file1.md#Section 2", true)]])
     eq(ret, "Section 2")
 
     child.cmd([[edit tests/test-data/files/file1.md]])
-    ret = child.lua([[return require('mdnotes').get_fragment_from_destination("#section-2", true)]])
+    ret = child.lua([[return Mdn.get_fragment_from_destination("#section-2", true)]])
     eq(ret, "section-2")
 end
 

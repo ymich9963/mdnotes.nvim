@@ -15,7 +15,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup()]])
         end,
         -- This will be executed one after all tests from this set are finished
@@ -35,13 +34,13 @@ T['get_heading()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    require('mdnotes').populate_buf_fragments()
-    return require('mdnotes.heading').get_heading()
+    Mdn.populate_buf_fragments()
+    return Mdn.heading.get_heading()
     ]])
     eq(ret, {hash = "#", text = "Heading 1", gfm = "heading-1", lnum = 1})
 
     child.fn.cursor(4,1)
-    ret = child.lua([[ return require('mdnotes.heading').get_heading() ]])
+    ret = child.lua([[ return Mdn.heading.get_heading() ]])
     eq(ret, {hash = "##", text = "Heading 2", gfm = "heading-2", lnum = 4})
 end
 
@@ -57,18 +56,18 @@ T['go_to()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes').populate_buf_fragments()
-    require('mdnotes.heading').go_to("", {increment = 1})
+    Mdn.populate_buf_fragments()
+    Mdn.heading.go_to("", {increment = 1})
     ]])
     eq(child.fn.getcurpos()[2], 4)
 
-    child.lua([[ return require('mdnotes.heading').go_to("", {increment = 1}) ]])
+    child.lua([[ return Mdn.heading.go_to("", {increment = 1}) ]])
     eq(child.fn.getcurpos()[2], 1)
 
-    child.lua([[ return require('mdnotes.heading').go_to("", {increment = -1}) ]])
+    child.lua([[ return Mdn.heading.go_to("", {increment = -1}) ]])
     eq(child.fn.getcurpos()[2], 4)
 
-    child.lua([[ return require('mdnotes.heading').go_to("", {increment = -1}) ]])
+    child.lua([[ return Mdn.heading.go_to("", {increment = -1}) ]])
     eq(child.fn.getcurpos()[2], 1)
 end
 

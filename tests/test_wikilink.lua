@@ -15,9 +15,7 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup()]])
-            -- child.o.grepprg = "internal"
         end,
         -- This will be executed one after all tests from this set are finished
         post_once = child.stop,
@@ -30,7 +28,7 @@ T['parse()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua("return require('mdnotes.wikilink').parse()")
+    local ret = child.lua("return Mdn.wikilink.parse()")
     eq(ret, {
         buf = 2,
         col_end = 24,
@@ -47,9 +45,9 @@ end
 T['follow()'] = function()
     local lines = {}
     child.cmd([[edit tests/test-data/files/file3.md]])
-    child.lua([[require('mdnotes').set_cwd()]])
+    child.lua([[Mdn.set_cwd()]])
     child.fn.cursor(2,1)
-    child.lua([[require('mdnotes.wikilink').follow()]])
+    child.lua([[Mdn.wikilink.follow()]])
     local buf = child.api.nvim_get_current_buf()
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "# File 2")
@@ -58,7 +56,7 @@ end
 T['show_references()'] = function()
     child.cmd([[edit tests/test-data/files/file2.md]])
     child.fn.cursor(1,1)
-    local ret = child.lua([[return require('mdnotes.wikilink').show_references()]])
+    local ret = child.lua([[return Mdn.wikilink.show_references()]])
     if child.o.grepprg == "internal" then
         eq(ret, {
             {
@@ -81,7 +79,7 @@ T['show_references()'] = function()
 
         child.cmd([[edit tests/test-data/files/file3.md]])
         child.fn.cursor(2,1)
-        ret = child.lua([[return require('mdnotes.wikilink').show_references()]])
+        ret = child.lua([[return Mdn.wikilink.show_references()]])
         eq(ret, {
             {
                 bufnr = 3,
@@ -120,7 +118,7 @@ T['show_references()'] = function()
 
         child.cmd([[edit tests/test-data/files/file3.md]])
         child.fn.cursor(2,1)
-        ret = child.lua([[return require('mdnotes.wikilink').show_references()]])
+        ret = child.lua([[return Mdn.wikilink.show_references()]])
         eq(ret, {
             {
                 bufnr = 2, -- is 3 with vimgrep
@@ -144,7 +142,7 @@ T['rename_references()'] = function()
     -- Rename file5 to file55
     child.cmd([[edit tests/test-data/files/file4.md]])
     child.fn.cursor(2,1)
-    local ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file55" })}]])
+    local ret = child.lua([[return {Mdn.wikilink.rename_references({ new_name = "file55" })}]])
     eq(ret, {"file5", "file55"})
 
     local lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)
@@ -164,17 +162,17 @@ T['rename_references()'] = function()
     -- Rename back to file5
     child.fn.cursor(2,1)
     child.cmd([[edit tests/test-data/files/file4.md]])
-    child.lua([[require('mdnotes.wikilink').rename_references({ new_name = "file5" })]])
+    child.lua([[Mdn.wikilink.rename_references({ new_name = "file5" })]])
 
     -- Self rename
     child.cmd([[edit tests/test-data/files/file4.md]])
     child.fn.cursor(1,1)
-    ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file44" })}]])
+    ret = child.lua([[return {Mdn.wikilink.rename_references({ new_name = "file44" })}]])
     eq(child.fs.basename(child.api.nvim_buf_get_name(0)), "file44.md")
     eq(ret, {"file4", "file44"})
 
     -- Rename back to file4
-    ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file4" })}]])
+    ret = child.lua([[return {Mdn.wikilink.rename_references({ new_name = "file4" })}]])
     eq(child.fs.basename(child.api.nvim_buf_get_name(0)), "file4.md")
 end
 
@@ -182,15 +180,15 @@ T['undo_rename()'] = function()
     -- Rename file3 to file33
     child.cmd([[edit tests/test-data/files/file4.md]])
     child.fn.cursor(2,1)
-    local ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file55" })}]])
+    local ret = child.lua([[return {Mdn.wikilink.rename_references({ new_name = "file55" })}]])
     eq(ret, {"file5", "file55"})
-    ret = child.lua([[return {require('mdnotes.wikilink').rename_references({ new_name = "file555" })}]])
+    ret = child.lua([[return {Mdn.wikilink.rename_references({ new_name = "file555" })}]])
     eq(ret, {"file55", "file555"})
 
-    ret = child.lua([[return {require('mdnotes.wikilink').undo_rename()}]])
+    ret = child.lua([[return {Mdn.wikilink.undo_rename()}]])
     eq(ret, {"file555", "file55"})
     child.lua([[vim.cmd.wall()]])
-    ret = child.lua([[return {require('mdnotes.wikilink').undo_rename()}]])
+    ret = child.lua([[return {Mdn.wikilink.undo_rename()}]])
     eq(ret, {"file55", "file5"})
     child.lua([[vim.cmd.wall()]])
 end
@@ -202,7 +200,7 @@ T['create()'] = function()
     create_md_buffer(child, lines)
 
     child.fn.cursor(1,1)
-    child.lua([[require('mdnotes.wikilink').create()]])
+    child.lua([[Mdn.wikilink.create()]])
     lines = child.api.nvim_buf_get_lines(child.api.nvim_get_current_buf(), 0, -1, false)
     eq(lines[1], "[[Test]]")
 end
@@ -217,7 +215,7 @@ T['delete()'] = function()
         vim.fs.basename(vim.fs.find("file6.md", { path = './tests/test-data/files' })[1]),
         "file6.md"
     )
-    child.lua([[require('mdnotes.wikilink').delete({ skip_input = true })]])
+    child.lua([[Mdn.wikilink.delete({ skip_input = true })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "./tests/test-data/files/file6")
     eq(vim.fs.find("file6.md", { path = './tests/test-data/files' }), {})
@@ -232,7 +230,7 @@ T['normalize()'] = function()
         "[[./tests/test-data/files/file6]]"
     }
     local buf = create_md_buffer(child, lines)
-    child.lua([[require('mdnotes.wikilink').normalize()]])
+    child.lua([[Mdn.wikilink.normalize()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[[tests/test-data/files/file6]]")
 end
@@ -240,7 +238,7 @@ end
 T['get_orphans()'] = function()
     -- Move to directory to search
     child.cmd([[edit tests/test-data/files/file1.md]])
-    local ret = child.lua([[return require('mdnotes.wikilink').get_orphans()]])
+    local ret = child.lua([[return Mdn.wikilink.get_orphans()]])
     eq(ret, {
         "file1.md",
         "file3.md",
@@ -252,13 +250,13 @@ T['get_orphans()'] = function()
 end
 
 T['get_wl_from_obj()'] = function()
-    local ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({file = "test", fragment = "frag", alias = "alias"})]])
+    local ret = child.lua([[return Mdn.wikilink.get_wl_from_obj({file = "test", fragment = "frag", alias = "alias"})]])
     eq(ret, "[[test#frag|alias]]")
-    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({file = "test", fragment = "", alias = "alias"})]])
+    ret = child.lua([[return Mdn.wikilink.get_wl_from_obj({file = "test", fragment = "", alias = "alias"})]])
     eq(ret, "[[test|alias]]")
-    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({file = "test", fragment = "", alias = ""})]])
+    ret = child.lua([[return Mdn.wikilink.get_wl_from_obj({file = "test", fragment = "", alias = ""})]])
     eq(ret, "[[test]]")
-    ret = child.lua([[return require('mdnotes.wikilink').get_wl_from_obj({file = "test", fragment = "frag"})]])
+    ret = child.lua([[return Mdn.wikilink.get_wl_from_obj({file = "test", fragment = "frag"})]])
     eq(ret, "[[test#frag]]")
 end
 
@@ -270,7 +268,7 @@ T['parse_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.wikilink').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.wikilink.parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -282,7 +280,7 @@ T['parse_lines()'] = function()
             file = "test",
         }
     })
-    ret = child.lua([[return require('mdnotes.wikilink').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    ret = child.lua([[return Mdn.wikilink.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {"[[test]]"})
 end
 

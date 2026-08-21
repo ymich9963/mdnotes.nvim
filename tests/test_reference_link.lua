@@ -15,7 +15,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup()]])
         end,
         -- This will be executed one after all tests from this set are finished
@@ -45,7 +44,7 @@ T['parse()'] = function()
     create_md_buffer(child, lines)
 
     child.fn.cursor(1,2)
-    local ret = child.lua([[ return require('mdnotes.reference_link').parse() ]])
+    local ret = child.lua([[ return Mdn.reference_link.parse() ]])
     eq(ret, {
         text = "neovim",
         label = "neovim",
@@ -58,7 +57,7 @@ T['parse()'] = function()
     })
 
     child.fn.cursor(2,2)
-    ret = child.lua([[ return require('mdnotes.reference_link').parse() ]])
+    ret = child.lua([[ return Mdn.reference_link.parse() ]])
     eq(ret, {
         text = "test",
         label = "neovim",
@@ -91,7 +90,7 @@ T['get_buf_reference_link_definitions()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[ return require('mdnotes.reference_link').get_buf_reference_link_definitions() ]])
+    local ret = child.lua([[ return Mdn.reference_link.get_buf_reference_link_definitions() ]])
     eq(ret, {
         {
             destination = "https://github.com/ymic9963/mdnotes.nvim",
@@ -133,8 +132,8 @@ T['populate_buf_reference_links()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    return require('mdnotes.reference_link').buf_reference_link_definitions
+    Mdn.reference_link.populate_buf_reference_link_definitions()
+    return Mdn.reference_link.buf_reference_link_definitions
     ]])
     eq(ret, {
         {
@@ -167,7 +166,7 @@ T['insert()'] = function()
     create_md_buffer(child, lines)
 
 
-    child.lua([[ require('mdnotes.reference_link').insert({ label = "label", destination = "destination" }) ]])
+    child.lua([[ Mdn.reference_link.insert({ label = "label", destination = "destination" }) ]])
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
     eq(lines, {
         "[test][label]",
@@ -196,8 +195,8 @@ T['get_rl_definition()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    return require('mdnotes.reference_link').get_rl_definition("test")
+    Mdn.reference_link.populate_buf_reference_link_definitions()
+    return Mdn.reference_link.get_rl_definition("test")
     ]])
     eq(ret, {
         destination = "https://example.org",
@@ -227,8 +226,8 @@ T['go_to_definition()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    require('mdnotes.reference_link').go_to_definition({label = "test"})
+    Mdn.reference_link.populate_buf_reference_link_definitions()
+    Mdn.reference_link.go_to_definition({label = "test"})
     ]])
     eq(child.fn.line("."), 15)
 end
@@ -241,8 +240,8 @@ T['delete()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes.reference_link').delete({location = {lnum = 1}})
-    require('mdnotes.reference_link').delete({location = {lnum = 2}})
+    Mdn.reference_link.delete({location = {lnum = 1}})
+    Mdn.reference_link.delete({location = {lnum = 2}})
     ]])
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
     eq(lines, {
@@ -252,7 +251,7 @@ T['delete()'] = function()
 end
 
 T['get_rl_definition_from_obj()'] = function()
-    local ret = child.lua([[ return require('mdnotes.reference_link').get_rl_definition_from_obj({label = "label", destination = "destination"}) ]])
+    local ret = child.lua([[ return Mdn.reference_link.get_rl_definition_from_obj({label = "label", destination = "destination"}) ]])
     eq(ret, "[label]: destination")
 end
 
@@ -277,9 +276,9 @@ T['update_definition()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    require('mdnotes.reference_link').update_definition({label = "test", new_label = "new label", skip_input = true})
-    require('mdnotes.reference_link').update_definition({label = "new label", new_destination = "new destination", skip_input = true})
+    Mdn.reference_link.populate_buf_reference_link_definitions()
+    Mdn.reference_link.update_definition({label = "test", new_label = "new label", skip_input = true})
+    Mdn.reference_link.update_definition({label = "new label", new_destination = "new destination", skip_input = true})
     ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -316,8 +315,8 @@ T['cleanup()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    require('mdnotes.reference_link').cleanup()
+    Mdn.reference_link.populate_buf_reference_link_definitions()
+    Mdn.reference_link.cleanup()
     ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -332,7 +331,7 @@ T['cleanup()'] = function()
 end
 
 T['get_rl_from_obj()'] = function()
-    local ret = child.lua([[ return require('mdnotes.reference_link').get_rl_from_obj({text = "text", label = "label"}) ]])
+    local ret = child.lua([[ return Mdn.reference_link.get_rl_from_obj({text = "text", label = "label"}) ]])
     eq(ret, "[text][label]")
 end
 
@@ -342,7 +341,7 @@ T['rename()'] = function()
     }
     create_md_buffer(child, lines)
 
-    child.lua([[ require('mdnotes.reference_link').rename({new_name = "test2"}) ]])
+    child.lua([[ Mdn.reference_link.rename({new_name = "test2"}) ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
     eq(lines, {
@@ -356,7 +355,7 @@ T['relink()'] = function()
     }
     create_md_buffer(child, lines)
 
-    child.lua([[ require('mdnotes.reference_link').relabel({new_label = "label"}) ]])
+    child.lua([[ Mdn.reference_link.relabel({new_label = "label"}) ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
     eq(lines, {
@@ -374,8 +373,8 @@ T['open()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    return require('mdnotes.reference_link').open()
+    Mdn.reference_link.populate_buf_reference_link_definitions()
+    return Mdn.reference_link.open()
     ]])
     eq(child.fs.normalize(child.api.nvim_buf_get_name(ret)), vim.fs.normalize(vim.fs.find("file1.md")[1]))
     lines = child.api.nvim_buf_get_lines(ret, 0, -1, false)
@@ -395,7 +394,7 @@ T['convert_from_inline()'] = function()
     }
     create_md_buffer(child, lines)
 
-    child.lua([[ require('mdnotes.reference_link').convert_from_inline() ]])
+    child.lua([[ Mdn.reference_link.convert_from_inline() ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
     eq(lines, {
@@ -414,7 +413,7 @@ T['parse_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.reference_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.reference_link.parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -427,7 +426,7 @@ T['parse_lines()'] = function()
             raw = "[file1][]",
         }
     })
-    ret = child.lua([[return require('mdnotes.reference_link').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    ret = child.lua([[return Mdn.reference_link.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {"[file1][]"})
 end
 
@@ -452,8 +451,8 @@ T['find_label_occurences()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    require('mdnotes.reference_link').populate_buf_reference_link_definitions()
-    return require('mdnotes.reference_link').find_label_occurences({label = "test"})
+    Mdn.reference_link.populate_buf_reference_link_definitions()
+    return Mdn.reference_link.find_label_occurences({label = "test"})
     ]])
     eq(ret, {
         {

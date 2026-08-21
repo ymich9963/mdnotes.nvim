@@ -15,7 +15,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup()]])
         end,
         -- This will be executed one after all tests from this set are finished
@@ -34,7 +33,7 @@ T['parse'] = function()
     create_md_buffer(child, lines)
 
     child.fn.cursor(1,2)
-    local ret = child.lua([[ return require('mdnotes.footnote').parse() ]])
+    local ret = child.lua([[ return Mdn.footnote.parse() ]])
     eq(ret, {
         buf = 2,
         col_end = 5,
@@ -46,7 +45,7 @@ T['parse'] = function()
     })
 
     child.fn.cursor(2,14)
-    ret = child.lua([[ return require('mdnotes.footnote').parse() ]])
+    ret = child.lua([[ return Mdn.footnote.parse() ]])
     eq(ret, {
         buf = 2,
         col_end = 17,
@@ -68,7 +67,7 @@ T['get_buf_footnotes()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[ return require('mdnotes.footnote').get_buf_footnotes() ]])
+    local ret = child.lua([[ return Mdn.footnote.get_buf_footnotes() ]])
     eq(ret, {
         {
             identifier = "1",
@@ -94,8 +93,8 @@ T['populate_buf_footnotes()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    require('mdnotes.footnote').populate_buf_footnotes()
-    return require('mdnotes.footnote').buf_footnotes
+    Mdn.footnote.populate_buf_footnotes()
+    return Mdn.footnote.buf_footnotes
     ]])
     eq(ret, {
         {
@@ -125,7 +124,7 @@ T['insert()'] = function()
     create_md_buffer(child, lines)
 
     child.fn.cursor({1,1})
-    child.lua([[ require('mdnotes.footnote').insert({ identifier = "1", text = "This is footnote 1" }) ]])
+    child.lua([[ Mdn.footnote.insert({ identifier = "1", text = "This is footnote 1" }) ]])
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
     eq(lines, {
         "[^1]",
@@ -137,7 +136,7 @@ T['insert()'] = function()
     eq(curpos, {4,6})
 
     child.fn.cursor({2,1})
-    child.lua([[ require('mdnotes.footnote').insert() ]])
+    child.lua([[ Mdn.footnote.insert() ]])
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
     eq(lines, {
         "[^1]",
@@ -161,8 +160,8 @@ T['get_footnote()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    require('mdnotes.footnote').populate_buf_footnotes()
-    return require('mdnotes.footnote').get_footnote("1")
+    Mdn.footnote.populate_buf_footnotes()
+    return Mdn.footnote.get_footnote("1")
     ]])
     eq(ret, {
         identifier = "1",
@@ -182,14 +181,14 @@ T['go_to()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes.footnote').populate_buf_footnotes()
-    require('mdnotes.footnote').go_to({identifier = "1"})
+    Mdn.footnote.populate_buf_footnotes()
+    Mdn.footnote.go_to({identifier = "1"})
     ]])
     eq(child.fn.line("."), 4)
 end
 
 T['get_footnote_from_obj()'] = function()
-    local ret = child.lua([[ return require('mdnotes.footnote').get_footnote_from_obj({identifier = "1", text = "text"}) ]])
+    local ret = child.lua([[ return Mdn.footnote.get_footnote_from_obj({identifier = "1", text = "text"}) ]])
     eq(ret, "[^1]: text")
 end
 
@@ -204,9 +203,9 @@ T['update()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes.footnote').populate_buf_footnotes()
-    require('mdnotes.footnote').update({identifier = "1", new_identifier = "5", skip_input = true})
-    require('mdnotes.footnote').update({identifier = "2", new_text = "new text", skip_input = true})
+    Mdn.footnote.populate_buf_footnotes()
+    Mdn.footnote.update({identifier = "1", new_identifier = "5", skip_input = true})
+    Mdn.footnote.update({identifier = "2", new_text = "new text", skip_input = true})
     ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -231,8 +230,8 @@ T['cleanup()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes.footnote').populate_buf_footnotes()
-    require('mdnotes.footnote').cleanup()
+    Mdn.footnote.populate_buf_footnotes()
+    Mdn.footnote.cleanup()
     ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
@@ -247,7 +246,7 @@ T['cleanup()'] = function()
 end
 
 T['get_fref_from_obj()'] = function()
-    local ret = child.lua([[ return require('mdnotes.footnote').get_fref_from_obj({identifier = "1"}) ]])
+    local ret = child.lua([[ return Mdn.footnote.get_fref_from_obj({identifier = "1"}) ]])
     eq(ret, "[^1]")
 end
 
@@ -261,7 +260,7 @@ T['parse_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.footnote').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.footnote.parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -282,7 +281,7 @@ T['parse_lines()'] = function()
             raw = "[^2]",
         }
     })
-    ret = child.lua([[return require('mdnotes.footnote').parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    ret = child.lua([[return Mdn.footnote.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {"[^1]", "[^2]", "", ""})
 end
 
@@ -298,8 +297,8 @@ T['find_references()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    require('mdnotes.footnote').populate_buf_footnotes()
-    return require('mdnotes.footnote').find_references({identifier = "1"})
+    Mdn.footnote.populate_buf_footnotes()
+    return Mdn.footnote.find_references({identifier = "1"})
     ]])
     eq(ret, {
         {
@@ -332,8 +331,8 @@ T['renumber()'] = function()
     create_md_buffer(child, lines)
 
     child.lua([[
-    require('mdnotes.footnote').populate_buf_footnotes()
-    require('mdnotes.footnote').renumber()
+    Mdn.footnote.populate_buf_footnotes()
+    Mdn.footnote.renumber()
     ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)

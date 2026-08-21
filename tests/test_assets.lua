@@ -15,7 +15,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup({assets_path = "assets"})]])
             -- child.o.grepprg = "internal"
         end,
@@ -27,8 +26,8 @@ local T = new_set({
 T['get_assets_folder_name()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
-    require('mdnotes').set_cwd()
-    return require('mdnotes.assets').get_assets_folder_name()
+    Mdn.set_cwd()
+    return Mdn.assets.get_assets_folder_name()
     ]])
     eq(ret, "assets")
 end
@@ -36,17 +35,17 @@ end
 T['check_assets_path()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
-    require('mdnotes').set_cwd()
-    return require('mdnotes.assets').check_assets_path()
+    Mdn.set_cwd()
+    return Mdn.assets.check_assets_path()
     ]])
     eq(ret, true)
 end
 
 T['get_asset_inline_link()'] = function()
-    local ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link({ process_file = false, file_path = "path/test" })]])
+    local ret = child.lua([[return Mdn.assets.get_asset_inline_link({ process_file = false, file_path = "path/test" })]])
     eq(ret.inline_link, "[test](assets/test)")
 
-    ret = child.lua([[return require('mdnotes.assets').get_asset_inline_link({ process_file = false, file_path = "path/test.png" })]])
+    ret = child.lua([[return Mdn.assets.get_asset_inline_link({ process_file = false, file_path = "path/test.png" })]])
     eq(ret.inline_link, "![test.png](assets/test.png)")
 end
 
@@ -57,13 +56,13 @@ T['insert()'] = function()
     local lines = { "" }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[return require('mdnotes.assets').insert({ process_file = false, file_path = "path/test" })]])
+    child.lua([[return Mdn.assets.insert({ process_file = false, file_path = "path/test" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1],  "[test](assets/test)")
 
     lines = { "test2" }
     buf = create_md_buffer(child, lines)
-    child.lua([[return require('mdnotes.assets').insert({ process_file = false, file_path = "path/test" })]])
+    child.lua([[return Mdn.assets.insert({ process_file = false, file_path = "path/test" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1],  "[test2](assets/test)")
 end
@@ -71,8 +70,8 @@ end
 T['get_used_assets()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
-    require('mdnotes').set_cwd()
-    return require('mdnotes.assets').get_used_assets({ silent = true})
+    Mdn.set_cwd()
+    return Mdn.assets.get_used_assets({ silent = true})
     ]])
     eq(ret, {"asset1.txt", "asset2 spaces.txt"})
 end
@@ -80,8 +79,8 @@ end
 T['get_unused_assets()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     local ret = child.lua([[
-    require('mdnotes').set_cwd()
-    return require('mdnotes.assets').get_unused_assets({silent = true})
+    Mdn.set_cwd()
+    return Mdn.assets.get_unused_assets({silent = true})
     ]])
     eq(ret, {"asset3.txt"})
 end
@@ -93,8 +92,8 @@ T['unused_delete()'] = function()
         "asset3.txt"
     )
     child.lua([[
-    require('mdnotes').set_cwd()
-    return require('mdnotes.assets').unused_delete({ skip_input = true })
+    Mdn.set_cwd()
+    return Mdn.assets.unused_delete({ skip_input = true })
     ]])
     eq(
         vim.fs.basename(vim.fs.find("asset3.txt", { path = './tests/test-data/files/assets' })[1]),
@@ -113,8 +112,8 @@ T['unused_move()'] = function()
         "asset3.txt"
     )
     child.lua([[
-    require('mdnotes').set_cwd()
-    return require('mdnotes.assets').unused_move({ skip_input = true })
+    Mdn.set_cwd()
+    return Mdn.assets.unused_move({ skip_input = true })
     ]])
     eq(
         vim.fs.basename(vim.fs.find("asset3.txt", { path = './tests/test-data/files/unused_assets' })[1]),
@@ -130,8 +129,8 @@ end
 T['download_website_html()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
     child.lua([[
-    require('mdnotes').set_cwd()
-    return require('mdnotes.assets').download_website_html({ destination = "https://neovim.io/" })
+    Mdn.set_cwd()
+    return Mdn.assets.download_website_html({ destination = "https://neovim.io/" })
     ]])
     eq(
         vim.fs.basename(vim.fs.find("https_neovim_io_.html", { path = './tests/test-data/files/assets' })[1]),
@@ -151,9 +150,9 @@ T['delete()'] = function()
     child.cmd([[write]])
 
     local ret = child.lua([[
-    require('mdnotes').set_cwd()
+    Mdn.set_cwd()
     return {
-        require('mdnotes.assets').delete({
+        Mdn.assets.delete({
         destination = "assets/asset4.txt",
         skip_input = true })
     }]])

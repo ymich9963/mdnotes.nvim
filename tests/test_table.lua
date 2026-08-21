@@ -15,7 +15,6 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[M = require('mdnotes')]])
             child.lua([[require('mdnotes').setup()]])
         end,
         -- This will be executed one after all tests from this set are finished
@@ -32,7 +31,7 @@ T['check_table_valid()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.table').check_table_valid()]])
+    local ret = child.lua([[return Mdn.table.check_table_valid()]])
     eq(ret.valid, true)
     eq(ret.startl, 1)
     eq(ret.endl, 4)
@@ -43,7 +42,7 @@ T['check_table_valid()'] = function()
     }
     create_md_buffer(child, lines)
 
-    ret = child.lua([[return require('mdnotes.table').check_table_valid()]])
+    ret = child.lua([[return Mdn.table.check_table_valid()]])
     eq(ret.valid, false)
     eq(ret.startl, nil)
     eq(ret.endl, nil)
@@ -63,7 +62,7 @@ T['write_table()'] = function()
         {"3r1c","3r2c","3r3c"},
     }
 
-    require('mdnotes.table').write_table({
+    Mdn.table.write_table({
         buf = 0,
         startl = 1,
         endl = #table_content,
@@ -85,7 +84,7 @@ T['create()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.table').create(3,3)]])
+    child.lua([[Mdn.table.create(3,3)]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|    |    |    |",
@@ -103,7 +102,7 @@ T['get_table_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.table').get_table_lines(1,4)]])
+    local ret = child.lua([[return Mdn.table.get_table_lines(1,4)]])
     eq(ret, {
         {"1r1c","1r2c","1r3c"},
         {"----","----","----"},
@@ -121,7 +120,7 @@ T['parse()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.table').parse()]])
+    local ret = child.lua([[return Mdn.table.parse()]])
     eq(ret.contents, {
         {"1r1c","1r2c","1r3c"},
         {"----","----","----"},
@@ -142,7 +141,7 @@ T['parse()'] = function()
     }
     create_md_buffer(child, lines)
 
-    ret = child.lua([[return require('mdnotes.table').parse()]])
+    ret = child.lua([[return Mdn.table.parse()]])
     eq(ret.contents, {
         {"1r1c","1r2c","1r3c"},
         {"----","----","----"},
@@ -164,7 +163,7 @@ T['get_column_locations()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.table').get_column_locations()]])
+    local ret = child.lua([[return Mdn.table.get_column_locations()]])
     eq(ret, {
         {1, 6, 11, 16},
         {1, 6, 11, 16},
@@ -267,9 +266,9 @@ T['convert_contents_to_complex()'] = function()
     }
 
     local ret = child.lua([[
-    local col_locs = require('mdnotes.table').get_column_locations()
-    local tdata = require('mdnotes.table').parse()
-    return require('mdnotes.table').convert_contents_to_complex(tdata.contents, col_locs)]])
+    local col_locs = Mdn.table.get_column_locations()
+    local tdata = Mdn.table.parse()
+    return Mdn.table.convert_contents_to_complex(tdata.contents, col_locs)]])
     eq(ret, expected_table_complex)
 end
 
@@ -282,7 +281,7 @@ T['get_cur_column_num()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return require('mdnotes.table').get_cur_column_num()]])
+    local ret = child.lua([[return Mdn.table.get_cur_column_num()]])
     eq(ret, 1)
 end
 
@@ -295,7 +294,7 @@ T['column_insert()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.table').column_insert_right()]])
+    child.lua([[Mdn.table.column_insert_right()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|    |1r2c|1r3c|",
@@ -304,7 +303,7 @@ T['column_insert()'] = function()
         "|3r1c|    |3r2c|3r3c|",
     })
 
-    child.lua([[require('mdnotes.table').column_insert_left()]])
+    child.lua([[Mdn.table.column_insert_left()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|    |1r1c|    |1r2c|1r3c|",
@@ -323,7 +322,7 @@ T['column_move()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.table').column_move_right()]])
+    child.lua([[Mdn.table.column_move_right()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r2c|1r1c|1r3c|",
@@ -333,7 +332,7 @@ T['column_move()'] = function()
     })
 
     child.fn.cursor(1, 10)
-    child.lua([[require('mdnotes.table').column_move_left()]])
+    child.lua([[Mdn.table.column_move_left()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -353,7 +352,7 @@ T['row_insert()'] = function()
     local buf = create_md_buffer(child, lines)
 
     child.fn.cursor(4, 1)
-    child.lua([[require('mdnotes.table').row_insert_below()]])
+    child.lua([[Mdn.table.row_insert_below()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -363,7 +362,7 @@ T['row_insert()'] = function()
         "|    |    |    |",
     })
 
-    child.lua([[require('mdnotes.table').row_insert_above()]])
+    child.lua([[Mdn.table.row_insert_above()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -384,7 +383,7 @@ T['best_fit()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.table').best_fit()]])
+    child.lua([[Mdn.table.best_fit()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -393,8 +392,8 @@ T['best_fit()'] = function()
         "|3r1c|3r2c|3r3c|",
     })
 
-    child.lua([[require('mdnotes').config.table_best_fit_padding = 1]])
-    child.lua([[require('mdnotes.table').best_fit()]])
+    child.lua([[Mdn.config.table_best_fit_padding = 1]])
+    child.lua([[Mdn.table.best_fit()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "| 1r1c | 1r2c | 1r3c |",
@@ -413,7 +412,7 @@ T['column_delete()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.table').column_delete()]])
+    child.lua([[Mdn.table.column_delete()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r2c|1r3c|",
@@ -432,7 +431,7 @@ T['column_alignment_toggle()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.table').column_alignment_toggle()]])
+    child.lua([[Mdn.table.column_alignment_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -441,7 +440,7 @@ T['column_alignment_toggle()'] = function()
         "|3r1c|3r2c|3r3c|",
     })
 
-    child.lua([[require('mdnotes.table').column_alignment_toggle()]])
+    child.lua([[Mdn.table.column_alignment_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -450,7 +449,7 @@ T['column_alignment_toggle()'] = function()
         "|3r1c|3r2c|3r3c|",
     })
 
-    child.lua([[require('mdnotes.table').column_alignment_toggle()]])
+    child.lua([[Mdn.table.column_alignment_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -459,7 +458,7 @@ T['column_alignment_toggle()'] = function()
         "|3r1c|3r2c|3r3c|",
     })
 
-    child.lua([[require('mdnotes.table').column_alignment_toggle()]])
+    child.lua([[Mdn.table.column_alignment_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
@@ -478,7 +477,7 @@ T['column_duplicate()'] = function()
     }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[require('mdnotes.table').column_duplicate()]])
+    child.lua([[Mdn.table.column_duplicate()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
         "|1r1c|1r1c|1r2c|1r3c|",
@@ -498,8 +497,8 @@ T['get_table_columns()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local tdata = require('mdnotes.table').parse()
-    return require('mdnotes.table').get_table_columns(tdata.contents)]])
+    local tdata = Mdn.table.parse()
+    return Mdn.table.get_table_columns(tdata.contents)]])
     eq(ret, {
         {"1r1c", "----", "2r1c", "3r1c"},
         {"1r2c", "----", "2r2c", "3r2c"},
@@ -520,9 +519,9 @@ T['column_sort()'] = function()
 
     -- Ascending
     child.lua([[
-    local tdata = require('mdnotes.table').parse()
-    tdata.contents = require('mdnotes.table').column_sort(tdata.contents, 1, function(a, b) return a < b end)
-    require('mdnotes.table').write_table(tdata)
+    local tdata = Mdn.table.parse()
+    tdata.contents = Mdn.table.column_sort(tdata.contents, 1, function(a, b) return a < b end)
+    Mdn.table.write_table(tdata)
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
@@ -536,9 +535,9 @@ T['column_sort()'] = function()
 
     -- Descending
     child.lua([[
-    local tdata = require('mdnotes.table').parse()
-    tdata.contents = require('mdnotes.table').column_sort(tdata.contents, 1, function(a, b) return a > b end)
-    require('mdnotes.table').write_table(tdata)
+    local tdata = Mdn.table.parse()
+    tdata.contents = Mdn.table.column_sort(tdata.contents, 1, function(a, b) return a > b end)
+    Mdn.table.write_table(tdata)
     ]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
@@ -561,9 +560,9 @@ T['parse_columns_to_lines()'] = function()
     create_md_buffer(child, lines)
 
     local ret = child.lua([[
-    local tdata = require('mdnotes.table').parse()
-    local table = require('mdnotes.table').get_table_columns(tdata.contents)
-    return require('mdnotes.table').parse_columns_to_lines(table)
+    local tdata = Mdn.table.parse()
+    local table = Mdn.table.get_table_columns(tdata.contents)
+    return Mdn.table.parse_columns_to_lines(table)
     ]])
     eq(ret, {
         {"1r1c","1r2c","1r3c"},
