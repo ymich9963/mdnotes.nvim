@@ -154,7 +154,7 @@ assets_path = `string|fun():string`			*mdnotes-assets_path*
     for nested or multiple notes directories,
 >lua
     local function dynamic_asset_folder()
-	local cwd = require('mdnotes').cwd
+	local cwd = Mdn.cwd
 	local folder = vim.fs.basename(cwd)
 
 	return "assets-" .. foler
@@ -766,7 +766,7 @@ open_cmd						*mdnotes.open_cmd*
     based on |mdnotes-open_behaviour|. Used like so,
 >lua
     local buffer = 2 -- Any buffer
-    local open_cmd = require('mdnotes').open_cmd
+    local open_cmd = Mdn.open_cmd
     vim.cmd(open_cmd .. buffer)
 <
 cwd							*mdnotes.cwd*
@@ -3227,28 +3227,11 @@ MdnWikiLinkData						*mdnotes.MdnWikiLinkData*
 ==============================================================================
 USING API                             			*mdnotes-using-api*
 
-To use Lua LSP functionality with the Mdnotes API, you need to place the
-directory in your LSP config. Example for that is below,
+Using the API is made easy by populating the global table |_G| with the `Mdn`
+module. For example, the |wikilink.follow()| function can be accessed like so,
 >lua
-    vim.lsp.config("lua_ls", {
-	settings = {
-	    Lua = {
-		runtime = {
-		    version = "LuaJIT",
-		},
-		workspace = {
-		    checkThirdParty = false,
-		    library = {
-			"path/to/mdnotes.nvim"
-			-- or
-			require('mdnotes').plugin_install_dir
-		    }
-		},
-	    },
-	},
-    })
+    Mdn.wikilink.follow()
 <
-
 							*mdnotes-api-examples*
 Some examples are listed below for using the API in different scenarios. If
 you want to use these as functions within the `Mdn` namespace then you would
@@ -3260,9 +3243,8 @@ buffer.
     local function emphasis_toggle_arg(arg)
 	vim.cmd.vimgrep({ args = {"/" .. arg .. "/", "%"}})
 	local qflist = vim.fn.getqflist()
-	local emphasis_toggle = require('mdnotes.formatting').emphasis_toggle
 	for _, v in pairs(qflist) do
-	    emphasis_toggle({ location = {
+	    Mdn.formatting.emphasis_toggle({ location = {
 		lnum = v.lnum,
 		col_start = v.col,
 		col_end = v.end_col,
@@ -3274,15 +3256,12 @@ buffer.
 Edit a cell in the table under the cursor with this example,
 >lua
     local function edit_cell(arg)
-	local parse = require('mdnotes.table').parse
-	local write_table = require('mdnotes.table').write_table
-
-	local tdata = parse()
+	local tdata = Mdn.table.parse()
 
 	-- Row 3, Column 1
 	tdata.contents[3][1] = arg
 
-	write_table(tdata)
+	Mdn.table.write_table(tdata)
     end
 <
 
@@ -3291,12 +3270,8 @@ table based on the file's worcount.
 >lua
     local function create_word_counts_tbl()
 	local scratch_buf = vim.api.nvim_create_buf(true, true)
-	local tdata = require('mdnotes.table').create(2 ,2 ,{ buffer = scratch_buf, lnum = 1, write = false })
-	local row_insert = require('mdnotes.table').row_insert
-	local write_table = require('mdnotes.table').write_table
-	local best_fit = require('mdnotes.table').best_fit
-	local column_sort = require('mdnotes.table').column_sort
-	local files = require('mdnotes').get_files_in_cwd({ extension = ".md" })
+	local tdata = Mdn.table.create(2 ,2 ,{ buffer = scratch_buf, lnum = 1, write = false })
+	local files = Mdn.get_files_in_cwd({ extension = ".md" })
 
 	tdata.contents[1][1] = "File name"
 	tdata.contents[1][2] = "Word count"
@@ -3315,7 +3290,7 @@ table based on the file's worcount.
 	    end)
 
 	    -- Insert data in the table
-	    row_insert(tdata.contents, {row_data = {name, tostring(wordcount)}})
+	    Mdn.table.row_insert(tdata.contents, {row_data = {name, tostring(wordcount)}})
 
 	    -- If the buffer is not in the window
 	    -- then delete from the buffer list
@@ -3325,13 +3300,13 @@ table based on the file's worcount.
 	end
 
 	-- Get the best fit for the table columns
-	best_fit({ tdata = tdata, write = false})
+	Mdn.table.best_fit({ tdata = tdata, write = false})
 
 	-- Sort the table by the numbers in the second column
-	tdata.contents = column_sort(tdata.contents, 2, function(a, b) return tonumber(a) > tonumber(b) end)
+	tdata.contents = Mdn.table.column_sort(tdata.contents, 2, function(a, b) return tonumber(a) > tonumber(b) end)
 
 	-- Write the table to the buffer in tdata
-	write_table(tdata)
+	Mdn.table.write_table(tdata)
 
 	vim.cmd.vsplit()
 	vim.cmd.buffer(scratch_buf)
@@ -3341,7 +3316,6 @@ table based on the file's worcount.
 Export a table to a file as comma separated values (CSV),
 >lua
     local function export_table_to_file()
-	local mdn_table = require('mdnotes.table')
 	local filename = "test.txt"
 	local f = io.open(filename, "w+")
 
@@ -3350,7 +3324,7 @@ Export a table to a file as comma separated values (CSV),
 	    return
 	end
 
-	local tdata = mdn_table.parse()
+	local tdata = Mdn.table.parse()
 	for i, row in ipairs(tdata.contents) do
 	    if i ~= 2 then
 		local line = table.concat(row, ",")
@@ -3366,8 +3340,6 @@ Export a table to a file as comma separated values (CSV),
 Import a CSV file as a Markdown table,
 >lua
     local function import_table_from_file()
-	local write_table = require('mdnotes.table').write_table
-	local best_fit = require('mdnotes.table').best_fit
 	local filename = "test.txt"
 	local f = io.open(filename, "r")
 
@@ -3395,8 +3367,8 @@ Import a CSV file as a Markdown table,
 	table.insert(table_contents, 2, delimiter_row)
 
 	local cur_line = vim.fn.line(".")
-	write_table({ contents = table_contents, startl = cur_line, endl = cur_line })
-	best_fit()
+	Mdn.table.write_table({ contents = table_contents, startl = cur_line, endl = cur_line })
+	Mdn.table.best_fit()
 
 	f.close(f)
     end
@@ -3408,33 +3380,31 @@ Remove the Markdown formatting in the selected lines (|linewise-visual|),
 	startl = startl or vim.fn.getpos("'<")[2]
 	endl = endl or vim.fn.getpos("'>")[2]
 
-	local mdnotes_patterns = require('mdnotes.patterns')
-
 	local multi_line_patterns = {
-	    mdnotes_patterns.heading,
-	    mdnotes_patterns.ordered_list,
-	    mdnotes_patterns.unordered_list,
+	    Mdn.patterns.heading,
+	    Mdn.patterns.ordered_list,
+	    Mdn.patterns.unordered_list,
 	}
 
 	local format_patterns = {
-	    mdnotes_patterns.strong,
-	    mdnotes_patterns.emphasis,
-	    mdnotes_patterns.strikethrough,
-	    mdnotes_patterns.inline_code,
-	    mdnotes_patterns.autolink,
+	    Mdn.patterns.strong,
+	    Mdn.patterns.emphasis,
+	    Mdn.patterns.strikethrough,
+	    Mdn.patterns.inline_code,
+	    Mdn.patterns.autolink,
 	}
 
 	-- Remove footnote references
-	local f_parsed = require("mdnotes.footnote").parse_lines({location = {startl = startl, endl = endl}})
-	if f_parsed ~= nil then
-	    table.sort(f_parsed, function(a, b) return a.col_start > b.col_start end)
-	    for _, v in ipairs(f_parsed) do
+	local fn_parsed = Mdn.footnote.parse_lines({location = {startl = startl, endl = endl}})
+	if fn_parsed ~= nil then
+	    table.sort(fn_parsed, function(a, b) return a.col_start > b.col_start end)
+	    for _, v in ipairs(fn_parsed) do
 		vim.api.nvim_buf_set_text(v.buf, v.lnum - 1, v.col_start - 1, v.lnum - 1, v.col_end - 1, {})
 	    end
 	end
 
 	-- Remove inline links
-	local il_parsed = require("mdnotes.inline_link").parse_lines({location = {startl = startl, endl = endl}})
+	local il_parsed = Mdn.inline_link.parse_lines({location = {startl = startl, endl = endl}})
 	if il_parsed ~= nil then
 	    table.sort(il_parsed, function(a, b) return a.col_start > b.col_start end)
 	    for _, v in ipairs(il_parsed) do
@@ -3443,7 +3413,7 @@ Remove the Markdown formatting in the selected lines (|linewise-visual|),
 	end
 
 	-- Remove reference links
-	local rl_parsed = require("mdnotes.reference_link").parse_lines({location = {startl = startl, endl = endl}})
+	local rl_parsed = Mdn.reference_link.parse_lines({location = {startl = startl, endl = endl}})
 	if rl_parsed ~= nil then
 	    table.sort(rl_parsed, function(a, b) return a.col_start > b.col_start end)
 	    for _, v in ipairs(rl_parsed) do
@@ -3452,7 +3422,7 @@ Remove the Markdown formatting in the selected lines (|linewise-visual|),
 	end
 
 	-- Remove WikiLinks
-	local wl_parsed = require("mdnotes.wikilink").parse_lines({location = {startl = startl, endl = endl}})
+	local wl_parsed = Mdn.wikilink.parse_lines({location = {startl = startl, endl = endl}})
 	if wl_parsed ~= nil then
 	    table.sort(wl_parsed, function(a, b) return a.col_start > b.col_start end)
 	    for _, v in ipairs(wl_parsed) do
@@ -3462,12 +3432,12 @@ Remove the Markdown formatting in the selected lines (|linewise-visual|),
 
 	-- Remove format patterns
 	for _, pattern in ipairs(format_patterns) do
-	    local scan_lines = require('mdnotes').scan_lines(pattern, {location = {startl = startl, endl = endl}})
+	    local scan_lines = Mdn.scan_lines(pattern, {location = {startl = startl, endl = endl}})
 	    if scan_lines ~= nil then
 		for _, v in ipairs(scan_lines) do
 		    local lnum = v.lnum
 		    for _, cols in ipairs(v.cols) do
-			require('mdnotes.formatting').delete_format(pattern, { location = {
+			Mdn.formatting.delete_format(pattern, { location = {
 			    col_start = cols[1],
 			    col_end = cols[2],
 			    lnum = lnum,
@@ -3487,15 +3457,15 @@ Remove the Markdown formatting in the selected lines (|linewise-visual|),
 	-- Rest of the patterns
 	for i, line in ipairs(lines) do
 	    for _, pattern in ipairs(multi_line_patterns) do
-		if pattern == mdnotes_patterns.heading then
+		if pattern == Mdn.patterns.heading then
 		    local _, heading_text = line:match(pattern)
 		    if heading_text then line = heading_text end
-		elseif pattern == mdnotes_patterns.ordered_list then
+		elseif pattern == Mdn.patterns.ordered_list then
 		    local _, _, _, ol_text = line:match(pattern)
-		    if ol_text then line = ol_text:gsub(mdnotes_patterns.task, "") end
-		elseif pattern == mdnotes_patterns.unordered_list then
+		    if ol_text then line = ol_text:gsub(Mdn.patterns.task, "") end
+		elseif pattern == Mdn.patterns.unordered_list then
 		    local _, _, ul_text = line:match(pattern)
-		    if ul_text then line = ul_text:gsub(mdnotes_patterns.task, "") end
+		    if ul_text then line = ul_text:gsub(Mdn.patterns.task, "") end
 		end
 		lines[i] = line
 	    end
