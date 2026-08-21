@@ -46,10 +46,8 @@ Can use either `opts` or `config` with the traditional `setup({}`) function,
     }
 <
 Explanation for the options is given in the next |mdnotes-config| section.
-See |mdnotes-keymaps| for keymap recommendations, |mdnotes-lsp| for notes on
-using LSPs with `mdnotes`, and |mdnotes-completion| for using file name
-completion.
-
+See |mdnotes-keymaps| for keymap recommendations, |mdnotes-optinal-settings|
+for some possible options you may want to set.
 ==============================================================================
 KEYMAPS            	             			*mdnotes-keymaps*
 
@@ -74,20 +72,24 @@ Note: It is highly recommended you have your keymaps in your
 `after/ftplugin/markdown.lua` file to keep them specific to Markdown files.
 
 ==============================================================================
-LSP            	             				*mdnotes-lsp*
+OPTIONAL SETTINGS 					*mdnotes-optional-settings*
 
-This plugin is designed to work with Markdown LSPs by trying to fill the gaps
-and to also complement their current functionality. Please see the table in
-the README for how `mdnotes` tries to work with LSPs and Neovim itself.
+Place these settings in your `<Neovim config path>/after/ftplugin/markdown.lua` file
+so that they are Markdown-specific. 
 
-Quick tip is if you don't want your Markdown LSP to show diagnostics you can
-disable LSP diagnostics per filetype by using this in your
-`after/ftplugin/markdown.lua` file.
+Enable wrapping only for the current Markdown buffer. 
 >lua
-    vim.diagnostic.enable(false, { bufnr = 0 })
-
-==============================================================================
-COMPLETION            	         			*mdnotes-completion*
+    vim.wo[vim.api.nvim_get_current_win()][0].wrap = true -- Enable wrap for current .md buffer
+<
+Disable LSP diagnostics in the current Markdown buffer. 
+>lua
+    vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
+<
+Enable spell checking.
+>lua
+    vim.opt.spell = true -- Enable spell checking for current .md buffer, see :h spell
+<
+							*mdnotes-path-completion*
 
 Built-in file path completion with Neovim can be used with `mdnotes` which
 also means that you don't need an LSP for this either. Execute the completion

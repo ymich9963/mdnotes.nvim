@@ -121,6 +121,9 @@ For the best Neovim Markdown note-taking experience, I've listed some other proj
     - [markdown-oxide](https://github.com/Feel-ix-343/markdown-oxide)
     - [marksman](https://github.com/artempyanykh/marksman)
     - [iwe-org/iwe](https://github.com/iwe-org/iwe) with [iwe-org/iwe.nvim](https://github.com/iwe-org/iwe.nvim) (See their comparison [here](https://iwe.md/docs/concepts/comparison/#detailed-comparisons))
+- Spell checking (`:h spell`),
+    - [academic.nvim](https://github.com/ficd0/academic.nvim) - academic english dictionary
+    - [vim-dirtytalk](https://github.com/psliwka/vim-dirtytalk) - programmers dictionary
 
 Check out some [Other Cool Markdown-related Plugins](#-other-cool-markdownrelated-plugins) that you may want to use alongside (or instead of) `mdnotes`.
 
@@ -151,6 +154,10 @@ vim.wo[vim.api.nvim_get_current_win()][0].wrap = true -- Enable wrap for current
 Disable LSP diagnostics in the current Markdown buffer.
 ```lua
 vim.diagnostic.enable(false, { bufnr = 0 }) -- Disable diagnostics for current .md buffer
+```
+Enable spell checking.
+```lua
+vim.opt.spell = true -- Enable spell checking for current .md buffer, see :h spell
 ```
 This is for the glorious Neovim Windows users. Setting this keymap will allow you to use the built in `<C-x> <C-f>` file completion for WikiLinks or just for using file paths in Markdown buffers.
 ```lua
