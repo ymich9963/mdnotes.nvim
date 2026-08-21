@@ -615,6 +615,12 @@ to write the buffers if any command changes buffer contents.
 
    Go to the next Markdown heading. Wraps around.
 
+:Mdn heading go_to {heading}				*Mdn-header-go_to*
+
+   Go to the specified Markdown {heading}. Invoking |'wildchar'
+   (`<Tab>` by default) autocompletes the {headingl}. If no {heading}
+   is provided it opens a picker. 
+
 :Mdn reference_link open 				*Mdn-reference_link-open*
 
     Opens the reference link under the cursor with |vim.ui.open()|.
@@ -1733,27 +1739,38 @@ heading.get_heading({opts}) 				*mdnotes.heading.get_heading()*
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-              • {bufnum} (`integer?`, defaults to current buffer)
+              • {buf} (`integer?`, defaults to current buffer)
 		check for list only of the same indent level
               • {lnum} (`integer?,` defaults to current line)
+	        lline number
+              • {silent} (`boolean?`, default `false`)
+		silence notifications
 
     Return: ~
-    • (`MdnFragment`)
+    • (`MdnFragment?`)
 
-heading.move_to({increment}) 				*mdnotes.heading.move_to()*
+heading.go_to({heading}, {opts}) 			*mdnotes.heading.go_to()*
 
-    Increment an amount of headings to move to from the current heading
+    Go to the specified {heading}. Set {heading} to `""` to just iterate and
+    not go to any heading. 
 
     Parameters: ~
-    • {increment}  (`number`) Amount to increment.
+    • {heading}  (`string?`) Heading to go to
+    • {opts}  (`table?`) Optional parameters:
+              • {buf} (`integer?`, defaults to current buffer)
+		check for list only of the same indent level
+              • {increment} (`integer?,` default `0`)
+	        number to move headings by, can negative or positive
+              • {picker} (`boolean?`, default `false`)
+		show picker to select
 
-heading.goto_next()					*mdnotes.heading.goto_next()*
+heading.next()						*mdnotes.heading.goto_next()*
 
-    Use |mdnotes.heading.move_to()| with an increment of 1.
+    Use |mdnotes.heading.go_to()| with an increment of 1.
 
-heading.goto_previous()					*mdnotes.heading.goto_previous()*
+heading.previous()					*mdnotes.heading.goto_previous()*
 
-    Use |mdnotes.heading.move_to()| with an increment of -1.
+    Use |mdnotes.heading.go_to()| with an increment of -1.
 
 history.buf_history					*mdnotes.history.buf_history*
 

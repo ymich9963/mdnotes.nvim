@@ -364,7 +364,7 @@ T['get_buf_fragments()'] = function()
 
     local ret = child.lua([[
     local cur_buf = vim.api.nvim_get_current_buf()
-    return require('mdnotes').get_buf_fragments(cur_buf)
+    return require('mdnotes').get_buf_fragments({ buf = cur_buf })
     ]])
     eq(ret, {
         {

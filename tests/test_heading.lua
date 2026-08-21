@@ -45,7 +45,7 @@ T['get_heading()'] = function()
     eq(ret, {hash = "##", text = "Heading 2", gfm = "heading-2", lnum = 4})
 end
 
-T['move_to()'] = function()
+T['go_to()'] = function()
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -58,17 +58,17 @@ T['move_to()'] = function()
 
     child.lua([[
     require('mdnotes').populate_buf_fragments()
-    require('mdnotes.heading').move_to(1)
+    require('mdnotes.heading').go_to("", {increment = 1})
     ]])
     eq(child.fn.getcurpos()[2], 4)
 
-    child.lua([[ return require('mdnotes.heading').move_to(1) ]])
+    child.lua([[ return require('mdnotes.heading').go_to("", {increment = 1}) ]])
     eq(child.fn.getcurpos()[2], 1)
 
-    child.lua([[ return require('mdnotes.heading').move_to(-1) ]])
+    child.lua([[ return require('mdnotes.heading').go_to("", {increment = -1}) ]])
     eq(child.fn.getcurpos()[2], 4)
 
-    child.lua([[ return require('mdnotes.heading').move_to(-1) ]])
+    child.lua([[ return require('mdnotes.heading').go_to("", {increment = -1}) ]])
     eq(child.fn.getcurpos()[2], 1)
 end
 

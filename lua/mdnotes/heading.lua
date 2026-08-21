@@ -15,16 +15,9 @@ function M.get_heading(opts)
     local silent = opts.silent or false
 
     local index = 0
-    local buf_fragments = require('mdnotes').buf_fragments
+    local get_buf_fragments = require('mdnotes').get_buf_fragments
 
-    local fragments
-    for _, v in ipairs(buf_fragments) do
-        if v.buf == buf then
-            fragments = v.fragments
-            break
-        end
-    end
-
+    local fragments = get_buf_fragments({buf = buf})
     if fragments == nil then
         if silent == false then
             vim.notify("Mdn: Buffer not parsed", vim.log.levels.ERROR)
@@ -63,43 +56,87 @@ local function resolve_index(index, total)
     return index
 end
 
----Increment an amount of headings to move to from the current heading
----@param increment number Amount to increment
-function M.move_to(increment)
-    vim.validate("increment", increment, "number")
+---Go to the specified heading
+---@param heading string? Heading to go to
+---@param opts {buf: integer?, increment: integer?, picker: boolean?}?
+function M.go_to(heading, opts)
+    vim.validate("heading", heading, "string", true)
+    vim.validate("opts", opts, "table", true)
 
-    local buf_fragments = require('mdnotes').buf_fragments
-    local cur_buf = vim.api.nvim_get_current_buf()
-    local fragment = M.get_heading()
-    if not fragment then return end
+    opts = opts or {}
 
-    local fragments
-    for _, v in ipairs(buf_fragments) do
-        if v.buf == cur_buf then
-            fragments = v.fragments
-            break
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
+    local increment = opts.increment or 0
+    local picker = opts.picker or false
+
+    if heading == nil and picker == true then
+        heading = M.picker(function(sel_obj) M.go_to(sel_obj) end, buf)
+    end
+
+    local fragments = require('mdnotes').get_buf_fragments({ buf = buf})
+
+    -- Set to "" to not go anywhere
+    if heading ~= "" then
+        -- Go to heading
+        for _, v in ipairs(fragments) do
+            if v.text == heading then
+                vim.fn.cursor(v.lnum, 1)
+                break
+            end
         end
     end
 
-    for i, v in ipairs(fragments) do
-        if v.text == fragment.text then
-            local new_index = resolve_index(i + increment, #fragments)
-            local search = vim.fn.search(fragments[new_index].text)
-            vim.fn.cursor(search, 1)
-            vim.api.nvim_input('zz')
-            return
+    local current_fragment = M.get_heading()
+    if not current_fragment then return end
+
+    if increment ~= 0 then
+        -- Increment
+        local heading_index = 0
+        for i, v in ipairs(fragments) do
+            if v.text == current_fragment.text then
+                heading_index = i
+                break
+            end
         end
+
+        local new_index = resolve_index(heading_index + increment, #fragments)
+        vim.fn.cursor(fragments[new_index].lnum, 1)
+        vim.api.nvim_input('zz')
     end
 end
 
 ---Go to next Markdown heading
-function M.goto_next()
-    M.move_to(1)
+function M.next()
+    M.go_to("", {increment = 1})
 end
 
 ---Go to previous Markdown heading
-function M.goto_previous()
-    M.move_to(-1)
+function M.previous()
+    M.go_to("", {increment = -1})
+end
+
+---Open a picker to select a heading
+---@param on_end fun(sel_obj): any Callback function for when the coroutine finishes
+---@param buf integer Buffer number
+function M.picker(on_end, buf)
+    vim.validate("on_end", on_end, "function")
+    vim.validate("buf", buf, "number")
+    if buf == 0 then buf = vim.api.nvim_get_current_buf() end
+
+    local fragments = require('mdnotes').get_buf_fragments({ buf = buf, only_text = true})
+    if fragments == nil then
+        vim.notify("Mdn: No headings in current file", vim.log.levels.ERROR)
+        return
+    end
+
+    local ui_opts = {
+        prompt = "Select a heading:",
+        format_item = function(item)
+            return item
+        end,
+    }
+
+    return require('mdnotes').mdn_picker(fragments, on_end, ui_opts)
 end
 
 return M

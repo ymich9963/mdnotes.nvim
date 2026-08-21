@@ -189,8 +189,9 @@ local get_commands = function() return {
         browse = require("mdnotes.toc").browse
     },
     heading = {
-        next = require("mdnotes.heading").goto_next,
-        previous = require("mdnotes.heading").goto_previous,
+        next = require("mdnotes.heading").next,
+        previous = require("mdnotes.heading").previous,
+        go_to = require("mdnotes.heading").go_to,
     },
     reference_link = {
         open = require("mdnotes.reference_link").open,
@@ -280,6 +281,8 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
     elseif func == commands.footnote.insert
         or func == commands.footnote.go_to then
         func({ identifier = concat_arg(args), picker = true })
+    elseif func == commands.heading.go_to then
+        func(concat_arg(args), {picker = true})
     elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
         vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
     elseif command == commands.user then
@@ -362,6 +365,15 @@ end,
                     return vim.tbl_filter(function(k)
                         return k:find("^" .. arg)
                     end, require('mdnotes.footnote').get_buf_footnotes({only_identifiers = true}) or {}
+                    )
+                end
+            end
+
+            if command == "heading" then
+                if subcmd == "go_to" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes').get_buf_fragments({only_text = true}) or {}
                     )
                 end
             end

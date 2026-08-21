@@ -633,7 +633,7 @@ function M.populate_buf_fragments(buf)
     vim.validate("buf", buf, "number", true)
     buf = buf or vim.api.nvim_get_current_buf()
 
-    local fragments_tbl = M.get_buf_fragments(buf)
+    local fragments_tbl = M.get_buf_fragments({buf = buf})
 
     local exists = false
     for _,v in ipairs(M.buf_fragments) do
@@ -653,11 +653,14 @@ function M.populate_buf_fragments(buf)
 end
 
 ---Get fragments from the Markdown buffer headings
----@param buf integer?
----@return table<MdnFragment>
-function M.get_buf_fragments(buf)
-    vim.validate("buf", buf, "number", true)
-    buf = buf or vim.api.nvim_get_current_buf()
+---@param opts {buf: integer?, only_text: boolean?}?
+---@return table<MdnFragment|string>
+function M.get_buf_fragments(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
+    local only_text = opts.only_text or false
 
     local fragments = {}
     local buf_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
@@ -666,7 +669,11 @@ function M.get_buf_fragments(buf)
     for lnum, line in ipairs(buf_lines) do
         local hash, text = line:match(heading_format_pattern)
         if text and hash then
-            table.insert(fragments, {hash = hash, text = text, gfm = M.convert_text_to_gfm(text), lnum = lnum})
+            if only_text == false then
+                table.insert(fragments, {hash = hash, text = text, gfm = M.convert_text_to_gfm(text), lnum = lnum})
+            else
+                table.insert(fragments, text)
+            end
         end
     end
 
@@ -824,7 +831,7 @@ function M.statistics(opts)
         end
     end
 
-    headings = #M.get_buf_fragments(buf)
+    headings = #M.get_buf_fragments({ buf = buf })
 
     -- NOTE: Tried to print "formatted words" but because URLs might contain
     -- `_word_` then `word` is matched in scan_lines
