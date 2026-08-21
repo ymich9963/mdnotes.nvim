@@ -208,19 +208,19 @@ end
 
 local function set_g()
     _G.Mdn = M
-    _G.Mdn.assets = require('mdnotes.assets').assets
-    _G.Mdn.footnote = require('mdnotes.footnote').footnote
-    _G.Mdn.formatting = require('mdnotes.formatting').formatting
-    _G.Mdn.heading = require('mdnotes.heading').heading
-    _G.Mdn.history = require('mdnotes.history').history
-    _G.Mdn.inline_link = require('mdnotes.inline_link').inline_link
-    _G.Mdn.journal = require('mdnotes.journal').journal
-    _G.Mdn.outliner = require('mdnotes.outliner').outliner
+    _G.Mdn.assets = require('mdnotes.assets')
+    _G.Mdn.footnote = require('mdnotes.footnote')
+    _G.Mdn.formatting = require('mdnotes.formatting')
+    _G.Mdn.heading = require('mdnotes.heading')
+    _G.Mdn.history = require('mdnotes.history')
+    _G.Mdn.inline_link = require('mdnotes.inline_link')
+    _G.Mdn.journal = require('mdnotes.journal')
+    _G.Mdn.outliner = require('mdnotes.outliner')
     _G.Mdn.patterns = require('mdnotes.patterns')
-    _G.Mdn.reference_link = require('mdnotes.reference_link').reference_link
-    _G.Mdn.table = require('mdnotes.table').table
-    _G.Mdn.toc = require('mdnotes.toc').toc
-    _G.Mdn.wikilink = require('mdnotes.wikilink').wikilink
+    _G.Mdn.reference_link = require('mdnotes.reference_link')
+    _G.Mdn.table = require('mdnotes.table')
+    _G.Mdn.toc = require('mdnotes.toc')
+    _G.Mdn.wikilink = require('mdnotes.wikilink')
 end
 
 ---Setup function
