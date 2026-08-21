@@ -190,7 +190,7 @@ local function resolve_autocmd_config()
         vim.api.nvim_del_augroup_by_name('mdn.pop_rl')
     end
     if M.config.autocmds.populate_buf_footnotes == false then
-        vim.api.nvim_del_augroup_by_name('mdn.pop_f')
+        vim.api.nvim_del_augroup_by_name('mdn.pop_fn')
     end
 end
 

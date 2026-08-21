@@ -13,7 +13,7 @@ local mdnotes_best_fit_group = vim.api.nvim_create_augroup('mdn.best_fit', { cle
 local mdnotes_outliner_group = vim.api.nvim_create_augroup('mdn.outliner', { clear = true })
 local mdnotes_journal_group = vim.api.nvim_create_augroup('mdn.journal', { clear = true })
 local mdnotes_pop_rl_group = vim.api.nvim_create_augroup('mdn.pop_rl', { clear = true })
-local mdnotes_pop_f_group = vim.api.nvim_create_augroup('mdn.pop_f', { clear = true })
+local mdnotes_pop_fn_group = vim.api.nvim_create_augroup('mdn.pop_fn', { clear = true })
 
 -- To save the current working directory
 vim.api.nvim_create_autocmd("BufEnter", {
@@ -101,7 +101,7 @@ vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
 -- Parse footnotes in current buffer
 vim.api.nvim_create_autocmd({"BufEnter", "BufWritePost"}, {
     pattern = "*.md",
-    group = mdnotes_pop_f_group,
+    group = mdnotes_pop_fn_group,
     callback = function(args)
         require('mdnotes.footnote').populate_buf_footnotes(args.buf)
     end,
