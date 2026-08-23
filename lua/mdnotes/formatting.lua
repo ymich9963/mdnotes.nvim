@@ -17,12 +17,13 @@ local M = {}
 ---@field move_cursor boolean?
 ---@field split_delimiter boolean? Split formatting delimiter
 
----@class MdnListContent
+---@class MdnListItemData
 ---@field indent string Indent of list item
 ---@field marker string List item marker
 ---@field separator string List item separator, only in ordered lists
 ---@field text string List item text
 ---@field type '"ordered"'|'"unordered"'
+---@field is_task boolean Is the list element a task
 
 local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
 
@@ -174,8 +175,8 @@ end
 
 ---Get a consistent table containing all data on a list item whether it is ordered or unordered
 ---@param line string Line containing list item
----@return MdnListContent?
-function M.resolve_list_content(line)
+---@return MdnListItemData?
+function M.parse_list_item(line)
     vim.validate("line", line, "string")
 
     local mdnotes_patterns = require('mdnotes.patterns')
@@ -199,12 +200,18 @@ function M.resolve_list_content(line)
         return nil
     end
 
+    local is_task = false
+    if text:match(mdnotes_patterns.task) then
+        is_task = true
+    end
+
     return {
         indent = indent,
         marker = marker,
         separator = separator,
         text = text,
-        type = type
+        type = type,
+        is_task = is_task
     }
 end
 
@@ -233,7 +240,7 @@ function M.task_list_toggle(opts)
 
     local cur_col = vim.fn.col('.')
     for i, line in ipairs(lines) do
-        local lcontent = M.resolve_list_content(line) or {}
+        local lcontent = M.parse_list_item(line) or {}
         local marker, separator, text = lcontent.marker, lcontent.separator, lcontent.text
 
         if marker then
@@ -293,7 +300,7 @@ function M.check_list_valid(opts)
 
     -- Get the origin line's list content
     local origin_line = vim.api.nvim_buf_get_lines(buf, origin_lnum - 1, origin_lnum, false)[1]
-    local lcontent = M.resolve_list_content(origin_line)
+    local lcontent = M.parse_list_item(origin_line)
     if lcontent == nil or lcontent.marker == nil or lcontent.separator == nil then
         return { valid = false }
     end
@@ -309,7 +316,7 @@ function M.check_list_valid(opts)
         list_endl = origin_lnum
         for i = origin_lnum, upper_limit_lnum do
             local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
-            lcontent = M.resolve_list_content(cur_line)
+            lcontent = M.parse_list_item(cur_line)
             if lcontent == nil then break end
             if lcontent.indent == detected_indent and i > origin_lnum then break end
             if lcontent.indent >= detected_indent then
@@ -329,7 +336,7 @@ function M.check_list_valid(opts)
     for i = origin_lnum, lower_limit_lnum, -1 do
         local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         if cur_line == "" then break end
-        lcontent = M.resolve_list_content(cur_line)
+        lcontent = M.parse_list_item(cur_line)
         if lcontent == nil then break end
         if same_marker == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
             break
@@ -344,7 +351,7 @@ function M.check_list_valid(opts)
     for i = origin_lnum, upper_limit_lnum do
         local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         if cur_line == "" then break end
-        lcontent = M.resolve_list_content(cur_line)
+        lcontent = M.parse_list_item(cur_line)
         if lcontent == nil then break end
         if same_marker == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
             break
@@ -393,7 +400,7 @@ function M.ordered_list_renumber(opts)
     end
 
     local line = vim.api.nvim_buf_get_lines(buf, origin_lnum - 1, origin_lnum, false)[1]
-    local lcontent = M.resolve_list_content(line)
+    local lcontent = M.parse_list_item(line)
     if lcontent == nil then
         if silent == false then
             vim.notify("Mdn: Unable to detect a valid list", vim.log.levels.ERROR)
@@ -414,7 +421,7 @@ function M.ordered_list_renumber(opts)
     local new_list_lines = {}
     local cur_number = 1
     for _, v in ipairs(list_lines) do
-        lcontent = M.resolve_list_content(v)
+        lcontent = M.parse_list_item(v)
         if lcontent == nil then break end
         if lcontent.type == "ordered" then
             if tonumber(lcontent.marker) ~= cur_number then

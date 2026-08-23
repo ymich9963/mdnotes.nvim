@@ -174,18 +174,20 @@ T['unordered_list'] = function()
         local lines = {ul_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
-        child.lua([[Mdn.new_line_remap('o', false)]])
+        child.lua([[Mdn.new_line_remap('o')]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {ul_indicator .. " item", ul_indicator .. " "})
 
-        child.lua([[Mdn.new_line_remap('<CR>', true)]])
+        local key = child.lua([[return Mdn.new_line_remap('<CR>')]])
+        child.api.nvim_input(key)
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-        eq(lines, {ul_indicator .. " item", ul_indicator .. " "})
+        eq(lines, {ul_indicator .. " item", ""})
+        child.api.nvim_input("<ESC>")
 
-        child.api.nvim_input("<ESC>kk")
-        child.lua([[Mdn.new_line_remap('O', false)]])
+        child.api.nvim_input("kk")
+        child.lua([[Mdn.new_line_remap('O')]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-        eq(lines, {ul_indicator .. " ", ul_indicator .. " item", ul_indicator .. " "})
+        eq(lines, {ul_indicator .. " ", ul_indicator .. " item", ""})
 
         child.api.nvim_input("<ESC>")
     end
@@ -203,20 +205,22 @@ T['ordered_list'] = function()
             "2" .. ol_indicator .. " "
         })
 
-        child.lua([[Mdn.new_line_remap('<CR>', true)]])
+        local key = child.lua([[return Mdn.new_line_remap('<CR>')]])
+        child.api.nvim_input(key)
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " item",
-            "2" .. ol_indicator .. " ",
+            "",
         })
+        child.api.nvim_input("<ESC>")
 
-        child.api.nvim_input("<ESC>kk")
+        child.api.nvim_input("kk")
         child.lua([[Mdn.new_line_remap('O', false)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "0" .. ol_indicator .. " ",
             "1" .. ol_indicator .. " item",
-            "2" .. ol_indicator .. " ",
+            "",
         })
 
         child.api.nvim_input("<ESC>")

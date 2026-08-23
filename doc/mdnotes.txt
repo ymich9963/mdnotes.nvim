@@ -936,18 +936,17 @@ get_text_in_pattern({pattern}, {opts}) 			*mdnotes.get_text_in_pattern*
     Return: ~
     • (`MdnText`): See |mdnotes.MdnText|.
 
-new_line_remap({key}, {expr}) 				*mdnotes.new_line_remap()*
+new_line_remap({key}) 					*mdnotes.new_line_remap()*
 
     Kind of forgot how this works but it is used in the remaps for
     |mdnotes-auto_list_continuation|.
 
     Parameters: ~
-    • {key}  (`string`) Pattern of type |mdnotes.MdnPattern|.
-    • {expr}  (`boolean`) If `opts.expr` is set for |vim.keymap.set()|.
+    • {key}  (`string`) Only accepts `o`, `O`, and `<CR>` as inputs. Always
+    treats `<CR>` as an expression.
 
     Return: ~
-    • (`string?`): Return string if {expr} is true, if not then just set
-      the lines appropriately.
+    • (`string?`)
 
 go_to_index_file() 			   		*mdnotes.go_to_index_file()*
 
@@ -1487,7 +1486,7 @@ formatting.autolink_toggle({opts})			*mdnotes.formatting.autolink_toggle()*
               • {split_delimiter} (`boolean?`, default `false`)
 		split format delimiter string in half
 
-formatting.resolve_list_content({line})			*mdnotes.formatting.resolve_list_content()*
+formatting.parse_list_item({line})			*mdnotes.formatting.parse_list_item()*
 
     Get a consistent table containing all data on a list item whether it is
     ordered or unordered.
@@ -1496,7 +1495,7 @@ formatting.resolve_list_content({line})			*mdnotes.formatting.resolve_list_conte
     • {line}  (`string?`) Line text
 
     Return: ~
-    • (`MdnListContent?`)
+    • (`MdnListItemData?`)
 
 footnote.buf_footnotes			 		*mdnotes.footnote.buf_footnotes*
 
@@ -3096,7 +3095,7 @@ MdnFormattingOpts 					*mdnotes.MdnFormattingOpts*
     • {move_cursor} (`boolean?`) Move cursor to the specified location
     • {split_delimiter} (`boolean`?) Split formatting delimiter
 
-MdnListContent						 *mdnotes.MdnListContent*
+MdnListItemData						 *mdnotes.MdnListItemData*
 
     List item contents that have been deemed important by me.
 
@@ -3106,6 +3105,7 @@ MdnListContent						 *mdnotes.MdnListContent*
     • {separator} (`string`) List item separator, only in ordered lists
     • {text} (`string`) List item text
     • {type} (`'"ordered"'|'"unordered"'`)
+    • {is_task} (`boolean`) If the list element is a task
 
 MdnInlineLinkData 					*mdnotes.MdnInlineLinkData*
 

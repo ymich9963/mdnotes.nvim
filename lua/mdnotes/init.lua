@@ -465,67 +465,72 @@ end
 local function get_indent_indicator(inc_val)
     local mdnotes_patterns = require('mdnotes.patterns')
     local line = vim.api.nvim_get_current_line()
-    local lcontent = require('mdnotes.formatting').resolve_list_content(line)
-    if lcontent == nil then return "", "\n" end
+    local ldata = require('mdnotes.formatting').parse_list_item(line)
+    if ldata == nil then return "", "\n" end
 
-    local check_text = lcontent.text:gsub(mdnotes_patterns.task, ""):gsub("[%s]", "")
-
-    if check_text and check_text ~= "" then
-        if lcontent.type == "unordered" then
-            if lcontent.text:match(mdnotes_patterns.task) then
-                return lcontent.indent, "\n" .. lcontent.marker .. " " .. "[ ] "
-            else
-                return lcontent.indent, "\n" .. lcontent.marker .. " "
-            end
-        end
-
-        if lcontent.type == "ordered" then
-            if lcontent.text:match(mdnotes_patterns.task) then
-                return lcontent.indent, "\n" .. tostring(tonumber(lcontent.marker + inc_val)) .. lcontent.separator .. " " .. "[ ] "
-            else
-                return lcontent.indent, "\n" .. tostring(tonumber(lcontent.marker + inc_val)) .. lcontent.separator .. " "
-            end
-        end
+    local check_text = ldata.text
+    if check_text:match(mdnotes_patterns.task) then
+        -- Remove task list marker and any spaces
+        check_text = ldata.text:gsub(mdnotes_patterns.task, ""):gsub("%s", "")
     end
 
-    return lcontent.indent, "\n"
+    if check_text ~= "" then
+        if ldata.type == "unordered" then
+            if ldata.is_task == true then
+                return ldata.indent, "\n" .. ldata.marker .. " " .. "[ ] "
+            else
+                return ldata.indent, "\n" .. ldata.marker .. " "
+            end
+        end
+
+        if ldata.type == "ordered" then
+            if ldata.is_task == true then
+                return ldata.indent, "\n" .. tostring(tonumber(ldata.marker + inc_val)) .. ldata.separator .. " " .. "[ ] "
+            else
+                return ldata.indent, "\n" .. tostring(tonumber(ldata.marker + inc_val)) .. ldata.separator .. " "
+            end
+        end
+    elseif check_text == "" then
+        return ldata.indent, ""
+    end
+
+    return ldata.indent, "\n"
 end
 
 ---New line remaps
 ---@param key '"o"'|'"O"'|'"<CR>"'
----@param expr boolean If remap is used when opts.expr is true
 ---@return string?
-function M.new_line_remap(key, expr)
+function M.new_line_remap(key)
     vim.validate("key", key, "string")
-    vim.validate("expr_set", expr, "boolean")
 
     local lnum = vim.fn.line('.')
-    local indent, list_remap = "", ""
+    local indent, list_delimiter = "", ""
 
     if key == "o" or key == "<CR>" then
-        indent, list_remap = get_indent_indicator(1)
+        indent, list_delimiter = get_indent_indicator(1)
+        if key == "<CR>" then
+            if list_delimiter == "" then
+                vim.api.nvim_input("<ESC>S")
+                return ""
+            else
+                return list_delimiter
+            end
+        end
     elseif key == "O" then
-        indent, list_remap = get_indent_indicator(-1)
+        indent, list_delimiter = get_indent_indicator(-1)
     else
         return nil
     end
 
-    if expr == true then
-        return list_remap
-    end
+    list_delimiter = list_delimiter:gsub("[\n]","")
+    indent = indent or ""
 
-    list_remap = list_remap:gsub("[\n]","")
-
-    if indent == nil then
-        indent = ""
-    end
-
-    if key == "o" or key == "<CR>" then
-        vim.api.nvim_buf_set_lines(0, lnum, lnum, false, { indent .. list_remap })
-        vim.fn.cursor({ lnum + 1, #indent + #list_remap + 1 })
+    if key == "o" then
+        vim.api.nvim_buf_set_lines(0, lnum, lnum, false, { indent .. list_delimiter })
+        vim.fn.cursor({ lnum + 1, #indent + #list_delimiter + 1 })
     elseif key == "O" then
-        vim.api.nvim_buf_set_lines(0, lnum - 1, lnum - 1, false, { indent .. list_remap })
-        vim.fn.cursor({ lnum, #indent + #list_remap + 1 })
+        vim.api.nvim_buf_set_lines(0, lnum - 1, lnum - 1, false, { indent .. list_delimiter })
+        vim.fn.cursor({ lnum, #indent + #list_delimiter + 1 })
     end
 
     vim.api.nvim_input('a')

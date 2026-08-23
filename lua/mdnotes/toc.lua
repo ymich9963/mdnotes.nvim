@@ -92,7 +92,7 @@ function M.check_toc_valid(opts)
 
     local toc_startl = 0
     local toc_endl = 0
-    local resolve_list_content = require('mdnotes.formatting').resolve_list_content
+    local resolve_list_content = require('mdnotes.formatting').parse_list_item
     local il_parse = require('mdnotes.inline_link').parse
 
     for i = origin_lnum, lower_limit_lnum, -1 do
@@ -165,7 +165,7 @@ function M.parse(opts)
     end
 
     local depth = 1
-    local resolve_list_content = require('mdnotes.formatting').resolve_list_content
+    local resolve_list_content = require('mdnotes.formatting').parse_list_item
     for _, line in ipairs(toc_lines) do
         local indent_count = select(2, resolve_list_content(line).indent:gsub(" ", ""))
         if indent_count ~= 0 then
