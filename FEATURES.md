@@ -22,8 +22,8 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Find orphan pages (pages with no references) in current directory with `:Mdn wikilink find_orphans`. 
 
 ## 👩‍💼 Asset Management
-- Insert an image or file from clipboard using `:Mdn assets insert` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
-- Specify an asset in your assets directory with `:Mdn assets insert {asset}` to insert it. Supports autocompletion.
+- Insert an image or file from clipboard using `:Mdn assets insert_from_clipboard` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.
+- Specify an asset in your assets directory with `:Mdn assets insert {asset}` to insert it. Supports autocompletion and a picker.
 - Use `:Mdn assets unused_delete` to easily cleanup assets that you no longer use.
 - Use `:Mdn assets unused_move` to move unused assets to a separate folder.
 - Open your assets folder using `:Mdn assets open_containing_folder`. 

@@ -196,6 +196,8 @@ T['get_il_from_obj()'] = function()
     eq(ret, "[1](2)")
     ret = child.lua([[return Mdn.inline_link.get_il_from_obj({img_char = "", text = 1, destination = 2, title = 3})]])
     eq(ret, "[1](2 \"3\")")
+    ret = child.lua([[return Mdn.inline_link.get_il_from_obj({img_char = "", text = 1, destination = "spaces test", title = 3})]])
+    eq(ret, "[1](<spaces test> \"3\")")
 end
 
 T['open()'] = function()
@@ -304,10 +306,8 @@ T['relink()/rename()'] = function()
     eq(lines[1], "[test2](link2)")
 end
 
--- INFO: issue in CI with this test - not sure why
 T['normalize()'] = function()
     local lines = {
-        -- "[test](link\\ has spaces\\ test)"
         "[test](link/ has spaces/ test)"
     }
 

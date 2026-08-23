@@ -66,10 +66,14 @@ end
 function M.get_il_from_obj(ildata)
     vim.validate("ildata", ildata, "table", true)
     if ildata == nil then return "" end
+    local destination = tostring(ildata.destination)
+    if destination:match("%s") then
+       destination = "<" .. destination .. ">"
+    end
     if ildata.title == nil or ildata.title == "" then
-        return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.destination .. ')'
+        return ildata.img_char .. '[' .. ildata.text .. '](' .. destination .. ')'
     else
-        return ildata.img_char .. '[' .. ildata.text .. '](' .. ildata.destination .. ' "' .. ildata.title .. '")'
+        return ildata.img_char .. '[' .. ildata.text .. '](' .. destination .. ' "' .. ildata.title .. '")'
     end
 end
 
@@ -286,10 +290,6 @@ function M.normalize(opts)
     if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
 
     new_destination = vim.fs.normalize(ildata.destination)
-    if new_destination:match("%s") then
-        new_destination = "<" .. new_destination .. ">"
-    end
-
     ildata.destination = new_destination
     local new_il = M.get_il_from_obj(ildata)
 

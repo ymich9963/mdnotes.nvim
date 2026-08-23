@@ -149,17 +149,17 @@ journal_file = `string|fun():string`			*mdnotes-journal_file*
 assets_path = `string|fun():string`			*mdnotes-assets_path*
 
     Can be any path to your assets folder. This is where any asset you insert
-    by using |:Mdn-assets-insert_image| or |:Mdn-assets-insert_file| is copied or
-    moved to. It can also be a function to determine the asset path
-    dynamically. Example function below would return an assets path for the
-    current directory, based on the containing folder. This would be useful
-    for nested or multiple notes directories,
+    by using |:Mdn-assets-insert_from_clipboard| is copied or moved to. It can
+    also be a function to determine the asset path dynamically. Example
+    function below would return an assets path for the current directory,
+    based on the containing folder. This would be useful for nested or
+    multiple notes directories,
 >lua
     local function dynamic_asset_folder()
 	local cwd = Mdn.cwd
 	local folder = vim.fs.basename(cwd)
 
-	return "assets-" .. foler
+	return "assets-" .. folder
     end
 
 asset_insert_behaviour = `string`			*mdnotes-asset_insert_behaviour*
@@ -381,15 +381,16 @@ to write the buffers if any command changes buffer contents.
     Show orphan pages (pages with no references) in |mdnotes.cwd| in a 
     |quickfix| list.
 
-:Mdn assets insert {asset}				*:Mdn-assets-insert_image*
+:Mdn assets insert {asset}				*:Mdn-assets-insert*
 
-    Insert the file in the clipboard under the cursor and depending on
-    |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|.
-    (e.g `![image](path/to/assets/image.png`)).
+    Insert an existing asset in your |mdnotes-assets_path| as an inline link
+    (e.g `![image.png](path/to/assets/image.png`)). Invoking |'wildchar'|
+    (`<Tab>` by default) to autocomplete with the assets located in the assets
+    path. Omit {asset} to launch a picker. If no text is selected or hovered
+    over, the file name is used as the inline link text.
 
-    Overwriting depends on |mdnotes-asset_overwrite_behaviour|. Auto-detects
-    if the file has an image extension to add the `!` character for inline
-    links using |mdnotes.assets.has_image_extension()|.
+    Auto-detects if the file has an image extension to add the `!` character
+    for inline links using |mdnotes.assets.has_image_extension()|.
 
     If there is no text under the cursor, the asset file name used, otherwise
     the hovered or selected text is used for the asset inline link.
@@ -397,6 +398,15 @@ to write the buffers if any command changes buffer contents.
     An optional {asset} that is in your |mdnotes-assets_path| can also be
     inserted as an inline link. This can be done by invoking |'wildchar'|
     (`<Tab>` by default) to autocomplete the assets locaded in the assets path.
+
+:Mdn assets insert_from_clipboard 			*:Mdn-assets-insert_from_clipboard*
+
+    Insert the file in the clipboard under the cursor and depending on
+    |mdnotes-asset_insert_behaviour| place it in your |mdnotes-assets_path|.
+
+    Overwriting depends on |mdnotes-asset_overwrite_behaviour|. Other
+    behaviour is identical to |:Mdn-assets-insert|, except there is no
+    autocomplete or picker launched.
 
 :Mdn assets unused_delete				*:Mdn-assets-unused_delete*
 
@@ -1184,20 +1194,14 @@ assets.open_containing_folder({opts}) 			*mdnotes.assets.open_containing_folder(
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
-assets.process_inserted_asset_file({file_path}, {opts})	*mdnotes.assets.process_inserted_asset_file()*
+assets.get_file_paths_from_cb()			*mdnotes.assets.get_file_paths_from_cb()*
 
-    Process the specified asset file path based on config options. Asset will
-    be placed in your |mdnotes-assets_path| depending on |mdnotes-asset_insert_behaviour|.
-    Overwriting depends on |mdnotes-asset_overwrite_behaviour|.
-
-    Parameters: ~
-    • {file_path}  (`string`) Path to the asset.
-    • {opts}  (`table?`) Optional parameters:
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
+    Calls the corresponding script to read the clipboard.
 
     Return: ~
-    • (`string?`): Return file name on success and `nil` on failure.
+    • (`table<string>`,`string`) First variable contains the file paths read from the
+    clipboard, second contains the stdout of the command. Uses |vim.system()|
+    internally.
 
 assets.has_image_extension({file_name})			*mdnotes.assets.has_image_extension()*
 
@@ -1207,43 +1211,68 @@ assets.has_image_extension({file_name})			*mdnotes.assets.has_image_extension()*
     Parameters: ~
     • {filename}  (`string`) File name to check
 
-assets.get_asset_inline_link({opts})			*mdnotes.assets.get_asset_inline_link()*
+assets.insert({opts})					*mdnotes.assets.insert()*
 
-    Create the asset inline link and also process the asset using 
-    |mdnotes.assets.process_inserted_asset_file()|.
+    Insert the specified `asset` in the |mdnotes-assets_path| as an inline
+    link if no asset is provided and `opts.picker` is `true` then a picker is launched.
+    If no text is selected or hovered over, the file name is used as the
+    inline link text. Autodetects image files with |mdnotes.assets.has_image_extension()|.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
-	      • {process_file}  (`boolean?`, default `true`)
-		if the file should be processed, meaning to be placed in
-		the assets folder
-	      • {file_path}  (`string?`)
-		optional path to asset and the clipboard is used if `nil`
-              • {silent} (`boolean?`, default `false`)
-		silence notifications
-
-    Return: ~
-    • (`MdnAssetInlineLink?`)
-
-assets.insert()						*mdnotes.assets.insert()*
-
-    Insert the file in the clipboard as an inline link under the cursor.
-    Auto-detects if the file is an image to add the `!` character using
-    |mdnotes.assets.has_image_extension()|.
-
-    Uses |mdnotes.get_text()| to insert an inline link over it and if it
-    detects `""` then it inserts the inline link with the file name as the
-    inline link text.
-
-    Parameters: ~
-    • {opts}  (`MdnInsertOpts?`)
-	      • {process_file}  (`boolean?`, default `true`)
-		if the file should be processed, meaning to be placed in
-		the assets folder
-	      • {file_path}  (`string?`)
-		optional path to asset and the clipboard is used if `nil`
+	      • {asset}  (`sting?`)
+		asset in the assets path
               • {location} (`MdnInLineLocation?`)
 		inline link location
+              • {silent} (`boolean`, default `false`)
+		silence notifications
+              • {picker} (`boolean`, default `false`)
+		show picker to select
+              • {check_exists} (`boolean`, default `true`)
+		override if the existance of the file should be verified
+
+    Return: ~
+    • (`string?`) Returns the relative assets path on success
+
+assets.insert_file({file_path}, {opts})			*mdnotes.assets.insert_file()*
+
+    Process based on config the file in {file_path} and place in the
+    |mdnotes-assets_path|. Write an inline link to the buffer with this asset.
+    If no text is selected or hovered over, the file name is used as the
+    inline link text. Autodetects image files with |mdnotes.assets.has_image_extension()|.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+	      • {asset}  (`sting?`)
+		asset in the assets path
+              • {location} (`MdnInLineLocation?`)
+		inline link location
+              • {silent} (`boolean`, default `false`)
+		silence notifications
+              • {picker} (`boolean`, default `false`)
+		show picker to select
+              • {check_exists} (`boolean`, default `true`)
+		override if the existance of the file should be verified
+
+    Return: ~
+    • (`string?`) Returns the relative assets path on success. On failure it will
+    return the appropriate error message,
+    • `asset path check failed` : If the |mdnotes.assets.check_assets_path()|
+    returns false
+    • `asset file already exists` : If |mdnotes-asset_overwrite_behaviour| is
+    set to `error` and the file already exists
+    • `file copy/move failed` : If the copy/move operation fails
+
+assets.insert_from_clipboard({opts})			*mdnotes.assets.insert_file()*
+
+    Wrapper for |mdnotes.assets.insert_file()| that calls
+    |mdnotes.assets.get_file_paths_from_cb()| and passes the first result.
+
+    Return: ~
+    • (`string?`) Same as |mdnotes.assets.insert_file()| with some more error
+    cases,
+    • `error reading system clipboard: ` : If the returned file paths is `nil`
+    • `too many files detected` : If too many files are detected
 
 assets.get_used_assets({opts}) 				*mdnotes.assets.get_used_assets()*
 
@@ -3052,33 +3081,6 @@ MdnScanLines 						*mdnotes.MdnScanLines*
     Fields: ~
     • {lnum} (`number`) Line number of specified pattern
     • {cols} (`table<number, number>`) Table containing start and end columns of specified pattern
-
-MdnGetAssetInlineLinkOpts 				*mdnotes.MdnGetAssetInlineLinkOpts*
-    
-    Options for |mdnotes.assets.get_asset_inline_link()|.
-    
-    Fields: ~
-    • {process_file} (`boolean?`) Process the file according to the plugin config
-    • {file_path} (`string?`) Optional file_path to generate the inline link for
-
-MdnAssetInlineLink					*mdnotes.MdnAssetInlineLinkOpts*
-    
-    Return of |mdnotes.assets.get_asset_inline_link()|.
-    
-    Fields: ~
-    • {inline_link} (`string?`) Entire inline link with the asset path
-    • {file_name} (`string?`) File name of the asset
-    • {asset_path} (`string?`) Path of the asset
-    • {img_char} (`"!"|""?`) Inline link image character
-
-MdnAssetInsertOpts 					*mdnotes.MdnAssetInsertOpts*
-
-    Options for |mdnotes.assets.insert()|.
-
-    Inherits from |mdnotes.MdnGetAssetInlineLinkOpts|.
-
-    Fields: ~
-    • {location} (`MdnInLineLocation?`)
 
 MdnFormatDelimiters 					*mdnotes.MdnFormatDelimiters*
 

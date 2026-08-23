@@ -11,7 +11,7 @@ Markdown specifications that have influenced `mdnotes.nvim` Markdown syntax,
 
 ## Links
 ### Inline Links
-Opened with `:Mdn inline_link open`. Inserted with `:Mdn inline_link toggle` and `:Mdn assets insert_file/image`. If no extension is given to `file` below, it is treated as `.md`. Optional title is supported for all cases.
+Opened with `:Mdn inline_link open`. Inserted with `:Mdn inline_link toggle` and `:Mdn assets insert`. If no extension is given to `file` below, it is treated as `.md`. Optional title is supported for all cases.
 ```
     [link](https://neovim.io)
     [link](path/to/file#fragment)

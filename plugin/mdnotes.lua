@@ -167,6 +167,7 @@ local get_commands = function() return {
         download_website_html  = require("mdnotes.assets").download_website_html,
         delete  = require("mdnotes.assets").delete,
         view  = require("mdnotes.assets").view,
+        insert_from_clipboard = require("mdnotes.assets").insert_from_clipboard,
     },
     outliner= {
         toggle = require("mdnotes.outliner").toggle,
@@ -260,12 +261,12 @@ vim.api.nvim_create_user_command( "Mdn", function(opts)
         func({ location = { startl = opts.line1, endl = opts.line2 } })
     elseif func == commands.table.create and #args > 2 then
         func(args[3], args[4])
-    elseif func == commands.toc.generate or func == commands.toc.update and #args > 2 then
+    elseif func == commands.toc.generate
+        or func == commands.toc.update and #args > 2 then
         func({ depth = tonumber(args[3]) })
-    elseif func == commands.assets.view or func == commands.assets.insert and #args > 2 then
-        local asset = concat_arg(args)
-        local asset_path = vim.fs.joinpath(require('mdnotes').cwd, asset)
-        func({ asset = asset, file_path = asset_path, process_file = false, picker = true })
+    elseif func == commands.assets.view
+        or func == commands.assets.insert then
+        func({ asset = concat_arg(args), picker = true })
     elseif func == commands.inline_link.open then
         func({ inline_link = concat_arg(args), picker = true })
     elseif func == commands.wikilink.follow

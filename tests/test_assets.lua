@@ -33,20 +33,11 @@ T['get_assets_folder_name()'] = function()
 end
 
 T['check_assets_path()'] = function()
+    local ret = child.lua([[ return Mdn.assets.check_assets_path() ]])
+    eq(ret, false)
     child.cmd([[edit tests/test-data/files/file7.md]])
-    local ret = child.lua([[
-    Mdn.set_cwd()
-    return Mdn.assets.check_assets_path()
-    ]])
+    ret = child.lua([[ return Mdn.assets.check_assets_path() ]])
     eq(ret, true)
-end
-
-T['get_asset_inline_link()'] = function()
-    local ret = child.lua([[return Mdn.assets.get_asset_inline_link({ process_file = false, file_path = "path/test" })]])
-    eq(ret.inline_link, "[test](assets/test)")
-
-    ret = child.lua([[return Mdn.assets.get_asset_inline_link({ process_file = false, file_path = "path/test.png" })]])
-    eq(ret.inline_link, "![test.png](assets/test.png)")
 end
 
 T['insert()'] = function()
@@ -56,16 +47,39 @@ T['insert()'] = function()
     local lines = { "" }
     local buf = create_md_buffer(child, lines)
 
-    child.lua([[return Mdn.assets.insert({ process_file = false, file_path = "path/test" })]])
+    child.lua([[return Mdn.assets.insert({ asset = "test", check_exists = false, picker = false })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1],  "[test](assets/test)")
 
     lines = { "test2" }
     buf = create_md_buffer(child, lines)
-    child.lua([[return Mdn.assets.insert({ process_file = false, file_path = "path/test" })]])
+    child.lua([[return Mdn.assets.insert({ asset = "test", check_exists = false, picker = false })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1],  "[test2](assets/test)")
 end
+
+T['insert_file()'] = function()
+    child.cmd([[edit tests/test-data/files/file7.md]])
+
+    local ret = child.lua([[ return Mdn.assets.insert_file(vim.fs.joinpath(Mdn.cwd, "asset1.txt")) ]])
+    eq(ret,  "asset file already exists")
+
+    child.lua([[require('mdnotes').setup({assets_path = "assets", asset_overwrite_behaviour = "overwrite"})]])
+    ret = child.lua([[ return Mdn.assets.insert_file("asset1.txt") ]])
+    eq(ret,  "file copy/move failed")
+
+    local lines = { "" }
+    local buf = create_md_buffer(child, lines)
+    ret = child.lua([[ return Mdn.assets.insert_file(vim.fs.joinpath(Mdn.cwd, "file1.md")) ]])
+    eq(ret,  "assets/file1.md")
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines,  {"[file1.md](assets/file1.md)"})
+
+    vim.cmd([[!rm tests/test-data//files/assets/file1.md ]])
+    child.lua([[require('mdnotes').setup({assets_path = "assets"})]])
+end
+
+-- TODO: Need test for insert_from_clipboard()
 
 T['get_used_assets()'] = function()
     child.cmd([[edit tests/test-data/files/file7.md]])
