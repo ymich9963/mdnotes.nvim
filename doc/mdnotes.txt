@@ -3495,6 +3495,55 @@ Remove the Markdown formatting in the selected lines (|linewise-visual|),
 	vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, lines)
     end
 <
+Sort reference link definitions by order of appearance at the end of the
+buffer,
+>lua
+    local function sort_rl_by_appearance()
+	-- Cleanup first
+	Mdn.reference_link.cleanup()
+
+	-- Get all the reference links with no duplicates
+	local parsed_tbl = Mdn.reference_link.parse_lines({ location = {startl = 1, endl = vim.fn.line("$")}, silent = true, no_duplicates = true})
+	if parsed_tbl == nil then
+	    vim.notify("Mdn: No reference links in current file", vim.log.levels.ERROR)
+	    return
+	end
+
+	-- Extract only unique labels
+	local labels_only = {}
+	for _, v in ipairs(parsed_tbl) do
+	    if not vim.tbl_contains(labels_only, v.label) then
+		table.insert(labels_only, v.label)
+	    end
+	end
+
+	-- Get buffer reference link definitions
+	local rldef_tbl = Mdn.reference_link.get_buf_reference_link_definitions()
+	if rldef_tbl == nil then
+	    vim.notify("Mdn: No reference link definitions found in buffer", vim.log.levels.ERROR)
+	    return
+	end
+
+	-- Sort the last line first for it to be removed first
+	table.sort(rldef_tbl, function(a, b)
+	    return a.lnum > b.lnum
+	end)
+
+	-- Remove them
+	for _, v in ipairs(rldef_tbl) do
+	    vim.api.nvim_buf_set_lines(0, v.lnum - 1, v.lnum, false, {})
+	end
+
+	-- Set lines by appearance
+	for _, v in ipairs(labels_only) do
+	    for _, vv in ipairs(rldef_tbl) do
+		if vv.label == v then
+		    vim.api.nvim_buf_set_lines(0, vim.fn.line("$"), vim.fn.line("$") + 1, false, {M.get_rl_definition_from_obj(vv)})
+		end
+	    end
+	end
+    end
+<
 ==============================================================================
 OUTLINER						*mdnotes-outliner*
 
