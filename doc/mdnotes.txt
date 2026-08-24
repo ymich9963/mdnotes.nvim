@@ -1262,7 +1262,7 @@ assets.insert_file({file_path}, {opts})			*mdnotes.assets.insert_file()*
     set to `error` and the file already exists
     • `file copy/move failed` : If the copy/move operation fails
 
-assets.insert_from_clipboard({opts})			*mdnotes.assets.insert_file()*
+assets.insert_from_clipboard({opts})			*mdnotes.assets.insert_from_clipboard()*
 
     Wrapper for |mdnotes.assets.insert_file()| that calls
     |mdnotes.assets.get_file_paths_from_cb()| and passes the first result.
