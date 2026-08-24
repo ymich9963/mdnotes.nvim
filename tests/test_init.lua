@@ -22,6 +22,10 @@ local T = new_set({
     },
 })
 
+-- Test for doc help tags
+T['docs'] = function()
+    child.cmd([[helptags doc/]])
+end
 T['mdn_grep()'] = function()
     child.cmd([[
     edit tests/test-data/files/greptest.md
