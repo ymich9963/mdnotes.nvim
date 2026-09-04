@@ -209,7 +209,7 @@ function M.relink(opts)
     local move_cursor = opts.move_cursor ~= false
     local silent = opts.silent or false
 
-    local ildata = M.parse({ location = opts.location })
+    local ildata = M.parse({ location = opts.location, keep_pointy_brackets = false })
     if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
 
     local user_input
@@ -248,7 +248,7 @@ function M.rename(opts)
     local move_cursor = opts.move_cursor ~= false
     local silent = opts.silent or false
 
-    local ildata = M.parse({ location = opts.location })
+    local ildata = M.parse({ location = opts.location, keep_pointy_brackets = false })
     if ildata == nil or ildata.text == nil or ildata.destination == nil then return end
 
     local user_input

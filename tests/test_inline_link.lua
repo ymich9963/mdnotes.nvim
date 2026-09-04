@@ -294,7 +294,8 @@ end
 
 T['relink()/rename()'] = function()
     local lines = {
-        "[test](link)"
+        "[test](link)",
+        "[test](<link with spaces>)"
     }
 
     local buf = create_md_buffer(child, lines)
@@ -304,6 +305,17 @@ T['relink()/rename()'] = function()
     child.lua([[Mdn.inline_link.rename({ new_name = "test2" })]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "[test2](link2)")
+
+    child.fn.cursor(2,1)
+    child.lua([[Mdn.inline_link.relink({ new_link = "link with spaces2" })]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[2], "[test](<link with spaces2>)")
+    child.lua([[Mdn.inline_link.rename({ new_name = "test2" })]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[2], "[test2](<link with spaces2>)")
+    child.lua([[Mdn.inline_link.relink({ new_link = "link2" })]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[2], "[test2](link2)")
 end
 
 T['normalize()'] = function()
