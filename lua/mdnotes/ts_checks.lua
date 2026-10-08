@@ -10,21 +10,20 @@ local function check(node, source, type_tbl, node_check_func)
     if node == nil then return nil end
     if node_check_func == nil then node_check_func = function() return true end end
     local ntype = node:type()
-    if vim.tbl_contains(type_tbl, ntype) then
-        if node_check_func(node, source) == true then
-            local row_start, col_start, _, col_end = node:range()
-            return {
-                cols = {col_start + 1, col_end + 1},
-                lnum = row_start + 1,
-            }
-        end
+    if vim.tbl_contains(type_tbl, ntype) and node_check_func(node, source) == true then
+        local row_start, col_start, _, col_end = node:range()
+        return {
+            col_start = col_start + 1,
+            col_end = col_end + 1,
+            lnum = row_start + 1,
+        }
     else
         return nil
     end
 end
 
 -- TODO: Could have something like wikilink = {is_element = func(), get_data = func()}
--- to centralise everything as much as possible
+-- to centralise everything as much as possible. Keep current parse lines implementation or have a ts implementation?
 -- rename this file to treesitter.lua
 
 ---@class MdnTSNodeType

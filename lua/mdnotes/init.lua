@@ -4,6 +4,17 @@ local M = {}
 
 local uv = vim.loop or vim.uv
 
+---@alias MdnMeType 
+---| '"wikilink"'
+---| '"inline_link"'
+---| '"strong"'
+---| '"emphasis"'
+---| '"strikethrough"'
+---| '"inline_code"'
+---| '"autolink"'
+---| '"reference_link"'
+---| '"footnote_reference"'
+
 ---@class MdnInLineLocation
 ---@field buf integer? Buffer number
 ---@field lnum integer? Line number
@@ -339,9 +350,9 @@ function M.mdn_grep(pattern, path)
 end
 
 ---Check text for valid Markdown syntax
----@param metype MdnPattern|string String used to specify what to check. Could be pattern or node type
+---@param metype MdnMeType Markdown element type
 ---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
----@return boolean? valid, table|table<table>? cols_tbl
+---@return boolean valid, table<table?> cols_tbl
 function M.check_markdown_syntax(metype, opts)
     local parser = require('mdnotes').config.parser
     if parser == "patterns" then
@@ -350,12 +361,14 @@ function M.check_markdown_syntax(metype, opts)
     elseif parser == "treesitter" then
         return M.check_markdown_syntax_ts(metype, opts)
     end
+
+    return false, {}
 end
 
 ---Check Markdown syntax using Lua patterns
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
 ---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
----@return boolean? valid, table|table<table>? cols_tbl
+---@return boolean valid, table<table?> pos_tbl
 function M.check_markdown_syntax_re(pattern, opts)
     vim.validate("pattern", pattern, "string")
     vim.validate("opts", opts, "table", true)
@@ -371,32 +384,32 @@ function M.check_markdown_syntax_re(pattern, opts)
     local cur_col = locopts.cur_col or math.floor((col_start + col_end)/2)
 
     local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
-    local cols_tbl = {}
+    local position_tbl = {}
 
     for start_pos, text, end_pos in line:gmatch(pattern) do
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
-        local pos_tbl = {start_pos, end_pos}
+        local pos_tbl = {col_start = start_pos, col_end = end_pos, lnum = lnum}
         if entire_line == false then
             if start_pos <= cur_col and end_pos > cur_col then
                 return true, pos_tbl
             end
         else
-            table.insert(cols_tbl, pos_tbl)
+            table.insert(position_tbl, pos_tbl)
         end
     end
 
-    if not vim.tbl_isempty(cols_tbl) then
-        return true, cols_tbl
+    if vim.tbl_isempty(position_tbl) then
+        return false, {}
     end
 
-    return false, {}
+    return true, position_tbl
 end
 
 ---Check Markdown syntax using treesitter
 ---@param node_type string Treesitter node type to check for
 ---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
----@return boolean? valid, table|table<table>? cols_tbl
+---@return boolean valid, table<table?> cols_tbl
 function M.check_markdown_syntax_ts(node_type, opts)
     vim.validate("node_type", node_type, "string")
     vim.validate("opts", opts, "table", true)
@@ -405,7 +418,7 @@ function M.check_markdown_syntax_ts(node_type, opts)
 
     local ts_check = require('mdnotes.ts_checks')[node_type]
     if ts_check == nil then
-        return
+        return false, {}
     end
 
     local entire_line = opts.entire_line or false
@@ -426,12 +439,12 @@ function M.check_markdown_syntax_ts(node_type, opts)
             return false, {}
         end
 
-        local cols_tbl = (ts_check(node:parent(), buf) or {}).cols
-        if cols_tbl == nil then
+        local pos_tbl = ts_check(node:parent(), buf)
+        if pos_tbl == nil then
             return false, {}
         end
 
-        return true, cols_tbl
+        return true, pos_tbl
     else
         node = vim.treesitter.get_node({
             bufnr = buf,
@@ -453,9 +466,9 @@ function M.check_markdown_syntax_ts(node_type, opts)
 
         local cols_tbl = {}
         local function get_node_data_tbl(_node)
-            local loc_tbl = (ts_check(_node, buf) or {})
-            if loc_tbl.lnum == lnum then
-                table.insert(cols_tbl, loc_tbl.cols)
+            local pos_tbl = ts_check(_node, buf) or {}
+            if pos_tbl.lnum == lnum then
+                table.insert(cols_tbl, pos_tbl)
             end
             for child in _node:iter_children() do
                 get_node_data_tbl(child)
@@ -878,39 +891,6 @@ end
 ---@field lnum number Line number of specified pattern
 ---@field cols table<number, number> Table containing start and end columns of specified pattern
 
----Scan lines for inline Markdown items using Lua patterns
----@param metype MdnPattern|string String used to specify what markdown element type check. Could be pattern or node type
----@param opts {location: MdnMultiLineLocation?}?
----@return table<MdnScanLines>?
-function M.scan_lines(metype, opts)
-    vim.validate("pattern", metype, "string")
-    vim.validate("opts", opts, "table", true)
-    opts = opts or {}
-
-    local locopts = opts.location or {}
-    local buf = locopts.buf or vim.api.nvim_get_current_buf()
-    local startl = locopts.startl or vim.fn.line('.')
-    local endl = locopts.endl or vim.fn.line('.')
-
-    vim.validate("buf", buf, "number")
-    vim.validate("startl", startl, "number")
-    vim.validate("endl", endl, "number")
-
-    local scan_tbl = {}
-    for lnum = startl, endl do
-        local valid, cols_tbl = M.check_markdown_syntax(metype, {entire_line = true, location = {lnum = lnum, buf = buf}})
-        if valid == true then
-            table.insert(scan_tbl, {lnum = lnum, cols = cols_tbl})
-        end
-    end
-
-    if vim.tbl_isempty(scan_tbl) then
-        return nil
-    end
-
-    return scan_tbl
-end
-
 ---File statistics
 ---@param opts {buf: number?, silent: boolean?}?
 ---@return table statistics
@@ -945,38 +925,15 @@ function M.statistics(opts)
     words = fn_wordcount.words
     lines = last_lnum
 
-    local ils_ret = M.scan_lines("inline_link", { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
-    for _, ret in pairs(ils_ret or {}) do
-        if ret.cols ~= nil then
-            ils = ils + #ret.cols
-        end
-    end
-
-    local wls_ret = M.scan_lines("wikilink", { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
-    for _, ret in pairs(wls_ret) do
-        if ret.cols ~= nil then
-            wls = wls + #ret.cols
-        end
-    end
-
-    local rls_ret = M.scan_lines("reference_link", { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
-    for _, ret in pairs(rls_ret) do
-        if ret.cols ~= nil then
-            rls = rls + #ret.cols
-        end
-    end
-
-    local frefs_ret = M.scan_lines("footnote_reference", { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
-    for _, ret in pairs(frefs_ret) do
-        if ret.cols ~= nil then
-            frefs = frefs + #ret.cols
-        end
-    end
-
+    local func = function() end
+    ils = ils + #(M.parse_lines("inline_link", func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true}) or {})
+    wls = wls + #(M.parse_lines("wikilink", func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
+    rls = rls + #(M.parse_lines("reference_link", func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
+    frefs = frefs + #(M.parse_lines("footnote_reference", func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
     headings = #M.get_buf_fragments({ buf = buf })
 
     -- NOTE: Tried to print "formatted words" but because URLs might contain
-    -- `_word_` then `word` is matched in scan_lines
+    -- `_word_` then `word` is matched in parse_lines
 
     if silent == false then
         vim.notify(("Bytes:\t\t%s\n" ..
@@ -1193,30 +1150,45 @@ local function is_parsed_tbl_duplicate(parsed_tbl, data)
     return false
 end
 
----Parse the pattern in the specified lines
----@param pattern MdnPattern Pattern to use
----@param opts {location: MdnMultiLineLocation?, no_duplicates: boolean?, get_func: fun(a): string?}?
+---Parse the Markdown elements in the specified lines
+---@param metype MdnMeType Markdown element type
+---@param parse_func fun() Mdn parse function TODO: make a type
+---@param opts {location: MdnMultiLineLocation?, no_duplicates: boolean?, location_only: boolean?, get_func: fun(a): string?}?
 ---@return table?
-function M.parse_lines(pattern, parse_func, opts)
-    vim.validate("pattern", pattern, "string")
+function M.parse_lines(metype, parse_func, opts)
+    vim.validate("pattern", metype, "string")
     vim.validate("opts", opts, "table", true)
 
     opts = opts or {}
 
     local no_duplicates = opts.no_duplicates or false
+    local location_only = opts.location_only or false
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
     local get_func = opts.get_func or function(a) return a end
 
-    local scanned_lines = M.scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }})
-    if scanned_lines == nil then return nil end
+    local scan_tbl = {}
+    for lnum = startl, endl do
+        local valid, pos_tbl = M.check_markdown_syntax(metype, {entire_line = true, location = {lnum = lnum, buf = buf}})
+        if valid == true then
+            table.insert(scan_tbl, pos_tbl)
+        end
+    end
+
+    if vim.tbl_isempty(scan_tbl) then
+        return nil
+    end
+
+    if location_only == true then
+        return scan_tbl
+    end
 
     local parsed_tbl = {}
-    for _, item in ipairs(scanned_lines) do
-        for _, cols in ipairs(item.cols) do
-            local data = parse_func({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
+    for _, line in ipairs(scan_tbl) do
+        for _, item in ipairs(line) do
+            local data = parse_func({ location = {buf = buf, lnum = item.lnum, col_start = item.col_start, col_end = item.col_end }})
             data = get_func(data)
             if no_duplicates == true then
                 if is_parsed_tbl_duplicate(parsed_tbl, data) == false then

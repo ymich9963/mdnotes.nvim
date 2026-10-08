@@ -121,7 +121,7 @@ T['check_markdown_syntax()']['impl'] = function(func)
     local pattern = Mdn.patterns.emphasis
     return {Mdn.]] .. func .. [[)}
     ]])
-    eq(ret, {true, {1, 11}})
+    eq(ret, {true, {col_start = 1, col_end = 11, lnum = 1}})
 
     child.fn.cursor(2,1)
     ret = child.lua([[
@@ -134,7 +134,7 @@ T['check_markdown_syntax()']['impl'] = function(func)
     local pattern = Mdn.patterns.emphasis
     return {Mdn.]] .. func .. [[, { entire_line = true })}
     ]])
-    eq(ret, {true, {{10, 20}}})
+    eq(ret, {true, {{col_start = 10, col_end = 20, lnum = 2}}})
 
     child.fn.cursor(3,1)
     ret = child.lua([[
@@ -153,7 +153,7 @@ T['check_markdown_syntax()']['impl'] = function(func)
     local pattern = Mdn.patterns.emphasis
     return {Mdn.]] .. func .. [[, {location = {lnum = 2, col_start = 10, col_end = 19}})}
     ]])
-    eq(ret, {true, {10, 20}})
+    eq(ret, {true, {col_start = 10, col_end = 20, lnum = 2}})
 end
 
 T['get_text()'] = function()
@@ -486,30 +486,6 @@ T['find_fragment_in_buf_fragments()'] = function()
     return Mdn.find_fragment_in_buf_fragments(cur_buf, "heading-1")
     ]])
     eq(ret, "Heading 1")
-end
-
-T['scan_lines()'] = function()
-    local lines = {
-        "[test](link)",
-        "",
-        "[test](link)",
-    }
-    create_md_buffer(child, lines)
-
-    local ret = child.lua([[
-    return Mdn.scan_lines("inline_link", { location = { startl = 1, endl = 3}})
-    ]])
-
-    eq(ret, {
-        {
-            lnum = 1,
-            cols = { { 1,13 } }
-        },
-        {
-            lnum = 3,
-            cols = { { 1,13 } }
-        }
-    })
 end
 
 T['statistics()'] = function()

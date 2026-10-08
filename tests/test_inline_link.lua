@@ -411,6 +411,17 @@ T['parse_lines()'] = function()
     })
     ret = child.lua([[return Mdn.inline_link.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {"[test](link)"})
+
+    ret = child.lua([[return Mdn.inline_link.parse_lines({ location_only = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {
+        {
+            {
+                col_end = 13,
+                col_start = 1,
+                lnum = 3
+            }
+        }
+    })
 end
 
 return T

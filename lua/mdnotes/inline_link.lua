@@ -516,7 +516,7 @@ function M.picker(on_end, buf)
 end
 
 ---Parse the inline links in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?, location_only: boolean?}?
 ---@return table<MdnInlineLinkData>?
 function M.parse_lines(opts)
     vim.validate("opts", opts, "table", true)
@@ -530,7 +530,7 @@ function M.parse_lines(opts)
         get_func = M.get_il_from_obj
     end
 
-    return parse_lines("inline_link", M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines("inline_link", M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, location_only = opts.location_only, get_func = get_func})
 end
 
 ---AI Assisted
