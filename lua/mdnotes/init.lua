@@ -926,10 +926,11 @@ function M.statistics(opts)
     lines = last_lnum
 
     local func = function() end
-    ils = ils + #(M.parse_lines("inline_link", func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true}) or {})
-    wls = wls + #(M.parse_lines("wikilink", func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
-    rls = rls + #(M.parse_lines("reference_link", func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
-    frefs = frefs + #(M.parse_lines("footnote_reference", func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
+    local patterns = require('mdnotes.patterns')
+    ils = ils + #(M.parse_lines_re(patterns.inline_link, func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true}) or {})
+    wls = wls + #(M.parse_lines_re(patterns.wikilink, func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
+    rls = rls + #(M.parse_lines_re(patterns.reference_link, func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
+    frefs = frefs + #(M.parse_lines_re(patterns.footnote_reference, func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
     headings = #M.get_buf_fragments({ buf = buf })
 
     -- NOTE: Tried to print "formatted words" but because URLs might contain
