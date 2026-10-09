@@ -106,9 +106,10 @@ function M.parse_ts(opts)
     end
 
     local node_data
+    local process_node = require('mdnotes.treesitter')["inline_link"] or function() return {} end
     local function get_node_data(_node)
         if _node ~= nil then
-            node_data = M.extract_node_data(_node, source)
+            node_data = process_node(_node, source, false)
             if node_data == nil then
                 get_node_data(_node:parent())
             end
@@ -131,66 +132,18 @@ function M.parse_ts(opts)
         node_data.title = node_data.title:sub(2, #node_data.title - 1)
     end
 
-    node_data.buf = buf
     node_data.cur_col = cur_col
-
-    node_data.col_end = node_data.col_end + 1
-    node_data.col_start = node_data.col_start + 1
-    node_data.lnum = node_data.lnum + 1
 
     return node_data
 end
 
----Extract the inline link node data
----@param node TSNode
----@param source number|string Buffer number or string from which node is extracted
----@return MdnInlineLinkData?
-function M.extract_node_data(node, source)
-    local ntype = node:type()
-    if ntype == "inline_link" or ntype == "image" then
-        local img_char = ""
-        if ntype == "image" then
-            img_char = "!"
-        end
-
-        local raw = vim.treesitter.get_node_text(node, source)
-        local row_start, col_start, _, col_end = node:range()
-
-        local text, destination, title = "", "", ""
-        for child in node:iter_children() do
-            local type = child:type()
-            if type == "link_text" or type  == "image_description" then
-                text = vim.treesitter.get_node_text(child, source)
-            end
-            if type == "link_destination" then
-                destination = vim.treesitter.get_node_text(child, source)
-            end
-            if type == "link_title" then
-                title = vim.treesitter.get_node_text(child, source)
-            end
-        end
-
-        return {
-            raw = raw,
-            text = text,
-            destination = destination,
-            title = title,
-            img_char = img_char,
-            lnum = row_start,
-            col_start = col_start,
-            col_end = col_end,
-        }
-    else
-        return nil
-    end
-end
-
 ---Get an inline link string from an MdnInlineLinkData object
 ---@param ildata MdnInlineLinkData? Inline link object
----@return string inline_link
+---@return string? inline_link
 function M.get_il_from_obj(ildata)
     vim.validate("ildata", ildata, "table", true)
-    if ildata == nil then return "" end
+    if ildata == nil then return nil end
+
     local destination = tostring(ildata.destination)
     if destination:match("%s") then
        destination = "<" .. destination .. ">"
@@ -519,48 +472,51 @@ end
 ---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?, location_only: boolean?}?
 ---@return table<MdnInlineLinkData>?
 function M.parse_lines(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_lines_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_lines_ts(opts)
+    end
+end
+
+---Parse the inline links in the specified lines using Lua patterns
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?, location_only: boolean?}?
+---@return table<MdnInlineLinkData>?
+function M.parse_lines_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
-    local parse_lines = require('mdnotes').parse_lines
+    local pattern = require('mdnotes.patterns').inline_link
+    local parse_lines_re = require('mdnotes').parse_lines_re
 
     local get_func = nil
     if str == true then
         get_func = M.get_il_from_obj
     end
+    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
 
-    return parse_lines("inline_link", M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, location_only = opts.location_only, get_func = get_func})
+    return parse_lines_re(pattern, M.parse_re, _opts)
 end
 
----AI Assisted
-function M.parse_lines_ts()
-    local buf = vim.api.nvim_get_current_buf()
-    local parser, err = vim.treesitter.get_parser(buf, "markdown")
-    if parser == nil or err ~= nil then
-        vim.print(err)
-        return
-    end
+---Parse the inline links in the specified lines using Lua patterns
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?, location_only: boolean?}?
+---@return table<MdnInlineLinkData>?
+function M.parse_lines_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
 
-    local node_data = {}
-    local function get_node_data_tbl(node)
-        table.insert(node_data, M.extract_node_data(node, buf))
-        for child in node:iter_children() do
-            get_node_data_tbl(child)
-        end
-    end
+    local str = opts.str or false
+    local parse_lines_ts = require('mdnotes').parse_lines_ts
 
-    -- Get LanguageTrees of parser
-    local languagetrees = parser:children()
-    for _, languagetree in pairs(languagetrees) do
-        -- Get TSTrees of LanguageTree
-        local tstrees = languagetree:trees()
-        for _, tstree in ipairs(tstrees) do
-            get_node_data_tbl(tstree:root())
-        end
+    local get_func = nil
+    if str == true then
+        get_func = M.get_il_from_obj
     end
+    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
 
-    return node_data
+    return parse_lines_ts("inline_link", _opts)
 end
 
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?

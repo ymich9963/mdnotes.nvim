@@ -416,8 +416,8 @@ function M.check_markdown_syntax_ts(node_type, opts)
 
     opts = opts or {}
 
-    local ts_check = require('mdnotes.ts_checks')[node_type]
-    if ts_check == nil then
+    local process_node = require('mdnotes.treesitter')[node_type]
+    if process_node == nil then
         return false, {}
     end
 
@@ -439,7 +439,7 @@ function M.check_markdown_syntax_ts(node_type, opts)
             return false, {}
         end
 
-        local pos_tbl = ts_check(node:parent(), buf)
+        local pos_tbl = process_node(node:parent(), buf, true)
         if pos_tbl == nil then
             return false, {}
         end
@@ -466,7 +466,7 @@ function M.check_markdown_syntax_ts(node_type, opts)
 
         local cols_tbl = {}
         local function get_node_data_tbl(_node)
-            local pos_tbl = ts_check(_node, buf) or {}
+            local pos_tbl = process_node(_node, buf, true) or {}
             if pos_tbl.lnum == lnum then
                 table.insert(cols_tbl, pos_tbl)
             end
@@ -1150,13 +1150,13 @@ local function is_parsed_tbl_duplicate(parsed_tbl, data)
     return false
 end
 
----Parse the Markdown elements in the specified lines
----@param metype MdnMeType Markdown element type
----@param parse_func fun() Mdn parse function TODO: make a type
+---Parse the Markdown elements in the specified lines with Lua patterns
+---@param pattern MdnPattern
+---@param parse_func fun(...) Parse function --TODO: make a type
 ---@param opts {location: MdnMultiLineLocation?, no_duplicates: boolean?, location_only: boolean?, get_func: fun(a): string?}?
 ---@return table?
-function M.parse_lines(metype, parse_func, opts)
-    vim.validate("pattern", metype, "string")
+function M.parse_lines_re(pattern, parse_func, opts)
+    vim.validate("pattern", pattern, "string")
     vim.validate("opts", opts, "table", true)
 
     opts = opts or {}
@@ -1171,11 +1171,12 @@ function M.parse_lines(metype, parse_func, opts)
 
     local scan_tbl = {}
     for lnum = startl, endl do
-        local valid, pos_tbl = M.check_markdown_syntax(metype, {entire_line = true, location = {lnum = lnum, buf = buf}})
+        local valid, pos_tbl = M.check_markdown_syntax_re(pattern, {entire_line = true, location = {lnum = lnum, buf = buf}})
         if valid == true then
             table.insert(scan_tbl, pos_tbl)
         end
     end
+    scan_tbl = vim.iter(scan_tbl):flatten():totable()
 
     if vim.tbl_isempty(scan_tbl) then
         return nil
@@ -1186,21 +1187,73 @@ function M.parse_lines(metype, parse_func, opts)
     end
 
     local parsed_tbl = {}
-    for _, line in ipairs(scan_tbl) do
-        for _, item in ipairs(line) do
-            local data = parse_func({ location = {buf = buf, lnum = item.lnum, col_start = item.col_start, col_end = item.col_end }})
-            data = get_func(data)
-            if no_duplicates == true then
-                if is_parsed_tbl_duplicate(parsed_tbl, data) == false then
-                    table.insert(parsed_tbl, data)
-                end
-            else
+    for _, v in ipairs(scan_tbl) do
+        local data = parse_func({ location = {buf = buf, lnum = v.lnum, col_start = v.col_start, col_end = v.col_end }})
+        data = get_func(data)
+        if no_duplicates == true then
+            if is_parsed_tbl_duplicate(parsed_tbl, data) == false then
                 table.insert(parsed_tbl, data)
             end
+        else
+            table.insert(parsed_tbl, data)
         end
     end
 
     return parsed_tbl
+end
+
+---Parse the Markdown elements in the specified lines with treesitter
+---@param metype MdnTSNodeType Markdown node type
+---@param opts {location: MdnMultiLineLocation?, no_duplicates: boolean?, location_only: boolean?, get_func: fun(a): string?}?
+function M.parse_lines_ts(metype, opts)
+    vim.validate("metype", metype, "string")
+    vim.validate("opts", opts, "table", true)
+
+    opts = opts or {}
+
+    local no_duplicates = opts.no_duplicates or false
+    local location_only = opts.location_only or false
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+    local get_func = opts.get_func or function(a) return a end
+
+    local parser, err = vim.treesitter.get_parser(buf, "markdown_inline")
+    if parser == nil or err ~= nil then
+        vim.notify("Mdn: Error with treesitter 'markdown_inline' parser: " .. err, vim.log.levels.INFO)
+        return
+    end
+
+    local node_data = {}
+    local process_node_func = require('mdnotes.treesitter')[metype]
+    local function get_node_data_tbl(node)
+        local processed_node = process_node_func(node, buf, location_only) or {lnum = 0}
+        if processed_node.lnum >= startl and processed_node.lnum <= endl then
+            local _processed_node = get_func(processed_node)
+            if no_duplicates == true then
+                if is_parsed_tbl_duplicate(node_data, _processed_node) == false then
+                    table.insert(node_data, _processed_node)
+                end
+            else
+                table.insert(node_data, _processed_node)
+            end
+        end
+        for child in node:iter_children() do
+            get_node_data_tbl(child)
+        end
+    end
+
+    local tree = parser:parse()[1]
+    local node = tree:root()
+
+    get_node_data_tbl(node)
+
+    if node_data == nil then
+        return nil
+    end
+
+    return node_data
 end
 
 ---@param items table Items to show

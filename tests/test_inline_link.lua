@@ -386,15 +386,23 @@ T['validate()'] = function()
     eq(ret, {true})
 end
 
-T['parse_lines()'] = function()
+T['parse_lines()'] = new_set({
+    parametrize = {
+        { 'parse_lines_re' },
+        { 'parse_lines_ts' }
+    }
+})
+
+T['parse_lines()']['imp'] = function(func)
     local lines = {
         "# Heading",
         "",
         "[test](link)",
+        "[test](link)",
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return Mdn.inline_link.parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.inline_link.]] .. func .. [[({ location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -409,17 +417,15 @@ T['parse_lines()'] = function()
             raw = "[test](link)"
         }
     })
-    ret = child.lua([[return Mdn.inline_link.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    ret = child.lua([[return Mdn.inline_link.]] .. func .. [[({ str = true, location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
     eq(ret, {"[test](link)"})
 
-    ret = child.lua([[return Mdn.inline_link.parse_lines({ location_only = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    ret = child.lua([[return Mdn.inline_link.]] .. func .. [[({ location_only = true, location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
     eq(ret, {
         {
-            {
-                col_end = 13,
-                col_start = 1,
-                lnum = 3
-            }
+            col_end = 13,
+            col_start = 1,
+            lnum = 3
         }
     })
 end
