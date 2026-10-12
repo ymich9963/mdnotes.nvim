@@ -23,7 +23,7 @@ function M.parse(opts)
     end
 end
 
----Parse using patterns
+---Parse using Lua patterns
 ---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
 ---@return MdnInlineLinkData?
 function M.parse_re(opts)

@@ -24,20 +24,32 @@ M.fcounter = 1
 ---@param opts {footnote_reference: string?, location: MdnInLineLocation?}?
 ---@return MdnFootnoteReferenceData?
 function M.parse(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_ts(opts)
+    end
+end
+
+---Parse using Lua patterns
+---@param opts {footnote_reference: string?, location: MdnInLineLocation?}?
+---@return MdnFootnoteReferenceData?
+function M.parse_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local fref = opts.footnote_reference
 
-    vim.validate("footnote_reference", fref, { "string", "nil" })
+    vim.validate("footnote_reference", fref, "string", true)
 
-    local check_markdown_syntax = require('mdnotes').check_markdown_syntax
+    local check_markdown_syntax_re = require('mdnotes').check_markdown_syntax_re
     local fref_pattern = require("mdnotes.patterns").footnote_reference
     local f_pattern = require("mdnotes.patterns").footnote
     local txtdata = {}
 
     if fref == nil then
-        if not check_markdown_syntax(fref_pattern, { location = opts.location }) then return nil end
+        if not check_markdown_syntax_re(fref_pattern, { location = opts.location }) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(fref_pattern, { location = opts.location })
         fref = txtdata.raw or ""
 
@@ -52,6 +64,59 @@ function M.parse(opts)
     return vim.tbl_extend("force", {
         identifier = identifier,
     }, txtdata)
+end
+
+---Parse using treesitter
+---@param opts {footnote_reference: string?, location: MdnInLineLocation?}?
+---@return MdnFootnoteReferenceData?
+function M.parse_ts(opts)
+    opts = opts or {}
+
+    local fref = opts.footnote_reference
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local lnum = locopts.lnum or vim.fn.line('.')
+    local col_start = locopts.col_start or vim.fn.col('.')
+    local col_end = locopts.col_end or vim.fn.col('.')
+    local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
+
+    vim.validate("footnote_reference", fref, { "string", "nil" })
+
+    local node, source
+    if opts.location ~= nil or fref == nil then
+        node = vim.treesitter.get_node({
+            bufnr = buf,
+            ignore_injections = false,
+            pos = {lnum - 1, col_start - 1}
+        })
+        source = buf
+    else
+        local parser = vim.treesitter.get_string_parser(fref, "markdown_inline")
+        local tree = parser:parse()[1]
+        node = tree:root():child(0)
+        source = fref
+    end
+
+    local node_data
+    local process_node = require('mdnotes.treesitter')["footnote_reference"] or function() return {} end
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, source, false)
+            if node_data == nil then
+                get_node_data(_node:parent())
+            end
+        end
+    end
+
+    get_node_data(node)
+
+    if node_data == nil then
+        return nil
+    end
+
+    node_data.cur_col = cur_col
+
+    return node_data
 end
 
 ---Get the footnotes of the specified buffer
@@ -357,10 +422,10 @@ end
 
 ---Get a footnote reference string from an MdnFootnoteReferenceData object
 ---@param fndata MdnFootnoteReferenceData? Footnote reference object
----@return string fref
+---@return string? fref
 function M.get_fref_from_obj(fndata)
     vim.validate("fndata", fndata, "table", true)
-    if fndata == nil then return "" end
+    if fndata == nil then return nil end
     return '[^' .. fndata.identifier .. ']'
 end
 
@@ -368,19 +433,50 @@ end
 ---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
 ---@return table<MdnFootnoteReferenceData>?
 function M.parse_lines(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_lines_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_lines_ts(opts)
+    end
+end
+
+---Parse the footnote references in the specified lines using Lua patterns
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@return table<MdnFootnoteReferenceData>?
+function M.parse_lines_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
     local pattern = require('mdnotes.patterns').footnote_reference
-    local parse_lines = require('mdnotes').parse_lines
+    local parse_lines_re = require('mdnotes').parse_lines_re
 
     local get_func = nil
     if str == true then
         get_func = M.get_fref_from_obj
     end
 
-    return parse_lines(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines_re(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
+end
+
+---Parse the footnote references in the specified lines using treesitter
+---@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@return table<MdnFootnoteReferenceData>?
+function M.parse_lines_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local str = opts.str or false
+    local parse_lines_ts = require('mdnotes').parse_lines_ts
+
+    local get_func = nil
+    if str == true then
+        get_func = M.get_fref_from_obj
+    end
+    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
+
+    return parse_lines_ts("footnote_reference", _opts)
 end
 
 ---Find references of the same footnote identifier

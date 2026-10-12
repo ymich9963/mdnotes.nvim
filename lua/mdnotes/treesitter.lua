@@ -58,12 +58,25 @@ end
 ---@param s string|integer Buffer or string from which the node is extracted
 ---@return boolean
 local function is_fref(n, s)
-    local text = vim.treesitter.get_node_text(n, s)
-    if text:sub(2,2) == "^" then
-        return true
-    else
-        return false
+    local isfref = false
+    local ntext = vim.treesitter.get_node_text(n, s)
+    if ntext:sub(2,2) == "^" then
+        isfref = true
     end
+
+    local text = ""
+    local row_start, col_start, _, col_end = n:range()
+    if type(s) == "string" then
+        text = s
+    elseif type(s) == "number" then
+        text = vim.api.nvim_buf_get_lines(s, row_start, row_start + 1, false)[1]
+    end
+
+    if col_start == 0 and text:sub(col_end + 1, col_end + 1) == ":" then
+        isfref = false
+    end
+
+    return isfref
 end
 
 ---@param n TSNode
@@ -98,6 +111,31 @@ local function get_il_data(n, s)
         destination = destination,
         title = title,
         img_char = img_char,
+        lnum = row_start + 1,
+        col_start = col_start + 1,
+        col_end = col_end + 1,
+    }
+end
+
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnFootnoteReferenceData
+local function get_fref_data(n, s)
+    local raw = vim.treesitter.get_node_text(n, s)
+    local row_start, col_start, _, col_end = n:range()
+
+    local identifier = ""
+    for child in n:iter_children() do
+        local type = child:type()
+        if type == "link_text" then
+            identifier = vim.treesitter.get_node_text(child, s)
+            identifier = identifier:sub(2, -1) -- remove ^ characte
+        end
+    end
+
+    return {
+        raw = raw,
+        identifier = identifier,
         lnum = row_start + 1,
         col_start = col_start + 1,
         col_end = col_end + 1,
@@ -142,7 +180,7 @@ M = {
         return process_node(node, source, {"collapsed_reference_link", "full_reference_link"}, get_il_data, location_only)
     end,
     footnote_reference = function(node, source, location_only)
-        return process_node(node, source, {"shortcut_link"}, get_il_data, location_only, is_fref)
+        return process_node(node, source, {"shortcut_link"}, get_fref_data, location_only, is_fref)
     end,
 }
 

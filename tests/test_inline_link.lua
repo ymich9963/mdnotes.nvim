@@ -24,12 +24,12 @@ local T = new_set({
 
 T['parse()'] = new_set({
     parametrize = {
-        { 'parse_re' },
-        { 'parse_ts' }
+        { '_re' },
+        { '_ts' }
     }
 })
 
-T['parse()']['impl'] = function(func)
+T['parse()']['impl'] = function(suffix)
     -- Setup test buffer
     local lines = {
         "[file1](tests/test-data/files/file1.md) [file2](tests/test-data/files/file2.md)",
@@ -45,7 +45,7 @@ T['parse()']['impl'] = function(func)
 
     -- File inline links
     child.fn.cursor(1,2)
-    local ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    local ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "",
         text = "file1",
@@ -60,7 +60,7 @@ T['parse()']['impl'] = function(func)
     })
 
     child.fn.cursor(1,42)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "",
         text = "file2",
@@ -76,7 +76,7 @@ T['parse()']['impl'] = function(func)
 
     -- File inline links with sections
     child.fn.cursor(2,2)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "",
         text = "file1",
@@ -91,7 +91,7 @@ T['parse()']['impl'] = function(func)
     })
 
     child.fn.cursor(2,60)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "",
         text = "file2",
@@ -107,7 +107,7 @@ T['parse()']['impl'] = function(func)
 
     -- Inline images
     child.fn.cursor(3,2)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "!",
         text = "image1",
@@ -122,7 +122,7 @@ T['parse()']['impl'] = function(func)
     })
 
     child.fn.cursor(3,60)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "!",
         text = "image2",
@@ -137,7 +137,7 @@ T['parse()']['impl'] = function(func)
     })
 
     child.fn.cursor(4,2)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "",
         text = "url1",
@@ -152,7 +152,7 @@ T['parse()']['impl'] = function(func)
     })
 
     child.fn.cursor(4,60)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "",
         text = "url2",
@@ -168,7 +168,7 @@ T['parse()']['impl'] = function(func)
 
     -- Same file section
     child.fn.cursor(5,2)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "",
         text = "section",
@@ -183,7 +183,7 @@ T['parse()']['impl'] = function(func)
     })
 
     child.fn.cursor(6,2)
-    ret = child.lua([[ return Mdn.inline_link.]] .. func .. [[() ]])
+    ret = child.lua([[ return Mdn.inline_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         img_char = "",
         text = "section",
@@ -388,12 +388,12 @@ end
 
 T['parse_lines()'] = new_set({
     parametrize = {
-        { 'parse_lines_re' },
-        { 'parse_lines_ts' }
+        { '_re' },
+        { '_ts' }
     }
 })
 
-T['parse_lines()']['imp'] = function(func)
+T['parse_lines()']['imp'] = function(suffix)
     local lines = {
         "# Heading",
         "",
@@ -402,7 +402,7 @@ T['parse_lines()']['imp'] = function(func)
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return Mdn.inline_link.]] .. func .. [[({ location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.inline_link.parse_lines]] .. suffix .. [[({ location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -417,10 +417,10 @@ T['parse_lines()']['imp'] = function(func)
             raw = "[test](link)"
         }
     })
-    ret = child.lua([[return Mdn.inline_link.]] .. func .. [[({ str = true, location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
+    ret = child.lua([[return Mdn.inline_link.parse_lines]] .. suffix .. [[({ str = true, location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
     eq(ret, {"[test](link)"})
 
-    ret = child.lua([[return Mdn.inline_link.]] .. func .. [[({ location_only = true, location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
+    ret = child.lua([[return Mdn.inline_link.parse_lines]] .. suffix .. [[({ location_only = true, location = {startl = 1, endl = vim.fn.line("$") - 1 }, silent = true }) ]])
     eq(ret, {
         {
             col_end = 13,
