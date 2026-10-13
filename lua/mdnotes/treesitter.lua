@@ -129,13 +129,28 @@ local function get_fref_data(n, s)
         local type = child:type()
         if type == "link_text" then
             identifier = vim.treesitter.get_node_text(child, s)
-            identifier = identifier:sub(2, -1) -- remove ^ characte
+            identifier = identifier:sub(2, -1) -- remove ^ character
         end
     end
 
     return {
         raw = raw,
         identifier = identifier,
+        lnum = row_start + 1,
+        col_start = col_start + 1,
+        col_end = col_end + 1,
+    }
+end
+
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnInLineLocation
+local function get_fi_data(n, s)
+    local raw = vim.treesitter.get_node_text(n, s)
+    local row_start, col_start, _, col_end = n:range()
+
+    return {
+        raw = raw,
         lnum = row_start + 1,
         col_start = col_start + 1,
         col_end = col_end + 1,
@@ -162,19 +177,19 @@ M = {
         return process_node(node, source, {"inline_link", "image"}, get_il_data, location_only)
     end,
     strong = function(node, source, location_only)
-        return process_node(node, source, {"strong_emphasis"}, get_il_data, location_only)
+        return process_node(node, source, {"strong_emphasis"}, get_fi_data, location_only)
     end,
     emphasis = function(node, source, location_only)
-        return process_node(node, source, {"emphasis"}, get_il_data, location_only)
+        return process_node(node, source, {"emphasis"}, get_fi_data, location_only)
     end,
     strikethrough = function(node, source, location_only)
-        return process_node(node, source, {"strikethrough"}, get_il_data, location_only)
+        return process_node(node, source, {"strikethrough"}, get_fi_data, location_only)
     end,
     inline_code = function(node, source, location_only)
-        return process_node(node, source, {"code_span"}, get_il_data, location_only)
+        return process_node(node, source, {"code_span"}, get_fi_data, location_only)
     end,
     autolink = function(node, source, location_only)
-        return process_node(node, source, {"uri_autolink"}, get_il_data, location_only)
+        return process_node(node, source, {"uri_autolink"}, get_fi_data, location_only)
     end,
     reference_link = function(node, source, location_only)
         return process_node(node, source, {"collapsed_reference_link", "full_reference_link"}, get_il_data, location_only)

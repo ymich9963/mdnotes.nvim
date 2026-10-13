@@ -258,7 +258,7 @@ T['get_text_in_pattern()'] = function()
         col_start = 1,
         col_end = 8,
         cur_col = 1,
-        raw = "test1",
+        raw = "*test1*",
     })
 end
 

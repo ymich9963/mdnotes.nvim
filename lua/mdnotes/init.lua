@@ -407,16 +407,16 @@ function M.check_markdown_syntax_re(pattern, opts)
 end
 
 ---Check Markdown syntax using treesitter
----@param node_type string Treesitter node type to check for
+---@param metype MdnMeType Markdown element type
 ---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
 ---@return boolean valid, table<table?> cols_tbl
-function M.check_markdown_syntax_ts(node_type, opts)
-    vim.validate("node_type", node_type, "string")
+function M.check_markdown_syntax_ts(metype, opts)
+    vim.validate("node_type", metype, "string")
     vim.validate("opts", opts, "table", true)
 
     opts = opts or {}
 
-    local process_node = require('mdnotes.treesitter')[node_type]
+    local process_node = require('mdnotes.treesitter')[metype]
     if process_node == nil then
         return false, {}
     end
@@ -440,6 +440,12 @@ function M.check_markdown_syntax_ts(node_type, opts)
         end
 
         local pos_tbl = process_node(node:parent(), buf, true)
+
+        -- Try again with not the parent node
+        if pos_tbl == nil then
+            pos_tbl = process_node(node, buf, true)
+        end
+
         if pos_tbl == nil then
             return false, {}
         end
@@ -1177,7 +1183,7 @@ function M.parse_lines_re(pattern, parse_func, opts)
             table.insert(scan_tbl, pos_tbl)
         end
     end
-    scan_tbl = vim.iter(scan_tbl):flatten():totable()
+    scan_tbl = vim.iter(scan_tbl):flatten():totable() ---@diagnostic disable-line
 
     if vim.tbl_isempty(scan_tbl) then
         return nil

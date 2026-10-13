@@ -23,6 +23,24 @@ local T = new_set({
     },
 })
 
+T['delete_format()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['delete_format()']['impl'] = function(suffix)
+    local lines = {"emphasis *emphasis*"}
+    local buf = create_md_buffer(child, lines)
+
+    child.fn.cursor(1, 12)
+    child.lua([[Mdn.formatting.delete_format]] .. suffix .. [[("emphasis")]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines[1], "emphasis emphasis")
+    eq(child.fn.getcurpos()[3], 11)
+end
+
 T['emphasis'] = function()
     -- Setup test buffer
     local lines = {"emphasis emphasis"}
@@ -90,21 +108,21 @@ T['strikethrough'] = function()
     -- Check toggling and cursor pos
     child.lua([[Mdn.formatting.strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "~~strikethrough~~ strikethrough")
-    eq(child.fn.getcurpos()[3], 3)
+    eq(lines[1], "~strikethrough~ strikethrough")
+    eq(child.fn.getcurpos()[3], 2)
 
     child.fn.cursor(1, 21)
     child.lua([[Mdn.formatting.strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "~~strikethrough~~ ~~strikethrough~~")
-    eq(child.fn.getcurpos()[3], 23)
+    eq(lines[1], "~strikethrough~ ~strikethrough~")
+    eq(child.fn.getcurpos()[3], 22)
 
     child.lua([[Mdn.formatting.strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "~~strikethrough~~ strikethrough")
+    eq(lines[1], "~strikethrough~ strikethrough")
     eq(child.fn.getcurpos()[3], 21)
 
-    child.fn.cursor(1, 3)
+    child.fn.cursor(1, 2)
     child.lua([[Mdn.formatting.strikethrough_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "strikethrough strikethrough")
@@ -142,30 +160,30 @@ end
 
 T['autolink'] = function()
     -- Setup test buffer
-    local lines = {"autolink autolink"}
+    local lines = {"https://autolink.com https://autolink.com"}
     local buf = create_md_buffer(child, lines)
 
     -- Check toggling and cursor pos
     child.lua([[Mdn.formatting.autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "<autolink> autolink")
+    eq(lines[1], "<https://autolink.com> https://autolink.com")
     eq(child.fn.getcurpos()[3], 2)
 
-    child.fn.cursor(1, 12)
+    child.fn.cursor(1, 24)
     child.lua([[Mdn.formatting.autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "<autolink> <autolink>")
-    eq(child.fn.getcurpos()[3], 13)
+    eq(lines[1], "<https://autolink.com> <https://autolink.com>")
+    eq(child.fn.getcurpos()[3], 25)
 
     child.lua([[Mdn.formatting.autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "<autolink> autolink")
-    eq(child.fn.getcurpos()[3], 12)
+    eq(lines[1], "<https://autolink.com> https://autolink.com")
+    eq(child.fn.getcurpos()[3], 24)
 
     child.fn.cursor(1, 2)
     child.lua([[Mdn.formatting.autolink_toggle()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[1], "autolink autolink")
+    eq(lines[1], "https://autolink.com https://autolink.com")
     eq(child.fn.getcurpos()[3], 1)
 end
 
