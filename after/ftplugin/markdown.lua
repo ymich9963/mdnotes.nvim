@@ -5,7 +5,7 @@ local mdnotes = function() return require("mdnotes") end
 ---Auto-list keymaps
 if mdnotes().config.auto_list_continuation == true then
     vim.keymap.set("i", "<CR>", function ()
-        return mdnotes().new_line_remap("<CR>")
+        return mdnotes().new_line_remap("<CR>", 1)
     end,
     {
         expr = true,
@@ -14,7 +14,7 @@ if mdnotes().config.auto_list_continuation == true then
     })
 
     vim.keymap.set("n", "o", function ()
-        mdnotes().new_line_remap("o")
+        mdnotes().new_line_remap("o", 1)
     end,
     {
         desc = "Mdnotes 'o' remap for auto-lists",
@@ -22,7 +22,7 @@ if mdnotes().config.auto_list_continuation == true then
     })
 
     vim.keymap.set("n", "O", function ()
-        mdnotes().new_line_remap("O")
+        mdnotes().new_line_remap("O", -1)
     end,
     {
         desc = "Mdnotes 'O' remap for auto-lists",

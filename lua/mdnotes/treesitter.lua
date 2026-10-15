@@ -157,6 +157,43 @@ local function get_fi_data(n, s)
     }
 end
 
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnInLineLocation
+local function get_list_item_data(n, s)
+    local indent, marker, separator, text, list_type, task_state = "", "", "", "", "", ""
+    for child in n:iter_children() do
+        local type = child:type()
+        if type == "list_marker_plus"
+            or type == "list_marker_minus"
+            or type == "list_marker_star" then
+            marker = vim.treesitter.get_node_text(child, s):sub(-2, -2)
+            list_type = "unordered"
+        end
+        if type == "list_marker_dot"
+            or type == "list_marker_parenthesis" then
+            separator = vim.treesitter.get_node_text(child, s):sub(-2, -2)
+            marker = vim.treesitter.get_node_text(child, s):sub(1, -3)
+            list_type = "ordered"
+        end
+        if type == "paragraph" then
+            text = vim.treesitter.get_node_text(child, s)
+        end
+        if type == "task_list_marker_checked" or type == "task_list_marker_unchecked" then
+            task_state = vim.treesitter.get_node_text(child, s)
+        end
+    end
+
+    return {
+        indent = indent,
+        marker = marker,
+        separator = separator,
+        text = text,
+        type = list_type,
+        task_state = task_state
+    }
+end
+
 ---@alias MdnTSNodeFunc (fun(node: TSNode, source: string|integer, location_only: boolean): table?)?
 
 ---@class MdnTSNodeType
@@ -196,6 +233,9 @@ M = {
     end,
     footnote_reference = function(node, source, location_only)
         return process_node(node, source, {"shortcut_link"}, get_fref_data, location_only, is_fref)
+    end,
+    list_item = function(node, source, location_only)
+        return process_node(node, source, {"list_item"}, get_list_item_data, location_only)
     end,
 }
 

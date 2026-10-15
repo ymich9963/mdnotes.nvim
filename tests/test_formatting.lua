@@ -187,6 +187,131 @@ T['autolink'] = function()
     eq(child.fn.getcurpos()[3], 1)
 end
 
+T['parse_list_item()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['parse_list_item()']['impl'] = function(suffix)
+    local lines = {
+        "- item",
+        "- [ ] item",
+        "- [x] item",
+        "1. item",
+        "2. [ ] item",
+        "3. [x] item",
+    }
+    create_md_buffer(child, lines)
+
+    local ret = child.lua([[
+    local line = vim.api.nvim_buf_get_lines(0, 0, -1, false)[1]
+    return Mdn.formatting.parse_list_item]] .. suffix .. [[(line)
+    ]])
+    eq(ret, {
+        indent = "",
+        marker = "-",
+        separator = "",
+        text = "item",
+        type = "unordered",
+        task_state = ""
+    })
+
+    ret = child.lua([[
+    local line = vim.api.nvim_buf_get_lines(0, 0, -1, false)[2]
+    return Mdn.formatting.parse_list_item]] .. suffix .. [[(line)
+    ]])
+    eq(ret, {
+        indent = "",
+        marker = "-",
+        separator = "",
+        text = "item",
+        type = "unordered",
+        task_state = "[ ]"
+    })
+
+    ret = child.lua([[
+    local line = vim.api.nvim_buf_get_lines(0, 0, -1, false)[3]
+    return Mdn.formatting.parse_list_item]] .. suffix .. [[(line)
+    ]])
+    eq(ret, {
+        indent = "",
+        marker = "-",
+        separator = "",
+        text = "item",
+        type = "unordered",
+        task_state = "[x]"
+    })
+
+    ret = child.lua([[
+    local line = vim.api.nvim_buf_get_lines(0, 0, -1, false)[4]
+    return Mdn.formatting.parse_list_item]] .. suffix .. [[(line)
+    ]])
+    eq(ret, {
+        indent = "",
+        marker = "1",
+        separator = ".",
+        text = "item",
+        type = "ordered",
+        task_state = ""
+    })
+
+    ret = child.lua([[
+    local line = vim.api.nvim_buf_get_lines(0, 0, -1, false)[5]
+    return Mdn.formatting.parse_list_item]] .. suffix .. [[(line)
+    ]])
+    eq(ret, {
+        indent = "",
+        marker = "2",
+        separator = ".",
+        text = "item",
+        type = "ordered",
+        task_state = "[ ]"
+    })
+
+    ret = child.lua([[
+    local line = vim.api.nvim_buf_get_lines(0, 0, -1, false)[6]
+    return Mdn.formatting.parse_list_item]] .. suffix .. [[(line)
+    ]])
+    eq(ret, {
+        indent = "",
+        marker = "3",
+        separator = ".",
+        text = "item",
+        type = "ordered",
+        task_state = "[x]"
+    })
+end
+
+T['get_list_item_string()'] = function()
+    local ret = child.lua([[
+    local ldata = {
+        indent = "",
+        marker = "1",
+        separator = ".",
+        text = "item",
+        type = "ordered",
+        task_state = "[x]"
+    }
+    return Mdn.formatting.get_list_item_string(ldata)
+    ]])
+    eq(ret, "1. [x] item")
+
+    ret = child.lua([[
+    local ldata = {
+        indent = "",
+        marker = "1",
+        separator = ".",
+        text = "item",
+        type = "ordered",
+        task_state = ""
+    }
+    return Mdn.formatting.get_list_item_string(ldata)
+    ]])
+    eq(ret, "1. item")
+end
+
 T['unordered_list'] = function()
     for _, ul_indicator in ipairs(helpers.unordered_list_indicators) do
         local lines = {ul_indicator .. " item"}
@@ -196,8 +321,7 @@ T['unordered_list'] = function()
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {ul_indicator .. " item", ul_indicator .. " "})
 
-        local key = child.lua([[return Mdn.new_line_remap('<CR>')]])
-        child.api.nvim_input(key)
+        child.lua([[return Mdn.new_line_remap('<CR>')]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {ul_indicator .. " item", ""})
         child.api.nvim_input("<ESC>")
@@ -216,15 +340,14 @@ T['ordered_list'] = function()
         local lines = {"1" .. ol_indicator .. " item"}
         local buf = create_md_buffer(child, lines)
 
-        child.lua([[Mdn.new_line_remap('o', false)]])
+        child.lua([[Mdn.new_line_remap('o', 1)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " item",
             "2" .. ol_indicator .. " "
         })
 
-        local key = child.lua([[return Mdn.new_line_remap('<CR>')]])
-        child.api.nvim_input(key)
+        child.lua([[return Mdn.new_line_remap('<CR>', 1)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " item",
@@ -233,7 +356,7 @@ T['ordered_list'] = function()
         child.api.nvim_input("<ESC>")
 
         child.api.nvim_input("kk")
-        child.lua([[Mdn.new_line_remap('O', false)]])
+        child.lua([[Mdn.new_line_remap('O', -1)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "0" .. ol_indicator .. " ",

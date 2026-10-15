@@ -20,7 +20,7 @@ local M = {}
 ---@field separator string List item separator, only in ordered lists
 ---@field text string List item text
 ---@field type '"ordered"'|'"unordered"'
----@field is_task boolean Is the list element a task
+---@field task_state string Task state string
 
 local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
 
@@ -45,8 +45,6 @@ M.format_delimiters = {
     autolink = {ldel = "<", rdel = ">"},
     wikilink = {ldel = "[[", rdel = "]]"},
 }
-
---TODO: parse_list_item() needs ts version
 
 ---Insert a Markdown format
 ---@param fdtype MdnFormatDelimiterType Format delimeter type
@@ -227,10 +225,22 @@ function M.autolink_toggle(opts)
     M.toggle("autolink", opts)
 end
 
----Get a consistent table containing all data on a list item whether it is ordered or unordered
+---Get a consistent table containing all data on a list item
 ---@param line string Line containing list item
 ---@return MdnListItemData?
 function M.parse_list_item(line)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_list_item_re(line)
+    elseif parser == "treesitter" then
+        return M.parse_list_item_ts(line)
+    end
+end
+
+---Get a consistent table containing all data on a list item using Lua patterns
+---@param line string Line containing list item
+---@return MdnListItemData?
+function M.parse_list_item_re(line)
     vim.validate("line", line, "string")
 
     local mdnotes_patterns = require('mdnotes.patterns')
@@ -254,22 +264,69 @@ function M.parse_list_item(line)
         return nil
     end
 
-    local is_task = false
+    local task_state = ""
     if text:match(mdnotes_patterns.task) then
-        is_task = true
+        task_state = text:match(mdnotes_patterns.task)
+        text = text:sub(#task_state + 2, -1)
     end
 
-    -- TODO: have a task_state key here to store [ ] [x] and ""
-    -- this would make task_list_toggle a lot simpler since we can have a get_list_item(MdnListItemData) function
-    -- to get the string
     return {
         indent = indent,
         marker = marker,
         separator = separator,
         text = text,
         type = type,
-        is_task = is_task
+        task_state = task_state
     }
+end
+
+---Get a consistent table containing all data on a list item using treesitter
+---@param line string Line containing list item
+---@return MdnListItemData?
+function M.parse_list_item_ts(line)
+    vim.validate("line", line, "string")
+
+    local node_data
+    local process_node = require('mdnotes.treesitter')["list_item"] or function(...) return {} end ---@diagnostic disable-line
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, line, false)
+            if node_data == nil then
+                get_node_data(_node:child())
+            end
+        end
+    end
+
+    local parser = vim.treesitter.get_string_parser(line, "markdown")
+    local tree = parser:parse()[1]
+    local node = tree:root()
+    get_node_data(node)
+
+    if node_data == nil then
+        -- FIX: Traversing the tree as usual gives error when there is no text in the list item e.g. "1) "
+        -- but this is a valid node since it appears in InspectTree. Therefore have a fallback here with
+        -- Lua patterns. I would like to remove this but unsure how
+        node_data = M.parse_list_item_re(line)
+        if node_data == nil then
+            return nil
+        end
+    end
+
+    node_data.cur_col = nil
+
+   return node_data
+end
+
+---@param ldata MdnListItemData?
+---@return string?
+function M.get_list_item_string(ldata)
+    if ldata == nil then return nil end
+
+    if ldata.task_state ~= "" then
+        return ldata.indent .. ldata.marker .. ldata.separator .. " " .. ldata.task_state .. " " .. ldata.text
+    else
+        return ldata.indent .. ldata.marker .. ldata.separator .. " " .. ldata.text
+    end
 end
 
 ---Toggle task list state
@@ -280,7 +337,7 @@ function M.task_list_toggle(opts)
 
     local silent = opts.silent or false
     local locopts = opts.location or {}
-    local buf = locopts.buf or 0
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
 
@@ -290,50 +347,41 @@ function M.task_list_toggle(opts)
     vim.validate("startl", startl, "number")
     vim.validate("endl", endl, "number")
 
-    local mdnotes_patterns = require('mdnotes.patterns')
     local new_lines = {}
-    local new_text = ""
     local lines = vim.api.nvim_buf_get_lines(buf, startl - 1, endl, false)
 
     local cur_col = vim.fn.col('.')
     for i, line in ipairs(lines) do
-        local lcontent = M.parse_list_item(line) or {}
-        local marker, separator, text = lcontent.marker, lcontent.separator, lcontent.text
+        local ldata = M.parse_list_item(line) or {}
 
-        if marker then
-            marker = marker .. separator
-
-            -- In the case where e.g. 1. or 1) then the . or ) need to be escaped
-            if #marker == 2 then
-                marker = marker:sub(1,1) .. "%" .. marker:sub(2,2)
-            end
-
-            local task_marker, _ = text:match(mdnotes_patterns.task)
-            if task_marker == "[x]" then
-                new_text, _ = line:gsub(mdnotes_patterns.task, " ", 1)
+        if ldata.marker then
+            if ldata.task_state == "[x]" then
+                ldata.task_state = ""
                 cur_col = cur_col - 4
-            elseif task_marker == "[ ]" then
-                new_text, _ = line:gsub(mdnotes_patterns.task, " [x] ", 1)
-            elseif task_marker == nil then
-                new_text = line:gsub(marker, marker .. " [ ]", 1)
+            elseif ldata.task_state == "[ ]" then
+                ldata.task_state = "[x]"
+            elseif ldata.task_state == "" then
+                ldata.task_state = "[ ]"
                 cur_col = cur_col + 4
             end
-            table.insert(new_lines, new_text)
+
+            table.insert(new_lines, M.get_list_item_string(ldata))
         else
             if silent == false then
                 vim.notify("Mdn: Unable to detect a list or task list marker at line ".. tostring(startl - 1 + i), vim.log.levels.ERROR)
             end
+
             return
         end
     end
+
+    vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, new_lines)
 
     if cur_col < 1 then cur_col = 1 end
 
     if #lines == 1 then
         vim.fn.cursor(startl, cur_col)
     end
-
-    vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, new_lines)
 end
 
 ---Check if the list surrounding the origin line is valid and return its line numbers
