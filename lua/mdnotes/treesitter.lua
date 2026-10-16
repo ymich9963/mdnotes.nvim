@@ -161,7 +161,7 @@ end
 ---@param s string|integer Buffer or string from which the node is extracted
 ---@return MdnInLineLocation
 local function get_list_item_data(n, s)
-    local indent, marker, separator, text, list_type, task_state = "", "", "", "", "", ""
+    local marker, separator, text, list_type, task_state = "", "", "", "", ""
     for child in n:iter_children() do
         local type = child:type()
         if type == "list_marker_plus"

@@ -303,16 +303,17 @@ function M.parse_list_item_ts(line)
     get_node_data(node)
 
     if node_data == nil then
-        -- INFO: Traversing the tree as usual gives error when there is no text in the list item e.g. "1) "
-        -- but this is a valid node since it appears in InspectTree. Therefore have a fallback here which
-        -- appends a character for it to be a valid node and call the function again.
-        node_data = M.parse_list_item_ts(line .. "a")
+        -- BUG: Traversing the tree as usual gives error when there is no text in the list item e.g. "1) "
+        -- or when the list item is indented. This is a valid node since it appears in InspectTree.
+        -- Therefore have a fallback here which uses the Lua patterns implementation.
+        node_data = M.parse_list_item_re(line)
         if node_data == nil then
-            return nil
+            return
         end
-        node_data.text = ""
     end
 
+    local indent = line:match("^(%s+).+")
+    node_data.indent = indent or ""
     node_data.cur_col = nil
 
    return node_data
@@ -442,6 +443,7 @@ function M.check_list_valid(opts)
     for i = origin_lnum, lower_limit_lnum, -1 do
         local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         if cur_line == "" then break end
+        vim.print(cur_line)
         lcontent = M.parse_list_item(cur_line)
         if lcontent == nil then break end
         if same_marker == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
@@ -489,7 +491,9 @@ end
 ---@param opts {silent: boolean?, search: MdnSearchOpts}?
 function M.ordered_list_renumber(opts)
     vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
+
     local silent = opts.silent or false
     local search_opts = opts.search or {}
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
@@ -506,15 +510,15 @@ function M.ordered_list_renumber(opts)
     end
 
     local line = vim.api.nvim_buf_get_lines(buf, origin_lnum - 1, origin_lnum, false)[1]
-    local lcontent = M.parse_list_item(line)
-    if lcontent == nil then
+    local ldata = M.parse_list_item(line)
+    if ldata == nil then
         if silent == false then
             vim.notify("Mdn: Unable to detect a valid list", vim.log.levels.ERROR)
         end
         return
     end
 
-    if lcontent.type == "unordered" then
+    if ldata.type == "unordered" then
         if silent == false then
             vim.notify("Mdn: Cannot reorder an unordered list", vim.log.levels.ERROR)
         end
@@ -527,15 +531,16 @@ function M.ordered_list_renumber(opts)
     local new_list_lines = {}
     local cur_number = 1
     for _, v in ipairs(list_lines) do
-        lcontent = M.parse_list_item(v)
-        if lcontent == nil then break end
-        if lcontent.type == "ordered" then
-            if tonumber(lcontent.marker) ~= cur_number then
-                lcontent.marker = tostring(cur_number)
+        vim.print(v)
+        ldata = M.parse_list_item(v)
+        if ldata == nil then break end
+        if ldata.type == "ordered" then
+            if tonumber(ldata.marker) ~= cur_number then
+                ldata.marker = tostring(cur_number)
             end
             cur_number = cur_number + 1
         end
-        table.insert(new_list_lines, lcontent.indent .. lcontent.marker .. lcontent.separator .. " " .. lcontent.text)
+        table.insert(new_list_lines, M.get_list_item_string(ldata))
     end
 
     vim.api.nvim_buf_set_lines(buf, lsearch.startl - 1, lsearch.endl, false, new_list_lines)

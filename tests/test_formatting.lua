@@ -425,7 +425,7 @@ T['task_list'] = function()
         })
 
         child.lua([[Mdn.formatting.task_list_toggle()]])
-        child.lua([[Mdn.new_line_remap('o', false)]])
+        child.lua([[Mdn.new_line_remap('o', 1)]])
         lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
         eq(lines, {
             "1" .. ol_indicator .. " [ ] item",
