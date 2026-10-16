@@ -303,13 +303,14 @@ function M.parse_list_item_ts(line)
     get_node_data(node)
 
     if node_data == nil then
-        -- FIX: Traversing the tree as usual gives error when there is no text in the list item e.g. "1) "
-        -- but this is a valid node since it appears in InspectTree. Therefore have a fallback here with
-        -- Lua patterns. I would like to remove this but unsure how
-        node_data = M.parse_list_item_re(line)
+        -- INFO: Traversing the tree as usual gives error when there is no text in the list item e.g. "1) "
+        -- but this is a valid node since it appears in InspectTree. Therefore have a fallback here which
+        -- appends a character for it to be a valid node and call the function again.
+        node_data = M.parse_list_item_ts(line .. "a")
         if node_data == nil then
             return nil
         end
+        node_data.text = ""
     end
 
     node_data.cur_col = nil
