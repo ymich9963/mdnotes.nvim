@@ -23,6 +23,18 @@ M.buf_reference_link_definitions = {}
 ---@param opts {reference_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
 ---@return MdnReferenceLinkData?
 function M.parse(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_ts(opts)
+    end
+end
+
+---Get the reference link data such as the link text, link label, and the start and end columns using Lua patterns
+---@param opts {reference_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
+---@return MdnReferenceLinkData?
+function M.parse_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -32,12 +44,12 @@ function M.parse(opts)
     vim.validate("reference_link", reference_link, "string", true)
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
 
-    local check_markdown_syntax = require('mdnotes').check_markdown_syntax
+    local check_markdown_syntax_re = require('mdnotes').check_markdown_syntax_re
     local rl_pattern = require("mdnotes.patterns").reference_link
     local txtdata = {}
 
     if reference_link == nil then
-        if not check_markdown_syntax(rl_pattern, { location = opts.location }) then return nil end
+        if not check_markdown_syntax_re(rl_pattern, { location = opts.location }) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(rl_pattern, { location = opts.location })
         reference_link = txtdata.raw or ""
     end
@@ -53,6 +65,61 @@ function M.parse(opts)
         text = text,
         label = label,
     }, txtdata)
+end
+
+---Get the reference link data such as the link text, link label, and the start and end columns using treesitter
+---@param opts {reference_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
+---@return MdnReferenceLinkData?
+function M.parse_ts(opts)
+    opts = opts or {}
+
+    local reference_link = opts.reference_link
+    local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local lnum = locopts.lnum or vim.fn.line('.')
+    local col_start = locopts.col_start or vim.fn.col('.')
+    local col_end = locopts.col_end or vim.fn.col('.')
+    local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
+
+    vim.validate("inline_link", reference_link, "string", true)
+    vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
+
+    local node, source
+    if opts.location ~= nil or reference_link == nil then
+        node = vim.treesitter.get_node({
+            bufnr = buf,
+            ignore_injections = false,
+            pos = {lnum - 1, col_start - 1}
+        })
+        source = buf
+    else
+        local parser = vim.treesitter.get_string_parser(reference_link, "markdown_inline")
+        local tree = parser:parse()[1]
+        node = tree:root():child(0)
+        source = reference_link
+    end
+
+    local node_data
+    local process_node = require('mdnotes.treesitter')["reference_link"] or function() return {} end
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, source, false)
+            if node_data == nil then
+                get_node_data(_node:parent())
+            end
+        end
+    end
+
+    get_node_data(node)
+
+    if node_data == nil then
+        return nil
+    end
+
+    node_data.cur_col = cur_col
+
+    return node_data
 end
 
 ---Get the reference link defintions for specified buffer
@@ -548,22 +615,54 @@ function M.convert_from_inline(opts)
 end
 
 ---Parse the reference links in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnReferenceLinkData>?
 function M.parse_lines(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_lines_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_lines_ts(opts)
+    end
+end
+
+---Parse the reference links in the specified lines using Lua patterns
+---@param opts MdnParseLinesOpts?
+---@return table<MdnReferenceLinkData>?
+function M.parse_lines_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
     local pattern = require('mdnotes.patterns').reference_link
-    local parse_lines = require('mdnotes').parse_lines
+    local parse_lines_re = require('mdnotes').parse_lines_re
 
     local get_func = nil
     if str == true then
         get_func = M.get_rl_from_obj
     end
+    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
 
-    return parse_lines(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines_re(pattern, M.parse_re, _opts)
+end
+
+---Parse the reference links in the specified lines using treesitter
+---@param opts MdnParseLinesOpts?
+---@return table<MdnReferenceLinkData>?
+function M.parse_lines_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local str = opts.str or false
+    local parse_lines_ts = require('mdnotes').parse_lines_ts
+
+    local get_func = nil
+    if str == true then
+        get_func = M.get_rl_from_obj
+    end
+    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
+
+    return parse_lines_ts("reference_link", _opts)
 end
 
 ---Find occurences of the same label in the reference link

@@ -145,7 +145,7 @@ end
 ---@param n TSNode
 ---@param s string|integer Buffer or string from which the node is extracted
 ---@return MdnInLineLocation
-local function get_fi_data(n, s)
+local function get_fd_data(n, s)
     local raw = vim.treesitter.get_node_text(n, s)
     local row_start, col_start, _, col_end = n:range()
 
@@ -185,12 +185,43 @@ local function get_list_item_data(n, s)
     end
 
     return {
-        indent = indent,
         marker = marker,
         separator = separator,
         text = text,
         type = list_type,
         task_state = task_state
+    }
+end
+
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnInlineLinkData
+local function get_rl_data(n, s)
+    local raw = vim.treesitter.get_node_text(n, s)
+    local row_start, col_start, _, col_end = n:range()
+
+    local text, label = "", ""
+    for child in n:iter_children() do
+        local type = child:type()
+        if type == "link_text" then
+            text = vim.treesitter.get_node_text(child, s)
+        end
+        if type == "link_label" then
+            label = vim.treesitter.get_node_text(child, s):sub(2,-2)
+        end
+    end
+
+    if label == "" then
+        label = text
+    end
+
+    return {
+        raw = raw,
+        text = text,
+        label = label,
+        lnum = row_start + 1,
+        col_start = col_start + 1,
+        col_end = col_end + 1,
     }
 end
 
@@ -214,22 +245,22 @@ M = {
         return process_node(node, source, {"inline_link", "image"}, get_il_data, location_only)
     end,
     strong = function(node, source, location_only)
-        return process_node(node, source, {"strong_emphasis"}, get_fi_data, location_only)
+        return process_node(node, source, {"strong_emphasis"}, get_fd_data, location_only)
     end,
     emphasis = function(node, source, location_only)
-        return process_node(node, source, {"emphasis"}, get_fi_data, location_only)
+        return process_node(node, source, {"emphasis"}, get_fd_data, location_only)
     end,
     strikethrough = function(node, source, location_only)
-        return process_node(node, source, {"strikethrough"}, get_fi_data, location_only)
+        return process_node(node, source, {"strikethrough"}, get_fd_data, location_only)
     end,
     inline_code = function(node, source, location_only)
-        return process_node(node, source, {"code_span"}, get_fi_data, location_only)
+        return process_node(node, source, {"code_span"}, get_fd_data, location_only)
     end,
     autolink = function(node, source, location_only)
-        return process_node(node, source, {"uri_autolink"}, get_fi_data, location_only)
+        return process_node(node, source, {"uri_autolink"}, get_fd_data, location_only)
     end,
     reference_link = function(node, source, location_only)
-        return process_node(node, source, {"collapsed_reference_link", "full_reference_link"}, get_il_data, location_only)
+        return process_node(node, source, {"collapsed_reference_link", "full_reference_link"}, get_rl_data, location_only)
     end,
     footnote_reference = function(node, source, location_only)
         return process_node(node, source, {"shortcut_link"}, get_fref_data, location_only, is_fref)

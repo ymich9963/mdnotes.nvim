@@ -42,6 +42,12 @@ local uv = vim.loop or vim.uv
 ---@class MdnText: MdnInLineLocation
 ---@field raw string? Raw text in the corresponding location
 
+---@class MdnParseLinesOpts
+---@field location MdnMultiLineLocation?
+---@field str boolean?
+---@field no_duplicates boolean?
+---@field location_only boolean?
+
 ---@type MdnConfig
 M.config = {}
 
@@ -1134,10 +1140,13 @@ local function is_parsed_tbl_duplicate(parsed_tbl, data)
     return false
 end
 
+---@class MdnParseLinesInitOpts: MdnParseLinesOpts
+---@field get_func fun(a): string?
+
 ---Parse the Markdown elements in the specified lines with Lua patterns
 ---@param pattern MdnPattern
 ---@param parse_func fun(...) Parse function --TODO: make a type
----@param opts {location: MdnMultiLineLocation?, no_duplicates: boolean?, location_only: boolean?, get_func: fun(a): string?}?
+---@param opts MdnParseLinesInitOpts
 ---@return table?
 function M.parse_lines_re(pattern, parse_func, opts)
     vim.validate("pattern", pattern, "string")
@@ -1188,7 +1197,8 @@ end
 
 ---Parse the Markdown elements in the specified lines with treesitter
 ---@param metype MdnTSNodeType Markdown node type
----@param opts {location: MdnMultiLineLocation?, no_duplicates: boolean?, location_only: boolean?, get_func: fun(a): string?}?
+---@param opts MdnParseLinesInitOpts
+---@return table?
 function M.parse_lines_ts(metype, opts)
     vim.validate("metype", metype, "string")
     vim.validate("opts", opts, "table", true)

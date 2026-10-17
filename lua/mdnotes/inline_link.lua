@@ -469,7 +469,7 @@ function M.picker(on_end, buf)
 end
 
 ---Parse the inline links in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?, location_only: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnInlineLinkData>?
 function M.parse_lines(opts)
     local parser = require('mdnotes').config.parser
@@ -481,7 +481,7 @@ function M.parse_lines(opts)
 end
 
 ---Parse the inline links in the specified lines using Lua patterns
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?, location_only: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnInlineLinkData>?
 function M.parse_lines_re(opts)
     vim.validate("opts", opts, "table", true)
@@ -501,7 +501,7 @@ function M.parse_lines_re(opts)
 end
 
 ---Parse the inline links in the specified lines using Lua patterns
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?, location_only: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnInlineLinkData>?
 function M.parse_lines_ts(opts)
     vim.validate("opts", opts, "table", true)

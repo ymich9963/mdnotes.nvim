@@ -430,7 +430,7 @@ function M.get_fref_from_obj(fndata)
 end
 
 ---Parse the footnote references in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnFootnoteReferenceData>?
 function M.parse_lines(opts)
     local parser = require('mdnotes').config.parser
@@ -442,7 +442,7 @@ function M.parse_lines(opts)
 end
 
 ---Parse the footnote references in the specified lines using Lua patterns
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnFootnoteReferenceData>?
 function M.parse_lines_re(opts)
     vim.validate("opts", opts, "table", true)
@@ -461,7 +461,7 @@ function M.parse_lines_re(opts)
 end
 
 ---Parse the footnote references in the specified lines using treesitter
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnFootnoteReferenceData>?
 function M.parse_lines_ts(opts)
     vim.validate("opts", opts, "table", true)
