@@ -76,6 +76,7 @@ end
 ---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
 ---@return MdnInlineLinkData?
 function M.parse_ts(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local inline_link = opts.inline_link

@@ -70,6 +70,7 @@ end
 ---@param opts {footnote_reference: string?, location: MdnInLineLocation?}?
 ---@return MdnFootnoteReferenceData?
 function M.parse_ts(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local fref = opts.footnote_reference
@@ -80,7 +81,7 @@ function M.parse_ts(opts)
     local col_end = locopts.col_end or vim.fn.col('.')
     local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
 
-    vim.validate("footnote_reference", fref, { "string", "nil" })
+    vim.validate("footnote_reference", fref, "string", true)
 
     local node, source
     if opts.location ~= nil or fref == nil then

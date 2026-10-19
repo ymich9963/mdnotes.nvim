@@ -225,6 +225,54 @@ local function get_rl_data(n, s)
     }
 end
 
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnInlineLinkData
+local function get_wl_data(n, s)
+    local row_start, col_start, _, col_end = n:range()
+
+    local text = ""
+    for child in n:iter_children() do
+        local type = child:type()
+        if type == "link_text" then
+            text = vim.treesitter.get_node_text(child, s)
+        end
+    end
+
+    if type(s) == "string" then
+        text = s
+    elseif type(s) == "number" then
+        text = vim.api.nvim_buf_get_lines(s, row_start, row_start + 1, false)[1]
+    end
+
+    local raw = text:sub(col_start, col_end + 1)
+
+    local fragment_start, _ = raw:find("#", 1, true)
+    local alias_start, _ = raw:find("|", 1, true)
+
+    local file = raw:sub(3, (fragment_start or -2) - 1)
+
+    local fragment = ""
+    if fragment_start ~= nil then
+        fragment = raw:sub(fragment_start + 1, (alias_start or 0) - 1)
+    end
+
+    local alias = ""
+    if alias_start ~= nil then
+        alias = raw:sub(alias_start + 1, -3)
+    end
+
+    return {
+        raw = raw,
+        file = file,
+        fragment = fragment,
+        alias = alias,
+        lnum = row_start + 1,
+        col_start = col_start,
+        col_end = col_end + 2,
+    }
+end
+
 ---@alias MdnTSNodeFunc (fun(node: TSNode, source: string|integer, location_only: boolean): table?)?
 
 ---@class MdnTSNodeType
@@ -239,7 +287,7 @@ end
 ---@field footnote_reference MdnTSNodeFunc
 M = {
     wikilink = function(node, source, location_only)
-        return process_node(node, source, {"shortcut_link"}, get_il_data, location_only, is_wikilink)
+        return process_node(node, source, {"shortcut_link"}, get_wl_data, location_only, is_wikilink)
     end,
     inline_link = function(node, source, location_only)
         return process_node(node, source, {"inline_link", "image"}, get_il_data, location_only)

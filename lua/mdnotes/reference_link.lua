@@ -71,6 +71,7 @@ end
 ---@param opts {reference_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
 ---@return MdnReferenceLinkData?
 function M.parse_ts(opts)
+    vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local reference_link = opts.reference_link

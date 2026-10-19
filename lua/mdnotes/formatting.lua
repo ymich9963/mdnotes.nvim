@@ -443,7 +443,6 @@ function M.check_list_valid(opts)
     for i = origin_lnum, lower_limit_lnum, -1 do
         local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
         if cur_line == "" then break end
-        vim.print(cur_line)
         lcontent = M.parse_list_item(cur_line)
         if lcontent == nil then break end
         if same_marker == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
@@ -531,7 +530,6 @@ function M.ordered_list_renumber(opts)
     local new_list_lines = {}
     local cur_number = 1
     for _, v in ipairs(list_lines) do
-        vim.print(v)
         ldata = M.parse_list_item(v)
         if ldata == nil then break end
         if ldata.type == "ordered" then

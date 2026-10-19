@@ -22,6 +22,18 @@ local get_buf_from_buf_list = function(...) return require('mdnotes').get_buf_fr
 ---@param opts {wikilink: string?, location: MdnInLineLocation?}?
 ---@return MdnWikiLinkData?
 function M.parse(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_ts(opts)
+    end
+end
+
+---Parse WikiLink with Lua patterns
+---@param opts {wikilink: string?, location: MdnInLineLocation?}?
+---@return MdnWikiLinkData?
+function M.parse_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -30,20 +42,20 @@ function M.parse(opts)
     vim.validate("wikilink", wikilink, "string", true)
 
     local mdn_patterns = require('mdnotes.patterns')
-    local check_markdown_syntax = require('mdnotes').check_markdown_syntax
+    local check_markdown_syntax_re = require('mdnotes').check_markdown_syntax_re
     local txtdata = {}
 
     -- Overwrite if location is given
     if opts.location ~= nil or wikilink == nil then
-        if not check_markdown_syntax(mdn_patterns.wikilink, {location = opts.location}) then return nil end
+        if not check_markdown_syntax_re(mdn_patterns.wikilink, {location = opts.location}) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.wikilink, { location = opts.location })
         wikilink = txtdata.raw or ""
     end
 
     local wikilink_contents = wikilink:match(mdn_patterns.wikilink_contents)
-    local wikilink_no_fragment = wikilink_contents:match(mdn_patterns.dest_no_fragment)
-    local fragment = wikilink_contents:match(mdn_patterns.fragment)
-    local alias = wikilink_contents:match(mdn_patterns.wikilink_alias)
+    local wikilink_no_fragment = wikilink_contents:match(mdn_patterns.dest_no_fragment) or ""
+    local fragment = wikilink_contents:match(mdn_patterns.fragment) or ""
+    local alias = wikilink_contents:match(mdn_patterns.wikilink_alias) or ""
 
     return vim.tbl_extend("force", {
         file = wikilink_no_fragment,
@@ -52,6 +64,59 @@ function M.parse(opts)
     }, txtdata)
 end
 
+---Parse WikiLink with Lua patterns
+---@param opts {wikilink: string?, location: MdnInLineLocation?}?
+---@return MdnWikiLinkData?
+function M.parse_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local wikilink = opts.wikilink
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local lnum = locopts.lnum or vim.fn.line('.')
+    local col_start = locopts.col_start or vim.fn.col('.')
+    local col_end = locopts.col_end or vim.fn.col('.')
+    local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
+
+    vim.validate("wikilink", wikilink, "string", true)
+
+    local node, source
+    if opts.location ~= nil or wikilink == nil then
+        node = vim.treesitter.get_node({
+            bufnr = buf,
+            ignore_injections = false,
+            pos = {lnum - 1, col_start - 1}
+        })
+        source = buf
+    else
+        local parser = vim.treesitter.get_string_parser(wikilink, "markdown_inline")
+        local tree = parser:parse()[1]
+        node = tree:root():child(0)
+        source = wikilink
+    end
+
+    local node_data
+    local process_node = require('mdnotes.treesitter')["wikilink"] or function() return {} end
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, source, false) or process_node(_node:named_child(), source, false)
+            if node_data == nil then
+                get_node_data(_node:parent())
+            end
+        end
+    end
+
+    get_node_data(node)
+
+    if node_data == nil then
+        return nil
+    end
+
+    node_data.cur_col = cur_col
+
+    return node_data
+end
 ---Follow the WikiLink under the cursor
 ---@param opts {wikilink: string?, location: MdnInLineLocation?, hor: boolean?, vert: boolean?, picker: boolean?}?
 function M.follow(opts)
@@ -134,7 +199,7 @@ function M.find_references(opts)
     local wldata = M.parse({ location = opts.location })
 
     if wldata == nil then
-        -- If wikilink pattern isn't detected use current file name
+        -- If WikiLink isn't detected use current file name
         local cur_file_basename = vim.fs.basename(vim.api.nvim_buf_get_name(0))
         wldata = {
             buf = vim.api.nvim_get_current_buf(),
@@ -144,6 +209,7 @@ function M.find_references(opts)
         }
         wldata.raw = "[[" .. wldata.file .. "]]"
     end
+    vim.print(wldata)
 
     local cur_pos = vim.fn.getpos('.')
     local cwd = require('mdnotes').cwd
@@ -412,27 +478,30 @@ function M.create(opts)
 
     -- Create WikiLinks where the text shows up
     for _,v in ipairs(wl_list) do
+
         -- Some external tools don't provide end_col
         if v.end_col == 0 then
             v.end_col = v.col + #text
         end
-        vim.api.nvim_buf_call(v.bufnr, function()
-            -- Ignore text in headings
-            local pattern = require('mdnotes.patterns').heading
-            if not v.text:match(pattern) then
-                local locopts = {
-                    lnum = v.lnum,
-                    col_start = v.col,
-                    col_end = v.end_col
-                }
 
+        -- Ignore text in headings
+        local pattern = require('mdnotes.patterns').heading
+        if not v.text:match(pattern) then
+            local locopts = {
+                buf = v.bufnr,
+                lnum = v.lnum,
+                col_start = v.col,
+                col_end = v.end_col
+            }
+
+            vim.api.nvim_buf_call(locopts.buf, function()
                 local wl = M.parse({ location = locopts })
-                if wl == nil then
+                if wl == nil or (wl.lnum ~= v.lnum and wl.raw:sub(3, -3) == v.text) then
                     local insert_format = require('mdnotes.formatting').insert_format
-                    insert_format("[[]]", { split_delimiter = true, location = locopts, move_cursor = false })
+                    insert_format("wikilink", { location = locopts, move_cursor = false })
                 end
-            end
-        end)
+            end)
+        end
     end
 
     vim.fn.setpos(".", cur_pos)
@@ -521,11 +590,22 @@ function M.delete(opts)
         vim.fn.setqflist(temp_qflist)
 
         for _,v in ipairs(wl_list) do
-            vim.api.nvim_buf_call(v.bufnr, function()
-                local wl = M.parse({  location = {
-                    lnum = v.lnum,
-                    cur_col = v.col,
-                }})
+
+            -- Some external tools don't provide end_col
+            if v.end_col == 0 then
+                v.end_col = v.col + #file
+            end
+
+            -- + 1 due to treesitter getting the entire node text at col 0
+            local locopts = {
+                buf = v.bufnr,
+                lnum = v.lnum,
+                col_start = v.col + 1,
+                col_end = v.end_col
+            }
+
+            vim.api.nvim_buf_call(locopts.buf, function()
+                local wl = M.parse_re({location = locopts})
                 if wl == nil then return end
                 vim.api.nvim_buf_set_text(wl.buf, wl.lnum - 1, wl.col_start - 1, wl.lnum - 1, wl.col_end - 1, {wl.file})
             end)
@@ -555,13 +635,9 @@ function M.normalize(opts)
     local wldata = M.parse({ location = opts.location })
     if wldata == nil then return end
 
-    local new_wikilink = vim.fs.normalize(wldata.file)
+    wldata.file = vim.fs.normalize(wldata.file)
 
-    if wldata.fragment ~= nil then
-        new_wikilink = new_wikilink .. '#' .. wldata.fragment
-    end
-
-    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {"[[" .. new_wikilink .. "]]"})
+    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {M.get_wl_from_obj(wldata)})
 
     if move_cursor == true then
         vim.cmd.buffer(wldata.buf)
@@ -689,22 +765,54 @@ function M.picker(on_end, buf)
 end
 
 ---Parse the WikiLinks in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnWikiLinkData>?
 function M.parse_lines(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_lines_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_lines_ts(opts)
+    end
+end
+
+---Parse the WikiLinks in the specified lines using Lua patterns
+---@param opts MdnParseLinesOpts?
+---@return table<MdnWikiLinkData>?
+function M.parse_lines_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
     local pattern = require('mdnotes.patterns').wikilink
-    local parse_lines = require('mdnotes').parse_lines
+    local parse_lines_re = require('mdnotes').parse_lines_re
 
     local get_func = nil
     if str == true then
         get_func = M.get_wl_from_obj
     end
+    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
 
-    return parse_lines(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines_re(pattern, M.parse_re, _opts)
+end
+
+---Parse the WikiLinks in the specified lines using treesitter
+---@param opts MdnParseLinesOpts?
+---@return table<MdnWikiLinkData>?
+function M.parse_lines_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local str = opts.str or false
+    local parse_lines_ts = require('mdnotes').parse_lines_ts
+
+    local get_func = nil
+    if str == true then
+        get_func = M.get_wl_from_obj
+    end
+    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
+
+    return parse_lines_ts("wikilink", _opts)
 end
 
 return M
