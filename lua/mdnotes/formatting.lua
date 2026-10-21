@@ -133,7 +133,7 @@ function M.delete_format_ts(fdtype, opts)
     local process_node = require('mdnotes.treesitter')[fdtype] or function(...) return {} end ---@diagnostic disable-line
     local function get_node_data(_node)
         if _node ~= nil then
-            node_data = process_node(_node, buf, false)
+            node_data = process_node(_node, buf)
             if node_data == nil then
                 get_node_data(_node:parent())
             end
@@ -290,7 +290,7 @@ function M.parse_list_item_ts(line)
     local process_node = require('mdnotes.treesitter')["list_item"] or function(...) return {} end ---@diagnostic disable-line
     local function get_node_data(_node)
         if _node ~= nil then
-            node_data = process_node(_node, line, false)
+            node_data = process_node(_node, line)
             if node_data == nil then
                 get_node_data(_node:child())
             end

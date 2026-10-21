@@ -22,6 +22,20 @@ local M = {}
 ---@param opts {search: MdnSearchOpts?}?
 ---@return MdnSearchResult
 function M.check_table_valid(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.check_table_valid_re(opts)
+    elseif parser == "treesitter" then
+        return M.check_table_valid_ts(opts)
+    end
+
+    return {valid = false}
+end
+
+---Check if there is a table in the specified search range or under the cursor using Lua patterns
+---@param opts {search: MdnSearchOpts?}?
+---@return MdnSearchResult
+function M.check_table_valid_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -99,6 +113,60 @@ function M.check_table_valid(opts)
         startl = table_startl,
         endl = table_endl,
     }
+end
+---Check if there is a table in the specified search range or under the cursor using treesitter
+---@param opts {search: MdnSearchOpts?}?
+---@return MdnSearchResult
+function M.check_table_valid_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local search_opts = opts.search or {}
+    vim.validate("search_opts", search_opts, "table")
+
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
+    local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
+
+    --TODO: These don't get used for searching as they get used in the patterns implementation
+    local lower_limit_lnum = search_opts.lower_limit_lnum or 1
+    local upper_limit_lnum = search_opts.upper_limit_lnum or vim.fn.line('$')
+
+    -- A file needs more than 3 lines to have a valid table
+    if upper_limit_lnum < 3 then
+        return { valid = false }
+    end
+
+    local node = vim.treesitter.get_node({
+        bufnr = buf,
+        ignore_injections = false,
+        pos = {origin_lnum - 1, 0}
+    })
+
+    local node_data
+    local process_node = require('mdnotes.treesitter')["table"] or function() return {} end
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, buf, "multiline")
+            if node_data == nil then
+                get_node_data(_node:parent())
+            end
+        end
+    end
+
+    get_node_data(node)
+
+    if node_data == nil then
+        return {valid = false}
+    end
+
+    if node_data.startl < lower_limit_lnum or node_data.endl > upper_limit_lnum then
+        return {valid = false}
+    end
+
+    node_data.buf = buf
+    node_data.valid = true
+
+    return node_data
 end
 
 ---Write the table to the buffer
@@ -200,20 +268,44 @@ function M.create(rows, columns, opts)
     }
 end
 
----Get the table lines in the specified line numbers
----@param table_startl integer
----@param table_endl integer
----@param buf integer
----@return MdnTableContents?
-function M.get_table_lines(table_startl, table_endl, buf)
-    vim.validate("table_startl", table_startl, "number")
-    vim.validate("table_endl", table_endl, "number")
-    vim.validate("buf", buf, "number", true)
+---Parse the table
+---@param opts {silent: boolean?, search: MdnSearchOpts?}?
+---@return MdnTable?
+function M.parse(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_ts(opts)
+    end
+end
 
-    buf = buf or vim.api.nvim_get_current_buf()
+---Parse the table using Lua patterns
+---@param opts {silent: boolean?, search: MdnSearchOpts?}?
+---@return MdnTable?
+function M.parse_re(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local silent = opts.silent or false
+    local search_opts = opts.search or {}
+
+    vim.validate("silent", silent, "boolean")
+    vim.validate("search_opts", search_opts, "table")
+
+    local buf = search_opts.buf or vim.api.nvim_get_current_buf()
+
+    local tsearch = M.check_table_valid({ search = search_opts })
+    if tsearch.valid == false then
+        if silent == false then
+            vim.notify("Mdn: No valid table detected", vim.log.levels.ERROR)
+        end
+
+        return
+    end
 
     local table_lines = {}
-    local lines = vim.api.nvim_buf_get_lines(buf, table_startl - 1, table_endl, false)
+    local lines = vim.api.nvim_buf_get_lines(buf, tsearch.startl - 1, tsearch.endl, false)
 
     -- Trim whitespace
     for r, v in ipairs(lines) do
@@ -235,13 +327,26 @@ function M.get_table_lines(table_startl, table_endl, buf)
         table.insert(table_lines, table_temp)
     end
 
-    return table_lines
+    if vim.tbl_isempty(table_lines) then
+        if silent == false then
+            vim.notify("Mdn: Error parsing table", vim.log.levels.ERROR)
+        end
+
+        return
+    end
+
+    return {
+        contents = table_lines,
+        startl = tsearch.startl,
+        endl = tsearch.endl,
+        buf = buf
+    }
 end
 
----Parse the table
+---Parse the table using treesitter
 ---@param opts {silent: boolean?, search: MdnSearchOpts?}?
 ---@return MdnTable?
-function M.parse(opts)
+function M.parse_ts(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -262,21 +367,30 @@ function M.parse(opts)
         return
     end
 
-    local table_lines = M.get_table_lines(tsearch.startl, tsearch.endl, search_opts.buf) or {}
-    if vim.tbl_isempty(table_lines) then
-        if silent == false then
-            vim.notify("Mdn: Error parsing table", vim.log.levels.ERROR)
-        end
+    local node = vim.treesitter.get_node({
+        bufnr = buf,
+        ignore_injections = false,
+        pos = {tsearch.startl - 1, 0}
+    })
 
-        return
+    local node_data
+    local process_node = require('mdnotes.treesitter')["table"] or function() return {} end
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, buf)
+            if node_data == nil then
+                get_node_data(_node:parent())
+            end
+        end
     end
 
-    return {
-        contents = table_lines,
-        startl = tsearch.startl,
-        endl = tsearch.endl,
-        buf = buf
-    }
+    get_node_data(node)
+
+    if node_data == nil then
+        return nil
+    end
+
+    return node_data
 end
 
 ---Get the table column locations

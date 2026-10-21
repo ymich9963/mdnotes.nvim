@@ -102,7 +102,7 @@ function M.parse_ts(opts)
     local process_node = require('mdnotes.treesitter')["footnote_reference"] or function() return {} end
     local function get_node_data(_node)
         if _node ~= nil then
-            node_data = process_node(_node, source, false)
+            node_data = process_node(_node, source)
             if node_data == nil then
                 get_node_data(_node:parent())
             end

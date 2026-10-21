@@ -6,23 +6,28 @@ local M = {}
 ---@param source string|integer Buffer or string from which the node is extracted
 ---@param type_tbl table<string> Which type to check the node is
 ---@param get_data_func (fun(...):table) Function to get the data from the node. Different for each element
----@param location_only boolean Return only location data and skip the parsing
----@param is_node_type_func (fun(n: TSNode, s: string|integer):boolean)? Optional function to do extra checks on the node
+---@param is_node_type_func (fun(n: TSNode, s: string|integer):boolean) Optional function to do extra checks on the node
+---@param location "'inline'"|"'multiline'"? Return the inline or multiline location. Leave nil for no location
 ---@return table?
-local function process_node(node, source, type_tbl, get_data_func, location_only, is_node_type_func)
+local function process_node(node, source, type_tbl, get_data_func, is_node_type_func, location)
     if node == nil then return nil end
-    if is_node_type_func == nil then is_node_type_func = function() return true end end
 
     local ntype = node:type()
     if vim.tbl_contains(type_tbl, ntype) and is_node_type_func(node, source) == true then
-        local row_start, col_start, _, col_end = node:range()
-        if location_only == true then
+        local row_start, col_start, row_end, col_end = node:range()
+        if location == "inline" then
             return {
                 col_start = col_start + 1,
                 col_end = col_end + 1,
                 lnum = row_start + 1,
             }
+        elseif location == "multiline" then
+            return {
+                startl = row_start + 1,
+                endl = row_end,
+            }
         end
+
         local data = get_data_func(node, source)
         if type(source) == "number" then
             data.buf = source
@@ -33,6 +38,10 @@ local function process_node(node, source, type_tbl, get_data_func, location_only
     else
         return nil
     end
+end
+
+local function ret_true()
+    return true
 end
 
 ---@param n TSNode
@@ -273,7 +282,58 @@ local function get_wl_data(n, s)
     }
 end
 
----@alias MdnTSNodeFunc (fun(node: TSNode, source: string|integer, location_only: boolean): table?)?
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnInlineLinkData
+local function get_table_data(n, s)
+    local row_start, _, row_end, _ = n:range()
+
+    local contents = {}
+    for child in n:iter_children() do
+        local type = child:type()
+        if type == "pipe_table_header" then
+            local header = {}
+            for c in child:iter_children() do
+                local ctype = c:type()
+                if ctype == "pipe_table_cell" then
+                    table.insert(header, vim.treesitter.get_node_text(c, s))
+                end
+            end
+            table.insert(contents, 1, header)
+        end
+
+        if type == "pipe_table_delimiter_row" then
+            local delimiter = {}
+            for c in child:iter_children() do
+                local ctype = c:type()
+                if ctype == "pipe_table_delimiter_cell" then
+                    table.insert(delimiter, vim.treesitter.get_node_text(c, s))
+                end
+            end
+            table.insert(contents, 2, delimiter)
+        end
+
+        if type == "pipe_table_row" then
+            local row = {}
+            for c in child:iter_children() do
+                local ctype = c:type()
+                if ctype == "pipe_table_cell" then
+                    table.insert(row, vim.treesitter.get_node_text(c, s))
+                end
+            end
+            table.insert(contents, row)
+        end
+    end
+
+    return {
+        contents = contents,
+        startl = row_start + 1,
+        endl = row_end,
+        buf = s
+    }
+end
+
+---@alias MdnTSNodeFunc (fun(node: TSNode, source: string|integer, location: "'inline'"|"'multiline'"?): table?)?
 
 ---@class MdnTSNodeType
 ---@field wikilink MdnTSNodeFunc
@@ -285,36 +345,41 @@ end
 ---@field autolink MdnTSNodeFunc
 ---@field reference_link MdnTSNodeFunc
 ---@field footnote_reference MdnTSNodeFunc
+---@field list_item MdnTSNodeFunc
+---@field table MdnTSNodeFunc
 M = {
-    wikilink = function(node, source, location_only)
-        return process_node(node, source, {"shortcut_link"}, get_wl_data, location_only, is_wikilink)
+    wikilink = function(node, source, location)
+        return process_node(node, source, {"shortcut_link"}, get_wl_data, is_wikilink, location)
     end,
-    inline_link = function(node, source, location_only)
-        return process_node(node, source, {"inline_link", "image"}, get_il_data, location_only)
+    inline_link = function(node, source, location)
+        return process_node(node, source, {"inline_link", "image"}, get_il_data, ret_true, location)
     end,
-    strong = function(node, source, location_only)
-        return process_node(node, source, {"strong_emphasis"}, get_fd_data, location_only)
+    strong = function(node, source, location)
+        return process_node(node, source, {"strong_emphasis"}, get_fd_data, ret_true, location)
     end,
-    emphasis = function(node, source, location_only)
-        return process_node(node, source, {"emphasis"}, get_fd_data, location_only)
+    emphasis = function(node, source, location)
+        return process_node(node, source, {"emphasis"}, get_fd_data, ret_true, location)
     end,
-    strikethrough = function(node, source, location_only)
-        return process_node(node, source, {"strikethrough"}, get_fd_data, location_only)
+    strikethrough = function(node, source, location)
+        return process_node(node, source, {"strikethrough"}, get_fd_data, ret_true, location)
     end,
-    inline_code = function(node, source, location_only)
-        return process_node(node, source, {"code_span"}, get_fd_data, location_only)
+    inline_code = function(node, source, location)
+        return process_node(node, source, {"code_span"}, get_fd_data, ret_true, location)
     end,
-    autolink = function(node, source, location_only)
-        return process_node(node, source, {"uri_autolink"}, get_fd_data, location_only)
+    autolink = function(node, source, location)
+        return process_node(node, source, {"uri_autolink"}, get_fd_data, ret_true, location)
     end,
-    reference_link = function(node, source, location_only)
-        return process_node(node, source, {"collapsed_reference_link", "full_reference_link"}, get_rl_data, location_only)
+    reference_link = function(node, source, location)
+        return process_node(node, source, {"collapsed_reference_link", "full_reference_link"}, get_rl_data, ret_true, location)
     end,
-    footnote_reference = function(node, source, location_only)
-        return process_node(node, source, {"shortcut_link"}, get_fref_data, location_only, is_fref)
+    footnote_reference = function(node, source, location)
+        return process_node(node, source, {"shortcut_link"}, get_fref_data, is_fref, location)
     end,
-    list_item = function(node, source, location_only)
-        return process_node(node, source, {"list_item"}, get_list_item_data, location_only)
+    list_item = function(node, source, location)
+        return process_node(node, source, {"list_item"}, get_list_item_data, ret_true, location)
+    end,
+    table = function(node, source, location)
+        return process_node(node, source, {"pipe_table"}, get_table_data, ret_true, location)
     end,
 }
 

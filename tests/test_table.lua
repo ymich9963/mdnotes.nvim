@@ -22,7 +22,14 @@ local T = new_set({
     },
 })
 
-T['check_table_valid()'] = function()
+T['check_table_valid()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['check_table_valid()']['impl'] = function(suffix)
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -30,7 +37,7 @@ T['check_table_valid()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return Mdn.table.check_table_valid()]])
+    local ret = child.lua([[return Mdn.table.check_table_valid]] .. suffix .. [[()]])
     eq(ret, {
         buf = 2,
         valid = true,
@@ -44,7 +51,7 @@ T['check_table_valid()'] = function()
     }
     create_md_buffer(child, lines)
 
-    ret = child.lua([[return Mdn.table.check_table_valid()]])
+    ret = child.lua([[return Mdn.table.check_table_valid]] .. suffix .. [[()]])
     eq(ret, {
         valid = false,
         startl = nil,
@@ -58,7 +65,7 @@ T['check_table_valid()'] = function()
     }
     create_md_buffer(child, lines)
 
-    ret = child.lua([[return Mdn.table.check_table_valid()]])
+    ret = child.lua([[return Mdn.table.check_table_valid]] .. suffix .. [[()]])
     eq(ret, {
         valid = false,
         startl = nil,
@@ -111,7 +118,14 @@ T['create()'] = function()
     })
 end
 
-T['get_table_lines()'] = function()
+T['parse()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['parse()']['impl'] = function(suffix)
     local lines = {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
@@ -120,25 +134,7 @@ T['get_table_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return Mdn.table.get_table_lines(1,4)]])
-    eq(ret, {
-        {"1r1c","1r2c","1r3c"},
-        {"----","----","----"},
-        {"2r1c","2r2c","2r3c"},
-        {"3r1c","3r2c","3r3c"},
-    })
-end
-
-T['parse()'] = function()
-    local lines = {
-        "|1r1c|1r2c|1r3c|",
-        "|----|----|----|",
-        "|2r1c|2r2c|2r3c|",
-        "|3r1c|3r2c|3r3c|",
-    }
-    create_md_buffer(child, lines)
-
-    local ret = child.lua([[return Mdn.table.parse()]])
+    local ret = child.lua([[return Mdn.table.parse]] .. suffix .. [[()]])
     eq(ret.contents, {
         {"1r1c","1r2c","1r3c"},
         {"----","----","----"},
@@ -159,7 +155,7 @@ T['parse()'] = function()
     }
     create_md_buffer(child, lines)
 
-    ret = child.lua([[return Mdn.table.parse()]])
+    ret = child.lua([[return Mdn.table.parse]] .. suffix .. [[()]])
     eq(ret.contents, {
         {"1r1c","1r2c","1r3c"},
         {"----","----","----"},
@@ -380,6 +376,16 @@ T['row_insert()'] = function()
         "|3r1c|3r2c|3r3c|",
     })
 
+    -- INFO: The "|aaaa|bbbb|cccc|" row is added so that the
+    -- treesitter parser sees it as a valid table after adding a row
+    child.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "|1r1c|1r2c|1r3c|",
+        "|----|----|----|",
+        "|2r1c|2r2c|2r3c|",
+        "|aaaa|bbbb|cccc|",
+        "|3r1c|3r2c|3r3c|",
+    })
+
     child.lua([[Mdn.table.row_insert_above()]])
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines, {
@@ -387,7 +393,16 @@ T['row_insert()'] = function()
         "|----|----|----|",
         "|    |    |    |",
         "|2r1c|2r2c|2r3c|",
-        "|    |    |    |",
+        "|aaaa|bbbb|cccc|",
+        "|3r1c|3r2c|3r3c|",
+    })
+
+    child.api.nvim_buf_set_lines(buf, 0, -1, false, {
+        "|1r1c|1r2c|1r3c|",
+        "|----|----|----|",
+        "|aaaa|bbbb|cccc|",
+        "|2r1c|2r2c|2r3c|",
+        "|aaaa|bbbb|cccc|",
         "|3r1c|3r2c|3r3c|",
     })
 
@@ -397,9 +412,9 @@ T['row_insert()'] = function()
     eq(lines, {
         "|1r1c|1r2c|1r3c|",
         "|----|----|----|",
-        "|    |    |    |",
+        "|aaaa|bbbb|cccc|",
         "|2r1c|2r2c|2r3c|",
-        "|    |    |    |",
+        "|aaaa|bbbb|cccc|",
         "|3r1c|3r2c|3r3c|",
         "|    |    |    |",
     })

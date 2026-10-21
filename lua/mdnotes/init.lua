@@ -445,11 +445,11 @@ function M.check_markdown_syntax_ts(metype, opts)
             return false, {}
         end
 
-        local pos_tbl = process_node(node:parent(), buf, true)
+        local pos_tbl = process_node(node:parent(), buf, "inline")
 
         -- Try again with not the parent node
         if pos_tbl == nil then
-            pos_tbl = process_node(node, buf, true)
+            pos_tbl = process_node(node, buf, "inline")
         end
 
         if pos_tbl == nil then
@@ -478,7 +478,7 @@ function M.check_markdown_syntax_ts(metype, opts)
 
         local cols_tbl = {}
         local function get_node_data_tbl(_node)
-            local pos_tbl = process_node(_node, buf, true) or {}
+            local pos_tbl = process_node(_node, buf, "inline") or {}
             if pos_tbl.lnum == lnum then
                 table.insert(cols_tbl, pos_tbl)
             end
@@ -1219,10 +1219,15 @@ function M.parse_lines_ts(metype, opts)
         return
     end
 
+    local location
+    if location_only == true then
+        location = "inline"
+    end
+
     local node_data = {}
     local process_node_func = require('mdnotes.treesitter')[metype]
     local function get_node_data_tbl(node)
-        local processed_node = process_node_func(node, buf, location_only) or {lnum = 0}
+        local processed_node = process_node_func(node, buf, location) or {lnum = 0}
         if processed_node.lnum >= startl and processed_node.lnum <= endl then
             local _processed_node = get_func(processed_node)
             if no_duplicates == true then
