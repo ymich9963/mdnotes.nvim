@@ -44,12 +44,12 @@ function M.parse_re(opts)
     vim.validate("reference_link", reference_link, "string", true)
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
 
-    local check_markdown_syntax_re = require('mdnotes').check_markdown_syntax_re
+    local check_inline_markdown_syntax_re = require('mdnotes').check_inline_markdown_syntax_re
     local rl_pattern = require("mdnotes.patterns").reference_link
     local txtdata = {}
 
     if reference_link == nil then
-        if not check_markdown_syntax_re(rl_pattern, { location = opts.location }) then return nil end
+        if not check_inline_markdown_syntax_re(rl_pattern, { location = opts.location }) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(rl_pattern, { location = opts.location })
         reference_link = txtdata.raw or ""
     end
@@ -638,11 +638,11 @@ function M.parse_lines_re(opts)
     local pattern = require('mdnotes.patterns').reference_link
     local parse_lines_re = require('mdnotes').parse_lines_re
 
-    local get_func = nil
+    local process_func = nil
     if str == true then
-        get_func = M.get_rl_from_obj
+        process_func = M.get_rl_from_obj
     end
-    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
+    local _opts = vim.tbl_extend("force", opts, {process_func = process_func})
 
     return parse_lines_re(pattern, M.parse_re, _opts)
 end
@@ -657,11 +657,11 @@ function M.parse_lines_ts(opts)
     local str = opts.str or false
     local parse_lines_ts = require('mdnotes').parse_lines_ts
 
-    local get_func = nil
+    local process_func = nil
     if str == true then
-        get_func = M.get_rl_from_obj
+        process_func = M.get_rl_from_obj
     end
-    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
+    local _opts = vim.tbl_extend("force", opts, {process_func = process_func})
 
     return parse_lines_ts("reference_link", _opts)
 end

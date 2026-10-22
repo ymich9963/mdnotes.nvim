@@ -101,14 +101,14 @@ T['mdn_grep()'] = function()
     end
 end
 
-T['check_markdown_syntax()'] = new_set({
+T['check_inline_markdown_syntax()'] = new_set({
     parametrize = {
-        { 'check_markdown_syntax_re(pattern' },
-        { 'check_markdown_syntax_ts("emphasis"' }
+        { '_re(pattern' },
+        { '_ts("emphasis"' }
     }
 })
 
-T['check_markdown_syntax()']['impl'] = function(func)
+T['check_inline_markdown_syntax()']['impl'] = function(suffix)
     local lines = {
         "*emphasis* emphasis",
         "emphasis *emphasis*",
@@ -119,39 +119,39 @@ T['check_markdown_syntax()']['impl'] = function(func)
     child.fn.cursor(1,1)
     local ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.]] .. func .. [[)}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[)}
     ]])
     eq(ret, {true, {col_start = 1, col_end = 11, lnum = 1}})
 
     child.fn.cursor(2,1)
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.]] .. func .. [[)}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[)}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.]] .. func .. [[, { entire_line = true })}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[, { entire_line = true })}
     ]])
     eq(ret, {true, {{col_start = 10, col_end = 20, lnum = 2}}})
 
     child.fn.cursor(3,1)
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.]] .. func .. [[)}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[)}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.]] .. func .. [[, { entire_line = true })}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[, { entire_line = true })}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.]] .. func .. [[, {location = {lnum = 2, col_start = 10, col_end = 19}})}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[, {location = {lnum = 2, col_start = 10, col_end = 19}})}
     ]])
     eq(ret, {true, {col_start = 10, col_end = 20, lnum = 2}})
 end

@@ -2,14 +2,6 @@
 
 local M = {}
 
----@alias MdnFormatDelimiterType
----| '"emphasis"'
----| '"strong"'
----| '"strikethrough"'
----| '"inline_code"'
----| '"autolink"'
----| '"wikilink"'
-
 ---@class MdnFormattingOpts
 ---@field location MdnInLineLocation?
 ---@field move_cursor boolean?
@@ -22,21 +14,12 @@ local M = {}
 ---@field type '"ordered"'|'"unordered"'
 ---@field task_state string Task state string
 
-local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
+local check_inline_markdown_syntax = function(...) return require('mdnotes').check_inline_markdown_syntax(...) end
 
 local emphasis_delim = function() return require('mdnotes').config.emphasis_format end
 local strong_delim = function() return require('mdnotes').config.strong_format end
 
----@alias MdnFormatDelimiter {ldel: string, rdel: string}
-
----Fields should be the same as MdnFormatDelimiterType
----@class MdnFormatDelimiters
----@field strong MdnFormatDelimiter
----@field emphasis MdnFormatDelimiter
----@field strikethrough MdnFormatDelimiter
----@field inline_code MdnFormatDelimiter
----@field autolink MdnFormatDelimiter
----@field wikilink MdnFormatDelimiter
+---@alias MdnFormatDelimiters table<MdnSupportedInlineMEType, {ldel: string, rdel: string}>
 M.format_delimiters = {
     strong = {ldel = strong_delim(), rdel = strong_delim()},
     emphasis = {ldel = emphasis_delim(), rdel = emphasis_delim()},
@@ -44,14 +27,17 @@ M.format_delimiters = {
     inline_code = {ldel = "`", rdel = "`"},
     autolink = {ldel = "<", rdel = ">"},
     wikilink = {ldel = "[[", rdel = "]]"},
+    inline_link = {ldel = "[", rdel = "]()"},
+    reference_link = {ldel = "[", rdel = "][]"},
+    footnote_reference = {ldel = "[^", rdel = "]"},
 }
 
 ---Insert a Markdown format
----@param fdtype MdnFormatDelimiterType Format delimeter type
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
 ---@param opts MdnFormattingOpts?
-function M.insert_format(fdtype, opts)
+function M.insert_format(imetype, opts)
+    vim.validate("imetype", imetype, "string")
     vim.validate("opts", opts, "table", true)
-    vim.validate("fdtype", fdtype, "string")
 
     opts = opts or {}
     local move_cursor = opts.move_cursor ~= false
@@ -63,7 +49,7 @@ function M.insert_format(fdtype, opts)
         return
     end
 
-    local delimiter = M.format_delimiters[fdtype]
+    local delimiter = M.format_delimiters[imetype]
 
     -- Set the line and cursor position
     vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {delimiter.ldel .. txtdata.raw .. delimiter.rdel})
@@ -75,22 +61,22 @@ function M.insert_format(fdtype, opts)
 end
 
 ---Delete the format indicators around a Markdown element
----@param fdtype MdnFormatDelimiterType Format delimeter type
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
 ---@param opts MdnFormattingOpts?
-function M.delete_format(fdtype, opts)
+function M.delete_format(imetype, opts)
     local parser = require('mdnotes').config.parser
     if parser == "patterns" then
-        return M.delete_format_re(fdtype, opts)
+        return M.delete_format_re(imetype, opts)
     elseif parser == "treesitter" then
-        return M.delete_format_ts(fdtype, opts)
+        return M.delete_format_ts(imetype, opts)
     end
 end
 
 ---Delete the format indicators around a Markdown element using Lua patterns
----@param fdtype MdnFormatDelimiterType
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
 ---@param opts MdnFormattingOpts?
-function M.delete_format_re(fdtype, opts)
-    vim.validate("fdtype", fdtype, "string")
+function M.delete_format_re(imetype, opts)
+    vim.validate("imetype", imetype, "string")
     vim.validate("opts", opts, "table", true)
 
     opts = opts or {}
@@ -98,9 +84,9 @@ function M.delete_format_re(fdtype, opts)
     local move_cursor = opts.move_cursor ~= false
     vim.validate("move_cursor", move_cursor, "boolean")
 
-    local pattern = require('mdnotes.patterns')[fdtype]
+    local pattern = require('mdnotes.patterns')[imetype]
     local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = opts.location})
-    local delimiter = M.format_delimiters[fdtype]
+    local delimiter = M.format_delimiters[imetype]
 
     local new_text = txtdata.raw:sub(#delimiter.ldel + 1, #txtdata.raw - #delimiter.rdel)
 
@@ -113,10 +99,10 @@ function M.delete_format_re(fdtype, opts)
 end
 
 ---Delete the format indicators around a Markdown element using treesitter
----@param fdtype MdnFormatDelimiterType
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
 ---@param opts MdnFormattingOpts?
-function M.delete_format_ts(fdtype, opts)
-    vim.validate("fdtype", fdtype, "string")
+function M.delete_format_ts(imetype, opts)
+    vim.validate("imetype", imetype, "string")
     vim.validate("opts", opts, "table", true)
 
     opts = opts or {}
@@ -130,7 +116,7 @@ function M.delete_format_ts(fdtype, opts)
     local col_start = locopts.col_start or vim.fn.col('.')
 
     local node_data
-    local process_node = require('mdnotes.treesitter')[fdtype] or function(...) return {} end ---@diagnostic disable-line
+    local process_node = require('mdnotes.treesitter')[imetype] or function(...) return {} end ---@diagnostic disable-line
     local function get_node_data(_node)
         if _node ~= nil then
             node_data = process_node(_node, buf)
@@ -151,7 +137,7 @@ function M.delete_format_ts(fdtype, opts)
         return nil
     end
 
-    local delimiter = M.format_delimiters[fdtype]
+    local delimiter = M.format_delimiters[imetype]
 
     local new_text = node_data.raw:sub(#delimiter.ldel + 1, #node_data.raw - #delimiter.rdel)
 
@@ -164,19 +150,19 @@ function M.delete_format_ts(fdtype, opts)
 end
 
 ---Toggle the emphasis Markdown formatting
----@param fdtype MdnFormatDelimiterType Format delimeter type
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
 ---@param opts MdnFormattingOpts?
-function M.toggle(fdtype, opts)
-    vim.validate("fdtype", fdtype, "string")
+function M.toggle(imetype, opts)
+    vim.validate("imetype", imetype, "string")
     vim.validate("opts", opts, "table", true)
 
     opts = opts or {}
 
-    local ret = check_markdown_syntax(fdtype, { location = opts.location })
+    local ret = check_inline_markdown_syntax(imetype, { location = opts.location })
     if ret == true then
-        M.delete_format(fdtype, opts)
+        M.delete_format(imetype, opts)
     elseif ret == false then
-        M.insert_format(fdtype, opts)
+        M.insert_format(imetype, opts)
     end
 end
 

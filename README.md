@@ -86,6 +86,7 @@ Using the lazy.nvim package manager,
     autocmds = true,                       -- enable or disable plugin autocmds, check docs for enabling/disabling individual ones
     table_best_fit_padding = 0,            -- add padding around cell contents when using tables_best_fit
     toc_depth = 4,                         -- depth shown in the ToC
+    parser = "treesitter",                 -- use "treesitter" or Lua "patterns" to parse text
     user_commands = {}                     -- table with user commands in {command_name = function} scheme
 }
 ```

@@ -133,6 +133,7 @@ The default config for `mdnotes` is shown below,
 	autocmds = true,
 	table_best_fit_padding = 0,
 	toc_depth = 4,
+	parser = "treesitter",
 	user_commands = {}
     }
 <
@@ -276,6 +277,11 @@ toc_depth = `integer`		 			*mdnotes-toc_depth*
     ## Heading 2
    
     ### Heading 3
+
+parser = `string`		 			*mdnotes-parser*
+
+    Use either treesitter or Lua patterns to parse text. Can take the values
+    `"treesitter"` or `"patterns"`. Defaults to `"treesitter"`.
 
 user_commands = `table`		 			*mdnotes-user_commands*
 
@@ -902,14 +908,25 @@ mdn_grep({pattern}, {path})				*mdnotes.mdn_grep()*
     • {pattern}  (`string`) grep pattern
     • {path}  (`string`) File path
 
-check_markdown_syntax({pattern}, {opts}) 		*mdnotes.check_markdown_syntax()*
+check_inline_markdown_syntax({imetype}, {opts}) 	*mdnotes.check_inline_markdown_syntax()*
 
     Check if the Markdown syntax under the cursor matches the {pattern} of type
     |mdnotes.MdnPattern|. Optionally specify a location using to check
     using the {opts} table.
 
+    Behaves as a wrapper for the `check_inline_markdown_syntax_re()` and
+    `check_inline_markdown_syntax_ts()` functions which get called depending on
+    the |mdnotes-parser|.
+
+    The `check_inline_markdown_syntax_re()` is called like so, >lua
+
+	local pattern = require('mdnotes.patterns')[imetype]
+	return M.check_inline_markdown_syntax_re(pattern, opts)
+<
+    whereas `check_inline_markdown_syntax_ts()` uses the {imetype} parameter.   
+
     Parameters: ~
-    • {pattern}  (`string`) Pattern of type |mdnotes.MdnPattern|.
+    • {imetype}  (`MdnSupportedInlineMEType?`)
     • {opts}  (`table?`) Optional parameters:
               • {location} (`table?`)
 		A table of type |mdnotes.MdnInLineLocation| used to specify
@@ -966,7 +983,7 @@ get_text_in_pattern({pattern}, {opts}) 			*mdnotes.get_text_in_pattern*
     Return: ~
     • (`MdnText`): See |mdnotes.MdnText|.
 
-new_line_remap({key}) 					*mdnotes.new_line_remap()*
+new_line_remap({key}, {inc_val}) 			*mdnotes.new_line_remap()*
 
     Kind of forgot how this works but it is used in the remaps for
     |mdnotes-auto_list_continuation|.
@@ -974,6 +991,7 @@ new_line_remap({key}) 					*mdnotes.new_line_remap()*
     Parameters: ~
     • {key}  (`string`) Only accepts `o`, `O`, and `<CR>` as inputs. Always
     treats `<CR>` as an expression.
+    • {inc_val}  (`integer`) Value to increment/decrement by.
 
     Return: ~
     • (`string?`)
@@ -1060,20 +1078,6 @@ get_buf_from_buf_list({bufname}) 			*mdnotes.get_buf_from_buf_list()*
 
     Parameters: ~
     • {bufname}  (`string`) Buffer name.
-
-scan_lines({pattern}, {opts})				*mdnotes.scan_lines()*
-
-    Scan the current line for the Markdown item specified by {pattern}. Can be
-    multiline if {location} is specified.
-
-    Parameters: ~
-    • {pattern}  (`MdnPattern`)
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`)
-		inline text location
-
-    Return: ~
-    • (`table<MdnScanLines>?`)
 
 statistics({opts})					*mdnotes.statistics()*
 
@@ -1164,29 +1168,33 @@ view_fragments() 					*mdnotes.view_fragments()*
 
     Pretty print |mdnotes.buf_fragments|.
 
-parse_lines({pattern}, {parse_func}, {opts})		*mdnotes.parse_lines()*
+parse_lines_re({pattern}, {parse_func}, {opts})		*mdnotes.parse_lines_re()*
 
-    Parse the {pattern} in the specified lines using {parse_func} which has an
-    `opts` table with a `location` key of type `MdnInLineLocation`. Only works
-    for inline elements since it uses |mdnotes.scan_lines()| internally.
+    Parse the {pattern} in the specified lines using {parse_func}. Only works
+    for inline elements.
 
     Parameters: ~
     • {pattern}  (`MdnPattern`) Pattern of the inline element to parse
     • {parse_func}  (`fun({location}): MdnText`) Function that takes
     `MdnInLineLocation` opts and returns a value that contains at least the
     `MdnText` keys.
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`)
-		multi-line location
-              • {str} (`boolean?`, default `false`)
-		return object as strings instead of objects
-              • {no_duplicates} (`boolean?`, default `false`)
-		remove duplicate entries from result
-	      • {get_func} (`fun(a): any`)
-	        function to process the returned data from {parse_func}
+    • {opts}  (`MdnParseLinesInitOpts?`)
 
     Return: ~
-    • (`table?`) Table content type depends on whatever type {get_func} and {parse_func} return
+    • (`table?`) Table content type depends on whatever type {get_func} and {parse_func}
+    return
+
+parse_lines_ts({imetype}, {opts})			*mdnotes.parse_lines_ts()*
+
+    Parse the {imetype} in the specified lines. Only works for inline elements.
+
+    Parameters: ~
+    • {imetype}  (`MdnSupportedInlineMEType`) Markdown element type
+    • {opts}  (`MdnParseLinesInitOpts?`)
+
+    Return: ~
+    • (`table?`) Table content type depends on whatever type {get_func}
+    returns
 
 mdn_picker({items}, {on_end}, {ui_opts})		*mdnotes.mdn_picker()*
 
@@ -1415,35 +1423,33 @@ demo.run()						*mdnotes.demo.run()*
 
     Run Mdnotes demo in the current buffer.
 
-formatting.insert_format({format_char}, {opts})		*mdnotes.formatting.insert_format()*
+formatting.format_delimiters 				*mdnotes.formatting.format_delimiters*
+
+    Table of type |mdnotes.MdnFormatDelimiters|. 
+
+formatting.insert_format({imetype}, {opts})		*mdnotes.formatting.insert_format()*
 
     Used internally for all formatting using format delimiters. 
 
     Parameters: ~
-    • {format_char}  (`MdnFormatDelimiters?`) Markdown format delimiter
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`)
-		inline text location
-              • {split_delimiter} (`boolean?`, default `false`)
-		split format delimiter string in half
+    • {imetype}  (`MdnSupportedInlineMEType`) Markdown element type
+    • {opts}  (`MdnFormattingOpts?`)
 
 formatting.delete_format({pattern}, {opts})		*mdnotes.formatting.delete_format()*
 
     Used internall for removing format delimiters from text.
 
-    Parameters: ~
-    • {pattern}  (`MdnPattern?`)
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnInLineLocation?`)
-		inline text location
-              • {move_cursor} (`boolean?`, default `true`)
-		move the cursor to the position of the deleted text
-
-formatting.toggle({pattern},{delimiter},{opts})		*mdnotes.formatting.toggle()*
+    Behaves as a wrapper for the `delete_format_re()` and `delete_format_ts()` functions which
+    get called depending on the |mdnotes-parser|.
 
     Parameters: ~
-    • {pattern}  (`MdnPattern?`)
-    • {pattern}  (`MdnFormatDelimiters?`)
+    • {imetype}  (`MdnSupportedInlineMEType`) Markdown element type
+    • {opts}  (`MdnFormattingOpts?`)
+
+formatting.toggle({imetype}, {delimiter}, {opts})	*mdnotes.formatting.toggle()*
+
+    Parameters: ~
+    • {imetype}  (`MdnSupportedInlineMEType`) Markdown element type
     • {opts}  (`table?`) Optional parameters:
               • {location} (`MdnInLineLocation?`)
 		inline text location
@@ -1512,8 +1518,10 @@ formatting.autolink_toggle({opts})			*mdnotes.formatting.autolink_toggle()*
 
 formatting.parse_list_item({line})			*mdnotes.formatting.parse_list_item()*
 
-    Get a consistent table containing all data on a list item whether it is
-    ordered or unordered.
+    Get a consistent table containing all data on a list item.
+
+    Behaves as a wrapper for the `parse_list_item_re()` and `parse_list_item_ts()` functions which
+    get called depending on the |mdnotes-parser|.
 
     Parameters: ~
     • {line}  (`string?`) Line text
@@ -1534,6 +1542,9 @@ footnote.fcounter 					*mdnotes.footnote.fcounter*
 footnote.parse({opts})			 		*mdnotes.footnote.parse()*
 
     Get the footnote reference text, and the start and end columns.
+    
+    Behaves as a wrapper for the `parse_re()` and `parse_ts()` functions which
+    get called depending on the |mdnotes-parser|.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -1663,20 +1674,17 @@ footnote.get_fref_from_obj({fndata})			*mdnotes.footnote.get_fref_from_obj()*
     • {fndata}  (`MdnFootnoteReferenceData?`) Footnote reference object
 
     Return: ~
-    • (`string`)
+    • (`string?`)
 
 footnote.parse_lines({opts})				*mdnotes.footnote.parse_lines()*
 
     Parse the footnote references in the specified lines (defaults to current line).
 
+    Behaves as a wrapper for the `parse_lines_re()` and `parse_lines_ts()` functions which
+    get called depending on the |mdnotes-parser|.
+
     Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`)
-		multi-line location
-              • {str} (`boolean?`, default `false`)
-		return object as strings instead of objects
-              • {no_duplicates} (`boolean?`, default `false`)
-		remove duplicate entries from result
+    • {opts}  (`MdnParseLinesOpts?`)
 
     Return: ~
     • (`table<MdnFootnoteReferenceData>?`)
@@ -1710,7 +1718,7 @@ footnote.renumber({opts}) 				*mdnotes.footnote.renumber()*
               • {silent} (`boolean?`, default `false`)
 		silence notifications
 
-footnote.picker({on_end}, {buf}) 				*mdnotes.footnote.picker()*
+footnote.picker({on_end}, {buf}) 			*mdnotes.footnote.picker()*
 
     Wrapper for |mdnotes.mdn_picker()| to select a footnote reference from
     {buf} and call {on_end} if the default picker was overriden. 
@@ -1876,6 +1884,9 @@ inline_link.parse({opts})				*mdnotes.inline_link.parse()*
     Get the inline link data such as the image designator, link text, link destination,
     and the start and end columns.
 
+    Behaves as a wrapper for the `parse_re()` and `parse_ts()` functions which get
+    called depending on the |mdnotes-parser|.
+
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {inline_link} (`string?`)
@@ -1900,7 +1911,7 @@ inline_link.get_il_from_obj({ildata})			*mdnotes.inline_link.get_il_from_obj()*
     • {ildata}  (`MdnInLineLinkData`) Inline link object
 
     Return: ~
-    • (`string`)
+    • (`string?`)
 
 inline_link.open({opts})				*mdnotes.inline_link.open()*
 
@@ -2009,7 +2020,8 @@ inline_link.normalize({opts})				*mdnotes.inline_link.normalize()*
 
     Execute |vim.fs.normalize()| on the inline link below the cursor, add `<`
     and `>` if the link contains spaces, and convert the fragment to a GFM
-    style fragment.
+    style fragment. Can only use `parse_re()` because it corrects incomplete
+    inline links.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -2047,14 +2059,11 @@ inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
 
     Parse the inline links in the specified lines (defaults to current line).
 
+    Behaves as a wrapper for the `parse_lines_re()` and `parse_lines_ts()` functions which get
+    called depending on the |mdnotes-parser|.
+
     Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`)
-		inline text location
-              • {str} (`boolean?`, default `false`)
-		return object as strings instead of objects
-              • {no_duplicates} (`boolean?`, default `false`)
-		remove duplicate entries from result
+    • {opts}  (`MdnParseLinesOpts?`)
 
     Return: ~
     • (`table<MdnInlineLinkData?`)
@@ -2134,6 +2143,9 @@ reference_link.parse({opts})		 		*mdnotes.reference_link.parse()*
 
     Get the reference link data such as the link text, link label, and
     the start and end columns.
+
+    Behaves as a wrapper for the `parse_re()` and `parse_ts()` functions which
+    get called depending on the |mdnotes-parser|.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -2345,14 +2357,11 @@ reference_link.parse_lines({opts})			*mdnotes.reference_link.parse_lines()*
 
     Parse the reference links in the specified lines (defaults to current line).
 
+    Behaves as a wrapper for the `parse_lines_re()` and `parse_lines_ts()` functions which get
+    called depending on the |mdnotes-parser|.
+
     Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`)
-		inline text location
-              • {str} (`boolean?`, default `false`)
-		return object as strings instead of objects
-              • {no_duplicates} (`boolean?`, default `false`)
-		remove duplicate entries from result
+    • {opts}  (`MdnParseLinesOpts?`)
 
     Return: ~
     • (`table<MdnReferenceLinkData>?`)
@@ -2387,6 +2396,9 @@ table.check_table_valid({opts}) 			*mdnotes.table.check_table_valid()*
 
     Check if there is a table under the cursor. Can also specify where to
     search using {opts}.
+
+    Behaves as a wrapper for the `check_table_valid_re()` and `check_table_valid_ts()`
+    functions which get called depending on the |mdnotes-parser|.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -2427,23 +2439,14 @@ table.create({rows}, {cols}, {opts})			*mdnotes.table.create()*
 
     Return: ~
     • (`MdnTable`)
-							*mdnotes.table.get_table_lines()*
-table.get_table_lines({table_startl}, {table_endl}, {buf})
-
-    Get the table lines in the specified buffer and line numbers.
-
-    Parameters: ~
-    • {table_startl}  (`integer?`)
-    • {table_endl}  (`table?`) Optional parameters:
-    • {buf}  (`integer?`)
-
-    Return: ~
-    • (`MdnTableContents`)
 
 table.parse({opts})					*mdnotes.table.parse()*
 
     Parse the specified table. Data returned can be passed directly to
     |mdnotes.table.write_table()|.
+
+    Behaves as a wrapper for the `parse_re()` and `parse_ts()` functions which
+    get called depending on the |mdnotes-parser|.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -2790,6 +2793,9 @@ wikilink.parse({opts}) 					*mdnotes.wikilink.parse()*
 
     Get the WikiLink without the fragment, the fragment, and the alias.
 
+    Behaves as a wrapper for the `parse_re()` and `parse_ts()` functions which
+    get called depending on the |mdnotes-parser|.
+
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
               • {wikilink} (`string?`)
@@ -2975,17 +2981,20 @@ wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 
     Parse the WikiLinks in the specified lines (defaults to current line).
 
+    Behaves as a wrapper for the `parse_lines_re()` and `parse_lines_ts()` functions which get
+    called depending on the |mdnotes-parser|.
+
     Parameters: ~
-    • {opts}  (`table?`) Optional parameters:
-              • {location} (`MdnMultiLineLocation?`)
-		inline text location
-              • {str} (`boolean?`, default `false`)
-		return object as strings instead of objects
-              • {no_duplicates} (`boolean?`, default `false`)
-		remove duplicate entries from result
+    • {opts}  (`MdnParseLinesOpts?`)
 
     Return: ~
     • (`table<MdnWikiLinkData?`)
+
+MdnSupportedInlineMEType 				*mdnotes.MdnSupportedInlineMEType*
+
+    Alias for supported inline Markdown element types described as strings,
+    `wikilink`, `inline_link,` `strong,` `emphasis,` `strikethrough,` `inline_code,`
+    `autolink,` `reference_link,` `footnote_reference.`
 
 MdnInLineLocation 					*mdnotes.MdnInLineLocation*
 
@@ -3038,6 +3047,24 @@ MdnText		 					*mdnotes.MdnText*
     Fields: ~
     • {raw}  (`string?`) Raw text in the corresponding location
 
+MdnParseLinesOpts					*mdnotes.ParseLinesOpts*
+
+    Opts for `parse_lines()`-type functions.
+
+    Fields: ~
+    • {location}  (`MdnMultiLineLocation?`)
+    • {str}  (`boolean?`) Return a string instead of an object
+    • {no_duplicates}  (`boolean?`) Remove duplicate results
+    • {location_only}  (`boolean?`) Do not parse and return only location data
+
+MdnParseLinesInitOpts					*mdnotes.ParseLinesInitOpts*
+
+    Inherits from |mdnotes.MdnParseLinesOpts|.
+
+    Fields: ~
+    • {process_func}  (`fun(obj): any)?`) Process the parsed object e.g.
+    convert it to a string. Defaults to no processing.
+
 MdnFragment	 					*mdnotes.MdnFragment*
 
     Table for how fragments are stored.
@@ -3077,6 +3104,7 @@ MdnConfig	 					*mdnotes.MdnConfig*
     • {table_best_fit_padding} (`integer?`) Add padding around cell contents when using tables_best_fit
     • {toc_depth} (`integer?`) Depth shown in the ToC
     • {user_commands} (`table?`) User commands in the Mdn namespace
+    • {parser} (`'"treesitter"'|'"patterns"'?`)) Parse text using treesitter or patterns
 
 MdnAutocmdsConfig	 				*mdnotes.MdnAutocmdsConfig*
 
@@ -3111,11 +3139,6 @@ MdnScanLines 						*mdnotes.MdnScanLines*
     • {lnum} (`number`) Line number of specified pattern
     • {cols} (`table<number, number>`) Table containing start and end columns of specified pattern
 
-MdnFormatDelimiters 					*mdnotes.MdnFormatDelimiters*
-
-    Alias for the supported Markdown format delimiters which are, `*`, `_`,
-    `**`, `__`, `~~`, ````, `<>`, `[[]]`.
-
 MdnFormattingOpts 					*mdnotes.MdnFormattingOpts*
 
     Options for all formatting related functions.
@@ -3123,9 +3146,18 @@ MdnFormattingOpts 					*mdnotes.MdnFormattingOpts*
     Fields: ~
     • {location} (`MdnInLineLocation?`)
     • {move_cursor} (`boolean?`) Move cursor to the specified location
-    • {split_delimiter} (`boolean`?) Split formatting delimiter
 
-MdnListItemData						 *mdnotes.MdnListItemData*
+MdnFormatDelimiter					*mdnotes.MdnFormatDelimiter*
+
+    Alias for a table containing the left and right delimiters:
+
+MdnFormatDelimiters					*mdnotes.MdnFormatDelimiters*
+
+    Keys are of type `MdnSupportedInlineMEType` with values of
+    `{ldel: string, rdel: string}`, which designate the left and right
+    format delimiters.
+
+MdnListItemData						*mdnotes.MdnListItemData*
 
     List item contents that have been deemed important by me.
 
@@ -3135,7 +3167,7 @@ MdnListItemData						 *mdnotes.MdnListItemData*
     • {separator} (`string`) List item separator, only in ordered lists
     • {text} (`string`) List item text
     • {type} (`'"ordered"'|'"unordered"'`)
-    • {is_task} (`boolean`) If the list element is a task
+    • {task_state} (`string`) Task state string
 
 MdnInlineLinkData 					*mdnotes.MdnInlineLinkData*
 

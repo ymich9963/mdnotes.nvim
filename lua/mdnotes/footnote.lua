@@ -43,13 +43,13 @@ function M.parse_re(opts)
 
     vim.validate("footnote_reference", fref, "string", true)
 
-    local check_markdown_syntax_re = require('mdnotes').check_markdown_syntax_re
+    local check_inline_markdown_syntax_re = require('mdnotes').check_inline_markdown_syntax_re
     local fref_pattern = require("mdnotes.patterns").footnote_reference
     local f_pattern = require("mdnotes.patterns").footnote
     local txtdata = {}
 
     if fref == nil then
-        if not check_markdown_syntax_re(fref_pattern, { location = opts.location }) then return nil end
+        if not check_inline_markdown_syntax_re(fref_pattern, { location = opts.location }) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(fref_pattern, { location = opts.location })
         fref = txtdata.raw or ""
 
@@ -453,12 +453,12 @@ function M.parse_lines_re(opts)
     local pattern = require('mdnotes.patterns').footnote_reference
     local parse_lines_re = require('mdnotes').parse_lines_re
 
-    local get_func = nil
+    local process_func = nil
     if str == true then
-        get_func = M.get_fref_from_obj
+        process_func = M.get_fref_from_obj
     end
 
-    return parse_lines_re(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines_re(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, process_func = process_func})
 end
 
 ---Parse the footnote references in the specified lines using treesitter
@@ -471,11 +471,11 @@ function M.parse_lines_ts(opts)
     local str = opts.str or false
     local parse_lines_ts = require('mdnotes').parse_lines_ts
 
-    local get_func = nil
+    local process_func = nil
     if str == true then
-        get_func = M.get_fref_from_obj
+        process_func = M.get_fref_from_obj
     end
-    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
+    local _opts = vim.tbl_extend("force", opts, {process_func = process_func})
 
     return parse_lines_ts("footnote_reference", _opts)
 end

@@ -42,12 +42,12 @@ function M.parse_re(opts)
     vim.validate("wikilink", wikilink, "string", true)
 
     local mdn_patterns = require('mdnotes.patterns')
-    local check_markdown_syntax_re = require('mdnotes').check_markdown_syntax_re
+    local check_inline_markdown_syntax_re = require('mdnotes').check_inline_markdown_syntax_re
     local txtdata = {}
 
     -- Overwrite if location is given
     if opts.location ~= nil or wikilink == nil then
-        if not check_markdown_syntax_re(mdn_patterns.wikilink, {location = opts.location}) then return nil end
+        if not check_inline_markdown_syntax_re(mdn_patterns.wikilink, {location = opts.location}) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(mdn_patterns.wikilink, { location = opts.location })
         wikilink = txtdata.raw or ""
     end
@@ -209,7 +209,6 @@ function M.find_references(opts)
         }
         wldata.raw = "[[" .. wldata.file .. "]]"
     end
-    vim.print(wldata)
 
     local cur_pos = vim.fn.getpos('.')
     local cwd = require('mdnotes').cwd
@@ -787,11 +786,11 @@ function M.parse_lines_re(opts)
     local pattern = require('mdnotes.patterns').wikilink
     local parse_lines_re = require('mdnotes').parse_lines_re
 
-    local get_func = nil
+    local process_func = nil
     if str == true then
-        get_func = M.get_wl_from_obj
+        process_func = M.get_wl_from_obj
     end
-    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
+    local _opts = vim.tbl_extend("force", opts, {process_func = process_func})
 
     return parse_lines_re(pattern, M.parse_re, _opts)
 end
@@ -806,11 +805,11 @@ function M.parse_lines_ts(opts)
     local str = opts.str or false
     local parse_lines_ts = require('mdnotes').parse_lines_ts
 
-    local get_func = nil
+    local process_func = nil
     if str == true then
-        get_func = M.get_wl_from_obj
+        process_func = M.get_wl_from_obj
     end
-    local _opts = vim.tbl_extend("force", opts, {get_func = get_func})
+    local _opts = vim.tbl_extend("force", opts, {process_func = process_func})
 
     return parse_lines_ts("wikilink", _opts)
 end

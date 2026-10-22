@@ -333,20 +333,12 @@ local function get_table_data(n, s)
     }
 end
 
+---Supported Markdown Treesitter types
+---@alias MdnSupportedTSType MdnSupportedInlineMEType | '"list_item"' | '"table"'
+
 ---@alias MdnTSNodeFunc (fun(node: TSNode, source: string|integer, location: "'inline'"|"'multiline'"?): table?)?
 
----@class MdnTSNodeType
----@field wikilink MdnTSNodeFunc
----@field inline_link MdnTSNodeFunc
----@field strong MdnTSNodeFunc
----@field emphasis MdnTSNodeFunc
----@field strikethrough MdnTSNodeFunc
----@field inline_code MdnTSNodeFunc
----@field autolink MdnTSNodeFunc
----@field reference_link MdnTSNodeFunc
----@field footnote_reference MdnTSNodeFunc
----@field list_item MdnTSNodeFunc
----@field table MdnTSNodeFunc
+---@alias MdnTSNodeType table<MdnSupportedTSType, MdnTSNodeFunc>
 M = {
     wikilink = function(node, source, location)
         return process_node(node, source, {"shortcut_link"}, get_wl_data, is_wikilink, location)
