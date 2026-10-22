@@ -128,7 +128,8 @@ function M.get_buf_footnotes(opts)
     if parser == "patterns" then
         return M.get_buf_footnotes_re(opts)
     elseif parser == "treesitter" then
-        return M.get_buf_footnotes_ts(opts)
+        --FIX: issue with ts implementation
+        return M.get_buf_footnotes_re(opts)
     end
 end
 

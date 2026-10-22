@@ -53,10 +53,10 @@ T['follow()'] = function()
     local lines = {}
     child.cmd([[edit tests/test-data/files/file3.md]])
     child.fn.cursor(2,1)
-    child.lua([[return Mdn.wikilink.follow()]])
+    child.lua([[Mdn.wikilink.follow()]])
     local buf = child.api.nvim_get_current_buf()
     lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
-    eq(lines[2], "this is file2")
+    eq(lines[1], "# File 2")
 end
 
 T['find_references()'] = function()
