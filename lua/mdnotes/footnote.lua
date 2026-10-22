@@ -128,8 +128,7 @@ function M.get_buf_footnotes(opts)
     if parser == "patterns" then
         return M.get_buf_footnotes_re(opts)
     elseif parser == "treesitter" then
-        --FIX: issue with ts implementation
-        return M.get_buf_footnotes_re(opts)
+        return M.get_buf_footnotes_ts(opts)
     end
 end
 
@@ -177,6 +176,7 @@ function M.get_buf_footnotes_ts(opts)
     vim.validate("buf", buf, "number")
     vim.validate("only_identifiers", only_identifiers, "boolean")
 
+    -- FIX: issue with using the markdown inline parser to go down the tree
     local parser, err = vim.treesitter.get_parser(buf, "markdown_inline")
     if parser == nil or err ~= nil then
         vim.notify("Mdn: Error with treesitter 'markdown_inline' parser: " .. err, vim.log.levels.INFO)
@@ -206,10 +206,6 @@ function M.get_buf_footnotes_ts(opts)
     local node = tree:root()
 
     get_node_data_tbl(node)
-
-    if footnotes == nil then
-        return {}
-    end
 
     return footnotes
 end

@@ -16,7 +16,6 @@ local T = new_set({
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
             child.lua([[require('mdnotes').setup({assets_path = "assets"})]])
-            -- child.o.grepprg = "internal"
         end,
         -- This will be executed one after all tests from this set are finished
         post_once = child.stop,
