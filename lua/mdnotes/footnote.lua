@@ -120,10 +120,22 @@ function M.parse_ts(opts)
     return node_data
 end
 
----Get the footnotes of the specified buffer
+---Get the footnotes of the specified buffer using Lua patterns
 ---@param opts {buf: integer?, only_identifiers: boolean?}?
 ---@return table<MdnFootnote|string>?
 function M.get_buf_footnotes(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.get_buf_footnotes_re(opts)
+    elseif parser == "treesitter" then
+        return M.get_buf_footnotes_ts(opts)
+    end
+end
+
+---Get the footnotes of the specified buffer using Lua patterns
+---@param opts {buf: integer?, only_identifiers: boolean?}?
+---@return table<MdnFootnote|string>?
+function M.get_buf_footnotes_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -146,6 +158,56 @@ function M.get_buf_footnotes(opts)
                 table.insert(footnotes, string.lower(identifier))
             end
         end
+    end
+
+    return footnotes
+end
+
+---Get the footnotes of the specified buffer using treesitter
+---@param opts {buf: integer?, only_identifiers: boolean?}?
+---@return table<MdnFootnote|string>?
+function M.get_buf_footnotes_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
+    local only_identifiers = opts.only_identifiers or false
+
+    vim.validate("buf", buf, "number")
+    vim.validate("only_identifiers", only_identifiers, "boolean")
+
+    local parser, err = vim.treesitter.get_parser(buf, "markdown_inline")
+    if parser == nil or err ~= nil then
+        vim.notify("Mdn: Error with treesitter 'markdown_inline' parser: " .. err, vim.log.levels.INFO)
+        return {}
+    end
+
+    local footnotes = {}
+    local process_node_func = require('mdnotes.treesitter')["footnote"]
+    local function get_node_data_tbl(node)
+        local processed_node = process_node_func(node, buf)
+        if processed_node ~= nil then
+            if only_identifiers == false then
+                processed_node.buf = nil -- gets added by the process_node() function in treesitter.lua
+                processed_node.cur_col = nil
+                table.insert(footnotes, processed_node)
+            else
+                table.insert(footnotes, string.lower(processed_node.identifier))
+            end
+        end
+
+        for child in node:iter_children() do
+            get_node_data_tbl(child)
+        end
+    end
+
+    local tree = parser:parse()[1]
+    local node = tree:root()
+
+    get_node_data_tbl(node)
+
+    if footnotes == nil then
+        return {}
     end
 
     return footnotes

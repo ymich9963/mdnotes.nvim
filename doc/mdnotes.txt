@@ -1052,6 +1052,9 @@ get_buf_fragments({buf}) 				*mdnotes.get_fragments_from_headings()*
     Get fragments from the Markdown buffer headings. Parses each heading to
     table entries of type `MdnFragment`.
     
+    Behaves as a wrapper for the `get_buf_fragments_re()` and `get_buf_fragments_ts()`
+    functions which get called depending on the |mdnotes-parser|.
+
     Parameters: ~
     • {buf}  (`integer?` defaults to current buffer) Buffer to get fragments
       from.
@@ -1560,6 +1563,9 @@ footnote.parse({opts})			 		*mdnotes.footnote.parse()*
 footnote.get_buf_footnotes({opts}) 			*mdnotes.footnote.get_buf_footnotes()*
 
     Get the footnotes of the specified buffer.
+
+    Behaves as a wrapper for the `get_buf_footnotes_re()` and `get_buf_footnotes_ts()`
+    functions which get called depending on the |mdnotes-parser|.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:
@@ -2164,6 +2170,10 @@ reference_link.parse({opts})		 		*mdnotes.reference_link.parse()*
 reference_link.get_buf_reference_link_definitions({opts})
 
     Get the reference link definitions on the specified buffer.
+
+    Behaves as a wrapper for the `get_buf_reference_link_definitions_re()`
+    and `get_buf_reference_link_definitions_ts()` functions which get called
+    depending on the |mdnotes-parser|.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:

@@ -153,7 +153,7 @@ end
 
 ---@param n TSNode
 ---@param s string|integer Buffer or string from which the node is extracted
----@return MdnInLineLocation
+---@return MdnText
 local function get_fd_data(n, s)
     local raw = vim.treesitter.get_node_text(n, s)
     local row_start, col_start, _, col_end = n:range()
@@ -168,7 +168,7 @@ end
 
 ---@param n TSNode
 ---@param s string|integer Buffer or string from which the node is extracted
----@return MdnInLineLocation
+---@return MdnListItemData
 local function get_list_item_data(n, s)
     local marker, separator, text, list_type, task_state = "", "", "", "", ""
     for child in n:iter_children() do
@@ -204,7 +204,7 @@ end
 
 ---@param n TSNode
 ---@param s string|integer Buffer or string from which the node is extracted
----@return MdnInlineLinkData
+---@return MdnReferenceLinkData
 local function get_rl_data(n, s)
     local raw = vim.treesitter.get_node_text(n, s)
     local row_start, col_start, _, col_end = n:range()
@@ -236,7 +236,7 @@ end
 
 ---@param n TSNode
 ---@param s string|integer Buffer or string from which the node is extracted
----@return MdnInlineLinkData
+---@return MdnWikiLinkData
 local function get_wl_data(n, s)
     local row_start, col_start, _, col_end = n:range()
 
@@ -284,7 +284,7 @@ end
 
 ---@param n TSNode
 ---@param s string|integer Buffer or string from which the node is extracted
----@return MdnInlineLinkData
+---@return MdnTable
 local function get_table_data(n, s)
     local row_start, _, row_end, _ = n:range()
 
@@ -333,8 +333,101 @@ local function get_table_data(n, s)
     }
 end
 
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnFragment
+local function get_atx_headings(n, s)
+    local row_start, _, _, _ = n:range()
+    local atx_heading = vim.treesitter.get_node_text(n, s)
+    local hash_end = atx_heading:find("%s")
+    local hash = atx_heading:sub(1, hash_end - 1)
+    local text = atx_heading:sub(hash_end + 1, -2)
+    local convert_text_to_gfm = require('mdnotes').convert_text_to_gfm
+
+    return {
+        hash = hash,
+        text = text,
+        lnum = row_start + 1,
+        gfm = convert_text_to_gfm(text)
+    }
+end
+
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnReferenceLinkDefinition
+local function get_rldef_data(n, s)
+    local row_start, _, _, _ = n:range()
+    local label, destination = "", ""
+    for child in n:iter_children() do
+        local type = child:type()
+        if type == "link_label" then
+            label = vim.treesitter.get_node_text(child, s):sub(2,-2)
+        end
+        if type == "link_destination" then
+            destination = vim.treesitter.get_node_text(child, s)
+        end
+    end
+
+    return {
+        label = string.lower(label),
+        destination = destination,
+        lnum = row_start + 1,
+    }
+end
+
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return MdnReferenceLinkDefinition
+local function get_fn_data(n, s)
+    local row_start, _, _, col_end = n:range()
+
+    local identifier = ""
+    for child in n:iter_children() do
+        local type = child:type()
+        if type == "link_text" then
+            identifier = vim.treesitter.get_node_text(child, s)
+            identifier = identifier:sub(2, -1) -- remove ^ character
+        end
+    end
+
+    local line
+    if type(s) == "string" then
+    elseif type(s) == "number" then
+        line = vim.api.nvim_buf_get_lines(s, row_start, row_start + 1, false)[1]
+    end
+
+    local text = line:sub(col_end, -1):match("%s(.+)")
+
+    return {
+        identifier = identifier,
+        text = text,
+        lnum = row_start + 1,
+    }
+end
+
+---@param n TSNode
+---@param s string|integer Buffer or string from which the node is extracted
+---@return boolean
+local function is_fn(n, s)
+    local text = ""
+    local row_start, col_start, _, col_end = n:range()
+    if type(s) == "string" then
+        text = s
+    elseif type(s) == "number" then
+        text = vim.api.nvim_buf_get_lines(s, row_start, row_start + 1, false)[1]
+    end
+
+    local isfn = false
+    local ntext = vim.treesitter.get_node_text(n, s)
+    if col_start == 0 and text:sub(col_end + 1, col_end + 1) == ":" and ntext:sub(2,2) == "^" then
+        isfn = true
+    end
+
+    return isfn
+end
+
 ---Supported Markdown Treesitter types
----@alias MdnSupportedTSType MdnSupportedInlineMEType | '"list_item"' | '"table"'
+---@alias MdnSupportedTSType MdnSupportedInlineMEType | '"list_item"' | '"table"' | '"fragments"' | '"reference_link_definition"'
 
 ---@alias MdnTSNodeFunc (fun(node: TSNode, source: string|integer, location: "'inline'"|"'multiline'"?): table?)?
 
@@ -372,6 +465,15 @@ M = {
     end,
     table = function(node, source, location)
         return process_node(node, source, {"pipe_table"}, get_table_data, ret_true, location)
+    end,
+    fragments = function(node, source, location)
+        return process_node(node, source, {"atx_heading"}, get_atx_headings, ret_true, location)
+    end,
+    reference_link_definition = function(node, source, location)
+        return process_node(node, source, {"link_reference_definition"}, get_rldef_data, ret_true, location)
+    end,
+    footnote = function(node, source, location)
+        return process_node(node, source, {"shortcut_link"}, get_fn_data, is_fn, location)
     end,
 }
 

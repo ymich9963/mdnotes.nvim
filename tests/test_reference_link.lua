@@ -77,7 +77,14 @@ T['parse()']['impl'] = function(suffix)
     })
 end
 
-T['get_buf_reference_link_definitions()'] = function()
+T['get_buf_reference_link_definitions()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['get_buf_reference_link_definitions()']['impl'] = function(suffix)
     local lines = {
         "[neovim][]",
         "[test][neovim]",
@@ -97,7 +104,7 @@ T['get_buf_reference_link_definitions()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[ return Mdn.reference_link.get_buf_reference_link_definitions() ]])
+    local ret = child.lua([[ return Mdn.reference_link.get_buf_reference_link_definitions]] .. suffix .. [[() ]])
     eq(ret, {
         {
             destination = "https://github.com/ymic9963/mdnotes.nvim",

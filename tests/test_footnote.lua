@@ -64,7 +64,14 @@ T['parse()']['impl'] = function(suffix)
     })
 end
 
-T['get_buf_footnotes()'] = function()
+T['get_buf_footnotes()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['get_buf_footnotes()']['impl'] = function(suffix)
     local lines = {
         "[^1]",
         "Text before [^2] and after",
@@ -74,7 +81,7 @@ T['get_buf_footnotes()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[ return Mdn.footnote.get_buf_footnotes() ]])
+    local ret = child.lua([[ return Mdn.footnote.get_buf_footnotes]] .. suffix .. [[() ]])
     eq(ret, {
         {
             identifier = "1",

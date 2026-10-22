@@ -26,6 +26,7 @@ local T = new_set({
 T['docs'] = function()
     child.cmd([[helptags doc/]])
 end
+
 T['mdn_grep()'] = function()
     child.cmd([[
     edit tests/test-data/files/greptest.md
@@ -437,8 +438,15 @@ T['populate_buf_fragments()'] = function()
     })
 end
 
+T['get_buf_fragments()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
 
-T['get_buf_fragments()'] = function()
+
+T['get_buf_fragments()']['impl'] = function(suffix)
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -449,10 +457,7 @@ T['get_buf_fragments()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    return Mdn.get_buf_fragments({ buf = cur_buf })
-    ]])
+    local ret = child.lua([[return Mdn.get_buf_fragments]] .. suffix .. [[()]])
     eq(ret, {
         {
             hash = "#",

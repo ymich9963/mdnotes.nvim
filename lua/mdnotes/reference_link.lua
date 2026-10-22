@@ -127,6 +127,18 @@ end
 ---@param opts {buf: integer?, only_labels: boolean?}?
 ---@return table<MdnReferenceLinkDefinition|string>?
 function M.get_buf_reference_link_definitions(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.get_buf_reference_link_definitions_re(opts)
+    elseif parser == "treesitter" then
+        return M.get_buf_reference_link_definitions_ts(opts)
+    end
+end
+
+---Get the reference link defintions for specified buffer using Lua patterns
+---@param opts {buf: integer?, only_labels: boolean?}?
+---@return table<MdnReferenceLinkDefinition|string>?
+function M.get_buf_reference_link_definitions_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -146,6 +158,56 @@ function M.get_buf_reference_link_definitions(opts)
                 table.insert(reference_links, string.lower(label))
             end
         end
+    end
+
+    return reference_links
+end
+
+---Get fragments from the Markdown buffer headings using treesitter
+---@param opts {buf: integer?, only_labels: boolean?}?
+---@return table<MdnReferenceLinkDefinition|string>?
+function M.get_buf_reference_link_definitions_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
+    local only_labels = opts.only_labels or false
+
+    vim.validate("buf", buf, "number")
+    vim.validate("only_labels", only_labels, "boolean")
+
+    local parser, err = vim.treesitter.get_parser(buf, "markdown")
+    if parser == nil or err ~= nil then
+        vim.notify("Mdn: Error with treesitter 'markdown' parser: " .. err, vim.log.levels.INFO)
+        return {}
+    end
+
+    local reference_links = {}
+    local process_node_func = require('mdnotes.treesitter')["reference_link_definition"]
+    local function get_node_data_tbl(node)
+        local processed_node = process_node_func(node, buf)
+        if processed_node ~= nil then
+            if only_labels == false then
+                processed_node.buf = nil -- gets added by the process_node() function in treesitter.lua
+                processed_node.cur_col = nil
+                table.insert(reference_links, processed_node)
+            else
+                table.insert(reference_links, string.lower(processed_node.label))
+            end
+        end
+
+        for child in node:iter_children() do
+            get_node_data_tbl(child)
+        end
+    end
+
+    local tree = parser:parse()[1]
+    local node = tree:root()
+
+    get_node_data_tbl(node)
+
+    if reference_links == nil then
+        return {}
     end
 
     return reference_links

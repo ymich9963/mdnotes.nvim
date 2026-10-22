@@ -147,9 +147,10 @@ T['delete()'] = function()
     Mdn.set_cwd()
     return {
         Mdn.assets.delete({
-        destination = "assets/asset4.txt",
-        skip_input = true })
-    }]])
+            destination = "assets/asset4.txt",
+            skip_input = true })
+        }
+        ]])
     eq(ret[1] , true)
     eq(vim.fs.basename(ret[2]) , "asset4.txt")
     eq(

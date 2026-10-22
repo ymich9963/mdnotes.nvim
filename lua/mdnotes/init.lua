@@ -311,7 +311,6 @@ function M.open_buf(buf, opts)
     if type(buf) == "number" then
         edit_cmd = open_cmd .. buf
     elseif type(buf) == "string" then
-        vim.cmd.cd({ args = {M.cwd}, mods = {silent = true}})
         edit_cmd = open_cmd .. buf
     end
 
@@ -807,8 +806,20 @@ end
 
 ---Get fragments from the Markdown buffer headings
 ---@param opts {buf: integer?, only_text: boolean?}?
----@return table<MdnFragment|string>
+---@return table<MdnFragment|string>?
 function M.get_buf_fragments(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.get_buf_fragments_re(opts)
+    elseif parser == "treesitter" then
+        return M.get_buf_fragments_ts(opts)
+    end
+end
+
+---Get fragments from the Markdown buffer headings using Lua patterns
+---@param opts {buf: integer?, only_text: boolean?}?
+---@return table<MdnFragment|string>
+function M.get_buf_fragments_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -828,6 +839,53 @@ function M.get_buf_fragments(opts)
                 table.insert(fragments, text)
             end
         end
+    end
+
+    return fragments
+end
+
+---Get fragments from the Markdown buffer headings using treesitter
+---@param opts {buf: integer?, only_text: boolean?}?
+---@return table<MdnFragment|string>
+function M.get_buf_fragments_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
+    local only_text = opts.only_text or false
+
+    local parser, err = vim.treesitter.get_parser(buf, "markdown")
+    if parser == nil or err ~= nil then
+        vim.notify("Mdn: Error with treesitter 'markdown' parser: " .. err, vim.log.levels.INFO)
+        return {}
+    end
+
+    local fragments = {}
+    local process_node_func = require('mdnotes.treesitter')["fragments"]
+    local function get_node_data_tbl(node)
+        local processed_node = process_node_func(node, buf)
+        if processed_node ~= nil then
+            if only_text == false then
+                processed_node.buf = nil -- gets added by the process_node() function in treesitter.lua
+                processed_node.cur_col = nil
+                table.insert(fragments, processed_node)
+            else
+                table.insert(fragments, processed_node.hash .. " " .. processed_node.text)
+            end
+        end
+
+        for child in node:iter_children() do
+            get_node_data_tbl(child)
+        end
+    end
+
+    local tree = parser:parse()[1]
+    local node = tree:root()
+
+    get_node_data_tbl(node)
+
+    if fragments == nil then
+        return {}
     end
 
     return fragments
@@ -1142,7 +1200,7 @@ local function is_parsed_tbl_duplicate(parsed_tbl, data)
 end
 
 ---@class MdnParseLinesInitOpts: MdnParseLinesOpts
----@field process_func fun(obj): any 
+---@field process_func (fun(obj): any)?
 
 ---Parse the Markdown elements in the specified lines with Lua patterns
 ---@param pattern MdnPattern
