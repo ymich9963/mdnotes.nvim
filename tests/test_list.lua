@@ -373,6 +373,26 @@ T['ordered_list_renumber()'] = function()
         "3. item",
         "4. item",
     })
+
+    lines = {
+        "# Header",
+        "1. item",
+        "4. item",
+        "6) item",
+        "8) item",
+    }
+    buf = create_md_buffer(child, lines)
+
+    child.fn.cursor(2,1)
+    child.lua([[Mdn.list.ordered_list_renumber({ silent = true })]])
+    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    eq(lines, {
+        "# Header",
+        "1. item",
+        "2. item",
+        "6) item",
+        "8) item",
+    })
 end
 
 return T

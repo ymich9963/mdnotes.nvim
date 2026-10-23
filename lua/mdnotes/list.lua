@@ -278,31 +278,58 @@ function M.check_list_valid(opts)
         }
     end
 
+    local function check(cur_line)
+        if cur_line == "" then return true end
+
+        local stop = false
+        lcontent = M.parse_list_item(cur_line)
+        if lcontent == nil then return true end
+        if same_marker == true then
+            if lcontent.type == "ordered" and lcontent.separator ~= detected_separator then
+                stop = true
+            elseif lcontent.type == "unordered" and lcontent.marker ~= detected_marker then
+                stop = true
+            end
+        else
+            if lcontent.type == "ordered" and lcontent.separator ~= detected_separator then
+                stop = false
+            elseif lcontent.type == "unordered" and lcontent.marker ~= detected_marker then
+                stop = false
+            end
+        end
+
+        if same_indent == true then
+            if lcontent.indent ~= detected_indent then
+                stop = true
+            end
+        else
+            if lcontent.indent ~= detected_indent then
+                stop = false
+            end
+        end
+
+        return stop
+    end
+
     -- Find where list starts
+    local stop = false
     for i = origin_lnum, lower_limit_lnum, -1 do
         local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
-        if cur_line == "" then break end
-        lcontent = M.parse_list_item(cur_line)
-        if lcontent == nil then break end
-        if same_marker == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
-            break
-        end
-        if same_indent == true and lcontent.indent ~= detected_indent  then
+        stop = check(cur_line)
+
+        if stop == true then
             break
         end
         list_startl = i
     end
 
     -- Find where the list ends
+    stop = false
     for i = origin_lnum, upper_limit_lnum do
         local cur_line = vim.api.nvim_buf_get_lines(buf, i - 1, i, false)[1]
-        if cur_line == "" then break end
-        lcontent = M.parse_list_item(cur_line)
-        if lcontent == nil then break end
-        if same_marker == true and lcontent.marker ~= detected_marker and lcontent.separator ~= detected_separator then
-            break
-        end
-        if same_indent == true and lcontent.indent ~= detected_indent  then
+        stop = check(cur_line)
+
+        if stop == true then
             break
         end
         list_endl = i
@@ -339,7 +366,7 @@ function M.ordered_list_renumber(opts)
 
     vim.validate("silent", silent, "boolean")
 
-    local lsearch = M.check_list_valid({ search = search_opts, same_marker = false })
+    local lsearch = M.check_list_valid({ search = search_opts, same_marker = true, same_indent = false })
     if lsearch.valid == false then
         if silent == false then
             vim.notify("Mdn: Unable to detect a valid list", vim.log.levels.ERROR)
@@ -371,7 +398,7 @@ function M.ordered_list_renumber(opts)
     for _, v in ipairs(list_lines) do
         ldata = M.parse_list_item(v)
         if ldata == nil then break end
-        if ldata.type == "ordered" then
+        if ldata.type == "ordered" then -- needed for nested lists
             if tonumber(ldata.marker) ~= cur_number then
                 ldata.marker = tostring(cur_number)
             end
