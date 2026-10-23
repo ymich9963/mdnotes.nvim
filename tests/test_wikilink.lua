@@ -15,7 +15,12 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[require('mdnotes').setup()]])
+            child.lua([[require('mdnotes').setup({
+                autocmds = {
+                    --BUG: affects tests if true
+                    populate_buf_footnotes = false 
+                }
+            })]])
         end,
         -- This will be executed one after all tests from this set are finished
         post_once = child.stop,
@@ -50,12 +55,11 @@ T['parse()']['impl'] = function(suffix)
 end
 
 T['follow()'] = function()
-    local lines = {}
     child.cmd([[edit tests/test-data/files/file3.md]])
     child.fn.cursor(2,1)
     child.lua([[Mdn.wikilink.follow()]])
     local buf = child.api.nvim_get_current_buf()
-    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "# File 2")
 end
 

@@ -409,21 +409,21 @@ end
 ---@param s string|integer Buffer or string from which the node is extracted
 ---@return boolean
 local function is_fn(n, s)
-    -- local text = ""
-    -- local row_start, col_start, _, col_end = n:range()
-    -- if type(s) == "string" then
-    --     text = s
-    -- elseif type(s) == "number" then
-    --     text = vim.api.nvim_buf_get_lines(s, row_start, row_start + 1, false)[1]
-    -- end
-    --
-    -- local isfn = false
-    -- local ntext = vim.treesitter.get_node_text(n, s)
-    -- if col_start == 0 and text:sub(col_end + 1, col_end + 1) == ":" and ntext:sub(2,2) == "^" then
-    --     isfn = true
-    -- end
-    --
-    return false
+    local text = ""
+    local row_start, col_start, _, col_end = n:range()
+    if type(s) == "string" then
+        text = s
+    elseif type(s) == "number" then
+        text = vim.api.nvim_buf_get_lines(s, row_start, row_start + 1, false)[1]
+    end
+
+    local isfn = false
+    local ntext = vim.treesitter.get_node_text(n, s)
+    if col_start == 0 and text:sub(col_end + 1, col_end + 1) == ":" and ntext:sub(2,2) == "^" then
+        isfn = true
+    end
+
+    return isfn
 end
 
 ---Supported Markdown Treesitter types

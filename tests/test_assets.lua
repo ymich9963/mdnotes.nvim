@@ -15,7 +15,13 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[require('mdnotes').setup({assets_path = "assets"})]])
+            child.lua([[require('mdnotes').setup({
+                assets_path = "assets",
+                autocmds = {
+                    --BUG: affects tests if true
+                    populate_buf_footnotes = false 
+                }
+            })]])
         end,
         -- This will be executed one after all tests from this set are finished
         post_once = child.stop,

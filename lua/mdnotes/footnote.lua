@@ -176,10 +176,9 @@ function M.get_buf_footnotes_ts(opts)
     vim.validate("buf", buf, "number")
     vim.validate("only_identifiers", only_identifiers, "boolean")
 
-    -- FIX: issue with using the markdown inline parser to go down the tree
     local parser, err = vim.treesitter.get_parser(buf, "markdown_inline")
     if parser == nil or err ~= nil then
-        vim.notify("Mdn: Error with treesitter 'markdown_inline' parser: " .. err, vim.log.levels.INFO)
+        vim.notify("Mdn: Error with treesitter 'markdown_inline' parser: " .. err, vim.log.levels.ERROR)
         return {}
     end
 

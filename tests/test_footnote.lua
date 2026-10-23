@@ -108,22 +108,20 @@ T['populate_buf_footnotes()'] = function()
 
     local ret = child.lua([[
     Mdn.footnote.populate_buf_footnotes()
-    return Mdn.footnote.buf_footnotes
+    local buf = vim.api.nvim_get_current_buf()
+    return Mdn.footnote.buf_footnotes[buf]
     ]])
     eq(ret, {
-        vim.NIL,
         {
-            {
-                identifier = "1",
-                text = "This is footnote 1",
-                lnum = 4
-            },
-            {
-                identifier = "2",
-                text = "This is footnote 2",
-                lnum = 5
-            },
-        }
+            identifier = "1",
+            text = "This is footnote 1",
+            lnum = 4
+        },
+        {
+            identifier = "2",
+            text = "This is footnote 2",
+            lnum = 5
+        },
     })
 end
 

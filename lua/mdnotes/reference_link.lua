@@ -178,7 +178,7 @@ function M.get_buf_reference_link_definitions_ts(opts)
 
     local parser, err = vim.treesitter.get_parser(buf, "markdown")
     if parser == nil or err ~= nil then
-        vim.notify("Mdn: Error with treesitter 'markdown' parser: " .. err, vim.log.levels.INFO)
+        vim.notify("Mdn: Error with treesitter 'markdown' parser: " .. err, vim.log.levels.ERROR)
         return {}
     end
 
