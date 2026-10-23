@@ -38,6 +38,9 @@ T['parse_list_item()']['impl'] = function(suffix)
         "1. item",
         "2. [ ] item",
         "3. [x] item",
+        "",
+        "  - item",
+        "    - item",
     }
     create_md_buffer(child, lines)
 
@@ -117,6 +120,32 @@ T['parse_list_item()']['impl'] = function(suffix)
         text = "item",
         type = "ordered",
         task_state = "[x]"
+    })
+
+    ret = child.lua([[
+    local line = vim.api.nvim_buf_get_lines(0, 0, -1, false)[8]
+    return Mdn.list.parse_list_item]] .. suffix .. [[(line)
+    ]])
+    eq(ret, {
+        indent = "  ",
+        marker = "-",
+        separator = "",
+        text = "item",
+        type = "unordered",
+        task_state = ""
+    })
+
+    ret = child.lua([[
+    local line = vim.api.nvim_buf_get_lines(0, 0, -1, false)[9]
+    return Mdn.list.parse_list_item]] .. suffix .. [[(line)
+    ]])
+    eq(ret, {
+        indent = "    ",
+        marker = "-",
+        separator = "",
+        text = "item",
+        type = "unordered",
+        task_state = ""
     })
 end
 
