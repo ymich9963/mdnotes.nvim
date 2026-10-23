@@ -533,11 +533,12 @@ function M.delete(opts)
         wl_abspath = wl_abspath .. ".md"
     end
 
-    local wl_relpath = vim.fs.relpath(cwd, wl_abspath)
-
     local behaviour = require('mdnotes').config.wikilink_delete_behaviour
     local garbage_path = require('mdnotes').get_garbage_dir()
     local is_deleted = false
+
+    local wl_relpath = vim.fs.relpath(cwd, wl_abspath)
+    local garb_relpath = vim.fs.relpath(cwd, garbage_path)
 
     local verb = ""
     local prompt = "Type y/n/a(ll) or 'c' to cancel (default 'n'): "
@@ -545,7 +546,7 @@ function M.delete(opts)
         prompt = "Remove file at '" .. wl_relpath .. "'. " .. prompt
         verb = "Removed"
     elseif behaviour == "garbage" then
-        prompt = "Move file at '" .. wl_relpath .. "' to garbage folder. " .. prompt
+        prompt = "Move file at '" .. wl_relpath .. "' to '" .. garb_relpath .. "'. " .. prompt
         verb = "Moved"
     end
 

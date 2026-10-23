@@ -551,6 +551,8 @@ function M.delete(opts)
     local asset_name = vim.fs.basename(asset_path)
     local behaviour = require('mdnotes').config.asset_delete_behaviour
     local garbage_path = require('mdnotes').get_garbage_dir()
+    local cwd = require('mdnotes').cwd
+    local garb_relpath = vim.fs.relpath(cwd, garbage_path)
 
     local verb = ""
     local prompt = "Type y/n (default 'n'): "
@@ -558,7 +560,7 @@ function M.delete(opts)
         prompt = "Remove file at '" .. asset_path .. "'. " .. prompt
         verb = "Removed"
     elseif behaviour == "garbage" then
-        prompt = "Move file at '" .. asset_path .. "' to garbage folder. " .. prompt
+        prompt = "Move file at '" .. asset_path .. "' to '" .. garb_relpath .. "'. " .. prompt
         verb = "Moved"
     end
 
@@ -594,7 +596,7 @@ function M.delete(opts)
         local mdn_grep = require('mdnotes').mdn_grep
         local temp_qflist = vim.fn.getqflist()
 
-        mdn_grep(destination, require('mdnotes').cwd)
+        mdn_grep(destination, cwd)
         local assets_list = vim.fn.getqflist()
 
         for _,v in ipairs(assets_list) do
