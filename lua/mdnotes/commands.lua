@@ -32,6 +32,7 @@ local get_commands = function() return {
         delete = require("mdnotes.wikilink").delete,
         normalize = require("mdnotes.wikilink").normalize,
         find_orphans = require("mdnotes.wikilink").find_orphans,
+        convert_to_inline = require("mdnotes.wikilink").convert_to_inline,
     },
     table = {
         create = require("mdnotes.table").create,

@@ -407,6 +407,10 @@ to write the buffers if any command changes buffer contents.
     Show orphan pages (pages with no references) in |mdnotes.cwd| in a 
     |quickfix| list.
 
+:Mdn wikilink convert_to_inline 			*:Mdn-wikilink-convert_to_inline*
+
+    Convert a WikiLink to an inline link.
+
 :Mdn assets insert {asset}				*:Mdn-assets-insert*
 
     Insert an existing asset in your |mdnotes-assets_path| as an inline link
@@ -2379,7 +2383,7 @@ reference_link.convert_to_inline({opts})		*mdnotes.reference_link.convert_to_inl
 		specify location of reference link to parse
 
     Return: ~
-    • (`MdnReferenceLinkData?`, `MdnReferenceLinkDefinition?`)
+    • (`MdnInlineLinkData?`)
 
 reference_link.parse_lines({opts})			*mdnotes.reference_link.parse_lines()*
 
@@ -3017,6 +3021,20 @@ wikilink.parse_lines({opts})				*mdnotes.wikilink.parse_lines()*
 
     Return: ~
     • (`table<MdnWikiLinkData?`)
+
+wikilink.convert_to_inline({opts})			*mdnotes.wikilink.convert_to_inline()*
+
+    Convert a WikiLink to an inline link.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor at the new reference link
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of reference link to parse
+
+    Return: ~
+    • (`MdnInlineLinkData?`)
 
 MdnSupportedInlineMEType 				*mdnotes.MdnSupportedInlineMEType*
 

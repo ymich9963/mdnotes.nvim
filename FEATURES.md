@@ -20,6 +20,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Delete the WikiLink under the cursor from the current directory with `:Mdn wikilink delete`. 
 - Normalize your WikiLink path with `:Mdn wikilink normalize`. 
 - Find orphan pages (pages with no references) in current directory with `:Mdn wikilink find_orphans`. 
+- Convert a WikiLink to an inline link using `:Mdn wikilink convert_to_inline`.
 
 ## 👩‍💼 Asset Management
 - Insert an image or file from clipboard using `:Mdn assets insert_from_clipboard` which creates the appropriate link and copies or moves the image to your assets folder. Requires `xclip` or `wl-clipboard` for Linux.

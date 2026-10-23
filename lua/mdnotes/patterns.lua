@@ -50,6 +50,7 @@ M = {
     dest_title = ".+%s\"([^\"]*)\"",
     dest_no_fragment = "^([^#]+).*",
     fragment = "#([^|]*)",
+    wikilink_file = "^([^#|]+)",
     wikilink_contents = "%[%[(.-)%]%]",
     wikilink_alias = ".+|([^|]+)",
     task = "[%s]-(%[[ xX]%])[%s]+.-",

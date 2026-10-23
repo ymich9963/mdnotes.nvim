@@ -53,12 +53,12 @@ function M.parse_re(opts)
     end
 
     local wikilink_contents = wikilink:match(mdn_patterns.wikilink_contents)
-    local wikilink_no_fragment = wikilink_contents:match(mdn_patterns.dest_no_fragment) or ""
+    local file = wikilink_contents:match(mdn_patterns.wikilink_file) or ""
     local fragment = wikilink_contents:match(mdn_patterns.fragment) or ""
     local alias = wikilink_contents:match(mdn_patterns.wikilink_alias) or ""
 
     return vim.tbl_extend("force", {
-        file = wikilink_no_fragment,
+        file = file,
         fragment = fragment,
         alias = alias,
     }, txtdata)
@@ -813,6 +813,47 @@ function M.parse_lines_ts(opts)
     local _opts = vim.tbl_extend("force", opts, {process_func = process_func})
 
     return parse_lines_ts("wikilink", _opts)
+end
+
+---Convert an inline link to a reference link with its definition
+---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?
+---@return MdnInlineLinkData?
+function M.convert_to_inline(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local move_cursor = opts.move_cursor ~= false
+    local wldata = M.parse({ location = opts.location })
+    if wldata == nil or wldata.file == nil then return end
+
+    local cwd = require('mdnotes').cwd
+    local path = vim.fs.joinpath(cwd, wldata.file)
+
+    local text = wldata.file
+    if uv.fs_stat(path .. ".md") then
+        wldata.file = wldata.file .. ".md"
+        text = vim.fs.basename(text)
+    end
+
+    local ildata = {
+        img_char = "",
+        text = text,
+        destination = wldata.file .. "#" .. wldata.fragment,
+        title = "",
+        col_start = wldata.col_start,
+        col_end = wldata.col_start + #wldata.file + #wldata.file + #wldata.fragment + 4,
+        buf = wldata.buf
+    }
+
+    local get_il_from_obj = require('mdnotes.inline_link').get_il_from_obj
+    vim.api.nvim_buf_set_text(wldata.buf, wldata.lnum - 1, wldata.col_start - 1, wldata.lnum - 1, wldata.col_end - 1, {get_il_from_obj(ildata)})
+
+    if move_cursor == true then
+        vim.cmd.buffer(wldata.buf)
+        vim.fn.cursor({wldata.lnum, vim.fn.col('.') + 1})
+    end
+
+    return ildata
 end
 
 return M

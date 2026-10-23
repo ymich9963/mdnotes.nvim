@@ -36,20 +36,68 @@ T['parse()'] = new_set({
 
 T['parse()']['impl'] = function(suffix)
     local lines = {
-        "[[test#fragment|alias]]"
+        "[[test]]",
+        "",
+        "[[test#fragment]]",
+        "",
+        "[[test#fragment|alias]]",
+        "",
+        "[[test|alias]]"
     }
     create_md_buffer(child, lines)
 
     local ret = child.lua("return Mdn.wikilink.parse" .. suffix .. "()")
     eq(ret, {
         buf = 2,
-        col_end = 24,
+        col_end = 9,
         col_start = 1,
         cur_col = 1,
         lnum = 1,
+        raw = "[[test]]",
+        file = "test",
+        fragment = "",
+        alias = "",
+    })
+
+    child.fn.cursor(3,1)
+    ret = child.lua("return Mdn.wikilink.parse" .. suffix .. "()")
+    eq(ret, {
+        buf = 2,
+        col_end = 18,
+        col_start = 1,
+        cur_col = 1,
+        lnum = 3,
+        raw = "[[test#fragment]]",
+        file = "test",
+        fragment = "fragment",
+        alias = "",
+    })
+
+    child.fn.cursor(5,1)
+    ret = child.lua("return Mdn.wikilink.parse" .. suffix .. "()")
+    eq(ret, {
+        buf = 2,
+        col_end = 24,
+        col_start = 1,
+        cur_col = 1,
+        lnum = 5,
         raw = "[[test#fragment|alias]]",
         file = "test",
         fragment = "fragment",
+        alias = "alias",
+    })
+
+    child.fn.cursor(7,1)
+    ret = child.lua("return Mdn.wikilink.parse" .. suffix .. "()")
+    eq(ret, {
+        buf = 2,
+        col_end = 15,
+        col_start = 1,
+        cur_col = 1,
+        lnum = 7,
+        raw = "[[test|alias]]",
+        file = "test",
+        fragment = "",
         alias = "alias",
     })
 end
@@ -339,5 +387,20 @@ T['parse_lines()']['impl'] = function(suffix)
     ret = child.lua([[return Mdn.wikilink.parse_lines]] .. suffix .. [[({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {"[[test]]"})
 end
+
+T['convert_to_inline()'] = function()
+    local lines = {
+        "[[./tests/test-data/files/file1#frag]]"
+    }
+    create_md_buffer(child, lines)
+
+    child.lua([[ Mdn.wikilink.convert_to_inline() ]])
+
+    lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
+    eq(lines, {
+        "[file1](./tests/test-data/files/file1.md#frag)",
+    })
+end
+
 
 return T

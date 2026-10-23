@@ -254,11 +254,11 @@ local function get_wl_data(n, s)
     local fragment_start, _ = raw:find("#", 1, true)
     local alias_start, _ = raw:find("|", 1, true)
 
-    local file = raw:sub(3, (fragment_start or -2) - 1)
+    local file = raw:sub(3, (fragment_start or alias_start or -2) - 1)
 
     local fragment = ""
     if fragment_start ~= nil then
-        fragment = raw:sub(fragment_start + 1, (alias_start or 0) - 1)
+        fragment = raw:sub(fragment_start + 1, (alias_start or -2) - 1)
     end
 
     local alias = ""
