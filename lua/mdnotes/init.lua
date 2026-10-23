@@ -245,6 +245,18 @@ local function set_g()
     _G.Mdn.demo = require('mdnotes.demo')
 end
 
+local function ts_parser_check()
+    local parsers_found = false
+    if vim.treesitter.language.add('markdown')
+        and vim.treesitter.language.add('markdown_inline') then
+        parsers_found = true
+    end
+
+    if M.config.parser == "treesitter" and parsers_found == false then
+        M.config.parser = "patterns"
+    end
+end
+
 ---Setup function
 ---@param user_config MdnConfig
 function M.setup(user_config)
@@ -254,6 +266,7 @@ function M.setup(user_config)
     resolve_open_cmd()
     resolve_autocmd_config()
     set_g()
+    ts_parser_check()
 
     -- Get plugin install dir
     for _, dir in ipairs(vim.api.nvim_list_runtime_paths()) do
