@@ -254,8 +254,6 @@ function M.setup(user_config)
     resolve_autocmd_config()
     set_g()
 
-    M.set_cwd()
-
     -- Get plugin install dir
     for _, dir in ipairs(vim.api.nvim_list_runtime_paths()) do
         if dir:match(".*mdnotes.nvim$") then
