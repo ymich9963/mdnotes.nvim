@@ -2,20 +2,9 @@
 
 local M = {}
 
----@alias MdnFormatDelimiters
----| '"*"'
----| '"_"'
----| '"**"'
----| '"__"'
----| '"~~"'
----| '"`"'
----| '"<>"'
----| '"[[]]"'
-
 ---@class MdnFormattingOpts
 ---@field location MdnInLineLocation?
 ---@field move_cursor boolean?
----@field split_delimiter boolean? Split formatting delimiter
 
 ---@class MdnListItemData
 ---@field indent string Indent of list item
@@ -23,53 +12,71 @@ local M = {}
 ---@field separator string List item separator, only in ordered lists
 ---@field text string List item text
 ---@field type '"ordered"'|'"unordered"'
----@field is_task boolean Is the list element a task
+---@field task_state string Task state string
 
-local check_markdown_syntax = function(...) return require('mdnotes').check_markdown_syntax(...) end
+local check_inline_markdown_syntax = function(...) return require('mdnotes').check_inline_markdown_syntax(...) end
+
+local emphasis_delim = function() return require('mdnotes').config.emphasis_format end
+local strong_delim = function() return require('mdnotes').config.strong_format end
+
+---@alias MdnFormatDelimiters table<MdnSupportedInlineMEType, {ldel: string, rdel: string}>
+M.format_delimiters = {
+    strong = {ldel = strong_delim(), rdel = strong_delim()},
+    emphasis = {ldel = emphasis_delim(), rdel = emphasis_delim()},
+    strikethrough = {ldel = "~", rdel = "~"},
+    inline_code = {ldel = "`", rdel = "`"},
+    autolink = {ldel = "<", rdel = ">"},
+    wikilink = {ldel = "[[", rdel = "]]"},
+    inline_link = {ldel = "[", rdel = "]()"},
+    reference_link = {ldel = "[", rdel = "][]"},
+    footnote_reference = {ldel = "[^", rdel = "]"},
+}
 
 ---Insert a Markdown format
----@param format_char MdnFormatDelimiters
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
 ---@param opts MdnFormattingOpts?
-function M.insert_format(format_char, opts)
+function M.insert_format(imetype, opts)
+    vim.validate("imetype", imetype, "string")
     vim.validate("opts", opts, "table", true)
-    vim.validate("format_char", format_char, "string")
 
     opts = opts or {}
-    local split_delimiter = opts.split_delimiter or false
     local move_cursor = opts.move_cursor ~= false
 
-    vim.validate("split_delimiter", split_delimiter, "boolean")
     vim.validate("move_cursor", move_cursor, "boolean")
 
-    if split_delimiter == nil then split_delimiter = false end
-    local fi1, fi2 = "", ""
     local txtdata = require('mdnotes').get_text({ location = opts.location })
     if txtdata.raw == nil then
         return
     end
 
-    if split_delimiter == true then
-        fi1 = format_char:sub(1,#format_char / 2)
-        fi2 = format_char:sub(-(#format_char / 2))
-    else
-        fi1 = format_char
-        fi2 = format_char
-    end
+    local delimiter = M.format_delimiters[imetype]
 
     -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {fi1 .. txtdata.raw .. fi2})
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end, {delimiter.ldel .. txtdata.raw .. delimiter.rdel})
 
     if move_cursor == true then
         vim.cmd.buffer(txtdata.buf)
-        vim.fn.cursor({txtdata.lnum, vim.fn.col('.') + #fi1})
+        vim.fn.cursor({txtdata.lnum, vim.fn.col('.') + #delimiter.ldel})
     end
 end
 
----Check current line position for text in a Markdown format
----@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
+---Delete the format indicators around a Markdown element
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
 ---@param opts MdnFormattingOpts?
-function M.delete_format(pattern, opts)
-    vim.validate("pattern", pattern, "string")
+function M.delete_format(imetype, opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.delete_format_re(imetype, opts)
+    elseif parser == "treesitter" then
+        return M.delete_format_ts(imetype, opts)
+    end
+end
+
+---Delete the format indicators around a Markdown element using Lua patterns
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
+---@param opts MdnFormattingOpts?
+function M.delete_format_re(imetype, opts)
+    vim.validate("imetype", imetype, "string")
     vim.validate("opts", opts, "table", true)
 
     opts = opts or {}
@@ -77,41 +84,85 @@ function M.delete_format(pattern, opts)
     local move_cursor = opts.move_cursor ~= false
     vim.validate("move_cursor", move_cursor, "boolean")
 
+    local pattern = require('mdnotes.patterns')[imetype]
     local txtdata = require('mdnotes').get_text_in_pattern(pattern, {location = opts.location})
-    local line = vim.api.nvim_buf_get_lines(txtdata.buf, txtdata.lnum - 1, txtdata.lnum, false)[1]
+    local delimiter = M.format_delimiters[imetype]
 
-    -- Find the character count change before the cursor
-    -- since only those characters change its position
-    local new_line = line:sub(1, txtdata.col_start - 1) .. txtdata.raw .. line:sub(txtdata.col_end)
-    local char_count_change_bef_cursor = (#line - #new_line) / 2
-    local new_col_pos = math.floor(vim.fn.getcurpos()[3] - char_count_change_bef_cursor)
+    local new_text = txtdata.raw:sub(#delimiter.ldel + 1, #txtdata.raw - #delimiter.rdel)
 
-    if new_col_pos < 0 then new_col_pos = 0 end
-
-    -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end - 1, {txtdata.raw})
+    vim.api.nvim_buf_set_text(txtdata.buf, txtdata.lnum - 1, txtdata.col_start - 1, txtdata.lnum - 1, txtdata.col_end - 1, {new_text})
 
     if move_cursor == true then
         vim.cmd.buffer(txtdata.buf)
-        vim.fn.cursor({txtdata.lnum, new_col_pos})
+        vim.fn.cursor({txtdata.lnum, vim.fn.col('.') - #delimiter.ldel})
+    end
+end
+
+---Delete the format indicators around a Markdown element using treesitter
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
+---@param opts MdnFormattingOpts?
+function M.delete_format_ts(imetype, opts)
+    vim.validate("imetype", imetype, "string")
+    vim.validate("opts", opts, "table", true)
+
+    opts = opts or {}
+
+    local move_cursor = opts.move_cursor ~= false
+    vim.validate("move_cursor", move_cursor, "boolean")
+
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local lnum = locopts.lnum or vim.fn.line('.')
+    local col_start = locopts.col_start or vim.fn.col('.')
+
+    local node_data
+    local process_node = require('mdnotes.treesitter')[imetype] or function(...) return {} end ---@diagnostic disable-line
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, buf)
+            if node_data == nil then
+                get_node_data(_node:parent())
+            end
+        end
+    end
+
+    local node = vim.treesitter.get_node({
+        bufnr = buf,
+        ignore_injections = false,
+        pos = {lnum - 1, col_start - 1}
+    })
+    get_node_data(node)
+
+    if node_data == nil then
+        return nil
+    end
+
+    local delimiter = M.format_delimiters[imetype]
+
+    local new_text = node_data.raw:sub(#delimiter.ldel + 1, #node_data.raw - #delimiter.rdel)
+
+    vim.api.nvim_buf_set_text(node_data.buf, node_data.lnum - 1, node_data.col_start - 1, node_data.lnum - 1, node_data.col_end - 1, {new_text})
+
+    if move_cursor == true then
+        vim.cmd.buffer(node_data.buf)
+        vim.fn.cursor({node_data.lnum, vim.fn.col('.') - #delimiter.ldel})
     end
 end
 
 ---Toggle the emphasis Markdown formatting
----@param pattern MdnPattern
----@param delimiter MdnFormatDelimiters
+---@param imetype MdnSupportedInlineMEType Inline Markdown element type
 ---@param opts MdnFormattingOpts?
-function M.toggle(pattern, delimiter, opts)
-    vim.validate("pattern", pattern, "string")
-    vim.validate("delimiter", delimiter, "string")
+function M.toggle(imetype, opts)
+    vim.validate("imetype", imetype, "string")
     vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
 
-    local ret = check_markdown_syntax(pattern, { location = opts.location })
+    local ret = check_inline_markdown_syntax(imetype, { location = opts.location })
     if ret == true then
-        M.delete_format(pattern, { location = opts.location, move_cursor = opts.move_cursor })
+        M.delete_format(imetype, opts)
     elseif ret == false then
-        M.insert_format(delimiter, { location = opts.location, move_cursor = opts.move_cursor, split_delimiter = opts.split_delimiter })
+        M.insert_format(imetype, opts)
     end
 end
 
@@ -121,10 +172,7 @@ function M.emphasis_toggle(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
-    local pattern = require('mdnotes.patterns').emphasis
-    local delimiter = require('mdnotes').config.emphasis_format
-
-    M.toggle(pattern, delimiter, opts)
+    M.toggle("emphasis", opts)
 end
 
 ---Toggle the strong Markdown formatting
@@ -133,10 +181,7 @@ function M.strong_toggle(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
-    local pattern = require('mdnotes.patterns').strong
-    local delimiter = require('mdnotes').config.strong_format
-
-    M.toggle(pattern, delimiter, opts)
+    M.toggle("strong", opts)
 end
 
 ---Toggle the strikethrough Markdown formatting
@@ -145,10 +190,7 @@ function M.strikethrough_toggle(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
-    local pattern = require('mdnotes.patterns').strikethrough
-    local delimiter = "~~"
-
-    M.toggle(pattern, delimiter, opts)
+    M.toggle("strikethrough", opts)
 end
 
 ---Toggle the inline code Markdown formatting
@@ -157,10 +199,7 @@ function M.inline_code_toggle(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
-    local pattern = require('mdnotes.patterns').inline_code
-    local delimiter = "`"
-
-    M.toggle(pattern, delimiter, opts)
+    M.toggle("inline_code", opts)
 end
 
 ---Toggle the autolink Markdown formatting
@@ -169,17 +208,25 @@ function M.autolink_toggle(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
-    local pattern = require('mdnotes.patterns').autolink
-    local delimiter = "<>"
-    opts.split_delimiter = true
-
-    M.toggle(pattern, delimiter, opts)
+    M.toggle("autolink", opts)
 end
 
----Get a consistent table containing all data on a list item whether it is ordered or unordered
+---Get a consistent table containing all data on a list item
 ---@param line string Line containing list item
 ---@return MdnListItemData?
 function M.parse_list_item(line)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_list_item_re(line)
+    elseif parser == "treesitter" then
+        return M.parse_list_item_ts(line)
+    end
+end
+
+---Get a consistent table containing all data on a list item using Lua patterns
+---@param line string Line containing list item
+---@return MdnListItemData?
+function M.parse_list_item_re(line)
     vim.validate("line", line, "string")
 
     local mdnotes_patterns = require('mdnotes.patterns')
@@ -203,9 +250,10 @@ function M.parse_list_item(line)
         return nil
     end
 
-    local is_task = false
+    local task_state = ""
     if text:match(mdnotes_patterns.task) then
-        is_task = true
+        task_state = text:match(mdnotes_patterns.task)
+        text = text:sub(#task_state + 2, -1)
     end
 
     return {
@@ -214,8 +262,59 @@ function M.parse_list_item(line)
         separator = separator,
         text = text,
         type = type,
-        is_task = is_task
+        task_state = task_state
     }
+end
+
+---Get a consistent table containing all data on a list item using treesitter
+---@param line string Line containing list item
+---@return MdnListItemData?
+function M.parse_list_item_ts(line)
+    vim.validate("line", line, "string")
+
+    local node_data
+    local process_node = require('mdnotes.treesitter')["list_item"] or function(...) return {} end ---@diagnostic disable-line
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, line)
+            if node_data == nil then
+                get_node_data(_node:child())
+            end
+        end
+    end
+
+    local parser = vim.treesitter.get_string_parser(line, "markdown")
+    local tree = parser:parse()[1]
+    local node = tree:root()
+    get_node_data(node)
+
+    if node_data == nil then
+        -- BUG: Traversing the tree as usual gives error when there is no text in the list item e.g. "1) "
+        -- or when the list item is indented. This is a valid node since it appears in InspectTree.
+        -- Therefore have a fallback here which uses the Lua patterns implementation.
+        node_data = M.parse_list_item_re(line)
+        if node_data == nil then
+            return
+        end
+    end
+
+    local indent = line:match("^(%s+).+")
+    node_data.indent = indent or ""
+    node_data.cur_col = nil
+
+   return node_data
+end
+
+---@param ldata MdnListItemData?
+---@return string?
+function M.get_list_item_string(ldata)
+    if ldata == nil then return nil end
+
+    if ldata.task_state ~= "" then
+        return ldata.indent .. ldata.marker .. ldata.separator .. " " .. ldata.task_state .. " " .. ldata.text
+    else
+        return ldata.indent .. ldata.marker .. ldata.separator .. " " .. ldata.text
+    end
 end
 
 ---Toggle task list state
@@ -226,7 +325,7 @@ function M.task_list_toggle(opts)
 
     local silent = opts.silent or false
     local locopts = opts.location or {}
-    local buf = locopts.buf or 0
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
 
@@ -236,50 +335,41 @@ function M.task_list_toggle(opts)
     vim.validate("startl", startl, "number")
     vim.validate("endl", endl, "number")
 
-    local mdnotes_patterns = require('mdnotes.patterns')
     local new_lines = {}
-    local new_text = ""
     local lines = vim.api.nvim_buf_get_lines(buf, startl - 1, endl, false)
 
     local cur_col = vim.fn.col('.')
     for i, line in ipairs(lines) do
-        local lcontent = M.parse_list_item(line) or {}
-        local marker, separator, text = lcontent.marker, lcontent.separator, lcontent.text
+        local ldata = M.parse_list_item(line) or {}
 
-        if marker then
-            marker = marker .. separator
-
-            -- In the case where e.g. 1. or 1) then the . or ) need to be escaped
-            if #marker == 2 then
-                marker = marker:sub(1,1) .. "%" .. marker:sub(2,2)
-            end
-
-            local task_marker, _ = text:match(mdnotes_patterns.task)
-            if task_marker == "[x]" then
-                new_text, _ = line:gsub(mdnotes_patterns.task, " ", 1)
+        if ldata.marker then
+            if ldata.task_state == "[x]" then
+                ldata.task_state = ""
                 cur_col = cur_col - 4
-            elseif task_marker == "[ ]" then
-                new_text, _ = line:gsub(mdnotes_patterns.task, " [x] ", 1)
-            elseif task_marker == nil then
-                new_text = line:gsub(marker, marker .. " [ ]", 1)
+            elseif ldata.task_state == "[ ]" then
+                ldata.task_state = "[x]"
+            elseif ldata.task_state == "" then
+                ldata.task_state = "[ ]"
                 cur_col = cur_col + 4
             end
-            table.insert(new_lines, new_text)
+
+            table.insert(new_lines, M.get_list_item_string(ldata))
         else
             if silent == false then
                 vim.notify("Mdn: Unable to detect a list or task list marker at line ".. tostring(startl - 1 + i), vim.log.levels.ERROR)
             end
+
             return
         end
     end
+
+    vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, new_lines)
 
     if cur_col < 1 then cur_col = 1 end
 
     if #lines == 1 then
         vim.fn.cursor(startl, cur_col)
     end
-
-    vim.api.nvim_buf_set_lines(buf, startl - 1, endl, false, new_lines)
 end
 
 ---Check if the list surrounding the origin line is valid and return its line numbers
@@ -386,7 +476,9 @@ end
 ---@param opts {silent: boolean?, search: MdnSearchOpts}?
 function M.ordered_list_renumber(opts)
     vim.validate("opts", opts, "table", true)
+
     opts = opts or {}
+
     local silent = opts.silent or false
     local search_opts = opts.search or {}
     local origin_lnum = search_opts.origin_lnum or vim.fn.line('.')
@@ -403,15 +495,15 @@ function M.ordered_list_renumber(opts)
     end
 
     local line = vim.api.nvim_buf_get_lines(buf, origin_lnum - 1, origin_lnum, false)[1]
-    local lcontent = M.parse_list_item(line)
-    if lcontent == nil then
+    local ldata = M.parse_list_item(line)
+    if ldata == nil then
         if silent == false then
             vim.notify("Mdn: Unable to detect a valid list", vim.log.levels.ERROR)
         end
         return
     end
 
-    if lcontent.type == "unordered" then
+    if ldata.type == "unordered" then
         if silent == false then
             vim.notify("Mdn: Cannot reorder an unordered list", vim.log.levels.ERROR)
         end
@@ -424,15 +516,15 @@ function M.ordered_list_renumber(opts)
     local new_list_lines = {}
     local cur_number = 1
     for _, v in ipairs(list_lines) do
-        lcontent = M.parse_list_item(v)
-        if lcontent == nil then break end
-        if lcontent.type == "ordered" then
-            if tonumber(lcontent.marker) ~= cur_number then
-                lcontent.marker = tostring(cur_number)
+        ldata = M.parse_list_item(v)
+        if ldata == nil then break end
+        if ldata.type == "ordered" then
+            if tonumber(ldata.marker) ~= cur_number then
+                ldata.marker = tostring(cur_number)
             end
             cur_number = cur_number + 1
         end
-        table.insert(new_list_lines, lcontent.indent .. lcontent.marker .. lcontent.separator .. " " .. lcontent.text)
+        table.insert(new_list_lines, M.get_list_item_string(ldata))
     end
 
     vim.api.nvim_buf_set_lines(buf, lsearch.startl - 1, lsearch.endl, false, new_list_lines)

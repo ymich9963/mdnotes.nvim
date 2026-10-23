@@ -22,7 +22,14 @@ local T = new_set({
     },
 })
 
-T['parse()'] = function()
+T['parse()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['parse()']['impl'] = function(suffix)
     -- Setup test buffer
     local lines = {
         "[neovim][]",
@@ -44,7 +51,7 @@ T['parse()'] = function()
     create_md_buffer(child, lines)
 
     child.fn.cursor(1,2)
-    local ret = child.lua([[ return Mdn.reference_link.parse() ]])
+    local ret = child.lua([[ return Mdn.reference_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         text = "neovim",
         label = "neovim",
@@ -57,7 +64,7 @@ T['parse()'] = function()
     })
 
     child.fn.cursor(2,2)
-    ret = child.lua([[ return Mdn.reference_link.parse() ]])
+    ret = child.lua([[ return Mdn.reference_link.parse]] .. suffix .. [[() ]])
     eq(ret, {
         text = "test",
         label = "neovim",
@@ -70,7 +77,14 @@ T['parse()'] = function()
     })
 end
 
-T['get_buf_reference_link_definitions()'] = function()
+T['get_buf_reference_link_definitions()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['get_buf_reference_link_definitions()']['impl'] = function(suffix)
     local lines = {
         "[neovim][]",
         "[test][neovim]",
@@ -90,7 +104,7 @@ T['get_buf_reference_link_definitions()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[ return Mdn.reference_link.get_buf_reference_link_definitions() ]])
+    local ret = child.lua([[ return Mdn.reference_link.get_buf_reference_link_definitions]] .. suffix .. [[() ]])
     eq(ret, {
         {
             destination = "https://github.com/ymic9963/mdnotes.nvim",
@@ -413,7 +427,14 @@ T['convert_from_inline()'] = function()
     })
 end
 
-T['parse_lines()'] = function()
+T['parse_lines()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['parse_lines()']['impl'] = function(suffix)
     local lines = {
         "# Heading",
         "",
@@ -423,7 +444,7 @@ T['parse_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return Mdn.reference_link.parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.reference_link.parse_lines]] .. suffix .. [[({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -436,7 +457,7 @@ T['parse_lines()'] = function()
             raw = "[file1][]",
         }
     })
-    ret = child.lua([[return Mdn.reference_link.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    ret = child.lua([[return Mdn.reference_link.parse_lines]] .. suffix .. [[({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {"[file1][]"})
 end
 

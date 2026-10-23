@@ -4,6 +4,18 @@ local M = {}
 
 local uv = vim.loop or vim.uv
 
+---Supported inlinr Markdown element types
+---@alias MdnSupportedInlineMEType
+---| '"wikilink"'
+---| '"inline_link"'
+---| '"strong"'
+---| '"emphasis"'
+---| '"strikethrough"'
+---| '"inline_code"'
+---| '"autolink"'
+---| '"reference_link"'
+---| '"footnote_reference"'
+
 ---@class MdnInLineLocation
 ---@field buf integer? Buffer number
 ---@field lnum integer? Line number
@@ -30,6 +42,12 @@ local uv = vim.loop or vim.uv
 
 ---@class MdnText: MdnInLineLocation
 ---@field raw string? Raw text in the corresponding location
+
+---@class MdnParseLinesOpts
+---@field location MdnMultiLineLocation?
+---@field str boolean? Return a string instead of an object
+---@field no_duplicates boolean? Remove duplicate results
+---@field location_only boolean? Do not parse and return only location data
 
 ---@type MdnConfig
 M.config = {}
@@ -76,6 +94,7 @@ M.default_ui_select = vim.ui.select
 ---@field autocmds boolean|MdnAutocmdsConfig?
 ---@field table_best_fit_padding integer? Add padding around cell contents when using tables_best_fit
 ---@field toc_depth integer? Depth shown in the ToC
+---@field parser '"treesitter"'|'"patterns"'? Parse text using treesitter or patterns
 ---@field user_commands table? User commands in the Mdn namespace
 local default_config = {
     index_file = "",
@@ -95,6 +114,7 @@ local default_config = {
     autocmds = true,
     table_best_fit_padding = 0,
     toc_depth = 4,
+    parser = "treesitter",
     user_commands = {}
 }
 
@@ -145,6 +165,7 @@ local function validate_config(user_config)
     vim.validate("table_best_fit_padding", config.table_best_fit_padding, "number")
     vim.validate("toc_depth", config.toc_depth, "number")
     vim.validate("user_commands", config.user_commands, "table")
+    vim.validate("parser", config.parser, "string", false, "'patterns' or 'treesitter'")
 
     return config
 end
@@ -290,7 +311,6 @@ function M.open_buf(buf, opts)
     if type(buf) == "number" then
         edit_cmd = open_cmd .. buf
     elseif type(buf) == "string" then
-        vim.cmd.cd({ args = {M.cwd}, mods = {silent = true}})
         edit_cmd = open_cmd .. buf
     end
 
@@ -335,11 +355,27 @@ function M.mdn_grep(pattern, path)
 
 end
 
----Check text for valid Markdown syntax
+---Check text for valid inline Markdown syntax
+---@param imetype MdnSupportedInlineMEType Inline markdown element type
+---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
+---@return boolean valid, table<table?> cols_tbl
+function M.check_inline_markdown_syntax(imetype, opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        local pattern = require('mdnotes.patterns')[imetype]
+        return M.check_inline_markdown_syntax_re(pattern, opts)
+    elseif parser == "treesitter" then
+        return M.check_inline_markdown_syntax_ts(imetype, opts)
+    end
+
+    return false, {}
+end
+
+---Check text for valid inline Markdown syntax using Lua patterns
 ---@param pattern MdnPattern Pattern that returns the start and end columns, as well as the text
 ---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
----@return boolean? valid, table|table<table>? cols_tbl
-function M.check_markdown_syntax(pattern, opts)
+---@return boolean valid, table<table?> pos_tbl
+function M.check_inline_markdown_syntax_re(pattern, opts)
     vim.validate("pattern", pattern, "string")
     vim.validate("opts", opts, "table", true)
 
@@ -354,26 +390,113 @@ function M.check_markdown_syntax(pattern, opts)
     local cur_col = locopts.cur_col or math.floor((col_start + col_end)/2)
 
     local line = vim.api.nvim_buf_get_lines(buf, lnum - 1, lnum, false)[1]
-    local cols_tbl = {}
+    local position_tbl = {}
 
     for start_pos, text, end_pos in line:gmatch(pattern) do
         start_pos = vim.fn.str2nr(start_pos)
         end_pos = vim.fn.str2nr(end_pos)
-        local pos_tbl = {start_pos, end_pos}
+        local pos_tbl = {col_start = start_pos, col_end = end_pos, lnum = lnum}
         if entire_line == false then
             if start_pos <= cur_col and end_pos > cur_col then
                 return true, pos_tbl
             end
         else
-            table.insert(cols_tbl, pos_tbl)
+            table.insert(position_tbl, pos_tbl)
         end
     end
 
-    if not vim.tbl_isempty(cols_tbl) then
-        return true, cols_tbl
+    if vim.tbl_isempty(position_tbl) then
+        return false, {}
     end
 
-    return false, {}
+    return true, position_tbl
+end
+
+---Check text for valid inline Markdown syntax using treesitter
+---@param imetype MdnSupportedInlineMEType Inline markdown element type
+---@param opts {location: MdnInLineLocation?, entire_line: boolean?}?
+---@return boolean valid, table<table?> cols_tbl
+function M.check_inline_markdown_syntax_ts(imetype, opts)
+    vim.validate("imetype", imetype, "string")
+    vim.validate("opts", opts, "table", true)
+
+    opts = opts or {}
+
+    local process_node = require('mdnotes.treesitter')[imetype]
+    if process_node == nil then
+        return false, {}
+    end
+
+    local entire_line = opts.entire_line or false
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local lnum = locopts.lnum or vim.fn.line('.')
+    local col_start = locopts.col_start or vim.fn.col('.')
+
+    local node
+    if entire_line == false then
+        node = vim.treesitter.get_node({
+            bufnr = buf,
+            ignore_injections = false,
+            pos = {lnum - 1, col_start - 1}
+        })
+
+        if node == nil then
+            return false, {}
+        end
+
+        local pos_tbl = process_node(node:parent(), buf, "inline")
+
+        -- Try again with not the parent node
+        if pos_tbl == nil then
+            pos_tbl = process_node(node, buf, "inline")
+        end
+
+        if pos_tbl == nil then
+            return false, {}
+        end
+
+        return true, pos_tbl
+    else
+        node = vim.treesitter.get_node({
+            bufnr = buf,
+            ignore_injections = false,
+            pos = {lnum - 1, 0}
+        })
+
+        if node == nil then
+            return false, {}
+        end
+
+        -- Ensure we are not at an injection
+        while node:type() ~= "inline" do
+            node = node:parent()
+            if node == nil then
+                return false, {}
+            end
+        end
+
+        local cols_tbl = {}
+        local function get_node_data_tbl(_node)
+            local pos_tbl = process_node(_node, buf, "inline") or {}
+            if pos_tbl.lnum == lnum then
+                table.insert(cols_tbl, pos_tbl)
+            end
+            for child in _node:iter_children() do
+                get_node_data_tbl(child)
+            end
+        end
+
+        for child in node:iter_children() do
+            get_node_data_tbl(child)
+        end
+
+        if vim.tbl_isempty(cols_tbl) then
+            return false, {}
+        end
+
+        return true, cols_tbl
+    end
 end
 
 ---Check if Markdown LSP server can be used in the current buffer
@@ -509,78 +632,55 @@ function M.get_text_in_pattern(pattern, opts)
     }
 end
 
----Get the list item's indent level and delimiter. Also increment when using ordered lists
----@param inc_val integer Value to increment the list item by
----@return string indent, string list_delimiter Indent of the list item and the corresponding list delimiter
-local function get_indent_indicator(inc_val)
-    local mdnotes_patterns = require('mdnotes.patterns')
-    local line = vim.api.nvim_get_current_line()
-    local ldata = require('mdnotes.formatting').parse_list_item(line)
-    if ldata == nil then return "", "\n" end
-
-    local check_text = ldata.text
-    if check_text:match(mdnotes_patterns.task) then
-        -- Remove task list marker and any spaces
-        check_text = ldata.text:gsub(mdnotes_patterns.task, ""):gsub("%s", "")
-    end
-
-    if check_text ~= "" then
-        if ldata.type == "unordered" then
-            if ldata.is_task == true then
-                return ldata.indent, "\n" .. ldata.marker .. " " .. "[ ] "
-            else
-                return ldata.indent, "\n" .. ldata.marker .. " "
-            end
-        end
-
-        if ldata.type == "ordered" then
-            if ldata.is_task == true then
-                return ldata.indent, "\n" .. tostring(tonumber(ldata.marker) + inc_val) .. ldata.separator .. " " .. "[ ] "
-            else
-                return ldata.indent, "\n" .. tostring(tonumber(ldata.marker) + inc_val) .. ldata.separator .. " "
-            end
-        end
-    elseif check_text == "" then
-        return ldata.indent, ""
-    end
-
-    return ldata.indent, "\n"
-end
-
 ---New line remaps
 ---@param key '"o"'|'"O"'|'"<CR>"'
 ---@return string?
-function M.new_line_remap(key)
+function M.new_line_remap(key, inc_val)
     vim.validate("key", key, "string")
 
     local lnum = vim.fn.line('.')
-    local indent, list_delimiter = "", ""
+    local line = vim.api.nvim_get_current_line()
+    local ldata = require('mdnotes.formatting').parse_list_item(line)
 
-    if key == "o" or key == "<CR>" then
-        indent, list_delimiter = get_indent_indicator(1)
-        if key == "<CR>" then
-            if list_delimiter == "" then
-                vim.api.nvim_input("<ESC>S")
-                return ""
-            else
-                return list_delimiter
-            end
+    -- If no list item detected then use keys normally
+    if ldata == nil then
+        if key == "o" or key == "O" then
+            vim.api.nvim_feedkeys(key, "n", true)
+        elseif key == "<CR>" then
+            return "\n"
         end
-    elseif key == "O" then
-        indent, list_delimiter = get_indent_indicator(-1)
-    else
-        return nil
+
+        return
     end
 
-    list_delimiter = list_delimiter:gsub("[\n]","")
-    indent = indent or ""
+    local new_ldata = vim.deepcopy(ldata, true)
+    if ldata.type == "unordered" then
+        new_ldata.text = ""
+    elseif ldata.type == "ordered" then
+        new_ldata.text = ""
+        new_ldata.marker = tostring(tonumber(ldata.marker) + inc_val)
+    else
+        return ""
+    end
+
+    local new_item = require('mdnotes.formatting').get_list_item_string(new_ldata)
 
     if key == "o" then
-        vim.api.nvim_buf_set_lines(0, lnum, lnum, false, { indent .. list_delimiter })
-        vim.fn.cursor({ lnum + 1, #indent + #list_delimiter + 1 })
+        vim.api.nvim_buf_set_lines(0, lnum, lnum, false, { new_item })
+        vim.fn.cursor({ lnum + 1, #new_item + 1 })
     elseif key == "O" then
-        vim.api.nvim_buf_set_lines(0, lnum - 1, lnum - 1, false, { indent .. list_delimiter })
-        vim.fn.cursor({ lnum, #indent + #list_delimiter + 1 })
+        vim.api.nvim_buf_set_lines(0, lnum - 1, lnum - 1, false, { new_item })
+        vim.fn.cursor({ lnum, #new_item + 1 })
+    elseif key == "<CR>" then
+        if ldata.text == "" then
+            vim.api.nvim_input("<ESC>S")
+
+            return
+        end
+
+        return "\n" .. new_item
+    else
+        return nil
     end
 
     vim.api.nvim_input('a')
@@ -706,8 +806,20 @@ end
 
 ---Get fragments from the Markdown buffer headings
 ---@param opts {buf: integer?, only_text: boolean?}?
----@return table<MdnFragment|string>
+---@return table<MdnFragment|string>?
 function M.get_buf_fragments(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.get_buf_fragments_re(opts)
+    elseif parser == "treesitter" then
+        return M.get_buf_fragments_ts(opts)
+    end
+end
+
+---Get fragments from the Markdown buffer headings using Lua patterns
+---@param opts {buf: integer?, only_text: boolean?}?
+---@return table<MdnFragment|string>
+function M.get_buf_fragments_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -727,6 +839,53 @@ function M.get_buf_fragments(opts)
                 table.insert(fragments, text)
             end
         end
+    end
+
+    return fragments
+end
+
+---Get fragments from the Markdown buffer headings using treesitter
+---@param opts {buf: integer?, only_text: boolean?}?
+---@return table<MdnFragment|string>
+function M.get_buf_fragments_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local buf = opts.buf or vim.api.nvim_get_current_buf()
+    local only_text = opts.only_text or false
+
+    local parser, err = vim.treesitter.get_parser(buf, "markdown")
+    if parser == nil or err ~= nil then
+        vim.notify("Mdn: Error with treesitter 'markdown' parser: " .. err, vim.log.levels.ERROR)
+        return {}
+    end
+
+    local fragments = {}
+    local process_node_func = require('mdnotes.treesitter')["fragments"]
+    local function get_node_data_tbl(node)
+        local processed_node = process_node_func(node, buf)
+        if processed_node ~= nil then
+            if only_text == false then
+                processed_node.buf = nil -- gets added by the process_node() function in treesitter.lua
+                processed_node.cur_col = nil
+                table.insert(fragments, processed_node)
+            else
+                table.insert(fragments, processed_node.hash .. " " .. processed_node.text)
+            end
+        end
+
+        for child in node:iter_children() do
+            get_node_data_tbl(child)
+        end
+    end
+
+    local tree = parser:parse()[1]
+    local node = tree:root()
+
+    get_node_data_tbl(node)
+
+    if fragments == nil then
+        return {}
     end
 
     return fragments
@@ -780,39 +939,6 @@ end
 ---@field lnum number Line number of specified pattern
 ---@field cols table<number, number> Table containing start and end columns of specified pattern
 
----Scan lines for inline Markdown items
----@param pattern MdnPattern Pattern that also returns start and end column numbers
----@param opts {location: MdnMultiLineLocation?}?
----@return table<MdnScanLines>?
-function M.scan_lines(pattern, opts)
-    vim.validate("pattern", pattern, "string")
-    vim.validate("opts", opts, "table", true)
-    opts = opts or {}
-
-    local locopts = opts.location or {}
-    local buf = locopts.buf or vim.api.nvim_get_current_buf()
-    local startl = locopts.startl or vim.fn.line('.')
-    local endl = locopts.endl or vim.fn.line('.')
-
-    vim.validate("buf", buf, "number")
-    vim.validate("startl", startl, "number")
-    vim.validate("endl", endl, "number")
-
-    local scan_tbl = {}
-    for lnum = startl, endl do
-        local valid, cols_tbl = M.check_markdown_syntax(pattern, {entire_line = true, location = {lnum = lnum, buf = buf}})
-        if valid == true then
-            table.insert(scan_tbl, {lnum = lnum, cols = cols_tbl})
-        end
-    end
-
-    if vim.tbl_isempty(scan_tbl) then
-        return nil
-    end
-
-    return scan_tbl
-end
-
 ---File statistics
 ---@param opts {buf: number?, silent: boolean?}?
 ---@return table statistics
@@ -841,45 +967,22 @@ function M.statistics(opts)
         fn_wordcount = vim.fn.wordcount()
     end)
     local last_lnum = vim.fn.line('$')
-    local mdn_patterns = require('mdnotes.patterns')
 
     bytes = fn_wordcount.bytes
     chars = fn_wordcount.chars
     words = fn_wordcount.words
     lines = last_lnum
 
-    local ils_ret = M.scan_lines(mdn_patterns.inline_link, { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
-    for _, ret in pairs(ils_ret or {}) do
-        if ret.cols ~= nil then
-            ils = ils + #ret.cols
-        end
-    end
-
-    local wls_ret = M.scan_lines(mdn_patterns.wikilink, { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
-    for _, ret in pairs(wls_ret) do
-        if ret.cols ~= nil then
-            wls = wls + #ret.cols
-        end
-    end
-
-    local rls_ret = M.scan_lines(mdn_patterns.reference_link, { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
-    for _, ret in pairs(rls_ret) do
-        if ret.cols ~= nil then
-            rls = rls + #ret.cols
-        end
-    end
-
-    local frefs_ret = M.scan_lines(mdn_patterns.footnote_reference, { location = { startl = 1, endl = last_lnum, buf = buf } }) or {}
-    for _, ret in pairs(frefs_ret) do
-        if ret.cols ~= nil then
-            frefs = frefs + #ret.cols
-        end
-    end
-
+    local func = function() end
+    local patterns = require('mdnotes.patterns')
+    ils = ils + #(M.parse_lines_re(patterns.inline_link, func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true}) or {})
+    wls = wls + #(M.parse_lines_re(patterns.wikilink, func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
+    rls = rls + #(M.parse_lines_re(patterns.reference_link, func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
+    frefs = frefs + #(M.parse_lines_re(patterns.footnote_reference, func, { location = { startl = 1, endl = last_lnum, buf = buf }, location_only = true }) or {})
     headings = #M.get_buf_fragments({ buf = buf })
 
     -- NOTE: Tried to print "formatted words" but because URLs might contain
-    -- `_word_` then `word` is matched in scan_lines
+    -- `_word_` then `word` is matched in parse_lines
 
     if silent == false then
         vim.notify(("Bytes:\t\t%s\n" ..
@@ -1096,42 +1199,119 @@ local function is_parsed_tbl_duplicate(parsed_tbl, data)
     return false
 end
 
----Parse the pattern in the specified lines
----@param pattern MdnPattern Pattern to use
----@param opts {location: MdnMultiLineLocation?, no_duplicates: boolean?, get_func: fun(a): string?}?
+---@class MdnParseLinesInitOpts: MdnParseLinesOpts
+---@field process_func (fun(obj): any)?
+
+---Parse the Markdown elements in the specified lines with Lua patterns
+---@param pattern MdnPattern
+---@param parse_func fun(...): table? Parse function
+---@param opts MdnParseLinesInitOpts
 ---@return table?
-function M.parse_lines(pattern, parse_func, opts)
+function M.parse_lines_re(pattern, parse_func, opts)
     vim.validate("pattern", pattern, "string")
     vim.validate("opts", opts, "table", true)
 
     opts = opts or {}
 
     local no_duplicates = opts.no_duplicates or false
+    local location_only = opts.location_only or false
     local locopts = opts.location or {}
     local buf = locopts.buf or vim.api.nvim_get_current_buf()
     local startl = locopts.startl or vim.fn.line('.')
     local endl = locopts.endl or vim.fn.line('.')
-    local get_func = opts.get_func or function(a) return a end
+    local process_func = opts.process_func or function(obj) return obj end
 
-    local scanned_lines = M.scan_lines(pattern, { location = {startl = startl, endl = endl, buf = buf }})
-    if scanned_lines == nil then return nil end
+    local scan_tbl = {}
+    for lnum = startl, endl do
+        local valid, pos_tbl = M.check_inline_markdown_syntax_re(pattern, {entire_line = true, location = {lnum = lnum, buf = buf}})
+        if valid == true then
+            table.insert(scan_tbl, pos_tbl)
+        end
+    end
+    scan_tbl = vim.iter(scan_tbl):flatten():totable() ---@diagnostic disable-line
+
+    if vim.tbl_isempty(scan_tbl) then
+        return nil
+    end
+
+    if location_only == true then
+        return scan_tbl
+    end
 
     local parsed_tbl = {}
-    for _, item in ipairs(scanned_lines) do
-        for _, cols in ipairs(item.cols) do
-            local data = parse_func({ location = {buf = buf, lnum = item.lnum, col_start = cols[1], col_end = cols[2] }})
-            data = get_func(data)
-            if no_duplicates == true then
-                if is_parsed_tbl_duplicate(parsed_tbl, data) == false then
-                    table.insert(parsed_tbl, data)
-                end
-            else
+    for _, v in ipairs(scan_tbl) do
+        local data = parse_func({ location = {buf = buf, lnum = v.lnum, col_start = v.col_start, col_end = v.col_end }})
+        data = process_func(data)
+        if no_duplicates == true then
+            if is_parsed_tbl_duplicate(parsed_tbl, data) == false then
                 table.insert(parsed_tbl, data)
             end
+        else
+            table.insert(parsed_tbl, data)
         end
     end
 
     return parsed_tbl
+end
+
+---Parse the Markdown elements in the specified lines with treesitter
+---@param tstype MdnTSNodeType Markdown node type
+---@param opts MdnParseLinesInitOpts
+---@return table?
+function M.parse_lines_ts(tstype, opts)
+    vim.validate("tstype", tstype, "string")
+    vim.validate("opts", opts, "table", true)
+
+    opts = opts or {}
+
+    local no_duplicates = opts.no_duplicates or false
+    local location_only = opts.location_only or false
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local startl = locopts.startl or vim.fn.line('.')
+    local endl = locopts.endl or vim.fn.line('.')
+    local get_func = opts.process_func or function(a) return a end
+
+    local parser, err = vim.treesitter.get_parser(buf, "markdown_inline")
+    if parser == nil or err ~= nil then
+        vim.notify("Mdn: Error with treesitter 'markdown_inline' parser: " .. err, vim.log.levels.INFO)
+        return
+    end
+
+    local location
+    if location_only == true then
+        location = "inline"
+    end
+
+    local node_data = {}
+    local process_node_func = require('mdnotes.treesitter')[tstype]
+    local function get_node_data_tbl(node)
+        local processed_node = process_node_func(node, buf, location) or {lnum = 0}
+        if processed_node.lnum >= startl and processed_node.lnum <= endl then
+            local _processed_node = get_func(processed_node)
+            if no_duplicates == true then
+                if is_parsed_tbl_duplicate(node_data, _processed_node) == false then
+                    table.insert(node_data, _processed_node)
+                end
+            else
+                table.insert(node_data, _processed_node)
+            end
+        end
+        for child in node:iter_children() do
+            get_node_data_tbl(child)
+        end
+    end
+
+    local tree = parser:parse()[1]
+    local node = tree:root()
+
+    get_node_data_tbl(node)
+
+    if node_data == nil then
+        return nil
+    end
+
+    return node_data
 end
 
 ---@param items table Items to show

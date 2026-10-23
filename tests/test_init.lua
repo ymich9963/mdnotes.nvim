@@ -26,6 +26,7 @@ local T = new_set({
 T['docs'] = function()
     child.cmd([[helptags doc/]])
 end
+
 T['mdn_grep()'] = function()
     child.cmd([[
     edit tests/test-data/files/greptest.md
@@ -101,7 +102,14 @@ T['mdn_grep()'] = function()
     end
 end
 
-T['check_markdown_syntax()'] = function()
+T['check_inline_markdown_syntax()'] = new_set({
+    parametrize = {
+        { '_re(pattern' },
+        { '_ts("emphasis"' }
+    }
+})
+
+T['check_inline_markdown_syntax()']['impl'] = function(suffix)
     local lines = {
         "*emphasis* emphasis",
         "emphasis *emphasis*",
@@ -112,41 +120,41 @@ T['check_markdown_syntax()'] = function()
     child.fn.cursor(1,1)
     local ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.check_markdown_syntax(pattern)}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[)}
     ]])
-    eq(ret, {true, {1, 11}})
+    eq(ret, {true, {col_start = 1, col_end = 11, lnum = 1}})
 
     child.fn.cursor(2,1)
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.check_markdown_syntax(pattern)}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[)}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.check_markdown_syntax(pattern, { entire_line = true })}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[, { entire_line = true })}
     ]])
-    eq(ret, {true, {{10, 20}}})
+    eq(ret, {true, {{col_start = 10, col_end = 20, lnum = 2}}})
 
     child.fn.cursor(3,1)
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.check_markdown_syntax(pattern)}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[)}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.check_markdown_syntax(pattern, { entire_line = true })}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[, { entire_line = true })}
     ]])
     eq(ret, {false, {}})
 
     ret = child.lua([[
     local pattern = Mdn.patterns.emphasis
-    return {Mdn.check_markdown_syntax(pattern, {location = {lnum = 2, col_start = 10, col_end = 19}})}
+    return {Mdn.check_inline_markdown_syntax]] .. suffix .. [[, {location = {lnum = 2, col_start = 10, col_end = 19}})}
     ]])
-    eq(ret, {true, {10, 20}})
+    eq(ret, {true, {col_start = 10, col_end = 20, lnum = 2}})
 end
 
 T['get_text()'] = function()
@@ -251,7 +259,7 @@ T['get_text_in_pattern()'] = function()
         col_start = 1,
         col_end = 8,
         cur_col = 1,
-        raw = "test1",
+        raw = "*test1*",
     })
 end
 
@@ -430,8 +438,15 @@ T['populate_buf_fragments()'] = function()
     })
 end
 
+T['get_buf_fragments()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
 
-T['get_buf_fragments()'] = function()
+
+T['get_buf_fragments()']['impl'] = function(suffix)
     -- Setup test buffer
     local lines = {
         "# Heading 1",
@@ -442,10 +457,7 @@ T['get_buf_fragments()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[
-    local cur_buf = vim.api.nvim_get_current_buf()
-    return Mdn.get_buf_fragments({ buf = cur_buf })
-    ]])
+    local ret = child.lua([[return Mdn.get_buf_fragments]] .. suffix .. [[()]])
     eq(ret, {
         {
             hash = "#",
@@ -479,31 +491,6 @@ T['find_fragment_in_buf_fragments()'] = function()
     return Mdn.find_fragment_in_buf_fragments(cur_buf, "heading-1")
     ]])
     eq(ret, "Heading 1")
-end
-
-T['scan_lines()'] = function()
-    local lines = {
-        "[test](link)",
-        "",
-        "[test](link)",
-    }
-    create_md_buffer(child, lines)
-
-    local ret = child.lua([[
-    local pattern = Mdn.patterns.inline_link
-    return Mdn.scan_lines(pattern, { location = { startl = 1, endl = 3}})
-    ]])
-
-    eq(ret, {
-        {
-            lnum = 1,
-            cols = { { 1,13 } }
-        },
-        {
-            lnum = 3,
-            cols = { { 1,13 } }
-        }
-    })
 end
 
 T['statistics()'] = function()

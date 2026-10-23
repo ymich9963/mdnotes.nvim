@@ -15,6 +15,18 @@ local default_ui_select = require('mdnotes').default_ui_select
 ---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
 ---@return MdnInlineLinkData?
 function M.parse(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_ts(opts)
+    end
+end
+
+---Parse using Lua patterns
+---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
+---@return MdnInlineLinkData?
+function M.parse_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
@@ -24,13 +36,13 @@ function M.parse(opts)
     vim.validate("inline_link", inline_link, "string", true)
     vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
 
-    local check_markdown_syntax = require('mdnotes').check_markdown_syntax
+    local check_inline_markdown_syntax_re = require('mdnotes').check_inline_markdown_syntax_re
     local il_pattern = require("mdnotes.patterns").inline_link
     local txtdata = {}
 
     -- Overwrite if location is given
     if opts.location ~= nil or inline_link == nil then
-        if not check_markdown_syntax(il_pattern, { location = opts.location }) then return nil end
+        if not check_inline_markdown_syntax_re(il_pattern, { location = opts.location }) then return nil end
         txtdata = require('mdnotes').get_text_in_pattern(il_pattern, { location = opts.location })
         inline_link = txtdata.raw or ""
     end
@@ -60,12 +72,79 @@ function M.parse(opts)
     }, txtdata)
 end
 
+---Parse using treesitter
+---@param opts {inline_link: string?, keep_pointy_brackets: boolean?, location: MdnInLineLocation?}?
+---@return MdnInlineLinkData?
+function M.parse_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local inline_link = opts.inline_link
+    local keep_pointy_brackets = opts.keep_pointy_brackets ~= false
+    local locopts = opts.location or {}
+    local buf = locopts.buf or vim.api.nvim_get_current_buf()
+    local lnum = locopts.lnum or vim.fn.line('.')
+    local col_start = locopts.col_start or vim.fn.col('.')
+    local col_end = locopts.col_end or vim.fn.col('.')
+    local cur_col = locopts.cur_col or math.floor((col_start + col_end) / 2)
+
+    vim.validate("inline_link", inline_link, "string", true)
+    vim.validate("keep_pointy_brackets", keep_pointy_brackets, "boolean")
+
+    local node, source
+    if opts.location ~= nil or inline_link == nil then
+        node = vim.treesitter.get_node({
+            bufnr = buf,
+            ignore_injections = false,
+            pos = {lnum - 1, col_start - 1}
+        })
+        source = buf
+    else
+        local parser = vim.treesitter.get_string_parser(inline_link, "markdown_inline")
+        local tree = parser:parse()[1]
+        node = tree:root():child(0)
+        source = inline_link
+    end
+
+    local node_data
+    local process_node = require('mdnotes.treesitter')["inline_link"] or function() return {} end
+    local function get_node_data(_node)
+        if _node ~= nil then
+            node_data = process_node(_node, source)
+            if node_data == nil then
+                get_node_data(_node:parent())
+            end
+        end
+    end
+
+    get_node_data(node)
+
+    if node_data == nil then
+        return nil
+    end
+
+    -- Remove any < or > from destination
+    if keep_pointy_brackets == false then
+        node_data.destination = node_data.destination:gsub("[<>]?", "")
+    end
+
+    -- Remove quotes
+    if node_data.title ~= "" then
+        node_data.title = node_data.title:sub(2, #node_data.title - 1)
+    end
+
+    node_data.cur_col = cur_col
+
+    return node_data
+end
+
 ---Get an inline link string from an MdnInlineLinkData object
 ---@param ildata MdnInlineLinkData? Inline link object
----@return string inline_link
+---@return string? inline_link
 function M.get_il_from_obj(ildata)
     vim.validate("ildata", ildata, "table", true)
-    if ildata == nil then return "" end
+    if ildata == nil then return nil end
+
     local destination = tostring(ildata.destination)
     if destination:match("%s") then
        destination = "<" .. destination .. ">"
@@ -194,8 +273,8 @@ function M.toggle(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
-    local check_markdown_syntax = require('mdnotes').check_markdown_syntax
-    if check_markdown_syntax(require("mdnotes.patterns").inline_link, { location = opts.location }) then
+    local check_inline_markdown_syntax = require('mdnotes').check_inline_markdown_syntax
+    if check_inline_markdown_syntax("inline_link", { location = opts.location }) then
         M.delete({ location = opts.location, store = true })
     else
         M.insert({ destination = opts.destination, location = opts.location })
@@ -280,21 +359,18 @@ function M.rename(opts)
     end
 end
 
----Normalize inline link
+---Normalize inline link using Lua patterns
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation?}?
 function M.normalize(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
-    local ildata = M.parse({ location = opts.location })
+    local ildata = M.parse_re({ location = opts.location, keep_pointy_brackets = false })
     if ildata == nil then return end
 
-    -- Remove any < or > from destination and normalize path
-    local destination = ildata.destination:gsub("[<>]?", "")
-    destination = vim.fs.normalize(destination)
-
     local new_destination = ""
+    local destination = vim.fs.normalize(ildata.destination)
     local fragment = destination:match(require("mdnotes.patterns").fragment)
     if fragment ~= nil then
         local convert_text_to_gfm = require('mdnotes').convert_text_to_gfm
@@ -324,7 +400,7 @@ function M.validate(opts)
     opts = opts or {}
 
     local silent = opts.silent or false
-    local ildata = M.parse({ location = opts.location })
+    local ildata = M.parse_re({ location = opts.location })
 
     if ildata == nil or ildata.text == nil or ildata.destination == nil then
         if silent == false then
@@ -394,22 +470,54 @@ function M.picker(on_end, buf)
 end
 
 ---Parse the inline links in the specified lines
----@param opts {location: MdnMultiLineLocation?, str: boolean?, no_duplicates: boolean?}?
+---@param opts MdnParseLinesOpts?
 ---@return table<MdnInlineLinkData>?
 function M.parse_lines(opts)
+    local parser = require('mdnotes').config.parser
+    if parser == "patterns" then
+        return M.parse_lines_re(opts)
+    elseif parser == "treesitter" then
+        return M.parse_lines_ts(opts)
+    end
+end
+
+---Parse the inline links in the specified lines using Lua patterns
+---@param opts MdnParseLinesOpts?
+---@return table<MdnInlineLinkData>?
+function M.parse_lines_re(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local str = opts.str or false
     local pattern = require('mdnotes.patterns').inline_link
-    local parse_lines = require('mdnotes').parse_lines
+    local parse_lines_re = require('mdnotes').parse_lines_re
 
-    local get_func = nil
+    local process_func = nil
     if str == true then
-        get_func = M.get_il_from_obj
+        process_func = M.get_il_from_obj
     end
+    local _opts = vim.tbl_extend("force", opts, {process_func = process_func})
 
-    return parse_lines(pattern, M.parse, {location = opts.location, no_duplicates = opts.no_duplicates, get_func = get_func})
+    return parse_lines_re(pattern, M.parse_re, _opts)
+end
+
+---Parse the inline links in the specified lines using Lua patterns
+---@param opts MdnParseLinesOpts?
+---@return table<MdnInlineLinkData>?
+function M.parse_lines_ts(opts)
+    vim.validate("opts", opts, "table", true)
+    opts = opts or {}
+
+    local str = opts.str or false
+    local parse_lines_ts = require('mdnotes').parse_lines_ts
+
+    local process_func = nil
+    if str == true then
+        process_func = M.get_il_from_obj
+    end
+    local _opts = vim.tbl_extend("force", opts, {process_func = process_func})
+
+    return parse_lines_ts("inline_link", _opts)
 end
 
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?

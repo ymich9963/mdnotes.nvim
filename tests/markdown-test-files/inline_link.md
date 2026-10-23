@@ -13,3 +13,6 @@ GFM-style fragment [link](#inline-link)
 
 Normalize and convert to GFM [link](formatting#Inline Code)
 
+File with as-is fragment and title [link](<inline_link.md#Inline Link> "title")
+
+Inline link image ![image](image.png)

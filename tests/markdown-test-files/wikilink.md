@@ -6,3 +6,5 @@ Test for fragment with spaces [[formatting#Inline Code]]
 Tets for wikilink normalize [[..\markdown-test-files\formatting.md]]
 
 Other tests [[test.md]]
+
+[[formatting#Inline Code|Alias]]

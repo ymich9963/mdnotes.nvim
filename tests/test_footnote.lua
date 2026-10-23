@@ -22,7 +22,14 @@ local T = new_set({
     },
 })
 
-T['parse'] = function()
+T['parse()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['parse()']['impl'] = function(suffix)
     local lines = {
         "[^1]",
         "Text before [^2] and after",
@@ -33,7 +40,7 @@ T['parse'] = function()
     create_md_buffer(child, lines)
 
     child.fn.cursor(1,2)
-    local ret = child.lua([[ return Mdn.footnote.parse() ]])
+    local ret = child.lua([[ return Mdn.footnote.parse]] .. suffix .. [[ () ]])
     eq(ret, {
         buf = 2,
         col_end = 5,
@@ -45,7 +52,7 @@ T['parse'] = function()
     })
 
     child.fn.cursor(2,14)
-    ret = child.lua([[ return Mdn.footnote.parse() ]])
+    ret = child.lua([[ return Mdn.footnote.parse]] .. suffix .. [[ () ]])
     eq(ret, {
         buf = 2,
         col_end = 17,
@@ -57,7 +64,14 @@ T['parse'] = function()
     })
 end
 
-T['get_buf_footnotes()'] = function()
+T['get_buf_footnotes()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['get_buf_footnotes()']['impl'] = function(suffix)
     local lines = {
         "[^1]",
         "Text before [^2] and after",
@@ -67,7 +81,7 @@ T['get_buf_footnotes()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[ return Mdn.footnote.get_buf_footnotes() ]])
+    local ret = child.lua([[ return Mdn.footnote.get_buf_footnotes]] .. suffix .. [[() ]])
     eq(ret, {
         {
             identifier = "1",
@@ -94,22 +108,20 @@ T['populate_buf_footnotes()'] = function()
 
     local ret = child.lua([[
     Mdn.footnote.populate_buf_footnotes()
-    return Mdn.footnote.buf_footnotes
+    local buf = vim.api.nvim_get_current_buf()
+    return Mdn.footnote.buf_footnotes[buf]
     ]])
     eq(ret, {
-        vim.NIL,
         {
-            {
-                identifier = "1",
-                text = "This is footnote 1",
-                lnum = 4
-            },
-            {
-                identifier = "2",
-                text = "This is footnote 2",
-                lnum = 5
-            },
-        }
+            identifier = "1",
+            text = "This is footnote 1",
+            lnum = 4
+        },
+        {
+            identifier = "2",
+            text = "This is footnote 2",
+            lnum = 5
+        },
     })
 end
 
@@ -248,7 +260,14 @@ T['get_fref_from_obj()'] = function()
     eq(ret, "[^1]")
 end
 
-T['parse_lines()'] = function()
+T['parse_lines()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['parse_lines()']['impl'] = function(suffix)
     local lines = {
         "[^1]",
         "Text before [^2] and after",
@@ -258,7 +277,7 @@ T['parse_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return Mdn.footnote.parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.footnote.parse_lines]] .. suffix .. [[({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -279,8 +298,8 @@ T['parse_lines()'] = function()
             raw = "[^2]",
         }
     })
-    ret = child.lua([[return Mdn.footnote.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
-    eq(ret, {"[^1]", "[^2]", "", ""})
+    ret = child.lua([[return Mdn.footnote.parse_lines]] .. suffix .. [[({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    eq(ret, {"[^1]", "[^2]" })
 end
 
 T['find_references()'] = function()

@@ -15,20 +15,32 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[require('mdnotes').setup()]])
+            child.lua([[require('mdnotes').setup({
+                autocmds = {
+                    --BUG: affects tests if true
+                    populate_buf_footnotes = false 
+                }
+            })]])
         end,
         -- This will be executed one after all tests from this set are finished
         post_once = child.stop,
     },
 })
 
-T['parse()'] = function()
+T['parse()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['parse()']['impl'] = function(suffix)
     local lines = {
         "[[test#fragment|alias]]"
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua("return Mdn.wikilink.parse()")
+    local ret = child.lua("return Mdn.wikilink.parse" .. suffix .. "()")
     eq(ret, {
         buf = 2,
         col_end = 24,
@@ -43,13 +55,11 @@ T['parse()'] = function()
 end
 
 T['follow()'] = function()
-    local lines = {}
     child.cmd([[edit tests/test-data/files/file3.md]])
-    child.lua([[Mdn.set_cwd()]])
     child.fn.cursor(2,1)
     child.lua([[Mdn.wikilink.follow()]])
     local buf = child.api.nvim_get_current_buf()
-    lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
+    local lines = child.api.nvim_buf_get_lines(buf, 0, -1, false)
     eq(lines[1], "# File 2")
 end
 
@@ -297,7 +307,14 @@ T['get_wl_from_obj()'] = function()
     eq(ret, "[[test#frag]]")
 end
 
-T['parse_lines()'] = function()
+T['parse_lines()'] = new_set({
+    parametrize = {
+        { '_re' },
+        { '_ts' }
+    }
+})
+
+T['parse_lines()']['impl'] = function(suffix)
     local lines = {
         "# Heading",
         "",
@@ -305,7 +322,7 @@ T['parse_lines()'] = function()
     }
     create_md_buffer(child, lines)
 
-    local ret = child.lua([[return Mdn.wikilink.parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    local ret = child.lua([[return Mdn.wikilink.parse_lines]] .. suffix .. [[({ location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {
         {
             buf = 2,
@@ -315,9 +332,11 @@ T['parse_lines()'] = function()
             lnum = 3,
             raw = "[[test]]",
             file = "test",
+            alias = "",
+            fragment = "",
         }
     })
-    ret = child.lua([[return Mdn.wikilink.parse_lines({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
+    ret = child.lua([[return Mdn.wikilink.parse_lines]] .. suffix .. [[({ str = true, location = {startl = 1, endl = vim.fn.line("$") }, silent = true }) ]])
     eq(ret, {"[[test]]"})
 end
 

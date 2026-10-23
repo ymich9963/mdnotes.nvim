@@ -15,8 +15,13 @@ local T = new_set({
             -- Restart child process with custom 'init.lua' script
             child.restart({ '-u', 'scripts/minimal_init.lua' })
             -- Load tested plugin
-            child.lua([[require('mdnotes').setup({assets_path = "assets"})]])
-            -- child.o.grepprg = "internal"
+            child.lua([[require('mdnotes').setup({
+                assets_path = "assets",
+                autocmds = {
+                    --BUG: affects tests if true
+                    populate_buf_footnotes = false 
+                }
+            })]])
         end,
         -- This will be executed one after all tests from this set are finished
         post_once = child.stop,
@@ -147,9 +152,10 @@ T['delete()'] = function()
     Mdn.set_cwd()
     return {
         Mdn.assets.delete({
-        destination = "assets/asset4.txt",
-        skip_input = true })
-    }]])
+            destination = "assets/asset4.txt",
+            skip_input = true })
+        }
+        ]])
     eq(ret[1] , true)
     eq(vim.fs.basename(ret[2]) , "asset4.txt")
     eq(

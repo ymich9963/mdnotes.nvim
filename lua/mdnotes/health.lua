@@ -62,6 +62,11 @@ M.check = function()
         vim.health.warn("Detected no Markdown LSP(s). If you're using any Markdown LSPs, open a Markdon buffer and run checkhealth again.")
     end
 
+    if not vim.tbl_contains({"patterns", "treesitter"}, config.parser) then
+        vim.health.error(("'parser' value '%s' is invalid. Can only use 'patterns' or 'treesitter'. Defaulting to 'treesitter'."):format(M.config.parser))
+        config_ok = false
+    end
+
     if not vim.tbl_isempty(config) and config_ok == true then
         vim.health.ok("Setup is correct and all checks have passed. Detected config:\n" .. config_str)
     else
