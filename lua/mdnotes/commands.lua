@@ -1,0 +1,281 @@
+---@module "mdnotes.commands"
+
+local commands = nil
+local get_commands = function() return {
+    index = {
+        require("mdnotes").go_to_index_file,
+    },
+    journal = {
+        require("mdnotes.journal").go_to,
+        insert_entry = require("mdnotes.journal").insert_entry,
+    },
+    formatting = {
+        strong_toggle = require("mdnotes.formatting").strong_toggle,
+        emphasis_toggle = require("mdnotes.formatting").emphasis_toggle,
+        strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
+        inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
+        autolink_toggle = require("mdnotes.formatting").autolink_toggle,
+        fenced_code_block_toggle = require("mdnotes.formatting").fenced_code_block_toggle,
+    },
+    list = {
+        task_list_toggle = require("mdnotes.list").task_list_toggle,
+        ordered_list_renumber = require("mdnotes.list").ordered_list_renumber,
+    },
+    wikilink = {
+        follow = require("mdnotes.wikilink").follow,
+        follow_hor = require("mdnotes.wikilink").follow_hor,
+        follow_vert = require("mdnotes.wikilink").follow_vert,
+        find_references = require("mdnotes.wikilink").find_references,
+        rename_references = require("mdnotes.wikilink").rename_references,
+        undo_rename = require("mdnotes.wikilink").undo_rename,
+        create = require("mdnotes.wikilink").create,
+        delete = require("mdnotes.wikilink").delete,
+        normalize = require("mdnotes.wikilink").normalize,
+        find_orphans = require("mdnotes.wikilink").find_orphans,
+    },
+    table = {
+        create = require("mdnotes.table").create,
+        best_fit = require("mdnotes.table").best_fit,
+        column_insert_left = require("mdnotes.table").column_insert_left,
+        column_insert_right = require("mdnotes.table").column_insert_right,
+        column_move_left = require("mdnotes.table").column_move_left,
+        column_move_right = require("mdnotes.table").column_move_right,
+        column_delete = require("mdnotes.table").column_delete,
+        column_alignment_toggle = require("mdnotes.table").column_alignment_toggle,
+        column_duplicate = require("mdnotes.table").column_duplicate,
+        column_sort_ascending = require("mdnotes.table").column_sort_ascending,
+        column_sort_descending = require("mdnotes.table").column_sort_descending,
+        row_insert_above = require("mdnotes.table").row_insert_above,
+        row_insert_below = require("mdnotes.table").row_insert_below,
+        populate = require("mdnotes.table").populate,
+    },
+    history = {
+        go_back = require("mdnotes.history").go_back,
+        go_forward = require("mdnotes.history").go_forward,
+        clear = require("mdnotes.history").clear,
+    },
+    assets = {
+        insert = require("mdnotes.assets").insert,
+        move_unused = require("mdnotes.assets").move_unused,
+        open_containing_folder = require("mdnotes.assets").open_containing_folder,
+        download_website_html  = require("mdnotes.assets").download_website_html,
+        delete  = require("mdnotes.assets").delete,
+        view  = require("mdnotes.assets").view,
+        insert_from_clipboard = require("mdnotes.assets").insert_from_clipboard,
+    },
+    outliner= {
+        toggle = require("mdnotes.outliner").toggle,
+        indent = require("mdnotes.outliner").indent,
+        unindent = require("mdnotes.outliner").unindent,
+    },
+    inline_link = {
+        open = require("mdnotes.inline_link").open,
+        toggle = require("mdnotes.inline_link").toggle,
+        rename = require("mdnotes.inline_link").rename,
+        relink = require("mdnotes.inline_link").relink,
+        normalize = require("mdnotes.inline_link").normalize,
+        validate = require("mdnotes.inline_link").validate,
+        convert_from_reference = require("mdnotes.inline_link").convert_from_reference
+    },
+    toc = {
+        generate = require("mdnotes.toc").generate,
+        update = require("mdnotes.toc").update,
+        browse = require("mdnotes.toc").browse
+    },
+    heading = {
+        next = require("mdnotes.heading").next,
+        previous = require("mdnotes.heading").previous,
+        go_to = require("mdnotes.heading").go_to,
+    },
+    reference_link = {
+        open = require("mdnotes.reference_link").open,
+        insert = require("mdnotes.reference_link").insert,
+        go_to_definition = require("mdnotes.reference_link").go_to_definition,
+        delete = require("mdnotes.reference_link").delete,
+        update_definition = require("mdnotes.reference_link").update_definition,
+        cleanup = require("mdnotes.reference_link").cleanup,
+        populate_buf_reference_link_definitions = require("mdnotes.reference_link").populate_buf_reference_link_definitions,
+        rename = require("mdnotes.reference_link").rename,
+        relabel = require("mdnotes.reference_link").relabel,
+        convert_from_inline = require("mdnotes.reference_link").convert_from_inline,
+        find_label_occurences = require("mdnotes.reference_link").find_label_occurences
+    },
+    footnote = {
+        insert = require("mdnotes.footnote").insert,
+        go_to = require("mdnotes.footnote").go_to,
+        update = require("mdnotes.footnote").update,
+        cleanup = require("mdnotes.footnote").cleanup,
+        find_references = require("mdnotes.footnote").find_references,
+        renumber = require("mdnotes.footnote").renumber,
+        populate_buf_footnotes = require("mdnotes.footnote").populate_buf_footnotes,
+    },
+    miscellaneous = {
+        set_cwd = require("mdnotes").set_cwd,
+        record_buf = require("mdnotes.history").record_buf,
+        populate_buf_fragments = require("mdnotes").populate_buf_fragments,
+        open_containing_folder = require("mdnotes").open_containing_folder,
+        statistics = require("mdnotes").statistics,
+        view_fragments = require("mdnotes").view_fragments,
+        run_demo = require("mdnotes.demo").run,
+    },
+    user = vim.deepcopy(require('mdnotes').config.user_commands, true)
+}
+end
+
+---To concatinate args with spaces so that
+---they aren't considered as separate argument
+local function concat_arg(args)
+    local arg = args[3]
+    for i = 4, #args do
+        arg = arg .. " " .. args[i]
+    end
+
+    return arg
+end
+
+vim.api.nvim_create_user_command( "Mdn", function(opts)
+    ---@type table<any>
+    local args = vim.split(opts.args, "%s+")
+    local cmd_arg = args[1]
+    local subcmd_arg = ""
+    local func = nil
+    commands = commands or get_commands()
+
+    local command = commands[cmd_arg]
+    if #args > 1 then
+        subcmd_arg = args[2]
+        func = command[subcmd_arg]
+    else
+        func = command[1]
+    end
+
+    if func == commands.formatting.task_list_toggle
+        or func == commands.formatting.unformat_lines
+        or func == commands.formatting.fenced_code_block_toggle then
+        func({ location = { startl = opts.line1, endl = opts.line2 } })
+    elseif func == commands.table.create and #args > 2 then
+        func(args[3], args[4])
+    elseif func == commands.toc.generate
+        or func == commands.toc.update and #args > 2 then
+        func({ depth = tonumber(args[3]) })
+    elseif func == commands.assets.view
+        or func == commands.assets.insert then
+        func({ asset = concat_arg(args), picker = true })
+    elseif func == commands.inline_link.open then
+        func({ inline_link = concat_arg(args), picker = true })
+    elseif func == commands.wikilink.follow
+        or func == commands.wikilink.follow_hor
+        or func == commands.wikilink.follow_vert then
+        func({ wikilink = concat_arg(args), picker = true })
+    elseif func == commands.reference_link.open then
+        func({ reference_link = concat_arg(args), picker = true })
+    elseif func == commands.reference_link.insert
+        or func == commands.reference_link.find_label_occurences
+        or func == commands.reference_link.go_to_definition then
+        func({ label = concat_arg(args), picker = true })
+    elseif func == commands.footnote.insert
+        or func == commands.footnote.go_to then
+        func({ identifier = concat_arg(args), picker = true })
+    elseif func == commands.heading.go_to then
+        func(concat_arg(args), {picker = true})
+    elseif func == commands.user[1] and vim.tbl_isempty(commands.user) then
+        vim.notify("Mdn: There are no user commands in place", vim.log.levels.ERROR)
+    elseif command == commands.user then
+        func(args[3])
+    elseif func then
+        func()
+    else
+        vim.notify("Mdn: Unknown command: '" .. cmd_arg .. " " .. subcmd_arg .. "'", vim.log.levels.ERROR)
+    end
+end,
+{
+    nargs = "+",
+    complete = function(arg, cmd, _)
+        local args = vim.split(cmd, "%s+")
+        commands = commands or get_commands()
+
+        if #args == 2 then
+            -- Command completion
+            return vim.tbl_filter(function(k)
+                return k:find("^" .. arg)
+            end, vim.tbl_keys(commands))
+        elseif #args == 3 then
+            -- Subcommand completion
+            local category = args[2]
+            local subcmd = commands[category]
+
+            if not subcmd then
+                return
+            end
+
+            return vim.tbl_filter(function(k)
+                return k:find("^" .. arg)
+            end, vim.tbl_keys(subcmd))
+        elseif #args == 4 then
+            local command = args[2]
+            local subcmd = args[3]
+            if command == "assets" then
+                if subcmd == "insert" or subcmd == "view" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.assets').get_asset_list() or {})
+                end
+            end
+
+            if command == "inline_link" then
+                if subcmd == "open" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.inline_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
+                    )
+                end
+            end
+
+            if command == "wikilink" then
+                if subcmd == "follow" or subcmd == "follow_vert" or subcmd == "follow_hor" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.wikilink').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
+                    )
+                end
+            end
+
+            if command == "reference_link" then
+                if subcmd == "open" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.reference_link').parse_lines({ location = {startl = 1, endl = vim.fn.line("$") }, str = true, silent = true }) or {}
+                    )
+                end
+                if subcmd == "insert" or subcmd == "find_label_occurences" or subcmd == "go_to_definition" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.reference_link').get_buf_reference_link_definitions({only_labels = true}) or {}
+                    )
+                end
+            end
+
+            if command == "footnote" then
+                if subcmd == "insert" or subcmd == "find_references" or subcmd == "go_to" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes.footnote').get_buf_footnotes({only_identifiers = true}) or {}
+                    )
+                end
+            end
+
+            if command == "heading" then
+                if subcmd == "go_to" then
+                    return vim.tbl_filter(function(k)
+                        return k:find("^" .. arg)
+                    end, require('mdnotes').get_buf_fragments({only_text = true}) or {}
+                    )
+                end
+            end
+
+        end
+    end,
+    desc = "Mdnotes main command",
+    range = true,
+})
+

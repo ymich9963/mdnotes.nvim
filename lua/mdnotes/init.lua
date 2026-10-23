@@ -268,6 +268,12 @@ function M.setup(user_config)
     set_g()
     ts_parser_check()
 
+    -- Load commands
+    require('mdnotes.commands')
+
+    -- Load autocmds
+    require('mdnotes.autocmds')
+
     -- Get plugin install dir
     for _, dir in ipairs(vim.api.nvim_list_runtime_paths()) do
         if dir:match(".*mdnotes.nvim$") then
