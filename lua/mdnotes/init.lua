@@ -235,6 +235,7 @@ local function set_g()
     _G.Mdn.history = require('mdnotes.history')
     _G.Mdn.inline_link = require('mdnotes.inline_link')
     _G.Mdn.journal = require('mdnotes.journal')
+    _G.Mdn.list = require('mdnotes.list')
     _G.Mdn.outliner = require('mdnotes.outliner')
     _G.Mdn.patterns = require('mdnotes.patterns')
     _G.Mdn.reference_link = require('mdnotes.reference_link')
@@ -628,60 +629,6 @@ function M.get_text_in_pattern(pattern, opts)
         cur_col = cur_col,
         raw = found_raw_text,
     }
-end
-
----New line remaps
----@param key '"o"'|'"O"'|'"<CR>"'
----@return string?
-function M.new_line_remap(key, inc_val)
-    vim.validate("key", key, "string")
-
-    local lnum = vim.fn.line('.')
-    local line = vim.api.nvim_get_current_line()
-    local ldata = require('mdnotes.formatting').parse_list_item(line)
-
-    -- If no list item detected then use keys normally
-    if ldata == nil then
-        if key == "o" or key == "O" then
-            vim.api.nvim_feedkeys(key, "n", true)
-        elseif key == "<CR>" then
-            return "\n"
-        end
-
-        return
-    end
-
-    local new_ldata = vim.deepcopy(ldata, true)
-    if ldata.type == "unordered" then
-        new_ldata.text = ""
-    elseif ldata.type == "ordered" then
-        new_ldata.text = ""
-        new_ldata.marker = tostring(tonumber(ldata.marker) + inc_val)
-    else
-        return ""
-    end
-
-    local new_item = require('mdnotes.formatting').get_list_item_string(new_ldata)
-
-    if key == "o" then
-        vim.api.nvim_buf_set_lines(0, lnum, lnum, false, { new_item })
-        vim.fn.cursor({ lnum + 1, #new_item + 1 })
-    elseif key == "O" then
-        vim.api.nvim_buf_set_lines(0, lnum - 1, lnum - 1, false, { new_item })
-        vim.fn.cursor({ lnum, #new_item + 1 })
-    elseif key == "<CR>" then
-        if ldata.text == "" then
-            vim.api.nvim_input("<ESC>S")
-
-            return
-        end
-
-        return "\n" .. new_item
-    else
-        return nil
-    end
-
-    vim.api.nvim_input('a')
 end
 
 ---Go to index file

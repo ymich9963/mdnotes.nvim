@@ -25,7 +25,7 @@ function  M.toggle()
         vim.keymap.set('i', '<TAB>', '<cmd>Mdn outliner indent<CR>', { buffer = true })
         vim.keymap.set('i', '<S-TAB>', '<cmd>Mdn outliner unindent<CR>', { buffer = true })
         vim.keymap.set("i", "<CR>", function ()
-            return mdnotes.new_line_remap("<CR>", true)
+            return mdnotes.list.new_line_remap("<CR>", true)
         end,
         {
             expr = true,
@@ -46,7 +46,7 @@ function M.indent(opts)
 
     local move_cursor = opts.move_cursor ~= false
     local searchopts = opts.search or {}
-    local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true, search = searchopts })
+    local lsearch = require('mdnotes.list').check_list_valid({ outliner_list = true, search = searchopts })
     local lines = vim.api.nvim_buf_get_lines(lsearch.buf, lsearch.startl - 1, lsearch.endl, false) or {}
     local cur_lnum = searchopts.origin_lnum or vim.fn.line('.')
     local new_lines = {}
@@ -71,7 +71,7 @@ function M.unindent(opts)
 
     local move_cursor = opts.move_cursor ~= false
     local searchopts = opts.search or {}
-    local lsearch = require('mdnotes.formatting').check_list_valid({ outliner_list = true, search = opts.search })
+    local lsearch = require('mdnotes.list').check_list_valid({ outliner_list = true, search = opts.search })
     local lines = vim.api.nvim_buf_get_lines(lsearch.buf, lsearch.startl - 1, lsearch.endl, false) or {}
     local cur_lnum = searchopts.origin_lnum or vim.fn.line('.')
     local new_lines = {}

@@ -192,7 +192,7 @@ function M.run()
         {
             action = function()
                 vim.fn.cursor(7, 1)
-                require('mdnotes').new_line_remap('o')
+                require('mdnotes.list').new_line_remap('o')
             end,
             delay = 1000,
         },
@@ -221,7 +221,7 @@ function M.run()
         {
             action = function()
                 vim.fn.cursor(7, 1)
-                require('mdnotes').new_line_remap('o')
+                require('mdnotes.list').new_line_remap('o', 1)
             end,
             delay = 1000,
         },
@@ -234,7 +234,7 @@ function M.run()
         },
         {
             action = function()
-                vim.api.nvim_feedkeys(":Mdn formatting ordered_list_renumber\n", "n", false)
+                vim.api.nvim_feedkeys(":Mdn list ordered_list_renumber\n", "n", false)
             end,
             delay = 1000,
         },

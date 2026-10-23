@@ -50,7 +50,7 @@ vim.api.nvim_create_autocmd({"TextChangedI"}, {
     pattern = "*.md",
     group = mdnotes_renumber_group,
     callback = function()
-        require("mdnotes.formatting").ordered_list_renumber({ silent = true })
+        require("mdnotes.list").ordered_list_renumber({ silent = true })
     end,
     desc = "Mdnotes automatic ordered list renumber autocmd"
 })
@@ -123,9 +123,11 @@ local get_commands = function() return {
         strikethrough_toggle = require("mdnotes.formatting").strikethrough_toggle,
         inline_code_toggle = require("mdnotes.formatting").inline_code_toggle,
         autolink_toggle = require("mdnotes.formatting").autolink_toggle,
-        task_list_toggle = require("mdnotes.formatting").task_list_toggle,
-        ordered_list_renumber = require("mdnotes.formatting").ordered_list_renumber,
         fenced_code_block_toggle = require("mdnotes.formatting").fenced_code_block_toggle,
+    },
+    list = {
+        task_list_toggle = require("mdnotes.list").task_list_toggle,
+        ordered_list_renumber = require("mdnotes.list").ordered_list_renumber,
     },
     wikilink = {
         follow = require("mdnotes.wikilink").follow,
