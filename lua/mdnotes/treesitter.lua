@@ -105,8 +105,7 @@ local function get_il_data(n, s)
         local type = child:type()
         if type == "link_text" or type  == "image_description" then
             text = vim.treesitter.get_node_text(child, s)
-        end
-        if type == "link_destination" then
+        elseif type == "link_destination" then
             destination = vim.treesitter.get_node_text(child, s)
         end
         if type == "link_title" then
@@ -178,17 +177,14 @@ local function get_list_item_data(n, s)
             or type == "list_marker_star" then
             marker = vim.treesitter.get_node_text(child, s):sub(-2, -2)
             list_type = "unordered"
-        end
-        if type == "list_marker_dot"
+        elseif type == "list_marker_dot"
             or type == "list_marker_parenthesis" then
             separator = vim.treesitter.get_node_text(child, s):sub(-2, -2)
             marker = vim.treesitter.get_node_text(child, s):sub(1, -3)
             list_type = "ordered"
-        end
-        if type == "paragraph" then
+        elseif type == "paragraph" then
             text = vim.treesitter.get_node_text(child, s)
-        end
-        if type == "task_list_marker_checked" or type == "task_list_marker_unchecked" then
+        elseif type == "task_list_marker_checked" or type == "task_list_marker_unchecked" then
             task_state = vim.treesitter.get_node_text(child, s)
         end
     end
@@ -214,8 +210,7 @@ local function get_rl_data(n, s)
         local type = child:type()
         if type == "link_text" then
             text = vim.treesitter.get_node_text(child, s)
-        end
-        if type == "link_label" then
+        elseif type == "link_label" then
             label = vim.treesitter.get_node_text(child, s):sub(2,-2)
         end
     end
@@ -362,8 +357,7 @@ local function get_rldef_data(n, s)
         local type = child:type()
         if type == "link_label" then
             label = vim.treesitter.get_node_text(child, s):sub(2,-2)
-        end
-        if type == "link_destination" then
+        elseif type == "link_destination" then
             destination = vim.treesitter.get_node_text(child, s)
         end
     end
