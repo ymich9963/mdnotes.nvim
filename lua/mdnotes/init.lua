@@ -56,7 +56,7 @@ M.config = {}
 M.open_cmd = nil
 
 ---@type string Current working directory
-M.cwd = nil
+M.cwd = ""
 
 ---@type string Plugin install directory
 M.plugin_install_dir = nil
