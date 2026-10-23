@@ -40,6 +40,7 @@ For a complete descriptive feature list with their associated commands, please s
 - Uses wildmenu command line completion for a variety of commands
 - Create user commands within the plugin namespace for organisation
 - Supports multiple pickers (`:h mdnotes-pickers`)
+- Treesitter support
 - Most internal functions are exposed as an API for extensibility (`:h mdnotes-api`)
 
 ## 👽 Setup
@@ -108,7 +109,7 @@ I've specified below some recommended plugins, keymaps, and optional settings fo
 
 ### 🔌 Plugins
 For the best Neovim Markdown note-taking experience, I've listed some other projects to optionally install alongside mdnotes,
-- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) - Tree-sitter for Neovim; with this also install the `markdown`, `markdown_inline`, and `latex` parsers.
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) with the `markdown` and `markdown_inline` parsers.
 - In-Neovim Previewer for Markdown files (both are excellent),
     - [markview.nvim](https://github.com/OXY2DEV/markview.nvim)
     - [render-markdown.nvim](https://github.com/MeanderingProgrammer/render-markdown.nvim)
