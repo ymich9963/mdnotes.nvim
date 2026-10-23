@@ -3322,6 +3322,11 @@ module. For example, the |wikilink.follow()| function can be accessed like so,
 >lua
     Mdn.wikilink.follow()
 <
+If you don't like Mdnotes populating your global table you can have this line
+in your config,
+>lua
+   _G.Mdn = nil 
+<
 							*mdnotes-api-examples*
 Some examples are listed below for using the API in different scenarios. If
 you want to use these as functions within the `Mdn` namespace then you would
