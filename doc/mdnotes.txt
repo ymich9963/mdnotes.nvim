@@ -510,6 +510,10 @@ to write the buffers if any command changes buffer contents.
     Validate any inline link without opening it to ensure it has a valid
     destination.
 
+:Mdn inline_link convert_to_reference 			*:Mdn-inline_link-convert_to_reference*
+
+    Convert an inline link to a reference link with its definition.
+
 :Mdn formatting strong_toggle				*:Mdn-formatting-strong_toggle*
 
     Toggle Markdown `**strong**` syntax. Select a word and execute the command
@@ -697,9 +701,9 @@ to write the buffers if any command changes buffer contents.
 
     Relabel reference link but do not update definition.
 
-:Mdn reference_link convert_from_inline 		*Mdn-reference_link-convert_from_inline*
+:Mdn reference_link convert_to_inline	 		*Mdn-reference_link-convert_to_inline*
 
-    Convert an inline link to a reference link with its definition.
+    Convert a reference link to an inline link.
 
 :Mdn reference_link find_label_occurences 		*Mdn-reference_link-find_label_occurences*
 
@@ -2035,6 +2039,20 @@ inline_link.parse_lines({opts})				*mdnotes.inline_link.parse_lines()*
     Return: ~
     • (`table<MdnInlineLinkData?`)
 
+inline_link.convert_to_reference({opts})		*mdnotes.inline_link.convert_to_reference()*
+
+    Convert an inline link to a reference link with its definition.
+
+    Parameters: ~
+    • {opts}  (`table?`) Optional parameters:
+              • {move_cursor} (`boolean?`, default `true`)
+		place cursor at the new reference link
+              • {location} (`MdnInLineLocation?`, defaults to current location)
+		specify location of reference link to parse
+
+    Return: ~
+    • (`MdnInlineLinkData?`)
+
 journal.get_journal_file()				*mdnotes.journal.get_journal_file()*
 
     Resolve the journal file name from |mdnotes-journal_file|.
@@ -2349,9 +2367,9 @@ reference_link.open({opts})				*mdnotes.reference_link.open()*
               • {picker} (`boolean`, default `false`)
 		show picker to select
 
-reference_link.convert_from_inline({opts})		*mdnotes.reference_link.convert_from_inline()*
+reference_link.convert_to_inline({opts})		*mdnotes.reference_link.convert_to_inline()*
 
-    Convert an inline link to a reference link with its definition.
+    Convert a reference link to an inline link.
 
     Parameters: ~
     • {opts}  (`table?`) Optional parameters:

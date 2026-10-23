@@ -125,7 +125,7 @@ T['get_buf_reference_link_definitions()']['impl'] = function(suffix)
 
 end
 
-T['populate_buf_reference_links()'] = function()
+T['populate_buf_reference_link_definitions()'] = function()
     local lines = {
         "[neovim][]",
         "[test][neovim]",
@@ -412,17 +412,23 @@ T['open()'] = function()
     eq(child.fn.getcurpos()[2], 1)
 end
 
-T['convert_from_inline()'] = function()
+T['convert_to_inline()'] = function()
     local lines = {
-        "[file1](tests/test-data/files/file1.md)",
+        "[file1][]",
+        "",
+        "[file1]: tests/test-data/files/file1.md",
     }
     create_md_buffer(child, lines)
 
-    child.lua([[ Mdn.reference_link.convert_from_inline() ]])
+    child.lua([[
+    Mdn.reference_link.populate_buf_reference_link_definitions()
+    Mdn.reference_link.convert_to_inline()
+    ]])
 
     lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
     eq(lines, {
-        "[file1][]",
+        "[file1](tests/test-data/files/file1.md)",
+        "",
         "[file1]: tests/test-data/files/file1.md",
     })
 end

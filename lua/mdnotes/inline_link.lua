@@ -520,27 +520,50 @@ function M.parse_lines_ts(opts)
     return parse_lines_ts("inline_link", _opts)
 end
 
+---Convert an inline link to a reference link with its definition
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?
-function M.convert_from_reference(opts)
+---@return MdnReferenceLinkData? rldata, MdnReferenceLinkDefinition? rldef
+function M.convert_to_reference(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
-    local rldata = require('mdnotes.reference_link').parse({ location = opts.location })
-    if rldata == nil or rldata.text == nil then return end
+    local ildata = M.parse({ location = opts.location })
+    if ildata == nil or ildata.text == nil then return nil, nil end
 
-    local rldef = require('mdnotes.reference_link').get_rl_definition(rldata.label, rldata.buf)
-    if rldef == nil then
-        vim.notify("Mdn: No definition found for label '" .. rldata.label .. "'. If you can confirm it exists, try writing the buf or parse definitions manually with ':Mdn reference_link populate_buf_reference_links'", vim.log.levels.ERROR)
-        return
-    end
+    local rldata = {
+        text = ildata.text,
+        label = ildata.text,
+        lnum = ildata.lnum,
+        col_start = ildata.col_start,
+        col_end = ildata.col_start + #ildata.text + 4,
+        buf = ildata.buf
+    }
 
-    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {'[' .. rldata.text .. '](' .. rldef.destination .. ')'})
+    local rldef = {
+        label = ildata.text,
+        destination = ildata.destination,
+        lnum = vim.fn.line("$")
+    }
+
+    local get_rl_from_obj = require('mdnotes.reference_link').get_rl_from_obj
+    local get_rl_definition_from_obj = require('mdnotes.reference_link').get_rl_definition_from_obj
+
+    -- Set the line and cursor position
+    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, ildata.col_start - 1, rldata.lnum - 1, ildata.col_end - 1, {get_rl_from_obj(rldata)})
+    vim.api.nvim_buf_set_lines(rldata.buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {get_rl_definition_from_obj(rldef)})
+
+    local populate_buf_reference_link_definitions = require('mdnotes.reference_link').populate_buf_reference_link_definitions
+
+    -- Update buf_reference_link_definitions
+    populate_buf_reference_link_definitions(ildata.buf)
 
     if move_cursor == true then
-        vim.cmd.buffer(rldata.buf)
-        vim.fn.cursor({rldata.lnum, vim.fn.col('.') + 1})
+        vim.cmd.buffer(ildata.buf)
+        vim.fn.cursor({ildata.lnum, vim.fn.col('.') + 1})
     end
+
+    return rldata, rldef
 end
 
 return M

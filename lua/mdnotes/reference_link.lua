@@ -313,7 +313,7 @@ function M.go_to_definition(opts)
     local rldef = M.get_rl_definition(label, buf)
     if rldef == nil then
         if silent == false then
-            vim.notify("Mdn: No definition found for label '" .. label .. "'", vim.log.levels.ERROR)
+            vim.notify("Mdn: No definition found for label '" .. label .. "'. If you can confirm it exists, try writing the buf or parse definitions manually with ':Mdn reference_link populate_buf_reference_link_definitions'", vim.log.levels.ERROR)
         end
 
         return
@@ -381,7 +381,7 @@ function M.update_definition(opts)
     local rldef = M.get_rl_definition(label, buf)
     if rldef == nil then
         if silent == false then
-            vim.notify("Mdn: No definition found for label '" .. label .. "'", vim.log.levels.ERROR)
+            vim.notify("Mdn: No definition found for label '" .. label .. "'. If you can confirm it exists, try writing the buf or parse definitions manually with ':Mdn reference_link populate_buf_reference_link_definitions'", vim.log.levels.ERROR)
         end
 
         return
@@ -636,45 +636,42 @@ function M.open(opts)
     return require('mdnotes').open(rldef.destination)
 end
 
----Convert an inline link to a reference link with its definition
+---Convert a reference link to an inline link
 ---@param opts {move_cursor: boolean?, location: MdnInLineLocation}?
----@return MdnReferenceLinkData? rldata, MdnReferenceLinkDefinition? rldef
-function M.convert_from_inline(opts)
+---@return MdnInlineLinkData?
+function M.convert_to_inline(opts)
     vim.validate("opts", opts, "table", true)
     opts = opts or {}
 
     local move_cursor = opts.move_cursor ~= false
-    local ildata = require('mdnotes.inline_link').parse({ location = opts.location })
-    if ildata == nil or ildata.text == nil then return nil, nil end
+    local rldata = M.parse({ location = opts.location })
+    if rldata == nil or rldata.text == nil then return end
 
-    local rldata = {
-        text = ildata.text,
-        label = ildata.text,
-        lnum = ildata.lnum,
-        col_start = ildata.col_start,
-        col_end = ildata.col_start + #ildata.text + 4,
-        buf = ildata.buf
-    }
-
-    local rldef = {
-        label = ildata.text,
-        destination = ildata.destination,
-        lnum = vim.fn.line("$")
-    }
-
-    -- Set the line and cursor position
-    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, ildata.col_start - 1, rldata.lnum - 1, ildata.col_end - 1, {M.get_rl_from_obj(rldata)})
-    vim.api.nvim_buf_set_lines(rldata.buf, vim.fn.line("$"), vim.fn.line("$") + 1, false, {M.get_rl_definition_from_obj(rldef)})
-
-    -- Update buf_reference_link_definitions
-    M.populate_buf_reference_link_definitions(ildata.buf)
-
-    if move_cursor == true then
-        vim.cmd.buffer(ildata.buf)
-        vim.fn.cursor({ildata.lnum, vim.fn.col('.') + 1})
+    local rldef = M.get_rl_definition(rldata.label, rldata.buf)
+    if rldef == nil then
+        vim.notify("Mdn: No definition found for label '" .. rldata.label .. "'. If you can confirm it exists, try writing the buf or parse definitions manually with ':Mdn reference_link populate_buf_reference_link_definitions'", vim.log.levels.ERROR)
+        return
     end
 
-    return rldata, rldef
+    local ildata = {
+        img_char = "",
+        text = rldata.text,
+        destination = rldef.destination,
+        title = "",
+        col_start = rldata.col_start,
+        col_end = rldata.col_start + #rldata.text + #rldef.destination + 4,
+        buf = rldata.buf
+    }
+
+    local get_il_from_obj = require('mdnotes.inline_link').get_il_from_obj
+    vim.api.nvim_buf_set_text(rldata.buf, rldata.lnum - 1, rldata.col_start - 1, rldata.lnum - 1, rldata.col_end - 1, {get_il_from_obj(ildata)})
+
+    if move_cursor == true then
+        vim.cmd.buffer(rldata.buf)
+        vim.fn.cursor({rldata.lnum, vim.fn.col('.') + 1})
+    end
+
+    return ildata
 end
 
 ---Parse the reference links in the specified lines
@@ -754,7 +751,7 @@ function M.find_label_occurences(opts)
     local rldef = M.get_rl_definition(label, buf)
     if rldef == nil then
         if silent == false then
-            vim.notify("Mdn: No definition found for label '" .. label .. "'", vim.log.levels.ERROR)
+            vim.notify("Mdn: No definition found for label '" .. label .. "'. If you can confirm it exists, try writing the buf or parse definitions manually with ':Mdn reference_link populate_buf_reference_link_definitions'", vim.log.levels.ERROR)
         end
 
         return

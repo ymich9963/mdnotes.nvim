@@ -75,7 +75,7 @@ local get_commands = function() return {
         relink = require("mdnotes.inline_link").relink,
         normalize = require("mdnotes.inline_link").normalize,
         validate = require("mdnotes.inline_link").validate,
-        convert_from_reference = require("mdnotes.inline_link").convert_from_reference
+        convert_to_reference = require("mdnotes.inline_link").convert_to_reference
     },
     toc = {
         generate = require("mdnotes.toc").generate,
@@ -97,7 +97,7 @@ local get_commands = function() return {
         populate_buf_reference_link_definitions = require("mdnotes.reference_link").populate_buf_reference_link_definitions,
         rename = require("mdnotes.reference_link").rename,
         relabel = require("mdnotes.reference_link").relabel,
-        convert_from_inline = require("mdnotes.reference_link").convert_from_inline,
+        convert_to_inline = require("mdnotes.reference_link").convert_to_inline,
         find_label_occurences = require("mdnotes.reference_link").find_label_occurences
     },
     footnote = {

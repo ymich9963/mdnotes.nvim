@@ -8,6 +8,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Re-link the inline link with `:Mdn inline_link relink`. 
 - Normalize an inline link with `:Mdn inline_link normalize` to have consistent paths and fragment styles. 
 - Validate an inline link without opening it by executing `:Mdn inline_link validate`. This ensures that your inline link has a valid destination.
+- Convert an inline link to a reference link using `:Mdn inline_link convert_to_reference`.
 
 ## 🖇️ WikiLinks
 - Create WikiLinks in all files by highlighting or hovering over a word and executing `:Mdn wikilink create`. This creates WikiLinks for all identical terms in the current directory.
@@ -67,7 +68,7 @@ All the features of `mdnotes` and their associated commands are listed and categ
 - Update reference link definition information with `:Mdn reference_link update_definition`.
 - Cleanup unused reference links and reference link definitions with `:Mdn reference_link cleanup`.
 - Rename or relabel a reference link with `:Mdn reference_link relink/relabel`.
-- Convert an inline link to a reference link using `:Mdn reference_link convert_from_inline`.
+- Convert a reference link to an inline link using `:Mdn reference_link convert_to_inline`.
 - Find occurences of the reference link under the cursor using `:Mdn reference_link find_label_occurences`.
 
 ## 👣 Footnotes

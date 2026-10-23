@@ -24,11 +24,11 @@ For a complete descriptive feature list with their associated commands, please s
 
 - Uses subcommands with opt-in default key mappings and opt-out autocmds
 - **Formatting**: Toggling for strong, emphasis, inline code, strikethrough, autolink, fenced code blocks
-- **Inline links**: Open, toggle, rename, relink, and normalize
+- **Inline links**: Open, toggle, rename, relink, normalize, and convert to reference link
 - **WikiLinks**: Create, follow, delete, and find or rename references
 - **Assets**: Insert, manage, view, and delete assets
 - **Tables**: Create, populate, best-fit, insert/move/duplicate/align/sort columns, and insert empty rows
-- **Reference links**: Open, insert, delete, update, manage, convert from inline links and vice versa
+- **Reference links**: Open, insert, delete, update, manage, convert to inline link and vice versa
 - **Footnotes**: Insert, update, renumber, go-to, find references, and cleanup
 - **ToC**: Generate, update, and browse table of contents
 - Ordered and unordered list continuation and renumbering, with task list toggling

@@ -430,4 +430,19 @@ T['parse_lines()']['imp'] = function(suffix)
     })
 end
 
+T['convert_to_reference()'] = function()
+    local lines = {
+        "[file1](tests/test-data/files/file1.md)",
+    }
+    create_md_buffer(child, lines)
+
+    child.lua([[ Mdn.inline_link.convert_to_reference() ]])
+
+    lines = child.api.nvim_buf_get_lines(0, 0, -1, false)
+    eq(lines, {
+        "[file1][]",
+        "[file1]: tests/test-data/files/file1.md",
+    })
+end
+
 return T
