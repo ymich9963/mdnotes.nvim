@@ -263,6 +263,9 @@ function M.setup(user_config)
     M.config = validate_config(user_config)
     M.config.index_file = vim.fs.normalize(M.config.index_file)
 
+    -- Load autocmds
+    require('mdnotes.autocmds')
+
     resolve_open_cmd()
     resolve_autocmd_config()
     set_g()
@@ -270,9 +273,6 @@ function M.setup(user_config)
 
     -- Load commands
     require('mdnotes.commands')
-
-    -- Load autocmds
-    require('mdnotes.autocmds')
 
     -- Get plugin install dir
     for _, dir in ipairs(vim.api.nvim_list_runtime_paths()) do
