@@ -281,7 +281,11 @@ toc_depth = `integer`		 			*mdnotes-toc_depth*
 parser = `string`		 			*mdnotes-parser*
 
     Use either treesitter or Lua patterns to parse text. Can take the values
-    `"treesitter"` or `"patterns"`. Defaults to `"treesitter"`.
+    `"treesitter"` or `"patterns"`. Defaults to `"treesitter"` with auto-fallback
+    to `"patterns"` if the treesitter parsers are not detected.
+    
+    Use `:checkhealth mdnotes` to check what parser you are using if you are
+    unsure.
 
 user_commands = `table`		 			*mdnotes-user_commands*
 

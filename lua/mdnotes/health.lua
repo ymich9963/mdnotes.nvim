@@ -11,37 +11,37 @@ M.check = function()
     vim.health.start("Mdnotes Report")
 
     if not vim.tbl_contains({"copy", "move"}, config.asset_insert_behaviour) then
-        vim.health.error(("'asset_insert_behaviour' value '%s' is invalid. Can only use 'copy' or 'move'. Defaulting to 'copy'."):format(M.config.asset_insert_behaviour))
+        vim.health.error(("'asset_insert_behaviour' value '%s' is invalid. Can only use 'copy' or 'move'. Defaulting to 'copy'"):format(M.config.asset_insert_behaviour))
         config_ok = false
     end
 
     if not vim.tbl_contains({"overwrite", "error"}, config.asset_overwrite_behaviour) then
-        vim.health.error(("Mdn: 'asset_overwrite_behaviour' value '%s' is invalid. Can only use 'overwrite' or 'error'. Defaulting to 'error'."):format(M.config.asset_overwrite_behaviour))
+        vim.health.error(("Mdn: 'asset_overwrite_behaviour' value '%s' is invalid. Can only use 'overwrite' or 'error'. Defaulting to 'error'"):format(M.config.asset_overwrite_behaviour))
         config_ok = false
     end
 
     if not vim.tbl_contains({"remove", "garbage"}, config.asset_delete_behaviour) then
-        vim.health.error(("Mdn: 'asset_delete_behaviour' value '%s' is invalid. Can only use 'remove' or 'garbage'. Defaulting to 'garbage'."):format(M.config.asset_overwrite_behaviour))
+        vim.health.error(("Mdn: 'asset_delete_behaviour' value '%s' is invalid. Can only use 'remove' or 'garbage'. Defaulting to 'garbage'"):format(M.config.asset_overwrite_behaviour))
         config_ok = false
     end
 
     if not vim.tbl_contains({"remove", "garbage"}, config.wikilink_delete_behaviour) then
-        vim.health.error(("Mdn: 'wikilink_delete_behaviour' value '%s' is invalid. Can only use 'remove' or 'garbage'. Defaulting to 'garbage'."):format(M.config.wikilink_overwrite_behaviour))
+        vim.health.error(("Mdn: 'wikilink_delete_behaviour' value '%s' is invalid. Can only use 'remove' or 'garbage'. Defaulting to 'garbage'"):format(M.config.wikilink_overwrite_behaviour))
         config_ok = false
     end
 
     if not vim.tbl_contains({"buffer", "tab", "split", "vsplit"}, config.open_behaviour) then
-        vim.health.error(("'open_behaviour' value '%s' is invalid. Can only use 'buffer', 'tab', 'split', or 'vsplit'. Defaulting to 'buffer'."):format(M.config.open_behaviour))
+        vim.health.error(("'open_behaviour' value '%s' is invalid. Can only use 'buffer', 'tab', 'split', or 'vsplit'. Defaulting to 'buffer'"):format(M.config.open_behaviour))
         config_ok = false
     end
 
     if not vim.tbl_contains({"**", "__"}, config.strong_format) then
-        vim.health.error(("'strong_format' character '%s' is invalid. Can only use '**' or '__'. Defaulting to '**'."):format(M.config.strong_format))
+        vim.health.error(("'strong_format' character '%s' is invalid. Can only use '**' or '__'. Defaulting to '**'"):format(M.config.strong_format))
         config_ok = false
     end
 
     if not vim.tbl_contains({"*", "_"}, config.emphasis_format) then
-        vim.health.error(("'emphasis_format' character '%s' is invalid. Can only use '*' or '_'. Defaulting to '*'."):format(M.config.emphasis_format))
+        vim.health.error(("'emphasis_format' character '%s' is invalid. Can only use '*' or '_'. Defaulting to '*'"):format(M.config.emphasis_format))
         config_ok = false
     end
 
@@ -59,12 +59,33 @@ M.check = function()
     if #detected_md_lsps > 0 then
         vim.health.ok(("Detected %s Markdown LSP(s): %s"):format(#detected_md_lsps, table.concat(detected_md_lsps, ",")))
     else
-        vim.health.warn("Detected no Markdown LSP(s). If you're using any Markdown LSPs, open a Markdon buffer and run checkhealth again.")
+        vim.health.warn("Detected no Markdown LSP(s). If you're using any Markdown LSPs, open a Markdon buffer and run checkhealth again")
     end
 
     if not vim.tbl_contains({"patterns", "treesitter"}, config.parser) then
-        vim.health.error(("'parser' value '%s' is invalid. Can only use 'patterns' or 'treesitter'. Defaulting to 'treesitter'."):format(M.config.parser))
+        vim.health.error(("'parser' value '%s' is invalid. Can only use 'patterns' or 'treesitter'. Defaulting to 'treesitter'"):format(M.config.parser))
         config_ok = false
+    end
+
+    local parsers = 0
+    if not vim.treesitter.language.add('markdown') then
+        vim.health.warn("'markdown' treesitter parser not found")
+    else
+        vim.health.ok("'markdown' treesitter parser detected")
+        parsers = parsers + 1
+    end
+
+    if not vim.treesitter.language.add('markdown_inline') then
+        vim.health.warn("'markdown_inline' treesitter parser not found")
+    else
+        vim.health.ok("'markdown_inline' treesitter parser detected")
+        parsers = parsers + 1
+    end
+
+    if parsers == 2 then
+        vim.health.ok("Both treesitter parsers detected. Can use treesitter for parsing if configured")
+    else
+        vim.health.warn("Need both 'markdown' and 'markdown_inline' treesitter parsers to use treesitter parsing. Auto-fallback to Lua patterns")
     end
 
     if not vim.tbl_isempty(config) and config_ok == true then
